@@ -1,0 +1,55 @@
+part of 'hive_service.dart';
+
+void _hiveAdapters() {
+  Hive.registerAdapter(_OrderByAdapter());
+  Hive.registerAdapter(_SourceAdapter());
+  Hive.registerAdapter(_BookAdapter());
+}
+
+class _OrderByAdapter extends TypeAdapter<OrderBy> {
+  @override
+  OrderBy read(BinaryReader reader) {
+    final int index = reader.readInt();
+    return OrderBy.values.elementAt(index);
+  }
+
+  @override
+  int get typeId => 1;
+
+  @override
+  void write(BinaryWriter writer, OrderBy obj) {
+    writer.writeInt(obj.index);
+  }
+}
+
+class _SourceAdapter extends TypeAdapter<Source> {
+  @override
+  Source read(BinaryReader reader) {
+    final int index = reader.readInt();
+    return Source.values.elementAt(index);
+  }
+
+  @override
+  int get typeId => 2;
+
+  @override
+  void write(BinaryWriter writer, Source obj) {
+    writer.writeInt(obj.index);
+  }
+}
+
+class _BookAdapter extends TypeAdapter<Book> {
+  @override
+  Book read(BinaryReader reader) {
+    final Map<dynamic, dynamic> map = reader.readMap();
+    return Book.fromMap(map);
+  }
+
+  @override
+  int get typeId => 3;
+
+  @override
+  void write(BinaryWriter writer, Book obj) {
+    writer.writeMap(obj.toMap);
+  }
+}
