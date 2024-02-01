@@ -1,30 +1,22 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:convert';
 
-import 'package:equatable/equatable.dart';
-import 'package:uuid/uuid.dart';
+import 'package:app_wsrb_jsr/app/models/data_content.dart';
 
-class Chapter extends Equatable {
+class Chapter extends DataContent {
   final bool read;
-
-  final String url;
-
-  final String chapterName;
-
-  String get id => const Uuid().v5(Uuid.NAMESPACE_URL, url);
 
   const Chapter({
     this.read = false,
-    required this.url,
-    required this.chapterName,
+    required super.url,
+    required super.title,
   });
 
+  @override
   String get number {
     final rgx = RegExp(r'Cap.+[0-9].-');
     final rgx2 = RegExp(r'Cap.+[0-9]');
 
-    final match =
-        rgx.stringMatch(chapterName) ?? rgx2.stringMatch(chapterName) ?? '';
+    final match = rgx.stringMatch(title) ?? rgx2.stringMatch(title) ?? '';
 
     return match
         .replaceAll(RegExp(r'\([0-9]\)|\(\)|\([0-9]'), '')
@@ -34,13 +26,14 @@ class Chapter extends Equatable {
   }
 
   @override
-  List<Object?> get props => [chapterName, url, read, id];
+  List<Object?> get props => [title, url, read, id];
 
-  Map<String, dynamic> toMap() {
+  @override
+  Map<String, dynamic> get toMap {
     return <String, dynamic>{
       'read': read,
       'url': url,
-      'chapterName': chapterName,
+      'title': title,
     };
   }
 
@@ -48,12 +41,7 @@ class Chapter extends Equatable {
     return Chapter(
       read: map['read'] as bool,
       url: map['url'] as String,
-      chapterName: map['chapterName'] as String,
+      title: map['title'] as String,
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory Chapter.fromJson(String source) =>
-      Chapter.fromMap(json.decode(source) as Map<String, dynamic>);
 }

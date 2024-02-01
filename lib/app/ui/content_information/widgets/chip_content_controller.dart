@@ -1,22 +1,23 @@
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/list_extensions.dart';
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
 import 'package:app_wsrb_jsr/app/core/services/hive/hive_controller.dart';
-import 'package:app_wsrb_jsr/app/models/chapter.dart';
-import 'package:app_wsrb_jsr/app/ui/book_information/widgets/scope.dart';
+
+import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
-class ChipBookController extends StatefulWidget {
-  const ChipBookController({super.key});
+class ChipContentController extends StatefulWidget {
+  const ChipContentController({super.key});
 
   @override
-  State<ChipBookController> createState() => ChipBookControllerState();
+  State<ChipContentController> createState() => ChipContentControllerState();
 }
 
-class ChipBookControllerState extends State<ChipBookController> {
+class ChipContentControllerState extends State<ChipContentController> {
   late final ScrollController _scrollController;
 
   List<GlobalKey> _keys = [];
@@ -28,9 +29,9 @@ class ChipBookControllerState extends State<ChipBookController> {
   }
 
   void _startKeys() {
-    final chapters = BookInformationScope.chaptersOf(context);
-    if (_keys.length == chapters.length) return;
-    _keys = chapters.map((e) => GlobalKey()).toList();
+    final allDataContent = BookInformationScope.allDataContentOf(context);
+    if (_keys.length == allDataContent.length) return;
+    _keys = allDataContent.map((e) => GlobalKey()).toList();
   }
 
   @override
@@ -119,29 +120,30 @@ class ChipBookControllerState extends State<ChipBookController> {
     }
 
     final setListChapterIndex = BookInformationScope.of(context).setListIndex;
-    final chaptersOrders = BookInformationScope.of(context).chaptersOrders;
-    final chapters = BookInformationScope.chaptersOf(context).reversed.toList();
+    final contentOrders = context.watch<HiveController>().contentOrders;
+    final allDataContent =
+        BookInformationScope.allDataContentOf(context).reversed.toList();
     final index = BookInformationScope.indexOf(context);
     final hiveController = context.watch<HiveController>();
-    if (chapters.isEmpty) return const SliverToBoxAdapter();
+    if (allDataContent.isEmpty) return const SliverToBoxAdapter();
 
-    final selectChips = chapters.map((e) => false).toList();
+    final selectChips = allDataContent.map((e) => false).toList();
     selectChips[index] = true;
 
     final chipsWidgets = List.generate(selectChips.length, (index) {
-      Chapter firstText = chapters[index].first;
-      Chapter lastText = chapters[index].last;
+      DataContent firstText = allDataContent[index].first;
+      DataContent lastText = allDataContent[index].last;
 
-      if (chaptersOrders) {
-        firstText = chapters[index].last;
-        lastText = chapters[index].first;
+      if (contentOrders) {
+        firstText = allDataContent[index].last;
+        lastText = allDataContent[index].first;
         if (hiveController.pageOrders) {
-          firstText = chapters[index].first;
-          lastText = chapters[index].last;
+          firstText = allDataContent[index].first;
+          lastText = allDataContent[index].last;
         }
       } else {
-        firstText = chapters[index].first;
-        lastText = chapters[index].last;
+        firstText = allDataContent[index].first;
+        lastText = allDataContent[index].last;
       }
 
       return Padding(
@@ -183,9 +185,9 @@ class ChipBookControllerState extends State<ChipBookController> {
                       ),
                       iconSize: 21,
                       onPressed: () => hiveController
-                          .setChaptersOrders(!hiveController.chaptersOrders),
+                          .setChaptersOrders(!hiveController.contentOrders),
                       icon: FadeThroughTransitionSwitcher(
-                        replace: hiveController.chaptersOrders,
+                        replace: hiveController.contentOrders,
                         duration: const Duration(milliseconds: 550),
                         secondChild: Icon(MdiIcons.sortNumericDescending),
                         child: Icon(MdiIcons.sortNumericAscending),

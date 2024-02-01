@@ -1,21 +1,21 @@
 import 'package:app_wsrb_jsr/app/core/interfaces/hive_service.dart';
 import 'package:app_wsrb_jsr/app/core/services/hive/hive_service.dart';
-import 'package:app_wsrb_jsr/app/models/book.dart';
+import 'package:app_wsrb_jsr/app/models/content.dart';
 import 'package:workmanager/workmanager.dart';
 
-class BookCache {
+class ContentCache {
   final HiveService _hiveService;
 
-  BookCache(this._hiveService);
+  ContentCache(this._hiveService);
 
-  Future<Book?> getBook(String id) async {
+  Future<Content?> getContent(String id) async {
     return await _hiveService.load(id, null, debug: false);
   }
 
-  Future<void> saveBook(Book book) async {
+  Future<void> saveContent(Content content) async {
     await Future.wait([
-      Workmanager().cancelByUniqueName(book.id),
-      _hiveService.save(book.id, book, false),
+      Workmanager().cancelByUniqueName(content.id),
+      _hiveService.save(content.id, content, false),
     ]);
   }
 

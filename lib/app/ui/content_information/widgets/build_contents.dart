@@ -1,8 +1,10 @@
+import 'package:app_wsrb_jsr/app/models/book.dart';
+import 'package:app_wsrb_jsr/app/models/chapter.dart';
+import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/book_information/widgets/dismissible.dart';
-import 'package:app_wsrb_jsr/app/ui/book_information/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/reading/view/reading.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/widgets/dismissible.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -38,13 +40,14 @@ class BuildContents extends StatelessWidget {
     }
 
     final index = BookInformationScope.indexOf(context);
-    final chapters =
-        BookInformationScope.chaptersOf(context).reversed.elementAt(index);
-    final book = BookInformationScope.bookOf(context);
+    final allDataContent = BookInformationScope.allDataContentOf(context)
+        .reversed
+        .elementAt(index);
+    final content = BookInformationScope.contentOf(context);
 
     return SliverList.builder(
       itemBuilder: (context, index) {
-        final chapter = chapters[index];
+        final dataContent = allDataContent[index];
 
         return CustomDismissible(
           onUpdate: (details) {},
@@ -66,29 +69,32 @@ class BuildContents extends StatelessWidget {
             padding: const EdgeInsets.only(right: 20.0),
             child: const Icon(Icons.delete, color: Colors.white),
           ),
-          key: ValueKey(chapter.id),
+          key: ValueKey(dataContent.id),
           onTap: () async {
             customLog(
-              'tapped name: ${chapter.chapterName} - id: ${chapter.id}',
+              'tapped name: ${dataContent.title} - id: ${dataContent.id}',
             );
-            await context.push(
-              RouteName.READ,
-              extra: ReadingView.args(
-                bookThemeData: Theme.of(context),
-                chapter: chapter,
-                chapters: chapters,
-                currentIndex: index,
-                book: book,
-              ),
-            );
+
+            if (dataContent is Chapter && content is Book) {
+              await context.push(
+                RouteName.READ,
+                extra: ReadingViewArgs(
+                  bookThemeData: Theme.of(context),
+                  chapter: dataContent,
+                  allDataContent: allDataContent,
+                  currentIndex: index,
+                  book: content,
+                ),
+              );
+            }
           },
           child: ListTile(
             titleTextStyle: Theme.of(context).textTheme.labelLarge,
-            title: Text(chapter.chapterName),
+            title: Text(content.title),
           ),
         );
       },
-      itemCount: chapters.length,
+      itemCount: allDataContent.length,
     );
   }
 }

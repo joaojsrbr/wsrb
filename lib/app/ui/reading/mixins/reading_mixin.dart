@@ -9,8 +9,8 @@ mixin _ReadingVars on State<ReadingView> {
   bool _enabledSystemUIMode = false;
   bool _showFooterWidget = true;
   // ignore: unused_field
-  List<Chapter> _chapters = [];
-  List<ChapterContent> _data = [];
+  List<DataContent> _allDataContent = [];
+  List<Data> _data = [];
 
   late final BookRepository _repository;
 

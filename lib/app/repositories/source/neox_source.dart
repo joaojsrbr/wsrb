@@ -86,7 +86,11 @@ class NeoxSource extends RSource {
   }
 
   @override
-  Future<Result<Book>> bookData(Book book) async {
+  Future<Result<Content>> getData(Content content) async {
+    assert(content is Book);
+
+    final book = content as Book;
+
     try {
       final response = await Future.wait([
         bookRepository._dio.get(
@@ -115,7 +119,7 @@ class NeoxSource extends RSource {
 
       /// Vars
       final List<Genre> genres = [...book.genres];
-      final List<Chapter> chapters = [...book.chapters];
+      final AllDataContent allDataContent = book.allDataContent;
       String? status;
       String? type;
       List<String> authors = [...book.authors];
@@ -190,18 +194,17 @@ class NeoxSource extends RSource {
 
         if (url.isEmpty || title.isEmpty) continue;
 
+        // id: url.urlToId,
+        // chapterNumber: chapterNumber,
+        // chapterDescription: chapterDescription,
+        // fonte: Fonte.NEOX_SCANS,
+        // createdAt: ParseDateTime(data: elementCreatedAt).parse,
         final chapter = Chapter(
-          // id: url.urlToId,
-          // chapterNumber: chapterNumber,
-          // chapterDescription: chapterDescription,
-          // fonte: Fonte.NEOX_SCANS,
-          // createdAt: ParseDateTime(data: elementCreatedAt).parse,
           url: url,
-
-          chapterName: title,
+          title: title,
         );
 
-        if (!chapters.contains(chapter)) chapters.add(chapter);
+        if (!allDataContent.contains(chapter)) allDataContent.add(chapter);
       }
 
       final newBook = book.copyWith(
@@ -211,7 +214,7 @@ class NeoxSource extends RSource {
         score: score,
         alternativeTitle: alternativeTitle,
         sinopse: sinopse,
-        chapters: chapters,
+        allDataContent: allDataContent,
         status: status,
         genres: genres,
         mediumImage: medium,
@@ -310,7 +313,10 @@ class NeoxSource extends RSource {
   }
 
   @override
-  Future<Result<List<ChapterContent>>> getContent(Chapter chapter) async {
+  Future<Result<List<Data>>> getContent(DataContent dataContent) async {
+    assert(dataContent is Chapter);
+    final chapter = dataContent as Chapter;
+
     try {
       final url = chapter.url;
 
@@ -320,7 +326,7 @@ class NeoxSource extends RSource {
       );
       final Document document = parse(response.data);
 
-      final List<ChapterContent> getContent = [];
+      final List<Data> data = [];
 
       final novelContent = document.querySelector(
         '.reading-content .text-left',
@@ -330,7 +336,7 @@ class NeoxSource extends RSource {
         for (var element in novelContent.children) {
           final text = element.text.trim();
           if (text.isEmpty) continue;
-          getContent.add(ChapterContent.text(text: text));
+          data.add(Data.textData(text: text));
         }
       }
 
@@ -340,10 +346,10 @@ class NeoxSource extends RSource {
         final imageURL = ScrapingUtil(img).getImage();
         if (imageURL.isEmpty || !imageURL.contains('nexoscans')) continue;
 
-        getContent.add(ChapterContent.image(imageURL: imageURL));
+        data.add(Data.imageData(imageURL: imageURL));
       }
 
-      return Result.success(getContent);
+      return Result.success(data);
     } on DioException catch (_, __) {
       customLog('DioError', error: _, stackTrace: __);
       return Result.failure(_);

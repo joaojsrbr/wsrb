@@ -10,16 +10,16 @@ class HiveController extends ChangeNotifier {
   HiveController(this._hiveService);
 
   late OrderBy _orderBy;
-  late bool _chaptersOrders;
+  late bool _contentOrders;
   late bool _pageOrders;
   late Source _source;
 
   final _defaultValueOrderBy = OrderBy.LATEST;
   final _defaultValueSource = Source.NEOX_SCANS;
-  final _defaultValueChaptersOrders = true;
-  final _defaultValuePageOrders = true;
+  final _defaultValueContentOrders = true;
+  final _defaultValuePageOrders = false;
 
-  bool get chaptersOrders => _chaptersOrders;
+  bool get contentOrders => _contentOrders;
   bool get pageOrders => _pageOrders;
   OrderBy get orderBy => _orderBy;
   Source get source => _source;
@@ -47,11 +47,11 @@ class HiveController extends ChangeNotifier {
   }
 
   Future<void> setChaptersOrders(bool? value, [bool notify = true]) async {
-    if (value == null || value == _chaptersOrders) return;
-    _chaptersOrders = value;
+    if (value == null || value == _contentOrders) return;
+    _contentOrders = value;
     if (notify) notifyListeners();
 
-    await _hiveService.save('book_info_chapters_orders', value);
+    await _hiveService.save('book_info_content_orders', value);
   }
 
   Future<void> setPageOrders(bool? value, [bool notify = true]) async {
@@ -67,9 +67,9 @@ class HiveController extends ChangeNotifier {
       'book_info_page_order',
       _defaultValuePageOrders,
     );
-    _chaptersOrders = await _hiveService.load(
-      'book_info_chapters_orders',
-      _defaultValueChaptersOrders,
+    _contentOrders = await _hiveService.load(
+      'book_info_content_orders',
+      _defaultValueContentOrders,
     );
     _orderBy = await _hiveService.load(
       'repository_order_by',

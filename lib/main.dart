@@ -3,7 +3,7 @@ import 'package:app_wsrb_jsr/app/core/interfaces/hive_service.dart';
 import 'package:app_wsrb_jsr/app/core/services/hive/hive_controller.dart';
 import 'package:app_wsrb_jsr/app/core/services/hive/hive_service.dart';
 import 'package:app_wsrb_jsr/app/my_app.dart';
-import 'package:app_wsrb_jsr/app/repositories/book_cache.dart';
+import 'package:app_wsrb_jsr/app/repositories/content_cache.dart';
 import 'package:app_wsrb_jsr/app/repositories/book_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -23,7 +23,7 @@ void main() async {
     start: start,
   );
 
-  final BookCache bookCache = BookCache(hiveServiceImpl);
+  final ContentCache bookCache = ContentCache(hiveServiceImpl);
   await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
 
   await Future.wait([hiveServiceImpl.init()]);
@@ -52,7 +52,7 @@ void callbackDispatcher() {
       return Future.value(true);
     } else if (task == 'task_clear_cache' && inputData != null) {
       final removeID = inputData['remove_id'] as String;
-      await BookCache.task(removeID);
+      await ContentCache.task(removeID);
       return Future.value(true);
     }
     return Future.value(true);

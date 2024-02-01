@@ -2,9 +2,10 @@
 import 'dart:async';
 
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
+import 'package:app_wsrb_jsr/app/models/data_content.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:app_wsrb_jsr/app/models/book.dart';
-import 'package:app_wsrb_jsr/app/models/content.dart';
+import 'package:app_wsrb_jsr/app/models/data.dart';
 import 'package:app_wsrb_jsr/app/repositories/book_repository.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/widgets/scope.dart';
@@ -22,22 +23,6 @@ part '../mixins/reading_mixin.dart';
 
 class ReadingView extends StatefulWidget {
   const ReadingView({super.key});
-
-  static ReadingViewArgs args({
-    required List<Chapter> chapters,
-    required int currentIndex,
-    required Book book,
-    required Chapter chapter,
-    required ThemeData bookThemeData,
-  }) {
-    return ReadingViewArgs(
-      bookThemeData: bookThemeData,
-      chapters: chapters,
-      book: book,
-      chapter: chapter,
-      currentIndex: currentIndex,
-    );
-  }
 
   @override
   State<ReadingView> createState() => _ReadingViewState();
@@ -60,7 +45,7 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
     if (args is! ReadingViewArgs) {
       Navigator.pop(context);
     } else {
-      _chapters = args.book.chapters;
+      _allDataContent = args.book.allDataContent;
       _chapter = args.chapter;
       _book = args.book;
       final data = await _repository.getContent(_chapter!);
@@ -74,7 +59,7 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
     });
   }
 
-  void _onSucess(List<ChapterContent> data) async {
+  void _onSucess(List<Data> data) async {
     await Future.delayed(const Duration(seconds: 2));
     setStateIfMounted(() {
       _data = data;
@@ -204,13 +189,13 @@ class BuildContent extends StatelessWidget {
       final content = data[index];
 
       switch (content) {
-        case ImageChapterContent content:
+        case ImageData content:
           return ImageCacheWidget(imageURL: content.imageURL);
         // return CachedNetworkImage(
         //   fit: BoxFit.contain,
         //   imageUrl: content.imageURL,
         // );
-        case TextChapterContent content:
+        case TextData content:
           return Padding(
             padding: EdgeInsets.only(
               right: 8,
@@ -223,6 +208,8 @@ class BuildContent extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           );
+        case VideoData _:
+          return const SizedBox.shrink();
       }
     }
 

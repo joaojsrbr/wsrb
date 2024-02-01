@@ -1,26 +1,28 @@
 import 'package:app_wsrb_jsr/app/core/constants/app.dart';
+import 'package:app_wsrb_jsr/app/models/content.dart';
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/models/book.dart';
-import 'package:app_wsrb_jsr/app/ui/book_information/arguments/book_information_args.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class BookItem extends StatelessWidget {
-  const BookItem({
+class ItemContent extends StatelessWidget {
+  const ItemContent({
     super.key,
-    required this.item,
+    required this.content,
   });
 
-  final Book item;
+  final Content content;
 
   @override
   Widget build(BuildContext context) {
-    final themeData = Theme.of(context).copyWith(
-      colorScheme: item.bookColorScheme
-          ?.copyWith(brightness: Theme.of(context).brightness),
-    );
+    final themeData = Theme.of(context);
+    // .copyWith(
+    //   colorScheme: item.bookColorScheme
+    //       ?.copyWith(brightness: Theme.of(context).brightness),
+    // );
     final textTheme = themeData.textTheme;
+    final title = content.title;
     final borderRadius = BorderRadius.circular(12);
 
     return Theme(
@@ -44,7 +46,7 @@ class BookItem extends StatelessWidget {
                       topRight: Radius.zero,
                       bottomRight: Radius.zero,
                     ),
-                    child: _ImageWidget(item),
+                    child: _ImageWidget(content),
                   ),
                   Expanded(
                     child: Column(
@@ -61,7 +63,7 @@ class BookItem extends StatelessWidget {
                             bottom: 8,
                           ),
                           child: Text(
-                            item.title,
+                            title,
                             maxLines: 2,
                             textAlign: TextAlign.start,
                             overflow: TextOverflow.ellipsis,
@@ -83,8 +85,8 @@ class BookItem extends StatelessWidget {
                   splashFactory: InkRipple.splashFactory,
                   onTap: () async {
                     await context.push(
-                      RouteName.BOOKINFO,
-                      extra: BookInformationArgs(book: item),
+                      RouteName.CONTENTINFO,
+                      extra: ContentInformationArgs(content: content),
                     );
                   },
                 ),
@@ -161,12 +163,14 @@ class BookItem extends StatelessWidget {
 // }
 
 class _ImageWidget extends StatelessWidget {
-  const _ImageWidget(this.book);
+  const _ImageWidget(this.content);
 
-  final Book book;
+  final Content content;
 
   @override
   Widget build(BuildContext context) {
+    final title = content.title;
+    final imageUrl = content.imageUrl;
     // final themeData = Theme.of(context);
 
     final Widget imageWidget = SizedBox(
@@ -185,8 +189,8 @@ class _ImageWidget extends StatelessWidget {
           );
         },
         alignment: FractionalOffset.center,
-        imageUrl: book.originalImage,
-        cacheKey: book.title,
+        imageUrl: imageUrl,
+        cacheKey: title,
         memCacheHeight: 450,
         memCacheWidth: 350,
         fit: BoxFit.cover,

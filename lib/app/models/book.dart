@@ -1,18 +1,16 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:convert';
 
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/color_scheme_extensions.dart';
-import 'package:equatable/equatable.dart';
+import 'package:app_wsrb_jsr/app/models/content.dart';
+import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/models/episode.dart';
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 
 import 'package:app_wsrb_jsr/app/core/constants/source.dart';
 import 'package:app_wsrb_jsr/app/models/chapter.dart';
 import 'package:app_wsrb_jsr/app/models/genre.dart';
 
-class Book extends Equatable {
-  final String title;
-  final String url;
+class Book extends Content {
   final String originalImage;
   final Source source;
   final String? alternativeTitle;
@@ -23,22 +21,19 @@ class Book extends Equatable {
   final String? status;
   final String? extraLarge;
   final String? type;
-  final String? sinopse;
   final String? largeImage;
   final String? mediumImage;
-  final List<Chapter> chapters;
-  final ColorScheme? bookColorScheme;
 
   const Book({
-    required this.title,
+    super.contentColorScheme,
+    super.allDataContent,
+    required super.title,
     required this.source,
     required this.originalImage,
-    required this.url,
-    this.chapters = const [],
+    required super.url,
     this.genres = const [],
     this.alternativeTitle,
-    this.bookColorScheme,
-    this.sinopse,
+    super.sinopse,
     this.extraLarge,
     this.type,
     this.authors = const [],
@@ -49,7 +44,9 @@ class Book extends Equatable {
     this.artists = const [],
   });
 
-  String get img => extraLarge ?? largeImage ?? mediumImage ?? originalImage;
+  @override
+  String get imageUrl =>
+      extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   bool get searchNewImage {
     if ([extraLarge, largeImage, mediumImage].contains(null)) {
@@ -58,8 +55,6 @@ class Book extends Equatable {
     return false;
   }
 
-  String get id => const Uuid().v5(Uuid.NAMESPACE_URL, url);
-
   @override
   List<Object?> get props => [
         id,
@@ -67,7 +62,6 @@ class Book extends Equatable {
         title,
         status,
         genres,
-        chapters,
         authors,
         artists,
         type,
@@ -76,6 +70,8 @@ class Book extends Equatable {
         mediumImage,
         originalImage,
         alternativeTitle,
+        contentColorScheme,
+        allDataContent,
       ];
 
   // bool get isNovel {
@@ -85,14 +81,16 @@ class Book extends Equatable {
   //   }
   // }
 
+  @override
   Book copyWith({
+    AllDataContent? allDataContent,
+    ColorScheme? contentColorScheme,
     String? title,
     String? url,
     String? originalImage,
     Source? source,
     List<Genre>? genres,
     List<String>? authors,
-    List<Chapter>? chapters,
     List<String>? artists,
     double? score,
     String? largeImage,
@@ -102,16 +100,15 @@ class Book extends Equatable {
     String? alternativeTitle,
     String? status,
     String? mediumImage,
-    ColorScheme? bookColorScheme,
   }) {
     return Book(
-      bookColorScheme: bookColorScheme ?? this.bookColorScheme,
+      allDataContent: allDataContent ?? this.allDataContent,
+      contentColorScheme: contentColorScheme ?? this.contentColorScheme,
       type: type ?? this.type,
       extraLarge: extraLarge ?? this.extraLarge,
       title: title ?? this.title,
       url: url ?? this.url,
       alternativeTitle: alternativeTitle ?? this.alternativeTitle,
-      chapters: chapters ?? this.chapters,
       originalImage: originalImage ?? this.originalImage,
       source: source ?? this.source,
       sinopse: sinopse ?? this.sinopse,
@@ -125,6 +122,7 @@ class Book extends Equatable {
     );
   }
 
+  @override
   Map<String, dynamic> get toMap {
     return <String, dynamic>{
       'title': title,
@@ -142,12 +140,26 @@ class Book extends Equatable {
       'sinopse': sinopse,
       'largeImage': largeImage,
       'mediumImage': mediumImage,
-      'chapters': chapters.map((x) => x.toMap()).toList(),
-      'bookColorScheme': bookColorScheme?.toMap,
+      'allDataContent': allDataContent.map((x) => x.toMap).toList(),
+      'contentColorScheme': contentColorScheme?.toMap,
     };
   }
 
   factory Book.fromMap(Map<dynamic, dynamic> map) {
+    const AllDataContent allDataContent = AllDataContent();
+
+    final allDataContentMap = map['allDataContent'] as List<dynamic>;
+
+    for (final contentMap in allDataContentMap) {
+      DataContent dataContent;
+      try {
+        dataContent = Chapter.fromMap(contentMap);
+      } catch (_) {
+        dataContent = Episode.fromMap(contentMap);
+      }
+      allDataContent.add(dataContent);
+    }
+
     return Book(
       title: map['title'] as String,
       url: map['url'] as String,
@@ -171,18 +183,10 @@ class Book extends Equatable {
           map['largeImage'] != null ? map['largeImage'] as String : null,
       mediumImage:
           map['mediumImage'] != null ? map['mediumImage'] as String : null,
-      chapters: List<Chapter>.from(
-        (map['chapters'] as List<dynamic>).map<Chapter>(
-          (x) => Chapter.fromMap(x),
-        ),
-      ),
-      bookColorScheme: map['bookColorScheme'] != null
-          ? ColorSchemeExtensions.fromMap(map['bookColorScheme'])
+      allDataContent: allDataContent,
+      contentColorScheme: map['contentColorScheme'] != null
+          ? ColorSchemeExtensions.fromMap(map['contentColorScheme'])
           : null,
     );
   }
-
-  String get toJson => json.encode(toMap);
-
-  factory Book.fromJson(String source) => Book.fromMap(json.decode(source));
 }

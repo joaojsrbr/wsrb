@@ -4,6 +4,7 @@ void _hiveAdapters() {
   Hive.registerAdapter(_OrderByAdapter());
   Hive.registerAdapter(_SourceAdapter());
   Hive.registerAdapter(_BookAdapter());
+  Hive.registerAdapter(_CotentAdapter());
 }
 
 class _OrderByAdapter extends TypeAdapter<OrderBy> {
@@ -50,6 +51,26 @@ class _BookAdapter extends TypeAdapter<Book> {
 
   @override
   void write(BinaryWriter writer, Book obj) {
+    writer.writeMap(obj.toMap);
+  }
+}
+
+class _CotentAdapter extends TypeAdapter<Content> {
+  @override
+  Content read(BinaryReader reader) {
+    final Map<dynamic, dynamic> map = reader.readMap();
+    try {
+      return Book.fromMap(map);
+    } catch (_) {
+      return Anime.fromMap(map);
+    }
+  }
+
+  @override
+  int get typeId => 3;
+
+  @override
+  void write(BinaryWriter writer, Content obj) {
     writer.writeMap(obj.toMap);
   }
 }

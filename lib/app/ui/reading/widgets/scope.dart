@@ -1,8 +1,8 @@
 // ignore_for_file: unused_field, constant_identifier_names, unused_element, library_private_types_in_public_api
 
+import 'package:app_wsrb_jsr/app/models/data.dart';
 import 'package:app_wsrb_jsr/app/models/book.dart';
 import 'package:app_wsrb_jsr/app/models/chapter.dart';
-import 'package:app_wsrb_jsr/app/models/content.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -57,7 +57,7 @@ class ReadingScope extends InheritedModel<_ReadingScopeAspect> {
   final ReaderController controller;
   final void Function(BuildContext context, TapDownDetails details)
       onDoubleTapDown;
-  final List<ChapterContent> data;
+  final List<Data> data;
   final Chapter? chapter;
 
   static ReadingScope of(BuildContext context) {
@@ -75,7 +75,7 @@ class ReadingScope extends InheritedModel<_ReadingScopeAspect> {
     return book ?? args.book;
   }
 
-  static List<ChapterContent> dataOf(BuildContext context) {
+  static List<Data> dataOf(BuildContext context) {
     final data = _of(context, _ReadingScopeAspect.READING_DATA).data;
     return data;
   }

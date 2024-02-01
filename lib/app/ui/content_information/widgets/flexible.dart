@@ -1,7 +1,7 @@
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
 import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
-import 'package:app_wsrb_jsr/app/ui/book_information/clipper/flexible_space_bar.dart';
-import 'package:app_wsrb_jsr/app/ui/book_information/widgets/scope.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/clipper/flexible_space_bar.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +14,7 @@ class FlexibleSpaceBarWidget extends StatelessWidget {
     // final odArgs =
     //     ModalRoute.of(context)?.settings.arguments as BookInformationArgs;
     final isLoading = BookInformationScope.isLoadingOf(context);
-    final book = BookInformationScope.bookOf(context);
+    final book = BookInformationScope.contentOf(context);
     final themeData = Theme.of(context);
     final size = MediaQuery.sizeOf(context);
     final titleLarge =
@@ -34,7 +34,7 @@ class FlexibleSpaceBarWidget extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 if (!isLoading) ...[
-                  _ImageWidget(book.img),
+                  _ImageWidget(book.imageUrl),
                   Positioned(
                     top: size.height * .15,
                     left: 20,
@@ -43,7 +43,7 @@ class FlexibleSpaceBarWidget extends StatelessWidget {
                       onLongPress: () async {
                         copyToClipboard(
                           context,
-                          messageCopy: book.title.trim(),
+                          messageCopy: book.title,
                           messageSnackBar:
                               'Copiado para a área de transferência!',
                         );

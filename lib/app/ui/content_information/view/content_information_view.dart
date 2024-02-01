@@ -2,18 +2,18 @@ import 'dart:async';
 
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
 import 'package:app_wsrb_jsr/app/core/services/hive/hive_controller.dart';
-import 'package:app_wsrb_jsr/app/repositories/book_cache.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
+import 'package:app_wsrb_jsr/app/models/content.dart';
+import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/repositories/content_cache.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
-import 'package:app_wsrb_jsr/app/models/book.dart';
-import 'package:app_wsrb_jsr/app/models/chapter.dart';
+
 import 'package:app_wsrb_jsr/app/repositories/book_repository.dart';
-import 'package:app_wsrb_jsr/app/ui/book_information/arguments/book_information_args.dart';
-import 'package:app_wsrb_jsr/app/ui/book_information/widgets/build_contents.dart';
-import 'package:app_wsrb_jsr/app/ui/book_information/widgets/chip_book_controller.dart';
-import 'package:app_wsrb_jsr/app/ui/book_information/widgets/flexible.dart';
-import 'package:app_wsrb_jsr/app/ui/book_information/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/book_information/widgets/sinopse.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/widgets/build_contents.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/widgets/chip_content_controller.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/widgets/flexible.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/widgets/sinopse.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -31,7 +31,7 @@ class BookInformationView extends StatefulWidget {
 }
 
 class _BookInformationStateView
-    extends StateByArgument<BookInformationView, BookInformationArgs> {
+    extends StateByArgument<BookInformationView, ContentInformationArgs> {
   final List<StreamSubscription> _subs = [];
 
   @override
@@ -39,8 +39,7 @@ class _BookInformationStateView
     super.initState();
     _repository = context.read<BookRepository>();
     _hiveController = context.read<HiveController>();
-    _cache = context.read<BookCache>();
-    _chaptersOrders = _hiveController.chaptersOrders;
+    _cache = context.read<ContentCache>();
     _subs.addAll([
       _hiveController
           .watchBy('book_info_chapters_orders')
@@ -50,13 +49,10 @@ class _BookInformationStateView
   }
 
   /// [BookCache] instance
-  late final BookCache _cache;
+  late final ContentCache _cache;
 
   /// [HiveController] instance
   late final HiveController _hiveController;
-
-  /// [HiveController.chaptersOrders]
-  bool _chaptersOrders = false;
 
   /// [BookRepository] instance
   late final BookRepository _repository;
@@ -65,10 +61,10 @@ class _BookInformationStateView
   bool _isLoading = true;
 
   /// list of object list
-  List<List<Chapter>> _chapters = [];
+  List<List<DataContent>> _allDataContent = [];
 
-  /// [Book] instance
-  Book? _book;
+  /// [Content] instance
+  Content? _content;
 
   /// index relating to [_chapters]
   int _index = 0;
@@ -83,27 +79,27 @@ class _BookInformationStateView
   void _onInit() async {
     final args = ModalRoute.of(context)?.settings.arguments;
 
-    if (args is! BookInformationArgs) {
+    if (args is! ContentInformationArgs) {
       customLog('O argumento precisa ser do tipo BookInformationArgs');
       Navigator.pop(context);
     } else {
-      final book = args.book;
+      final content = args.content;
 
-      final cacheBook = await _cache.getBook(book.id);
+      final cacheContent = await _cache.getContent(content.id);
 
-      if (cacheBook != null) {
+      if (cacheContent != null) {
         await Future.delayed(
           const Duration(milliseconds: 600),
-          () => _onSucess(cacheBook),
+          () => _onSucess(cacheContent),
         );
         return;
       }
 
-      final resultBook = await _repository.bookData(book);
+      final resultCotent = await _repository.getData(content);
 
-      await resultBook.when(
+      await resultCotent.when(
         onError: (error) {
-          Navigator.pop(context, resultBook);
+          Navigator.pop(context, resultCotent);
         },
         onSucess: _onSucess,
       );
@@ -111,23 +107,23 @@ class _BookInformationStateView
   }
 
   /// function that partitions the list [_chapters]
-  void _setChapters(List<Chapter> chapters) {
-    _chapters = partition(chapters.reversed, 20).toList();
+  void _setAllContents(AllDataContent allDataContent) {
+    _allDataContent = partition(allDataContent.reversed, 20).toList();
     // _index = _chapters.length - 1;
-    _reversedChapters(_chaptersOrders);
+    _reversedAllContents(_hiveController.contentOrders);
   }
 
-  void _reversedChapters([bool? init]) {
+  void _reversedAllContents([bool? init]) {
     if (init == false) return;
     // _hiveController.chaptersOrders;
-    _chapters.forEachIndexed((index, element) {
-      _chapters[index] = _chapters[index].reversed.toList();
+    _allDataContent.forEachIndexed((index, element) {
+      _allDataContent[index] = _allDataContent[index].reversed.toList();
     });
   }
 
   /// asynchronous function referring to [RefreshIndicator]
   Future<void> _onRefresh() async {
-    final resultBook = await _repository.bookData(_book!);
+    final resultBook = await _repository.getData(_content!);
 
     return await resultBook.when<Future>(
       onError: (error) async {
@@ -137,24 +133,24 @@ class _BookInformationStateView
     );
   }
 
-  Future<void> _onSucess(Book data, [bool onInit = true]) async {
-    if (data == _book) return;
-    ColorScheme? bookColorScheme;
+  Future<void> _onSucess(Content data, [bool onInit = true]) async {
+    if (data == _content) return;
+    ColorScheme? contentColorScheme;
     try {
-      bookColorScheme = await ColorScheme.fromImageProvider(
+      contentColorScheme = await ColorScheme.fromImageProvider(
         brightness: Theme.of(context).brightness,
         provider: CachedNetworkImageProvider(
-          data.img,
-          cacheKey: data.img,
+          data.imageUrl,
+          cacheKey: data.imageUrl,
           maxHeight: 330,
           maxWidth: 245,
         ),
       );
     } catch (_) {}
-    _cache.saveBook(data);
+    _cache.saveContent(data);
     setStateIfMounted(() {
-      _book = data.copyWith(bookColorScheme: bookColorScheme);
-      _setChapters(data.chapters);
+      _content = data.copyWith(contentColorScheme: contentColorScheme);
+      _setAllContents(data.allDataContent);
       if (onInit) _isLoading = false;
     });
   }
@@ -169,11 +165,8 @@ class _BookInformationStateView
   // }
 
   void _ordersListener(BoxEvent event) {
-    if (_chaptersOrders == event.value) return;
-
     setStateIfMounted(() {
-      _chaptersOrders = event.value as bool;
-      _reversedChapters();
+      _reversedAllContents();
     });
   }
 
@@ -185,14 +178,14 @@ class _BookInformationStateView
   @override
   Widget buildByArgument(
     BuildContext context,
-    BookInformationArgs argument,
+    ContentInformationArgs argument,
   ) {
     final themeData = Theme.of(context);
 
     final size = MediaQuery.sizeOf(context);
 
     return Theme(
-      data: themeData.copyWith(colorScheme: _book?.bookColorScheme),
+      data: themeData.copyWith(colorScheme: _content?.contentColorScheme),
       child: Shimmer(
         linearGradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -213,11 +206,10 @@ class _BookInformationStateView
           ],
         ),
         child: BookInformationScope(
-          chaptersOrders: _chaptersOrders,
-          chapters: _chapters,
+          allDataContent: _allDataContent,
           index: _index,
           setListIndex: _handleSetListIndex,
-          book: _book ?? argument.book,
+          content: _content ?? argument.content,
           isLoading: _isLoading,
           child: Scaffold(
             body: RefreshIndicator(
@@ -237,8 +229,8 @@ class _BookInformationStateView
                     stretch: false,
                     flexibleSpace: const FlexibleSpaceBarWidget(),
                   ),
-                  SinopseWidget(sinopse: _book?.sinopse ?? ''),
-                  const ChipBookController(),
+                  SinopseWidget(sinopse: _content?.sinopse ?? ''),
+                  const ChipContentController(),
                   const BuildContents(),
                 ],
               ),
@@ -254,7 +246,9 @@ class _BookInformationStateView
     for (final sub in _subs) {
       sub.cancel();
     }
-    if (_book != null) _cache.registerTask(_book!.id);
+    ifMounted(() {
+      _cache.registerTask(_content!.id);
+    });
     super.dispose();
   }
 }

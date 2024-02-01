@@ -1,4 +1,4 @@
-import 'package:app_wsrb_jsr/app/ui/book_information/widgets/scope.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';

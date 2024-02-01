@@ -4,7 +4,7 @@ import 'package:app_wsrb_jsr/app/core/controllers/open_container_controller.dart
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/string_extensions.dart';
 import 'package:app_wsrb_jsr/app/routes/open_container_transition_page_wrapper.dart';
 import 'package:app_wsrb_jsr/app/routes/shared_axis_transition_page_wrapper.dart';
-import 'package:app_wsrb_jsr/app/ui/book_information/view/book_information_view.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/view/content_information_view.dart';
 import 'package:app_wsrb_jsr/app/ui/home/page/home_page.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/view/reading.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +14,7 @@ import 'package:provider/provider.dart';
 class RouteName {
   RouteName._();
   static const HOME = '/';
-  static const BOOKINFO = '/bookInfo';
+  static const CONTENTINFO = '/contentInfo';
   static const READ = '/read';
   // static const CONFIG = '/config';
   // static const WEBVIEW = '/web_view';
@@ -35,7 +35,7 @@ final appRoutes = GoRouter(
       },
       routes: [
         GoRoute(
-          path: RouteName.BOOKINFO.subRouter,
+          path: RouteName.CONTENTINFO.subRouter,
           pageBuilder: (context, state) {
             final openController = context.read<OpenContainerController>();
             if (state.extra is OpenContainerWidgetArgs &&

@@ -74,7 +74,7 @@ class _OpenContainerWidgetWrapperState<T>
     final openController = context.read<OpenContainerController>();
     openController.activeOpenContainer = true;
     final result = await context.push<T>(
-      RouteName.BOOKINFO,
+      RouteName.CONTENTINFO,
       extra: OpenContainerWidgetArgs(
         arguments: widget.arguments,
         widgetContext: _hideableKey.currentContext!,

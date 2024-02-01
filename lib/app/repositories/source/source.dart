@@ -1,10 +1,10 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:app_wsrb_jsr/app/core/constants/source.dart';
-import 'package:app_wsrb_jsr/app/utils/result.dart';
-import 'package:app_wsrb_jsr/app/models/book.dart';
-import 'package:app_wsrb_jsr/app/models/chapter.dart';
 import 'package:app_wsrb_jsr/app/models/content.dart';
+import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/utils/result.dart';
+import 'package:app_wsrb_jsr/app/models/data.dart';
 import 'package:app_wsrb_jsr/app/repositories/book_repository.dart';
 
 abstract class RSource {
@@ -22,6 +22,8 @@ abstract class RSource {
   String get BASE_URL;
 
   Future<bool> loadData();
-  Future<Result<Book>> bookData(Book book);
-  Future<Result<List<ChapterContent>>> getContent(Chapter chapter);
+
+  Future<Result<Content>> getData(Content content);
+
+  Future<Result<List<Data>>> getContent(DataContent dataContent);
 }

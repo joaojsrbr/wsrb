@@ -1,4 +1,4 @@
-import 'package:app_wsrb_jsr/app/ui/book_information/clipper/dismissible.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/clipper/dismissible.dart';
 import 'package:flutter/gestures.dart' show DragStartBehavior;
 import 'package:flutter/material.dart';
 

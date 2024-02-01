@@ -7,12 +7,14 @@ import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/string_extens
 import 'package:app_wsrb_jsr/app/core/services/dio_client.dart';
 import 'package:app_wsrb_jsr/app/core/services/hive/hive_controller.dart';
 import 'package:app_wsrb_jsr/app/core/services/jikan.dart';
+import 'package:app_wsrb_jsr/app/models/content.dart';
+import 'package:app_wsrb_jsr/app/models/data_content.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:app_wsrb_jsr/app/utils/result.dart';
 import 'package:app_wsrb_jsr/app/utils/scraping.util.dart';
 import 'package:app_wsrb_jsr/app/models/book.dart';
 import 'package:app_wsrb_jsr/app/models/chapter.dart';
-import 'package:app_wsrb_jsr/app/models/content.dart';
+import 'package:app_wsrb_jsr/app/models/data.dart';
 import 'package:app_wsrb_jsr/app/models/genre.dart';
 import 'package:app_wsrb_jsr/app/repositories/source/source.dart';
 import 'package:collection/collection.dart';
@@ -27,7 +29,7 @@ import 'package:loading_more_list/loading_more_list.dart';
 
 part 'source/neox_source.dart';
 
-abstract class BookRepository extends LoadingMoreBase<Book> {
+abstract class BookRepository extends LoadingMoreBase<Content> {
   int index = 0;
   bool isSuccess = false;
   // ignore: prefer_final_fields
@@ -73,9 +75,9 @@ abstract class BookRepository extends LoadingMoreBase<Book> {
         (source) => source.source == _hiveController.source,
       );
 
-  Future<Result<Book>> bookData(Book book);
+  Future<Result<Content>> getData(Content content);
 
-  Future<Result<List<ChapterContent>>> getContent(Chapter chapter);
+  Future<Result<List<Data>>> getContent(DataContent dataContent);
 
   @override
   Future<bool> refresh([bool notifyStateChanged = false]) async {
@@ -121,11 +123,12 @@ class _BookRepositoryImp extends BookRepository {
       await source.loadData();
 
   @override
-  Future<Result<Book>> bookData(Book book) async => await source.bookData(book);
+  Future<Result<Content>> getData(Content content) async =>
+      await source.getData(content);
 
   @override
-  Future<Result<List<ChapterContent>>> getContent(Chapter chapter) async =>
-      await source.getContent(chapter);
+  Future<Result<List<Data>>> getContent(DataContent dataContent) async =>
+      await source.getContent(dataContent);
 }
 
 // class BookRepositoryController extends ChangeNotifier {}
