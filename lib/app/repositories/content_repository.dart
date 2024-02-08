@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:js_util';
 
 import 'package:app_wsrb_jsr/app/core/constants/app.dart';
 import 'package:app_wsrb_jsr/app/core/constants/source.dart';
@@ -45,10 +44,11 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   late final JikanService _jikanService;
   late final Subscriptions _subscriptions;
   late final List<RSource> _sources;
-
+  late final DeepCollectionEquality _deepCollectionEquality;
   final HiveController _hiveController;
 
   ContentRepository._internal(this._hiveController) {
+    _deepCollectionEquality = const DeepCollectionEquality();
     _dio = DioClient();
     _jikanService = JikanService();
     _sources = [
@@ -74,7 +74,10 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       _ContentRepositoryImp(hiveController);
 
   RSource get source => _sources.firstWhere(
-        (source) => equal(source.source, _hiveController.source),
+        (source) => _deepCollectionEquality.equals(
+          source.source,
+          _hiveController.source,
+        ),
       );
 
   Future<Result<Content>> getData(Content content);
