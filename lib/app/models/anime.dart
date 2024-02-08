@@ -3,7 +3,6 @@ import 'package:app_wsrb_jsr/app/models/content.dart';
 import 'package:app_wsrb_jsr/app/models/episode.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert';
 
 class Anime extends Content {
   const Anime({
