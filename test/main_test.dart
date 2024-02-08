@@ -1,5 +1,6 @@
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jikan_api/jikan_api.dart';
 
@@ -27,3 +28,28 @@ void main() {
     }
   });
 }
+
+class Test extends ChangeNotifier {
+  late final Test2 _test2;
+  late final Test2 _test3;
+  late final Test2 _test4;
+
+  Listenable? _listenable;
+
+  Test() {
+    _test2 = Test2();
+    _test3 = Test2();
+    _test4 = Test2();
+    _listenable = Listenable.merge([_test2, _test3, _test4])
+      ..addListener(notifyListeners);
+  }
+
+  @override
+  void dispose() {
+    _listenable?.removeListener(notifyListeners);
+    _listenable = null;
+    super.dispose();
+  }
+}
+
+class Test2 extends ChangeNotifier {}

@@ -1,6 +1,5 @@
 // ignore_for_file: unused_field, constant_identifier_names, unused_element, library_private_types_in_public_api
 
-import 'package:app_wsrb_jsr/app/models/data.dart';
 import 'package:app_wsrb_jsr/app/models/book.dart';
 import 'package:app_wsrb_jsr/app/models/chapter.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
@@ -34,7 +33,7 @@ class ReaderController extends ScrollController {
 enum _ReadingScopeAspect {
   READING_BOOK,
   READING_CHAPTER,
-  READING_DATA,
+  READING_CONTENTS,
   READING_FOOTERWIDGET,
 }
 
@@ -44,8 +43,8 @@ class ReadingScope extends InheritedModel<_ReadingScopeAspect> {
     required super.child,
     required this.book,
     required this.chapter,
-    required this.controller,
-    required this.data,
+    required this.readerController,
+    required this.contents,
     required this.showFooterWidget,
     required this.onNotification,
     required this.onDoubleTapDown,
@@ -54,10 +53,10 @@ class ReadingScope extends InheritedModel<_ReadingScopeAspect> {
   final bool Function(ScrollNotification) onNotification;
   final Book? book;
   final bool showFooterWidget;
-  final ReaderController controller;
+  final ReaderController readerController;
   final void Function(BuildContext context, TapDownDetails details)
       onDoubleTapDown;
-  final List<Data> data;
+  final List<Widget> contents;
   final Chapter? chapter;
 
   static ReadingScope of(BuildContext context) {
@@ -75,9 +74,10 @@ class ReadingScope extends InheritedModel<_ReadingScopeAspect> {
     return book ?? args.book;
   }
 
-  static List<Data> dataOf(BuildContext context) {
-    final data = _of(context, _ReadingScopeAspect.READING_DATA).data;
-    return data;
+  static List<Widget> contentsOf(BuildContext context) {
+    final contents =
+        _of(context, _ReadingScopeAspect.READING_CONTENTS).contents;
+    return contents;
   }
 
   static bool showFooterWidgetOf(BuildContext context) {
@@ -109,8 +109,8 @@ class ReadingScope extends InheritedModel<_ReadingScopeAspect> {
           case _ReadingScopeAspect.READING_FOOTERWIDGET
               when showFooterWidget != oldWidget.showFooterWidget:
             return true;
-          case _ReadingScopeAspect.READING_DATA
-              when !listEquals(data, oldWidget.data):
+          case _ReadingScopeAspect.READING_CONTENTS
+              when !listEquals(contents, oldWidget.contents):
             return true;
           default:
             return true;
@@ -126,6 +126,6 @@ class ReadingScope extends InheritedModel<_ReadingScopeAspect> {
     return oldWidget.book != book ||
         oldWidget.chapter != chapter ||
         oldWidget.showFooterWidget != showFooterWidget ||
-        !listEquals(data, oldWidget.data);
+        !listEquals(contents, oldWidget.contents);
   }
 }

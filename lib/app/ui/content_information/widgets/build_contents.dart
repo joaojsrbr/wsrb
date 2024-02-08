@@ -1,9 +1,12 @@
+import 'package:app_wsrb_jsr/app/models/anime.dart';
 import 'package:app_wsrb_jsr/app/models/book.dart';
 import 'package:app_wsrb_jsr/app/models/chapter.dart';
+import 'package:app_wsrb_jsr/app/models/episode.dart';
+import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/widgets/dismissible.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/dismissible.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
@@ -21,33 +24,19 @@ class BuildContents extends StatelessWidget {
         child: ShimmerLoading(
           isLoading: isLoading,
           child: const Material(child: SizedBox.expand()),
-          // child: ListView.builder(
-          //   itemCount: 6,
-          //   physics: const NeverScrollableScrollPhysics(),
-          //   padding: EdgeInsets.zero,
-          //   itemBuilder: (context, index) {
-          //     return const Material(
-          //       child: IgnorePointer(
-          //         child: ListTile(
-          //           contentPadding: EdgeInsets.zero,
-          //         ),
-          //       ),
-          //     );
-          //   },
-          // ),
         ),
       );
     }
 
     final index = BookInformationScope.indexOf(context);
-    final allDataContent = BookInformationScope.allDataContentOf(context)
-        .reversed
-        .elementAt(index);
+    // final hiveController = context.watch<HiveController>();
+    final dataContents =
+        BookInformationScope.dataContentsOf(context).reversed.elementAt(index);
     final content = BookInformationScope.contentOf(context);
 
     return SliverList.builder(
       itemBuilder: (context, index) {
-        final dataContent = allDataContent[index];
+        final dataContent = dataContents[index];
 
         return CustomDismissible(
           onUpdate: (details) {},
@@ -81,20 +70,25 @@ class BuildContents extends StatelessWidget {
                 extra: ReadingViewArgs(
                   bookThemeData: Theme.of(context),
                   chapter: dataContent,
-                  allDataContent: allDataContent,
+                  allDataContent: dataContents,
                   currentIndex: index,
                   book: content,
                 ),
+              );
+            } else if (dataContent is Episode && content is Anime) {
+              await context.push(
+                RouteName.PLAYER,
+                extra: PlayerArgs(anime: content, episode: dataContent),
               );
             }
           },
           child: ListTile(
             titleTextStyle: Theme.of(context).textTheme.labelLarge,
-            title: Text(content.title),
+            title: Text(dataContent.title),
           ),
         );
       },
-      itemCount: allDataContent.length,
+      itemCount: dataContents.length,
     );
   }
 }

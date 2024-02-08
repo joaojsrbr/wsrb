@@ -15,7 +15,7 @@ class ContentCache {
   Future<void> saveContent(Content content) async {
     await Future.wait([
       Workmanager().cancelByUniqueName(content.id),
-      _hiveService.save(content.id, content, false),
+      _hiveService.save(content.id, content, debug: false),
     ]);
   }
 
@@ -32,13 +32,24 @@ class ContentCache {
     );
   }
 
-  static Future<void> task(String removeID) async {
-    final HiveService hiveServiceImpl = HiveServiceImpl(
-      'wsrb_hive',
-      start: (HiveService service) async {},
-    );
-    await hiveServiceImpl.init();
+  static Future<bool?> cacheTask(
+    String task,
+    Map<String, dynamic>? inputData,
+  ) async {
+    if (task.contains('task_clear_allCache')) {
+      // await ContentCache.clearAllCache();
+      return Future.value(true);
+    } else if (task.contains('task_clear_cache') && inputData != null) {
+      final removeID = inputData['remove_id'] as String;
+      final HiveService hiveServiceImpl = HiveServiceImpl(
+        'wsrb_hive',
+        start: (HiveService service) async {},
+      );
+      await hiveServiceImpl.init();
 
-    await hiveServiceImpl.delete(removeID);
+      await hiveServiceImpl.delete(removeID);
+      return Future.value(true);
+    }
+    return Future.value(null);
   }
 }

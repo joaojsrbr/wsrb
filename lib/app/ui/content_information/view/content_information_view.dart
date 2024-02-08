@@ -7,7 +7,7 @@ import 'package:app_wsrb_jsr/app/models/data_content.dart';
 import 'package:app_wsrb_jsr/app/repositories/content_cache.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 
-import 'package:app_wsrb_jsr/app/repositories/book_repository.dart';
+import 'package:app_wsrb_jsr/app/repositories/content_repository.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/build_contents.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/chip_content_controller.dart';
@@ -16,6 +16,7 @@ import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/sinopse.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
+import 'package:app_wsrb_jsr/app/utils/subscriptions.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -32,19 +33,20 @@ class BookInformationView extends StatefulWidget {
 
 class _BookInformationStateView
     extends StateByArgument<BookInformationView, ContentInformationArgs> {
-  final List<StreamSubscription> _subs = [];
+  late final Subscriptions _subscriptions;
 
   @override
   void initState() {
     super.initState();
-    _repository = context.read<BookRepository>();
+    _repository = context.read<ContentRepository>();
     _hiveController = context.read<HiveController>();
     _cache = context.read<ContentCache>();
-    _subs.addAll([
-      _hiveController
-          .watchBy('book_info_chapters_orders')
-          .listen(_ordersListener),
-    ]);
+    _subscriptions = Subscriptions()
+      ..add(
+        _hiveController
+            .watchBy('book_info_content_orders')
+            .listen(_ordersListener),
+      );
     addPostFrameCallback((data) => _onInit());
   }
 
@@ -54,14 +56,14 @@ class _BookInformationStateView
   /// [HiveController] instance
   late final HiveController _hiveController;
 
-  /// [BookRepository] instance
-  late final BookRepository _repository;
+  /// [ContentRepository] instance
+  late final ContentRepository _repository;
 
   /// variable that controls page loading
   bool _isLoading = true;
 
   /// list of object list
-  List<List<DataContent>> _allDataContent = [];
+  List<List<DataContent>> _dataContents = [];
 
   /// [Content] instance
   Content? _content;
@@ -107,8 +109,8 @@ class _BookInformationStateView
   }
 
   /// function that partitions the list [_chapters]
-  void _setAllContents(AllDataContent allDataContent) {
-    _allDataContent = partition(allDataContent.reversed, 20).toList();
+  void _setAllContents(DataContents dataContents) {
+    _dataContents = partition(dataContents.reversed, 20).toList();
     // _index = _chapters.length - 1;
     _reversedAllContents(_hiveController.contentOrders);
   }
@@ -116,8 +118,8 @@ class _BookInformationStateView
   void _reversedAllContents([bool? init]) {
     if (init == false) return;
     // _hiveController.chaptersOrders;
-    _allDataContent.forEachIndexed((index, element) {
-      _allDataContent[index] = _allDataContent[index].reversed.toList();
+    _dataContents.forEachIndexed((index, element) {
+      _dataContents[index] = _dataContents[index].reversed.toList();
     });
   }
 
@@ -150,7 +152,7 @@ class _BookInformationStateView
     _cache.saveContent(data);
     setStateIfMounted(() {
       _content = data.copyWith(contentColorScheme: contentColorScheme);
-      _setAllContents(data.allDataContent);
+      _setAllContents(data.dataContents);
       if (onInit) _isLoading = false;
     });
   }
@@ -165,9 +167,7 @@ class _BookInformationStateView
   // }
 
   void _ordersListener(BoxEvent event) {
-    setStateIfMounted(() {
-      _reversedAllContents();
-    });
+    setStateIfMounted(_reversedAllContents);
   }
 
   ScrollPhysics get _physics {
@@ -206,7 +206,8 @@ class _BookInformationStateView
           ],
         ),
         child: BookInformationScope(
-          allDataContent: _allDataContent,
+          contentOrders: context.watch<HiveController>().contentOrders,
+          dataContents: _dataContents,
           index: _index,
           setListIndex: _handleSetListIndex,
           content: _content ?? argument.content,
@@ -243,9 +244,7 @@ class _BookInformationStateView
 
   @override
   void dispose() {
-    for (final sub in _subs) {
-      sub.cancel();
-    }
+    _subscriptions.cancellAll();
     ifMounted(() {
       _cache.registerTask(_content!.id);
     });

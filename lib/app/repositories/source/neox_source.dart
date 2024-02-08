@@ -1,6 +1,6 @@
 // ignore_for_file: non_constant_identifier_names
 
-part of '../book_repository.dart';
+part of '../content_repository.dart';
 
 class NeoxSource extends RSource {
   NeoxSource(
@@ -87,17 +87,24 @@ class NeoxSource extends RSource {
 
   @override
   Future<Result<Content>> getData(Content content) async {
-    assert(content is Book);
+    bool isBook() {
+      return content is Book;
+    }
+
+    assert(
+      isBook(),
+      "A instancia content precisa ser do tipo Book",
+    );
 
     final book = content as Book;
 
     try {
       final response = await Future.wait([
-        bookRepository._dio.get(
+        contentRepository._dio.get(
           book.url,
           responseType: ResponseType.plain,
         ),
-        bookRepository._dio.post(
+        contentRepository._dio.post(
           "${book.url}ajax/chapters",
           responseType: ResponseType.plain,
         ),
@@ -119,7 +126,6 @@ class NeoxSource extends RSource {
 
       /// Vars
       final List<Genre> genres = [...book.genres];
-      final AllDataContent allDataContent = book.allDataContent;
       String? status;
       String? type;
       List<String> authors = [...book.authors];
@@ -139,7 +145,7 @@ class NeoxSource extends RSource {
         );
 
         if (book.searchNewImage && alternativeTitle != null) {
-          final result = await bookRepository._jikanService
+          final result = await contentRepository._jikanService
               .getMangaPictures(query: alternativeTitle);
 
           if (result.isNotEmpty) {
@@ -150,7 +156,7 @@ class NeoxSource extends RSource {
             extraLarge = last.largeImageUrl;
           }
 
-          // final result = await bookRepository._aniListService.post(
+          // final result = await contentRepository._aniListService.post(
           //   query: AniListService.queryCoverImage,
           //   variables: {"search": alternativeTitle},
           // );
@@ -204,7 +210,9 @@ class NeoxSource extends RSource {
           title: title,
         );
 
-        if (!allDataContent.contains(chapter)) allDataContent.add(chapter);
+        if (!book.dataContents.contains(chapter)) {
+          book.dataContents.add(chapter);
+        }
       }
 
       final newBook = book.copyWith(
@@ -214,7 +222,6 @@ class NeoxSource extends RSource {
         score: score,
         alternativeTitle: alternativeTitle,
         sinopse: sinopse,
-        allDataContent: allDataContent,
         status: status,
         genres: genres,
         mediumImage: medium,
@@ -231,15 +238,15 @@ class NeoxSource extends RSource {
 
   @override
   Future<bool> loadData() async {
-    if (bookRepository.addMore) bookRepository.index++;
+    if (contentRepository.addMore) contentRepository.index++;
 
     try {
       final subKey =
-          'page/${bookRepository.index}/?s&post_type=wp-manga&m_orderby=${bookRepository._hiveController.orderBy.label}';
+          'page/${contentRepository.index}/?s&post_type=wp-manga&m_orderby=${contentRepository._hiveController.orderBy.label}';
 
       final String mainURL = '$BASE_URL/$subKey';
 
-      final Response response = await bookRepository._dio
+      final Response response = await contentRepository._dio
           .get(mainURL, responseType: ResponseType.plain);
 
       final Document document = parse(response.data);
@@ -290,6 +297,7 @@ class NeoxSource extends RSource {
         if ([originalImage, url, title].isNull) continue;
 
         final Book book = Book(
+          dataContents: DataContents(),
           genres: genres,
           source: source,
           url: url,
@@ -299,14 +307,14 @@ class NeoxSource extends RSource {
           title: title,
           score: score,
         );
-        if (!bookRepository.contains(book)) bookRepository.add(book);
+        if (!contentRepository.contains(book)) contentRepository.add(book);
       }
-      bookRepository.isSuccess = true;
-      bookRepository._hasMore = true;
+      contentRepository.isSuccess = true;
+      contentRepository._hasMore = true;
       return Future.value(true);
     } on DioException catch (_, __) {
-      bookRepository.isSuccess = false;
-      bookRepository._hasMore = false;
+      contentRepository.isSuccess = false;
+      contentRepository._hasMore = false;
       customLog('Algo ruím aconteceu', error: _, stackTrace: __);
       return Future.value(false);
     }
@@ -314,13 +322,21 @@ class NeoxSource extends RSource {
 
   @override
   Future<Result<List<Data>>> getContent(DataContent dataContent) async {
-    assert(dataContent is Chapter);
+    bool isChapter() {
+      return dataContent is Chapter;
+    }
+
+    assert(
+      isChapter(),
+      "A instancia content precisa ser do tipo Chapter",
+    );
+
     final chapter = dataContent as Chapter;
 
     try {
       final url = chapter.url;
 
-      final Response response = await bookRepository._dio.get(
+      final Response response = await contentRepository._dio.get(
         url,
         responseType: ResponseType.plain,
       );

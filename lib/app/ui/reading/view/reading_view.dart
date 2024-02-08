@@ -6,11 +6,12 @@ import 'package:app_wsrb_jsr/app/models/data_content.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:app_wsrb_jsr/app/models/book.dart';
 import 'package:app_wsrb_jsr/app/models/data.dart';
-import 'package:app_wsrb_jsr/app/repositories/book_repository.dart';
+import 'package:app_wsrb_jsr/app/repositories/content_repository.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import 'package:app_wsrb_jsr/app/models/chapter.dart';
@@ -45,7 +46,7 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
     if (args is! ReadingViewArgs) {
       Navigator.pop(context);
     } else {
-      _allDataContent = args.book.allDataContent;
+      _dataContents = args.book.dataContents;
       _chapter = args.chapter;
       _book = args.book;
       final data = await _repository.getContent(_chapter!);
@@ -60,11 +61,49 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
   }
 
   void _onSucess(List<Data> data) async {
-    await Future.delayed(const Duration(seconds: 2));
-    setStateIfMounted(() {
-      _data = data;
-      _isLoading = false;
+    await Future.delayed(const Duration(seconds: 1));
+    setStateIfMounted(() => _isLoading = false);
+
+    // final GlobalKey _key = GlobalKey();
+    if (!mounted) return;
+    final DateTime now = DateTime.now();
+
+    data.forEachIndexed((index, data) async {
+      Widget widget;
+      switch (data) {
+        case ImageData content:
+          widget = ImageCacheWidget(
+            imageURL: content.imageURL,
+          );
+        case TextData content:
+          widget = Padding(
+            padding: EdgeInsets.only(
+              right: 8,
+              left: 8,
+              bottom: 8,
+              top: index == 0 ? 60 : 8,
+            ),
+            child: Text(
+              content.text,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          );
+
+        case VideoData _:
+          widget = const SizedBox.shrink();
+      }
+
+      setStateIfMounted(() {
+        _contents.add(widget);
+      });
     });
+
+    customLog("duration: ${DateTime.now().difference(now)}");
+
+    // setStateIfMounted(() {
+    //   // _data = data;
+    //   _isLoading = false;
+    // });
   }
 
   double get _percent => _readerController.percent;
@@ -122,8 +161,8 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
       showFooterWidget: _showFooterWidget,
       onNotification: _onNotification,
       onDoubleTapDown: _handleDoubleTapDown,
-      controller: _readerController,
-      data: _data,
+      readerController: _readerController,
+      contents: _contents,
       chapter: _chapter,
       book: _book,
       child: Theme(
@@ -180,38 +219,17 @@ class BuildContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scope = ReadingScope.of(context);
-    final readerController = scope.controller;
+    final readerController = scope.readerController;
     final onDoubleTapDown = scope.onDoubleTapDown;
     final onNotification = scope.onNotification;
-    final data = ReadingScope.dataOf(context);
+    final contents = ReadingScope.contentsOf(context);
 
     itemBuilder(BuildContext context, int index) {
-      final content = data[index];
-
-      switch (content) {
-        case ImageData content:
-          return ImageCacheWidget(imageURL: content.imageURL);
-        // return CachedNetworkImage(
-        //   fit: BoxFit.contain,
-        //   imageUrl: content.imageURL,
-        // );
-        case TextData content:
-          return Padding(
-            padding: EdgeInsets.only(
-              right: 8,
-              left: 8,
-              bottom: 8,
-              top: index == 0 ? 60 : 8,
-            ),
-            child: Text(
-              content.text,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          );
-        case VideoData _:
-          return const SizedBox.shrink();
-      }
+      final widget = contents[index];
+      return widget;
     }
+
+    // SliverFixedExtentList.builder(itemBuilder: itemBuilder, itemExtent: itemExtent);
 
     return NotificationListener<ScrollNotification>(
       onNotification: onNotification,
@@ -225,20 +243,23 @@ class BuildContent extends StatelessWidget {
             physics: const ClampingScrollPhysics(),
             child: Flex(
               direction: Axis.vertical,
+              clipBehavior: Clip.hardEdge,
               children: List.generate(
-                data.length,
+                contents.length,
                 (index) => itemBuilder(context, index),
               ),
             ),
           ),
           // child: AdaptativePageView.builder(
           //   controller: readerController,
-          //   itemCount: data.length,
-          //   physics: const FixedExtentScrollPhysics(),
+          //   physics: const ClampingScrollPhysics(),
+          //   cacheExtentStyle: CacheExtentStyle.viewport,
+          //   itemCount: contents.length,
+          //   // physics: const FixedExtentScrollPhysics(),
           //   allowImplicitScrolling: true,
           //   scrollDirection: Axis.vertical,
           //   padEnds: false,
-          //   cacheExtent: 35,
+          //   cacheExtent: 1000,
           //   itemBuilder: itemBuilder,
           // ),
         ),
@@ -248,10 +269,7 @@ class BuildContent extends StatelessWidget {
 }
 
 class ImageCacheWidget extends StatelessWidget {
-  const ImageCacheWidget({
-    super.key,
-    required this.imageURL,
-  });
+  const ImageCacheWidget({super.key, required this.imageURL});
 
   final String imageURL;
 
@@ -263,19 +281,31 @@ class ImageCacheWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CachedNetworkImage(
+    // return CachedNetworkImage(
+    //   fit: BoxFit.contain,
+    //   fadeInDuration: const Duration(milliseconds: 300),
+    //   fadeOutDuration: const Duration(milliseconds: 300),
+    //   imageUrl: imageURL,
+    // );
+    return Image(
       fit: BoxFit.contain,
-      fadeInDuration: const Duration(milliseconds: 300),
-      fadeOutDuration: const Duration(milliseconds: 300),
-      imageUrl: imageURL,
+      image: CachedNetworkImageProvider(imageURL, cacheKey: imageURL),
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return SizedBox(
+          height: MediaQuery.sizeOf(context).height * .2,
+        );
+      },
     );
     // return Image.network(
-    //   widget.imageURL,
+    //   imageURL,
     //   loadingBuilder: (context, child, loadingProgress) {
-    //     if (loadingProgress == null) return child;
-    //     return SizedBox(
-    //       height: MediaQuery.sizeOf(context).height * .2,
-    //     );
+    //     if (loadingProgress != null) {
+    //       return SizedBox(
+    //         height: MediaQuery.sizeOf(context).height * .2,
+    //       );
+    //     }
+    //     return child;
     //   },
     //   fit: BoxFit.contain,
     // );
@@ -300,7 +330,7 @@ class _FooterWidgetState extends State<FooterWidget> {
   }
 
   void _onInit() {
-    _readerController = ReadingScope.of(context).controller;
+    _readerController = ReadingScope.of(context).readerController;
     _readerController?.addListener(_listener);
   }
 

@@ -3,7 +3,8 @@
 import 'package:app_wsrb_jsr/app/core/constants/app.dart';
 
 enum Source {
-  NEOX_SCANS('Neox Scans', App.NEOX_URL, 'Neox Scans');
+  NEOX_SCANS('Neox Scans', App.NEOX_URL, 'Neox Scans'),
+  ANROLL('Anroll', App.ANROLL_URL, 'Anroll');
   // MANGA_BTT('Manga BTT', App.MANGABTTURL);
 
   final String baseURL;

@@ -7,14 +7,14 @@ class FadeThroughTransitionSwitcher extends StatelessWidget {
     this.fillColor = Colors.transparent,
     required this.child,
     this.duration = const Duration(milliseconds: 300),
-    this.replace = false,
+    this.enableSecondChild = false,
     this.secondChild = const SizedBox.shrink(),
   });
 
   final Widget child;
   final Widget secondChild;
   final Duration duration;
-  final bool replace;
+  final bool enableSecondChild;
   final Color fillColor;
 
   @override
@@ -29,7 +29,7 @@ class FadeThroughTransitionSwitcher extends StatelessWidget {
           child: child,
         );
       },
-      child: replace
+      child: enableSecondChild
           ? KeyedSubtree(
               key: ValueKey('$runtimeType secondChild'),
               child: secondChild,

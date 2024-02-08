@@ -14,7 +14,7 @@ abstract class Content extends Equatable {
 
   final String? sinopse;
 
-  final AllDataContent allDataContent;
+  final DataContents dataContents;
 
   final ColorScheme? contentColorScheme;
 
@@ -24,7 +24,7 @@ abstract class Content extends Equatable {
     this.contentColorScheme,
     required this.url,
     this.sinopse,
-    this.allDataContent = const AllDataContent(),
+    required this.dataContents,
     required this.title,
   });
 
@@ -33,28 +33,30 @@ abstract class Content extends Equatable {
     String? sinopse,
     String? url,
     ColorScheme? contentColorScheme,
-    AllDataContent? allDataContent,
+    DataContents? dataContents,
   });
 
   Map<String, dynamic> get toMap;
 }
 
-class AllDataContent extends ListBase<DataContent> {
-  const AllDataContent([this._array = const []]);
+class DataContents extends ListBase<DataContent> {
+  DataContents();
 
-  AllDataContent.empty() : _array = List.empty();
-
-  final List<DataContent> _array;
+  final List<DataContent> _array = [];
 
   @override
   DataContent operator [](int index) => _array[index];
+
+  @override
+  void add(DataContent element) {
+    _array.add(element);
+  }
 
   @override
   void operator []=(int index, DataContent value) => _array[index] = value;
 
   @override
   int get length => _array.length;
-
   @override
   set length(int newLength) => _array.length = newLength;
 }

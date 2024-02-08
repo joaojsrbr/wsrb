@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-abstract class ReadingOverlayState<T extends StatefulWidget> extends State<T>
+abstract class CustomOverlayState<T extends StatefulWidget> extends State<T>
     with SingleTickerProviderStateMixin<T> {
   bool get reverseAnimation;
 
@@ -14,12 +14,18 @@ abstract class ReadingOverlayState<T extends StatefulWidget> extends State<T>
 
   Animation<Offset> get animation => _overlayAnimation;
 
+  Curve get forwardCurve => Curves.ease;
+
+  Curve get reverseCurve => Curves.ease;
+
   Animation<double> get curved => CurvedAnimation(
         parent: _overlayAnimationController,
-        curve: Curves.ease,
+        curve: forwardCurve,
+        reverseCurve: reverseCurve,
       );
 
   Offset? begin;
+
   Offset? end;
 
   @override
@@ -28,7 +34,9 @@ abstract class ReadingOverlayState<T extends StatefulWidget> extends State<T>
     _overlayAnimationController = AnimationController(
       vsync: this,
       duration: animationDuration,
-    );
+    )
+      ..addStatusListener(animationStatusListener)
+      ..addListener(animationListener);
 
     Offset offset = const Offset(0, 1);
 
@@ -41,13 +49,22 @@ abstract class ReadingOverlayState<T extends StatefulWidget> extends State<T>
     scheduleMicrotask(onStartAnimation);
   }
 
+  void changeAnimation({
+    required Offset begin,
+    Offset end = Offset.zero,
+  }) {
+    _overlayAnimation = Tween(
+      begin: begin,
+      end: end,
+    ).animate(curved);
+  }
+
   TickerFuture forward() => _overlayAnimationController.forward();
   TickerFuture reverse() => _overlayAnimationController.reverse();
 
   @override
   void didUpdateWidget(covariant T oldWidget) {
     didAnimation(widget, oldWidget);
-
     super.didUpdateWidget(oldWidget);
   }
 
@@ -55,9 +72,16 @@ abstract class ReadingOverlayState<T extends StatefulWidget> extends State<T>
 
   void onStartAnimation() {}
 
+  void animationListener() {}
+
+  void animationStatusListener(AnimationStatus status) {}
+
   @override
   void dispose() {
-    _overlayAnimationController.dispose();
+    _overlayAnimationController
+      ..removeStatusListener(animationStatusListener)
+      ..removeListener(animationListener)
+      ..dispose();
     super.dispose();
   }
 }

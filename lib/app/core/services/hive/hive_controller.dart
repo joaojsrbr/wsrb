@@ -14,10 +14,10 @@ class HiveController extends ChangeNotifier {
   late bool _pageOrders;
   late Source _source;
 
-  final _defaultValueOrderBy = OrderBy.LATEST;
-  final _defaultValueSource = Source.NEOX_SCANS;
-  final _defaultValueContentOrders = true;
-  final _defaultValuePageOrders = false;
+  static const _defaultValueOrderBy = OrderBy.LATEST;
+  static const _defaultValueSource = Source.NEOX_SCANS;
+  static const _defaultValueContentOrders = false;
+  static const _defaultValuePageOrders = true;
 
   bool get contentOrders => _contentOrders;
   bool get pageOrders => _pageOrders;
@@ -63,21 +63,28 @@ class HiveController extends ChangeNotifier {
   }
 
   Future<void> loadAll() async {
-    _pageOrders = await _hiveService.load(
-      'book_info_page_order',
-      _defaultValuePageOrders,
-    );
-    _contentOrders = await _hiveService.load(
-      'book_info_content_orders',
-      _defaultValueContentOrders,
-    );
-    _orderBy = await _hiveService.load(
-      'repository_order_by',
-      _defaultValueOrderBy,
-    );
-    _source = await _hiveService.load(
-      'repository_source',
-      _defaultValueSource,
-    );
+    final result = await Future.wait([
+      _hiveService.load(
+        'book_info_page_order',
+        _defaultValuePageOrders,
+      ),
+      _hiveService.load(
+        'book_info_content_orders',
+        _defaultValueContentOrders,
+      ),
+      _hiveService.load(
+        'repository_order_by',
+        _defaultValueOrderBy,
+      ),
+      _hiveService.load(
+        'repository_source',
+        _defaultValueSource,
+      ),
+    ]);
+
+    _pageOrders = result.elementAt(0) as bool;
+    _contentOrders = result.elementAt(1) as bool;
+    _orderBy = result.elementAt(2) as OrderBy;
+    _source = result.elementAt(3) as Source;
   }
 }

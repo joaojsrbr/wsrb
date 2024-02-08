@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:js_util';
 
 import 'package:app_wsrb_jsr/app/core/constants/app.dart';
 import 'package:app_wsrb_jsr/app/core/constants/source.dart';
@@ -7,8 +8,10 @@ import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/string_extens
 import 'package:app_wsrb_jsr/app/core/services/dio_client.dart';
 import 'package:app_wsrb_jsr/app/core/services/hive/hive_controller.dart';
 import 'package:app_wsrb_jsr/app/core/services/jikan.dart';
+import 'package:app_wsrb_jsr/app/models/anime.dart';
 import 'package:app_wsrb_jsr/app/models/content.dart';
 import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/models/episode.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:app_wsrb_jsr/app/utils/result.dart';
 import 'package:app_wsrb_jsr/app/utils/scraping.util.dart';
@@ -17,8 +20,10 @@ import 'package:app_wsrb_jsr/app/models/chapter.dart';
 import 'package:app_wsrb_jsr/app/models/data.dart';
 import 'package:app_wsrb_jsr/app/models/genre.dart';
 import 'package:app_wsrb_jsr/app/repositories/source/source.dart';
+import 'package:app_wsrb_jsr/app/utils/subscriptions.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as ui;
 
 import 'package:hive/hive.dart';
@@ -28,33 +33,33 @@ import 'package:html/parser.dart';
 import 'package:loading_more_list/loading_more_list.dart';
 
 part 'source/neox_source.dart';
+part 'source/anroll_source.dart';
 
-abstract class BookRepository extends LoadingMoreBase<Content> {
+abstract class ContentRepository extends LoadingMoreBase<Content> {
   int index = 0;
   bool isSuccess = false;
-  // ignore: prefer_final_fields
   bool _hasMore = true;
   bool forceRefresh = false;
 
   late final DioClient _dio;
   late final JikanService _jikanService;
-  late final List<StreamSubscription>? _subs;
+  late final Subscriptions _subscriptions;
   late final List<RSource> _sources;
 
   final HiveController _hiveController;
 
-  // late final BookRepositoryController controller;
-
-  BookRepository._internal(this._hiveController) {
+  ContentRepository._internal(this._hiveController) {
     _dio = DioClient();
     _jikanService = JikanService();
     _sources = [
       NeoxSource(this),
+      AnrollSource(this),
     ];
-    _subs = [
-      _hiveController.watchBy('repository_order_by').listen(_listen),
-      _hiveController.watchBy('repository_source').listen(_listen),
-    ];
+    _subscriptions = Subscriptions()
+      ..addAll([
+        _hiveController.watchBy('repository_source').listen(_listen),
+        _hiveController.watchBy('repository_order_by').listen(_listen),
+      ]);
   }
 
   void _listen(BoxEvent event) {
@@ -65,14 +70,11 @@ abstract class BookRepository extends LoadingMoreBase<Content> {
 
   bool get addMore => isSuccess && _hasMore;
 
-  factory BookRepository(HiveController hiveController) =>
-      _BookRepositoryImp(hiveController);
-
-  factory BookRepository.isolate(HiveController hiveController) =>
-      _BookRepositoryImp(hiveController);
+  factory ContentRepository(HiveController hiveController) =>
+      _ContentRepositoryImp(hiveController);
 
   RSource get source => _sources.firstWhere(
-        (source) => source.source == _hiveController.source,
+        (source) => equal(source.source, _hiveController.source),
       );
 
   Future<Result<Content>> getData(Content content);
@@ -88,15 +90,6 @@ abstract class BookRepository extends LoadingMoreBase<Content> {
     bool result = await super.refresh(notifyStateChanged);
     forceRefresh = false;
     return result;
-    // if (notifyStateChanged) {
-    //   forceRefresh = true;
-    //   result = await super.refresh( notifyStateChanged);
-    // } else {
-    //   forceRefresh = false;
-    //   result = await super.refresh( notifyStateChanged);
-    // }
-    // forceRefresh = false;
-    // return Future.value(result);
   }
 
   @override
@@ -104,16 +97,13 @@ abstract class BookRepository extends LoadingMoreBase<Content> {
 
   @override
   void dispose() {
-    for (final sub in _subs ?? []) {
-      sub.cancel();
-    }
-
+    _subscriptions.cancellAll(true);
     super.dispose();
   }
 }
 
-class _BookRepositoryImp extends BookRepository {
-  _BookRepositoryImp(super._hiveController) : super._internal() {
+class _ContentRepositoryImp extends ContentRepository {
+  _ContentRepositoryImp(super._hiveController) : super._internal() {
     ui.WidgetsBinding.instance
         .addPostFrameCallback((timeStamp) => refresh(true));
   }

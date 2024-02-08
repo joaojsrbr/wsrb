@@ -25,6 +25,7 @@ class AdaptativePageView extends StatefulWidget {
     this.physics,
     this.pageSnapping = true,
     this.cacheExtent,
+    this.cacheExtentStyle = CacheExtentStyle.viewport,
     List<Widget> children = const <Widget>[],
     this.dragStartBehavior = DragStartBehavior.start,
     this.allowImplicitScrolling = false,
@@ -49,6 +50,7 @@ class AdaptativePageView extends StatefulWidget {
     this.allowImplicitScrolling = false,
     this.restorationId,
     this.cacheExtent,
+    this.cacheExtentStyle = CacheExtentStyle.viewport,
     this.clipBehavior = Clip.hardEdge,
     this.scrollBehavior,
     this.padEnds = true,
@@ -71,6 +73,7 @@ class AdaptativePageView extends StatefulWidget {
     this.dragStartBehavior = DragStartBehavior.start,
     this.allowImplicitScrolling = false,
     this.restorationId,
+    this.cacheExtentStyle = CacheExtentStyle.viewport,
     this.clipBehavior = Clip.hardEdge,
     this.scrollBehavior,
     this.padEnds = true,
@@ -99,6 +102,8 @@ class AdaptativePageView extends StatefulWidget {
   final Clip clipBehavior;
 
   final ScrollBehavior? scrollBehavior;
+
+  final CacheExtentStyle cacheExtentStyle;
 
   final bool padEnds;
 
@@ -151,7 +156,7 @@ class _AdaptativePageViewState extends State<AdaptativePageView> {
         return Viewport(
           cacheExtent:
               widget.allowImplicitScrolling ? widget.cacheExtent ?? 1.0 : 0.0,
-          cacheExtentStyle: CacheExtentStyle.viewport,
+          cacheExtentStyle: widget.cacheExtentStyle,
           axisDirection: axisDirection,
           offset: position,
           clipBehavior: widget.clipBehavior,

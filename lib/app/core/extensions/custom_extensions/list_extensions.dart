@@ -9,4 +9,8 @@ extension ListExtensions<E, Id> on List<E> {
   List<E> reverse(bool reverse) {
     return reverse ? reversed.toList() : this;
   }
+
+  void addIfNoContains(E element) {
+    if (!contains(element)) add(element);
+  }
 }

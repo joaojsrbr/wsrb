@@ -14,11 +14,7 @@ class FlexibleSpaceBarWidget extends StatelessWidget {
     // final odArgs =
     //     ModalRoute.of(context)?.settings.arguments as BookInformationArgs;
     final isLoading = BookInformationScope.isLoadingOf(context);
-    final book = BookInformationScope.contentOf(context);
-    final themeData = Theme.of(context);
-    final size = MediaQuery.sizeOf(context);
-    final titleLarge =
-        themeData.textTheme.titleLarge?.copyWith(color: Colors.white);
+
     final FlexibleSpaceBarSettings? settings =
         context.dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
 
@@ -26,46 +22,19 @@ class FlexibleSpaceBarWidget extends StatelessWidget {
       clipper: FlexibleSpaceBarClipper(radius: 18),
       child: ShimmerLoading(
         isLoading: isLoading,
-        child: FlexibleSpaceBar(
-          collapseMode: CollapseMode.parallax,
-          background: Material(
-            borderRadius: BorderRadius.circular(18),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (!isLoading) ...[
-                  _ImageWidget(book.imageUrl),
-                  Positioned(
-                    top: size.height * .15,
-                    left: 20,
-                    right: 50,
-                    child: GestureDetector(
-                      onLongPress: () async {
-                        copyToClipboard(
-                          context,
-                          messageCopy: book.title,
-                          messageSnackBar:
-                              'Copiado para a área de transferência!',
-                        );
-                        await Feedback.forLongPress(context);
-                      },
-                      child: Text(
-                        book.title,
-                        style: titleLarge,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
+        child: isLoading
+            ? const Material(child: SizedBox.expand())
+            : const FlexibleSpaceBar(
+                collapseMode: CollapseMode.parallax,
+                background: _BuildContentWidget(),
+              ),
       ),
     );
 
     if (settings != null && settings.isScrolledUnder != null) {
       final isScrolledUnder = settings.isScrolledUnder!;
       flexible = Material(
+        key: ValueKey(isScrolledUnder),
         elevation: isScrolledUnder ? 0 : 8,
         borderRadius: isScrolledUnder ? null : BorderRadius.circular(18),
         color: Colors.transparent,
@@ -74,6 +43,47 @@ class FlexibleSpaceBarWidget extends StatelessWidget {
     }
 
     return flexible;
+  }
+}
+
+class _BuildContentWidget extends StatelessWidget {
+  const _BuildContentWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    final book = BookInformationScope.contentOf(context);
+    final themeData = Theme.of(context);
+    final size = MediaQuery.sizeOf(context);
+    final titleLarge =
+        themeData.textTheme.titleLarge?.copyWith(color: Colors.white);
+    return Material(
+      borderRadius: BorderRadius.circular(18),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          _ImageWidget(book.imageUrl),
+          Positioned(
+            top: size.height * .15,
+            left: 20,
+            right: 50,
+            child: GestureDetector(
+              onLongPress: () async {
+                copyToClipboard(
+                  context,
+                  messageCopy: book.title,
+                  messageSnackBar: 'Copiado para a área de transferência!',
+                );
+                await Feedback.forLongPress(context);
+              },
+              child: Text(
+                book.title,
+                style: titleLarge,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/list_extensions.dart';
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
 import 'package:app_wsrb_jsr/app/core/services/hive/hive_controller.dart';
@@ -26,10 +28,22 @@ class ChipContentControllerState extends State<ChipContentController> {
   void initState() {
     super.initState();
     _scrollController = ScrollController()..addListener(_scrollListener);
+    Future.delayed(const Duration(seconds: 4), _scrollToEnd);
+  }
+
+  void _scrollToEnd() async {
+    final hiveController = context.read<HiveController>();
+    if (!hiveController.pageOrders) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(seconds: 1),
+        curve: Curves.fastOutSlowIn,
+      );
+    }
   }
 
   void _startKeys() {
-    final allDataContent = BookInformationScope.allDataContentOf(context);
+    final allDataContent = BookInformationScope.dataContentsOf(context);
     if (_keys.length == allDataContent.length) return;
     _keys = allDataContent.map((e) => GlobalKey()).toList();
   }
@@ -121,29 +135,29 @@ class ChipContentControllerState extends State<ChipContentController> {
 
     final setListChapterIndex = BookInformationScope.of(context).setListIndex;
     final contentOrders = context.watch<HiveController>().contentOrders;
-    final allDataContent =
-        BookInformationScope.allDataContentOf(context).reversed.toList();
+    final dataContents =
+        BookInformationScope.dataContentsOf(context).reversed.toList();
     final index = BookInformationScope.indexOf(context);
     final hiveController = context.watch<HiveController>();
-    if (allDataContent.isEmpty) return const SliverToBoxAdapter();
+    if (dataContents.isEmpty) return const SliverToBoxAdapter();
 
-    final selectChips = allDataContent.map((e) => false).toList();
+    final selectChips = dataContents.map((e) => false).toList();
     selectChips[index] = true;
 
     final chipsWidgets = List.generate(selectChips.length, (index) {
-      DataContent firstText = allDataContent[index].first;
-      DataContent lastText = allDataContent[index].last;
+      DataContent firstText = dataContents[index].first;
+      DataContent lastText = dataContents[index].last;
 
       if (contentOrders) {
-        firstText = allDataContent[index].last;
-        lastText = allDataContent[index].first;
+        firstText = dataContents[index].last;
+        lastText = dataContents[index].first;
         if (hiveController.pageOrders) {
-          firstText = allDataContent[index].first;
-          lastText = allDataContent[index].last;
+          firstText = dataContents[index].first;
+          lastText = dataContents[index].last;
         }
       } else {
-        firstText = allDataContent[index].first;
-        lastText = allDataContent[index].last;
+        firstText = dataContents[index].first;
+        lastText = dataContents[index].last;
       }
 
       return Padding(
@@ -187,7 +201,7 @@ class ChipContentControllerState extends State<ChipContentController> {
                       onPressed: () => hiveController
                           .setChaptersOrders(!hiveController.contentOrders),
                       icon: FadeThroughTransitionSwitcher(
-                        replace: hiveController.contentOrders,
+                        enableSecondChild: hiveController.contentOrders,
                         duration: const Duration(milliseconds: 550),
                         secondChild: Icon(MdiIcons.sortNumericDescending),
                         child: Icon(MdiIcons.sortNumericAscending),
@@ -201,12 +215,14 @@ class ChipContentControllerState extends State<ChipContentController> {
                         ),
                       ),
                       iconSize: 21,
-                      onPressed: () => hiveController
-                          .setPageOrders(!hiveController.pageOrders),
+                      onPressed: selectChips.length == 1
+                          ? null
+                          : () => hiveController
+                              .setPageOrders(!hiveController.pageOrders),
                       icon: RotatedBox(
                         quarterTurns: 3,
                         child: FadeThroughTransitionSwitcher(
-                          replace: hiveController.pageOrders,
+                          enableSecondChild: hiveController.pageOrders,
                           duration: const Duration(milliseconds: 550),
                           secondChild: Icon(MdiIcons.sortNumericDescending),
                           child: Icon(MdiIcons.sortNumericAscending),
@@ -228,8 +244,6 @@ class ChipContentControllerState extends State<ChipContentController> {
 
   @override
   void dispose() {
-    // _timer?.cancel();
-    // _timer = null;
     _scrollController
       ..removeListener(_scrollListener)
       ..dispose();

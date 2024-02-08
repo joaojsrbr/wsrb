@@ -62,6 +62,8 @@ class _SinopseWidgetState extends State<SinopseWidget> {
       );
     }
 
+    if (widget.sinopse.isEmpty) return const SliverToBoxAdapter();
+
     return SliverAnimatedPaintExtent(
       duration: const Duration(milliseconds: 300),
       child: SliverToBoxAdapter(

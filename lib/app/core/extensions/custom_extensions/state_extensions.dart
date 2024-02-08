@@ -10,9 +10,9 @@ extension StateExtension<S extends StatefulWidget> on State<S> {
     if (mounted) callback.call();
   }
 
-  void addPostFrameCallback(SetCallback<Duration> callback) {
+  void addPostFrameCallback(SetCallBack<Duration> callback) {
     WidgetsBinding.instance.addPostFrameCallback(callback);
   }
 }
 
-typedef SetCallback<T> = void Function(T data);
+typedef SetCallBack<T> = void Function(T data);

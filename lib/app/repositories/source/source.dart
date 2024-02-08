@@ -5,15 +5,15 @@ import 'package:app_wsrb_jsr/app/models/content.dart';
 import 'package:app_wsrb_jsr/app/models/data_content.dart';
 import 'package:app_wsrb_jsr/app/utils/result.dart';
 import 'package:app_wsrb_jsr/app/models/data.dart';
-import 'package:app_wsrb_jsr/app/repositories/book_repository.dart';
+import 'package:app_wsrb_jsr/app/repositories/content_repository.dart';
 
 abstract class RSource {
   final int initialIndex;
 
-  final BookRepository bookRepository;
+  final ContentRepository contentRepository;
 
   const RSource(
-    this.bookRepository, {
+    this.contentRepository, {
     required this.initialIndex,
   });
 

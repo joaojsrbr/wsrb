@@ -1,5 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api, constant_identifier_names, unused_field
 
+import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
 import 'package:app_wsrb_jsr/app/models/content.dart';
 import 'package:app_wsrb_jsr/app/models/data_content.dart';
 import 'package:flutter/foundation.dart';
@@ -21,15 +22,17 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
     required this.index,
     required this.setListIndex,
     required this.content,
-    required this.allDataContent,
+    required this.contentOrders,
+    required this.dataContents,
   });
 
   final bool isLoading;
+  final bool contentOrders;
   final Content content;
-  final void Function(int index) setListIndex;
+  final SetCallBack<int> setListIndex;
   final int index;
 
-  final List<List<DataContent>> allDataContent;
+  final List<List<DataContent>> dataContents;
 
   static BookInformationScope of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<BookInformationScope>()!;
@@ -45,8 +48,8 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
   static bool isLoadingOf(BuildContext context) =>
       _of(context, _BookInformationScopeAspect.ISLOADING).isLoading;
 
-  static List<List<DataContent>> allDataContentOf(BuildContext context) =>
-      _of(context, _BookInformationScopeAspect.ALLDATACONTENTS).allDataContent;
+  static List<List<DataContent>> dataContentsOf(BuildContext context) =>
+      _of(context, _BookInformationScopeAspect.ALLDATACONTENTS).dataContents;
 
   static Content contentOf(BuildContext context) =>
       _of(context, _BookInformationScopeAspect.CONTENT).content;
@@ -70,9 +73,8 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
               when index != oldWidget.index:
             return true;
           case _BookInformationScopeAspect.ALLDATACONTENTS
-              when !listEquals(_allDataContent, oldWidget._allDataContent):
-            // if (!listEquals(_chapters, _chapters) &&
-            //     listChapterIndex == oldWidget.listChapterIndex) return true;
+              when !listEquals(_dataContents, oldWidget._dataContents) ||
+                  contentOrders != oldWidget.contentOrders:
             return true;
           default:
             return true;
@@ -83,12 +85,14 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
     return false;
   }
 
-  List<DataContent> get _allDataContent {
+  List<DataContent> get _dataContents {
     final List<DataContent> lista = [];
 
-    for (final content in allDataContent) {
+    for (final content in dataContents) {
       lista.addAll(content);
     }
+
+    lista.sort();
 
     return lista;
   }
@@ -98,6 +102,7 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
     return isLoading != oldWidget.isLoading ||
         content != oldWidget.content ||
         index != oldWidget.index ||
-        !listEquals(_allDataContent, oldWidget._allDataContent);
+        contentOrders != oldWidget.contentOrders ||
+        !listEquals(_dataContents, oldWidget._dataContents);
   }
 }

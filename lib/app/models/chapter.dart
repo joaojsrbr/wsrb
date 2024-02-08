@@ -2,7 +2,7 @@
 
 import 'package:app_wsrb_jsr/app/models/data_content.dart';
 
-class Chapter extends DataContent {
+class Chapter extends DataContent implements Comparable<Chapter> {
   final bool read;
 
   const Chapter({
@@ -43,5 +43,10 @@ class Chapter extends DataContent {
       url: map['url'] as String,
       title: map['title'] as String,
     );
+  }
+
+  @override
+  int compareTo(Chapter other) {
+    return number.compareTo(other.number);
   }
 }

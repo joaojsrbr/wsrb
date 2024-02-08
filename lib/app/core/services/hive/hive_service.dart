@@ -48,25 +48,23 @@ class HiveServiceImpl implements HiveService {
   Future<T> load<T>(
     String key,
     T defaultValue, {
-    Function(T data)? print,
     bool debug = true,
   }) async {
     try {
       final T loaded = _hiveBox.get(key, defaultValue: defaultValue) as T;
-      final loadedPrint = print?.call(loaded) ?? loaded;
+
       // print?.call(_hiveBox.get(key, defaultValue: defaultValue) as T) ??
 
       if (debug) {
         customLog(
-            'Hive type : $key as ${loadedPrint.runtimeType}\nHive loaded : $key as $loadedPrint with ${loadedPrint.runtimeType}');
+            'Hive type : $key as ${loaded.runtimeType}\nHive loaded : $key as $loaded with ${loaded.runtimeType}');
       }
 
       return Future.value(loaded);
     } catch (_, __) {
-      final defaultV = print?.call(defaultValue) ?? defaultValue;
       if (debug) {
         customLog(
-            'Hive type : $key as ${defaultV.runtimeType}\nHive loaded : $key as $defaultV with ${defaultV.runtimeType}');
+            'Hive type : $key as ${defaultValue.runtimeType}\nHive loaded : $key as $defaultValue with ${defaultValue.runtimeType}');
       }
 
       return Future.value(defaultValue);
@@ -74,15 +72,19 @@ class HiveServiceImpl implements HiveService {
   }
 
   @override
-  Future<void> save<T>(String key, T value, [bool logDebug = true]) async {
+  Future<void> save<T>(
+    String key,
+    T value, {
+    bool debug = true,
+  }) async {
     try {
       await _hiveBox.put(key, value);
-      if (logDebug) {
+      if (debug) {
         customLog(
             'Hive save_type : $key as ${value.runtimeType}\nHive save : $key as $value with ${value.runtimeType}');
       }
     } on HiveError catch (_, __) {
-      if (logDebug) customLog('HiveError : $_\nStackTrace: $__,');
+      if (debug) customLog('HiveError : $_\nStackTrace: $__,');
     }
   }
 

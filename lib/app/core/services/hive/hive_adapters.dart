@@ -3,7 +3,7 @@ part of 'hive_service.dart';
 void _hiveAdapters() {
   Hive.registerAdapter(_OrderByAdapter());
   Hive.registerAdapter(_SourceAdapter());
-  Hive.registerAdapter(_BookAdapter());
+  // Hive.registerAdapter(_BookAdapter());
   Hive.registerAdapter(_CotentAdapter());
 }
 
@@ -39,21 +39,21 @@ class _SourceAdapter extends TypeAdapter<Source> {
   }
 }
 
-class _BookAdapter extends TypeAdapter<Book> {
-  @override
-  Book read(BinaryReader reader) {
-    final Map<dynamic, dynamic> map = reader.readMap();
-    return Book.fromMap(map);
-  }
+// class _BookAdapter extends TypeAdapter<Book> {
+//   @override
+//   Book read(BinaryReader reader) {
+//     final Map<dynamic, dynamic> map = reader.readMap();
+//     return Book.fromMap(map);
+//   }
 
-  @override
-  int get typeId => 3;
+//   @override
+//   int get typeId => 3;
 
-  @override
-  void write(BinaryWriter writer, Book obj) {
-    writer.writeMap(obj.toMap);
-  }
-}
+//   @override
+//   void write(BinaryWriter writer, Book obj) {
+//     writer.writeMap(obj.toMap);
+//   }
+// }
 
 class _CotentAdapter extends TypeAdapter<Content> {
   @override
@@ -67,10 +67,16 @@ class _CotentAdapter extends TypeAdapter<Content> {
   }
 
   @override
-  int get typeId => 3;
+  int get typeId => 4;
 
   @override
   void write(BinaryWriter writer, Content obj) {
-    writer.writeMap(obj.toMap);
+    if (obj is Anime) {
+      final anime = obj;
+      writer.writeMap(anime.toMap);
+    } else if (obj is Book) {
+      final book = obj;
+      writer.writeMap(book.toMap);
+    }
   }
 }

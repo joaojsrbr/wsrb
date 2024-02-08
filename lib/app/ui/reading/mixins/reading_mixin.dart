@@ -1,4 +1,4 @@
-part of '../view/reading.dart';
+part of '../view/reading_view.dart';
 
 mixin _ReadingVars on State<ReadingView> {
   // vars
@@ -8,16 +8,16 @@ mixin _ReadingVars on State<ReadingView> {
   bool _isLoading = true;
   bool _enabledSystemUIMode = false;
   bool _showFooterWidget = true;
+  final List<Widget> _contents = [];
   // ignore: unused_field
-  List<DataContent> _allDataContent = [];
-  List<Data> _data = [];
+  List<DataContent> _dataContents = [];
 
-  late final BookRepository _repository;
+  late final ContentRepository _repository;
 
   @override
   void initState() {
     super.initState();
-    _repository = context.read<BookRepository>();
+    _repository = context.read<ContentRepository>();
   }
 }
 

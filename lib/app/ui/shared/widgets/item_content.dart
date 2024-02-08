@@ -1,7 +1,11 @@
 import 'package:app_wsrb_jsr/app/core/constants/app.dart';
+import 'package:app_wsrb_jsr/app/models/anime.dart';
 import 'package:app_wsrb_jsr/app/models/content.dart';
+import 'package:app_wsrb_jsr/app/models/episode.dart';
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
+import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
+import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -60,19 +64,32 @@ class ItemContent extends StatelessWidget {
                             left: 14,
                             top: 12,
                             right: 12,
-                            bottom: 8,
                           ),
                           child: Text(
                             title,
                             maxLines: 2,
                             textAlign: TextAlign.start,
                             overflow: TextOverflow.ellipsis,
-                            style: textTheme.titleLarge?.copyWith(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: textTheme.titleMedium?.copyWith(),
                           ),
                         ),
+                        if (content is Anime)
+                          Container(
+                            alignment: Alignment.topLeft,
+                            padding: const EdgeInsets.only(
+                              left: 14,
+                              top: 8,
+                              right: 12,
+                              bottom: 8,
+                            ),
+                            child: Text(
+                              content.dataContents.first.title,
+                              maxLines: 2,
+                              textAlign: TextAlign.start,
+                              overflow: TextOverflow.ellipsis,
+                              style: textTheme.labelMedium?.copyWith(),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -83,11 +100,32 @@ class ItemContent extends StatelessWidget {
                 child: InkWell(
                   borderRadius: borderRadius,
                   splashFactory: InkRipple.splashFactory,
+                  onDoubleTap:
+                      content is Anime && content.dataContents.length == 1
+                          ? () async {
+                              await context.push(
+                                RouteName.CONTENTINFO,
+                                extra: ContentInformationArgs(content: content),
+                              );
+                            }
+                          : null,
                   onTap: () async {
-                    await context.push(
-                      RouteName.CONTENTINFO,
-                      extra: ContentInformationArgs(content: content),
-                    );
+                    customLog('');
+                    if (content is Anime && content.dataContents.length == 1) {
+                      final anime = content as Anime;
+                      await context.push(
+                        RouteName.PLAYER,
+                        extra: PlayerArgs(
+                          anime: anime,
+                          episode: anime.dataContents.first,
+                        ),
+                      );
+                    } else {
+                      await context.push(
+                        RouteName.CONTENTINFO,
+                        extra: ContentInformationArgs(content: content),
+                      );
+                    }
                   },
                 ),
               ),
@@ -170,29 +208,54 @@ class _ImageWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final title = content.title;
-    final imageUrl = content.imageUrl;
+    String imageUrl = content.imageUrl;
+
+    if (content is Anime) {
+      imageUrl = (content.dataContents.first as Episode).thumbnail ?? '';
+    }
+
+    const double width = 145;
+    int memCacheHeight = 300;
+    int memCacheWidth = 260;
+    // int memCacheWidth = 250;
+
+    if (content is Anime) {
+      memCacheHeight = 300;
+      memCacheWidth = 450;
+    }
+
+    if (imageUrl.isEmpty) {
+      return const SizedBox(
+        width: width,
+        height: double.infinity,
+        child: Card(margin: EdgeInsets.zero),
+      );
+    }
+
     // final themeData = Theme.of(context);
 
     final Widget imageWidget = SizedBox(
-      width: 125,
+      width: width,
+      height: double.infinity,
       child: CachedNetworkImage(
         errorWidget: (context, url, obj) {
           return Image(
             image: ResizeImage.resizeIfNeeded(
-              375,
-              450,
+              memCacheWidth,
+              memCacheHeight,
               App.DEFAULT_IMAGE_PLACEHOLDER,
             ),
             alignment: Alignment.center,
-            height: 200,
             fit: BoxFit.cover,
           );
         },
         alignment: FractionalOffset.center,
         imageUrl: imageUrl,
         cacheKey: title,
-        memCacheHeight: 450,
-        memCacheWidth: 350,
+        fadeOutDuration: const Duration(milliseconds: 600),
+        fadeInDuration: const Duration(milliseconds: 300),
+        memCacheHeight: memCacheHeight,
+        memCacheWidth: memCacheWidth,
         fit: BoxFit.cover,
       ),
     );

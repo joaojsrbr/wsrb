@@ -1,5 +1,5 @@
 import 'package:app_wsrb_jsr/app/models/content.dart';
-import 'package:app_wsrb_jsr/app/repositories/book_repository.dart';
+import 'package:app_wsrb_jsr/app/repositories/content_repository.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/indicator_build.dart';
 import 'package:flutter/material.dart';
@@ -21,22 +21,25 @@ class _HomeDestinationState extends State<HomeDestination>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final BookRepository bookRepository = context.read<BookRepository>();
+    final contentRepository = context.read<ContentRepository>();
 
     Future<void> onRefresh() async {
-      bookRepository.refresh(true);
+      await contentRepository.refresh(true);
     }
+
+    final controller = PrimaryScrollController.maybeOf(context);
 
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: LoadingMoreList(
         ListConfig<Content>(
           shrinkWrap: true,
+          controller: controller,
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           indicatorBuilder: indicatorBuilder,
           physics: const NeverScrollableScrollPhysics(),
           itemBuilder: _itemBuilder,
-          sourceList: bookRepository,
+          sourceList: contentRepository,
         ),
       ),
     );

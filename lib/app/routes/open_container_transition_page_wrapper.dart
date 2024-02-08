@@ -1,12 +1,31 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:animations/animations.dart';
-import 'package:app_wsrb_jsr/app/core/controllers/open_container_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:provider/provider.dart';
+
+class OpenContainerController extends ChangeNotifier {
+  bool _active = false;
+  bool _disable = false;
+
+  set activeOpenContainer(bool active) {
+    if (_active == active) return;
+    _active = active;
+    notifyListeners();
+  }
+
+  set disableOpenContainer(bool disable) {
+    if (_disable == disable) return;
+    _disable = disable;
+    notifyListeners();
+  }
+
+  bool get isActive => _active;
+  bool get isDisable => _disable;
+}
 
 class OpenContainerWidgetArgs {
   final Object? arguments;

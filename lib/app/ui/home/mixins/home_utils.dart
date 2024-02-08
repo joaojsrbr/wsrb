@@ -1,12 +1,12 @@
-import 'package:app_wsrb_jsr/app/ui/home/page/home_page.dart';
+import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
+import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:flutter/widgets.dart';
 
-mixin HomeUtils on State<HomePage> {
+mixin HomeUtilsMixin on State<HomeView> {
   bool _disableScroll = false;
 
   void disableScroll([bool? disable]) {
-    if (!mounted) return;
-    setState(() {
+    setStateIfMounted(() {
       _disableScroll = disable ?? !_disableScroll;
     });
   }

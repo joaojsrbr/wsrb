@@ -1,6 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:convert';
-
 import 'package:equatable/equatable.dart';
 
 class Genre extends Equatable {
@@ -11,7 +8,7 @@ class Genre extends Equatable {
   @override
   List<Object?> get props => [label];
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> get toMap {
     return <String, dynamic>{
       'label': label,
     };
@@ -22,9 +19,4 @@ class Genre extends Equatable {
       map['label'] as String,
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory Genre.fromJson(String source) =>
-      Genre.fromMap(json.decode(source) as Map<String, dynamic>);
 }

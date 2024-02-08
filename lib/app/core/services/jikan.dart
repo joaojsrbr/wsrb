@@ -18,6 +18,16 @@ class JikanService {
     );
   }
 
+  Future<BuiltList<Anime>> searchAnime({
+    String? query,
+    AnimeType? type,
+  }) async {
+    return await _jikan.searchAnime(
+      query: query,
+      type: type,
+    );
+  }
+
   Future<BuiltList<Picture>> getMangaPictures({
     int? id,
     String? query,
@@ -27,11 +37,34 @@ class JikanService {
     } else if (query != null) {
       final searchResponse = await searchManga(query: query).then(
         (value) => value.firstWhereOrNull(
-          (element) => element.titleSynonyms.contains(query),
+          (element) => element.titleSynonyms.any(
+            (element) => element.contains(query),
+          ),
         ),
       );
       if (searchResponse != null) {
-        return await _jikan.getMangaPictures(searchResponse.malId);
+        return await getAnimePictures(id: searchResponse.malId);
+      }
+    }
+    return BuiltList();
+  }
+
+  Future<BuiltList<Picture>> getAnimePictures({
+    int? id,
+    String? query,
+  }) async {
+    if (id != null) {
+      return await _jikan.getAnimePictures(id);
+    } else if (query != null) {
+      final searchResponse = await searchAnime(query: query).then(
+        (value) => value.firstWhereOrNull(
+          (element) => element.titleSynonyms.any(
+            (element) => element.contains(query),
+          ),
+        ),
+      );
+      if (searchResponse != null) {
+        return await getAnimePictures(id: searchResponse.malId);
       }
     }
     return BuiltList();
