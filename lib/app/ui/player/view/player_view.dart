@@ -5,11 +5,12 @@ import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/list_extensio
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
 import 'package:app_wsrb_jsr/app/models/anime.dart';
 import 'package:app_wsrb_jsr/app/models/data.dart';
+import 'package:app_wsrb_jsr/app/models/episode.dart';
 import 'package:app_wsrb_jsr/app/repositories/content_repository.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/dismissible.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/player/widgets/player_custom_overlay.dart';
 import 'package:app_wsrb_jsr/app/ui/player/widgets/player_theme.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/list_dismissible.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:app_wsrb_jsr/app/utils/subscriptions.dart';
@@ -23,17 +24,17 @@ import 'package:provider/provider.dart';
 class PlayerView extends StatefulWidget {
   const PlayerView({super.key});
 
+  static final GlobalKey<VideoState> _videoStateKey = GlobalKey<VideoState>();
+
   @override
   State<PlayerView> createState() => _PlayerViewState();
 }
 
 class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
-  static final GlobalKey<VideoState> _videoStateKey = GlobalKey<VideoState>();
-
   late PlayerArgs _playerArgs;
   late final ContentRepository _repository;
   // Create a [VideoController] to handle video output from [Player].
-  late VideoController _videoController;
+  VideoController? _videoController;
 
   ColorScheme? _contentColorScheme;
   VideoData? _mainVideoData;
@@ -50,98 +51,120 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
   final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
   final List<VideoData> data = [];
 
+  final int _maxCircularAnimation = 5;
+  int _currentCircularAnimation = 1;
+
   @override
   void initState() {
-    _repository = context.read<ContentRepository>();
-    addPostFrameCallback(_onInit);
     super.initState();
+    _repository = context.read<ContentRepository>();
+    BoxFit.values
+        .where((fit) => !(fit == BoxFit.none || fit == _activeFit))
+        .forEach(_queueBoxFits.add);
+    addPostFrameCallback(_onInit);
   }
 
-  Future<void> _getMainVideoData() async {
-    final result = await _repository.getContent(_playerArgs.episode);
+  Future<void> _incrementCurrentCircularAnimation() async {
+    setStateIfMounted(() => _currentCircularAnimation++);
+    await Future.delayed(const Duration(milliseconds: 150));
+  }
 
+  Future<void> _getInitMainVideoData() async {
+    final result = await _repository.getContent(_playerArgs.episode);
     result.when(
       onSucess: (data) {
         if (data is! List<VideoData>) Navigator.of(context).pop();
 
         setStateIfMounted(() {
+          _currentCircularAnimation++;
           data.forEach(this.data.cast().addIfNoContains);
-          _mainVideoData = this.data.first;
+          _mainVideoData = data.first as VideoData;
         });
       },
     );
   }
 
-  Future<void> _getAllEpisodesAndColorScheme() async {
-    await _repository.getData(_playerArgs.anime).then((result) {
-      result.when(onSucess: (data) async {
-        _playerArgs.anime = data as Anime;
+  // Future<VideoData?> _showBottomSheet() async {
+  //   final result = showBottomSheet<VideoData>(
+  //     context: context,
+  //     builder: (context) {
+  //       return GridView.builder(
+  //         gridDelegate:
+  //             SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 200),
+  //         itemBuilder: (context, index) {
+  //           return Text('data');
+  //         },
+  //       );
+  //     },
+  //   );
 
-        try {
-          _contentColorScheme = await ColorScheme.fromImageProvider(
-            brightness: Theme.of(context).brightness,
-            provider: CachedNetworkImageProvider(
-              _playerArgs.anime.imageUrl,
-              cacheKey: _playerArgs.anime.imageUrl,
-              maxHeight: 330,
-              maxWidth: 245,
-            ),
-          );
-        } catch (_) {}
-      });
-    });
+  //   return await result.closed;
+  // }
+
+  Future<void> _getContentColorScheme() async {
+    try {
+      _contentColorScheme = await ColorScheme.fromImageProvider(
+        brightness: Theme.of(context).brightness,
+        provider: CachedNetworkImageProvider(
+          _playerArgs.anime.imageUrl,
+          cacheKey: _playerArgs.anime.imageUrl,
+          maxHeight: 330,
+          maxWidth: 245,
+        ),
+      );
+    } catch (_) {}
+  }
+
+  Future<void> _getAllEpisodesAndColorScheme() async {
+    final result = await _repository
+        .getData(_playerArgs.anime)
+        .then((result) => result.when(onSucess: (data) => data as Anime));
+
+    if (result != null) _playerArgs.anime = result;
   }
 
   void _onInit(Duration time) async {
     _playerArgs = argument();
+    await Future.delayed(const Duration(milliseconds: 400));
 
-    delayed() async {
-      await _getAllEpisodesAndColorScheme();
-      await _getMainVideoData();
-      await _startPlayer();
-    }
-
-    BoxFit.values
-        .where((fit) => !(fit == BoxFit.none || fit == _activeFit))
-        .forEach(_queueBoxFits.add);
-
-    await Future.delayed(const Duration(seconds: 1), delayed);
+    await _getAllEpisodesAndColorScheme()
+        .whenComplete(_incrementCurrentCircularAnimation);
+    await _getContentColorScheme()
+        .whenComplete(_incrementCurrentCircularAnimation);
+    await _getInitMainVideoData()
+        .whenComplete(_incrementCurrentCircularAnimation);
+    await _startPlayer().whenComplete(_incrementCurrentCircularAnimation);
     setStateIfMounted(() => _isLoading = false);
   }
 
   bool get _playing => _player?.state.playing ?? false;
   bool get _isFullscreen =>
-      _videoStateKey.currentState?.isFullscreen() ?? false;
+      PlayerView._videoStateKey.currentState?.isFullscreen() ?? false;
 
   Future<void> _startPlayer() async {
     if (_playing) {
       await _player?.stop();
-      // _videoController.id.dispose();
-      // _videoController.notifier.dispose();
-      // _videoController.rect.dispose();
-      // await _player?.dispose();
-      // await _registerListeners(true);
-      // setState(() {
-      //   _player = Player();
-      //   _videoController = VideoController(_player!);
-      // });
     } else {
       _player = Player();
       _videoController = VideoController(_player!);
     }
 
-    await _player!.open(Media(
-      _mainVideoData!.videoContent,
-      httpHeaders: {
-        "origin": _repository.source.BASE_URL,
-        "referer": "${_repository.source.BASE_URL}/",
-      },
-    ));
-    await _player!.setAudioDevice(AudioDevice.auto());
-    await _player!.setVideoTrack(VideoTrack.auto());
-    await _registerListeners(false);
-    await _videoController.waitUntilFirstFrameRendered;
-    // setState(() {});
+    await Future.wait([
+      if (_player != null && _mainVideoData != null) ...[
+        _player!.open(Media(
+          _mainVideoData!.videoContent,
+          httpHeaders: {
+            "origin": _repository.source.BASE_URL,
+            "referer": "${_repository.source.BASE_URL}/",
+          },
+        )),
+        _player!.setAudioDevice(AudioDevice.auto()),
+        _player!.setVideoTrack(VideoTrack.auto()),
+      ],
+      _registerListeners(false),
+      if (_videoController != null)
+        _videoController!.waitUntilFirstFrameRendered,
+    ]);
   }
 
   Future<void> _registerListeners(bool clearListeners) async {
@@ -171,11 +194,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
   }
 
   void _positionListener(Duration position) {
-    _nextEpisode(position);
+    if (_player == null) return;
+    if (_hasNextEpisode) _nextEpisode(position);
   }
 
   void _handleSetFits() async {
-    final videoState = _videoStateKey.currentState;
+    final videoState = PlayerView._videoStateKey.currentState;
     if (videoState == null) return;
 
     final nextBoxFit = _queueBoxFits.removeFirst();
@@ -187,23 +211,18 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
 
     setState(() {
       _activeFit = nextBoxFit;
-      _videoStateKey.currentState?.update(fit: nextBoxFit);
+      PlayerView._videoStateKey.currentState?.update(fit: nextBoxFit);
     });
   }
 
   bool get _hasNextEpisode {
-    final indexOf = _playerArgs.anime.dataContents.reversed
-        .toList()
-        .indexOf(_playerArgs.episode);
-
-    return !(_playerArgs.anime.dataContents.length - 1 == indexOf);
+    return !(_playerArgs.anime.dataContents.reversed.last ==
+        _playerArgs.episode);
   }
 
   void _nextEpisode(Duration position) async {
-    if (!_hasNextEpisode && _player == null) return;
-
     final maxPosition = _player!.state.duration;
-    final activeOverlay = maxPosition - const Duration(seconds: 30);
+    final activeOverlay = maxPosition - const Duration(seconds: 90);
     final diff = _player!.state.duration - position;
 
     if (position >= activeOverlay &&
@@ -212,9 +231,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
       _overlayNextEpisode.value =
           '${_playerArgs.episode.title} - ${diff.inSeconds}';
       customLog(_overlayNextEpisode.value);
-    } else if (_overlayNextEpisode.value != null) {
-      _overlayNextEpisode.value = null;
     }
+    // else if (_overlayNextEpisode.value != null) {
+    //   _overlayNextEpisode.value = null;
+    // }
   }
 
   @override
@@ -235,13 +255,23 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
                 _isLoading ? MainAxisAlignment.center : MainAxisAlignment.start,
             children: [
               if (_isLoading) ...[
-                const Center(child: CircularProgressIndicator.adaptive()),
+                Center(
+                  child: TweenAnimationBuilder(
+                    duration: const Duration(milliseconds: 300),
+                    tween: Tween(
+                      begin: 0.0,
+                      end: _currentCircularAnimation / _maxCircularAnimation,
+                    ),
+                    builder: (_, value, __) =>
+                        CircularProgressIndicator.adaptive(value: value),
+                  ),
+                ),
                 const SizedBox(height: 12),
                 Text(
                   'Carregando...',
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
-              ] else ...[
+              ] else if (_videoController != null) ...[
                 SizedBox(
                   width: width,
                   height: height * .35,
@@ -249,63 +279,30 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
                     aspectRatio: 16 / 9,
                     fit: _activeFit,
                     controls: _VideoControlls.new,
-                    key: _videoStateKey,
-                    controller: _videoController,
+                    key: PlayerView._videoStateKey,
+                    controller: _videoController!,
                   ),
                 ),
                 Expanded(
-                  child: ListView.builder(
-                    physics: const BouncingScrollPhysics(),
+                  child: ListDismissible<Episode>(
+                    titleTextStyle: Theme.of(context).textTheme.labelLarge,
+                    contents: _playerArgs.anime.dataContents,
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: _playerArgs.anime.dataContents.length,
-                    itemBuilder: (context, index) {
-                      final episode = _playerArgs.anime.dataContents[index];
-                      return CustomDismissible(
-                        onUpdate: (details) {},
-                        dismissThresholds: const {
-                          DismissDirection.endToStart: 0.5,
-                          DismissDirection.startToEnd: 0.5
-                        },
-                        resizeDuration: const Duration(milliseconds: 600),
-                        background: Container(
-                          alignment: Alignment.centerLeft,
-                          decoration:
-                              const BoxDecoration(color: Colors.blueAccent),
-                          padding: const EdgeInsets.only(left: 20.0),
-                          child: const Icon(Icons.check, color: Colors.white),
-                        ),
-                        radius: 20,
-                        secondaryBackground: Container(
-                          decoration:
-                              const BoxDecoration(color: Colors.redAccent),
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 20.0),
-                          child: const Icon(Icons.delete, color: Colors.white),
-                        ),
-                        key: ValueKey(episode.id),
-                        onTap: episode == _playerArgs.episode
-                            ? null
-                            : () async {
-                                customLog(
-                                  'tapped name: ${episode.title} - id: ${episode.id}',
-                                );
-
-                                setState(() {
-                                  _playerArgs = _playerArgs.copyWith(
-                                    episode: episode,
-                                  );
-                                });
-
-                                await _getMainVideoData();
-                                await _startPlayer();
-                              },
-                        child: ListTile(
-                          selected: episode == _playerArgs.episode,
-                          titleTextStyle:
-                              Theme.of(context).textTheme.labelLarge,
-                          title: Text(episode.title),
-                        ),
+                    selected: (content) => content == _playerArgs.episode,
+                    physics: const BouncingScrollPhysics(),
+                    onTap: (episode) async {
+                      customLog(
+                        'tapped name: ${episode.title} - id: ${episode.id}',
                       );
+
+                      setState(() {
+                        _playerArgs = _playerArgs.copyWith(
+                          episode: episode,
+                        );
+                      });
+
+                      await _getInitMainVideoData();
+                      await _startPlayer();
                     },
                   ),
                 ),
@@ -320,9 +317,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
   @override
   void dispose() {
     _subscriptions.cancellAll();
-    _videoController.id.dispose();
-    _videoController.notifier.dispose();
-    _videoController.rect.dispose();
+    _videoController?.id.dispose();
+    _setEnabledSystemUIMode?.cancel();
+    _videoController?.notifier.dispose();
+    _videoController?.rect.dispose();
     _player?.dispose();
     _overlayBoxFit.dispose();
     _overlayNextEpisode.dispose();
@@ -338,8 +336,10 @@ class _VideoControlls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final playerViewState = _PlayerViewState._videoStateKey.currentContext!
-        .findRootAncestorStateOfType<_PlayerViewState>()!;
+    final playerViewState = PlayerView._videoStateKey.currentContext!
+        .findAncestorStateOfType<_PlayerViewState>();
+    if (playerViewState == null) return const SizedBox.shrink();
+
     final orientation = MediaQuery.orientationOf(context);
     final isPortrait = orientation == Orientation.portrait;
     return Theme(
@@ -373,6 +373,7 @@ class _VideoControlls extends StatelessWidget {
                 enableCancelReversed: false,
                 notifierChange: playerViewState._overlayNextEpisode,
                 onTap: () async {
+                  playerViewState._overlayNextEpisode.value = null;
                   final playerArgs = playerViewState._playerArgs;
 
                   final indexOf =
@@ -384,9 +385,8 @@ class _VideoControlls extends StatelessWidget {
                     episode: nexEpisode,
                   );
 
-                  await playerViewState._getMainVideoData();
+                  await playerViewState._getInitMainVideoData();
                   await playerViewState._startPlayer();
-                  playerViewState._overlayNextEpisode.value = null;
                 },
               ),
             ),
