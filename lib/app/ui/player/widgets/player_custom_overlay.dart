@@ -42,6 +42,8 @@ class _CustomOverlayState extends CustomOverlayState<CustomOverlay> {
 
   Timer? _timer;
 
+  String? _oldValue;
+
   @override
   void didAnimation(CustomOverlay widget, CustomOverlay oldWidget) {
     if (widget.begin != oldWidget.begin || widget.end != oldWidget.end) {
@@ -57,10 +59,12 @@ class _CustomOverlayState extends CustomOverlayState<CustomOverlay> {
 
   void _listener() async {
     if (_notifierChange.value == null) {
-      // await reverse();
+      await reverse();
+      _oldValue = null;
     } else {
       if (widget.enableCancelReversed) _timer?.cancel();
       await forward();
+      _oldValue = _notifierChange.value!;
       if (widget.enableCancelReversed) {
         _timer = Timer(widget.reverseDuration, () async {
           await reverse();
@@ -101,7 +105,18 @@ class _CustomOverlayState extends CustomOverlayState<CustomOverlay> {
                 ),
               ),
             )
-          : child!,
+          : Card(
+              shape: defaultShape,
+              margin: EdgeInsets.zero,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Text(
+                  _oldValue ?? '',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+              ),
+            ),
     );
 
     if (isPortrait) content = SafeArea(child: content);
