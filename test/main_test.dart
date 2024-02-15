@@ -1,55 +1,68 @@
+import 'dart:collection';
+
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jikan_api/jikan_api.dart';
 
 void main() {
   test('main ...', () async {
-    const query = 'Knight of the Frozen Flower';
-    final jikan = Jikan();
-    final response = await jikan
-        .searchManga(
-      query: query,
-      type: MangaType.manhwa,
-    )
-        .then(
-      (value) {
-        return value.firstWhereOrNull(
-          (element) => element.titleSynonyms.contains(query),
-        );
-      },
-    );
+    final test = Test2<String>();
 
-    if (response != null) {
-      customLog(response);
-      final pictureResponse = await jikan.getMangaPictures(response.malId);
-      customLog(pictureResponse);
-    }
+    test.addListener(() {
+      customLog(test.value);
+      customLog(test.value.length);
+    });
+
+    test.add('maria');
+    test.add('joao');
+
+    test[0] = 'luan';
+    test.remove('joao');
+
+    test.addAll(['test1', 'test2']);
   });
 }
 
-class Test extends ChangeNotifier {
-  late final Test2 _test2;
-  late final Test2 _test3;
-  late final Test2 _test4;
+class Test2<T> extends ChangeNotifier with ListBase<T> {
+  Test2({List<T>? value}) {
+    _array = value ?? [];
+  }
 
-  Listenable? _listenable;
+  late List<T> _array;
 
-  Test() {
-    _test2 = Test2();
-    _test3 = Test2();
-    _test4 = Test2();
-    _listenable = Listenable.merge([_test2, _test3, _test4])
-      ..addListener(notifyListeners);
+  List<T> get value => _array;
+
+  @override
+  T operator [](int index) => _array[index];
+
+  @override
+  void add(T element, {bool notify = true}) {
+    _array.add(element);
+    if (notify) notifyListeners();
   }
 
   @override
-  void dispose() {
-    _listenable?.removeListener(notifyListeners);
-    _listenable = null;
-    super.dispose();
+  bool remove(Object? element) {
+    final result = super.remove(element);
+    notifyListeners();
+    return result;
   }
-}
 
-class Test2 extends ChangeNotifier {}
+  @override
+  void operator []=(int index, T value) {
+    _array[index] = value;
+    notifyListeners();
+  }
+
+  @override
+  void addAll(Iterable<T> iterable) {
+    _array.addAll(iterable);
+    notifyListeners();
+  }
+
+  @override
+  int get length => _array.length;
+
+  @override
+  set length(int newLength) => _array.length = newLength;
+}
