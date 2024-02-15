@@ -34,6 +34,7 @@ class PlayerTheme extends StatelessWidget {
         // MaterialSkipNextButton(),
         Spacer(flex: 2),
       ],
+      seekBarThumbSize: 14,
       buttonBarButtonSize: 24.0,
       padding: EdgeInsets.zero,
       seekBarPositionColor: colorScheme.primary,
@@ -62,6 +63,7 @@ class PlayerTheme extends StatelessWidget {
 
   MaterialVideoControlsThemeData _fullscreen(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final padding = MediaQuery.paddingOf(context);
     return MaterialVideoControlsThemeData(
       primaryButtonBar: const [
         Spacer(flex: 2),
@@ -73,10 +75,10 @@ class PlayerTheme extends StatelessWidget {
         Spacer(flex: 2),
       ],
       seekBarHeight: 4,
-      padding: MediaQuery.paddingOf(context).copyWith(
+      padding: padding.copyWith(
         right: 20,
-        left: 45,
-        bottom: 30,
+        left: 46,
+        bottom: padding.bottom + 32,
       ),
       seekBarPositionColor: colorScheme.primary,
       buttonBarButtonSize: 24.0,
