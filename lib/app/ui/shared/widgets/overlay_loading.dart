@@ -14,14 +14,10 @@ abstract class CustomOverlayState<T extends StatefulWidget> extends State<T>
 
   Animation<Offset> get animation => _overlayAnimation;
 
-  Curve get forwardCurve => Curves.ease;
-
-  Curve get reverseCurve => Curves.ease;
-
   Animation<double> get curved => CurvedAnimation(
         parent: _overlayAnimationController,
-        curve: forwardCurve,
-        reverseCurve: reverseCurve,
+        curve: Curves.ease,
+        reverseCurve: Curves.ease,
       );
 
   Offset? begin;
