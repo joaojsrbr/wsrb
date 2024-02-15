@@ -42,6 +42,10 @@ abstract class Content extends Equatable {
 class DataContents extends ListBase<DataContent> {
   DataContents();
 
+  DataContents.fromList(Iterable<DataContent> contents) {
+    _array.addAll(contents);
+  }
+
   final List<DataContent> _array = [];
 
   @override
