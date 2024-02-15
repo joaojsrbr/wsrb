@@ -3,7 +3,7 @@
 part of '../content_repository.dart';
 
 class AnrollSource extends RSource {
-  AnrollSource(
+  const AnrollSource(
     super.contentRepository, {
     super.initialIndex = 0,
   });
@@ -49,6 +49,7 @@ class AnrollSource extends RSource {
         headers: {
           "origin": BASE_URL,
           "referer": "$BASE_URL/",
+          ..._headers,
         },
       );
       return Result.success(data);
@@ -78,9 +79,14 @@ class AnrollSource extends RSource {
 
       dataContents.addAll(anime.dataContents);
 
+      final (buildId, success) = await getBuildId();
+
+      if (!success) return Result.failure(Exception());
+
       final Response responseAnimeData = await contentRepository._dio.get(
-        '$BASE_URL/_next/data/5LDMPmxa0j_ii6W9eSt4u/e/${episode.generateID}.json?episode=${episode.generateID}',
+        '$BASE_URL/_next/data/$buildId/e/${episode.generateID}.json?episode=${episode.generateID}',
         responseType: ResponseType.json,
+        headers: _headers,
       );
 
       final animeData = responseAnimeData.data['pageProps']['data'];
@@ -101,6 +107,7 @@ class AnrollSource extends RSource {
       do {
         final episodesResponse = await contentRepository._dio.get(
           'https://apiv3-prd.anroll.net/animes/$animeID/episodes?page=$page&order=desc',
+          headers: _headers,
         );
 
         final episodesList = episodesResponse.data['data'] as List;
@@ -127,7 +134,8 @@ class AnrollSource extends RSource {
         if (hasNextPage) page++;
       } while (hasNextPage);
 
-      final newAnime = (await _getAnimePictures(anime)).copyWith(
+      // final newAnime = (await _getAnimePictures(anime)).copyWith(
+      final newAnime = anime.copyWith(
         url: url,
         animeID: animeID,
         dataContents: dataContents,
@@ -164,15 +172,49 @@ class AnrollSource extends RSource {
     );
   }
 
+  Map<String, String> get _headers => {
+        "user-agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0"
+      };
+
+  Future<(String, bool)> getBuildId() async {
+    final Response responseTest = await contentRepository._dio.get(
+      BASE_URL,
+      headers: _headers,
+      responseType: ResponseType.plain,
+    );
+
+    final Element? element =
+        parse(responseTest.data).querySelector('#__NEXT_DATA__');
+
+    if (element == null) {
+      return Future.value(('', false));
+    } else {
+      final map = jsonDecode(element.text);
+
+      final buildId = map['buildId'] as String;
+      return (buildId, true);
+    }
+  }
+
   @override
   Future<bool> loadData() async {
     try {
-      const subKey = "_next/data/5LDMPmxa0j_ii6W9eSt4u/lancamentos.json";
+      final (buildId, success) = await getBuildId();
+
+      if (!success) {
+        contentRepository.isSuccess = false;
+        contentRepository._hasMore = false;
+        return Future.value(false);
+      }
+
+      final subKey = "_next/data/$buildId/lancamentos.json";
 
       final String mainURL = '$BASE_URL/$subKey';
 
       final Response response = await contentRepository._dio.get(
         mainURL,
+        headers: _headers,
         responseType: ResponseType.json,
       );
 
@@ -203,7 +245,7 @@ class AnrollSource extends RSource {
         if (!dataContents.contains(episode)) dataContents.add(episode);
 
         final subKey =
-            '_next/data/5LDMPmxa0j_ii6W9eSt4u/e/$episodeGenerateID.json?episode=$episodeGenerateID';
+            '_next/data/$buildId/e/$episodeGenerateID.json?episode=$episodeGenerateID';
 
         final String mainURL = '$BASE_URL/$subKey';
 
