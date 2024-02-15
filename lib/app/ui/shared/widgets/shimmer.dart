@@ -20,8 +20,9 @@ final _defaultLinearGradient = LinearGradient(
 );
 
 class Shimmer extends StatefulWidget {
-  static ShimmerState? of(BuildContext context) {
-    return context.findAncestorStateOfType<ShimmerState>();
+  // ignore: library_private_types_in_public_api
+  static _ShimmerState? of(BuildContext context) {
+    return context.findAncestorStateOfType<_ShimmerState>();
   }
 
   Shimmer({
@@ -34,10 +35,10 @@ class Shimmer extends StatefulWidget {
   final Widget child;
 
   @override
-  ShimmerState createState() => ShimmerState();
+  State<Shimmer> createState() => _ShimmerState();
 }
 
-class ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
+class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
   late AnimationController _shimmerController;
 
   final GlobalKey _container = GlobalKey();
@@ -45,7 +46,6 @@ class ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
     _shimmerController = AnimationController.unbounded(vsync: this)
       ..repeat(min: -0.5, max: 2.0, period: const Duration(milliseconds: 1000));
   }
@@ -139,13 +139,6 @@ class _ShimmerLoadingState extends State<ShimmerLoading> {
     _shimmerChanges?.addListener(_onShimmerChange);
   }
 
-  @override
-  void dispose() {
-    _shimmerChanges?.removeListener(_onShimmerChange);
-
-    super.dispose();
-  }
-
   void _onShimmerChange() {
     if (widget.isLoading && mounted) {
       setState(() {
@@ -193,5 +186,11 @@ class _ShimmerLoadingState extends State<ShimmerLoading> {
       },
       child: widget.child,
     );
+  }
+
+  @override
+  void dispose() {
+    _shimmerChanges?.removeListener(_onShimmerChange);
+    super.dispose();
   }
 }
