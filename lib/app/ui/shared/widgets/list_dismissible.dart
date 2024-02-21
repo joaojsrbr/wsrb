@@ -32,6 +32,7 @@ class ListDismissible<T extends DataContent> extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget itemBuilder(BuildContext context, int index) {
       final content = contents[index];
+
       return customdismissible.CustomDismissible(
         onUpdate: onUpdate,
         dismissThresholds: const {
@@ -53,8 +54,10 @@ class ListDismissible<T extends DataContent> extends StatelessWidget {
           child: const Icon(Icons.delete, color: Colors.white),
         ),
         key: ValueKey(content.id),
-        onTap: (selected?.call(content) ?? true)
-            ? null
+        onTap: selected != null
+            ? (selected?.call(content) ?? true)
+                ? null
+                : () => onTap?.call(content as T)
             : () => onTap?.call(content as T),
         child: ListTile(
           selected: selected?.call(content) ?? false,
