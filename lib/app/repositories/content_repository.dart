@@ -23,7 +23,6 @@ import 'package:app_wsrb_jsr/app/repositories/source/source.dart';
 import 'package:app_wsrb_jsr/app/utils/subscriptions.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as ui;
 
 import 'package:hive/hive.dart';

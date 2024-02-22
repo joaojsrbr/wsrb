@@ -6,7 +6,6 @@ import 'package:app_wsrb_jsr/app/ui/content_information/view/content_information
 import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/view/reading_view.dart';
-import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
