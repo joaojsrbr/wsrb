@@ -1,14 +1,14 @@
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
 import 'package:app_wsrb_jsr/app/models/content.dart';
-import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/models/release.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/dismissible.dart'
     as customdismissible;
 import 'package:flutter/material.dart';
 
-class ListDismissible<T extends DataContent> extends StatelessWidget {
+class ListDismissible<T extends Release> extends StatelessWidget {
   const ListDismissible({
     super.key,
-    required this.contents,
+    required this.releases,
     this.selected,
     this.physics,
     this.onUpdate,
@@ -19,8 +19,8 @@ class ListDismissible<T extends DataContent> extends StatelessWidget {
     this.onTap,
   });
   final TextStyle? titleTextStyle;
-  final DataContents contents;
-  final bool Function(DataContent content)? selected;
+  final Releases releases;
+  final bool Function(Release content)? selected;
   final ScrollPhysics? physics;
   final bool isSliver;
   final Duration resizeDuration;
@@ -31,7 +31,7 @@ class ListDismissible<T extends DataContent> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget itemBuilder(BuildContext context, int index) {
-      final content = contents[index];
+      final content = releases[index];
 
       return customdismissible.CustomDismissible(
         onUpdate: onUpdate,
@@ -70,14 +70,14 @@ class ListDismissible<T extends DataContent> extends StatelessWidget {
     if (isSliver) {
       return SliverList.builder(
         itemBuilder: itemBuilder,
-        itemCount: contents.length,
+        itemCount: releases.length,
       );
     }
 
     return ListView.builder(
       physics: physics,
       padding: padding,
-      itemCount: contents.length,
+      itemCount: releases.length,
       itemBuilder: itemBuilder,
     );
   }

@@ -2,7 +2,7 @@ import 'package:app_wsrb_jsr/app/models/anime.dart';
 import 'package:app_wsrb_jsr/app/models/book.dart';
 import 'package:app_wsrb_jsr/app/models/chapter.dart';
 import 'package:app_wsrb_jsr/app/models/content.dart';
-import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/models/release.dart';
 import 'package:app_wsrb_jsr/app/models/episode.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
@@ -32,15 +32,15 @@ class BuildContents extends StatelessWidget {
 
     final index = BookInformationScope.indexOf(context);
     // final hiveController = context.watch<HiveController>();
-    final dataContents =
-        BookInformationScope.dataContentsOf(context).reversed.elementAt(index);
+    final releases =
+        BookInformationScope.releasesOf(context).reversed.elementAt(index);
     final content = BookInformationScope.contentOf(context);
 
     return ListDismissible(
       isSliver: true,
       titleTextStyle: Theme.of(context).textTheme.labelLarge,
-      contents: DataContents.fromList(dataContents),
-      onTap: (DataContent data) async {
+      releases: Releases.fromList(releases),
+      onTap: (Release data) async {
         customLog(
           'tapped name: ${data.title} - id: ${data.id}',
         );
@@ -51,7 +51,7 @@ class BuildContents extends StatelessWidget {
             extra: ReadingViewArgs(
               bookThemeData: Theme.of(context),
               chapter: data,
-              allDataContent: dataContents,
+              releases: releases,
               currentIndex: index,
               book: content,
             ),

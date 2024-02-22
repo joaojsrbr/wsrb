@@ -6,15 +6,16 @@ import 'package:app_wsrb_jsr/app/ui/content_information/view/content_information
 import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/view/reading_view.dart';
+import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class RouteName {
-  RouteName._();
-  static const HOME = '/';
-  static const CONTENTINFO = '/contentInfo';
-  static const READ = '/read';
-  static const PLAYER = '/player';
+  const RouteName._();
+  static const StringRouter HOME = StringRouter('/');
+  static const StringRouter CONTENTINFO = StringRouter('/contentInfo');
+  static const StringRouter READ = StringRouter('/read');
+  static const StringRouter PLAYER = StringRouter('/player');
   // static const WEBVIEW = '/web_view';
   // static const CATEGORY = '/category';
   // static const TEST = '/test';
@@ -46,6 +47,7 @@ final appRoutes = GoRouter(
             //     args: args,
             //   );
             // }
+
             return SharedAxisTransitionPageWrapper(
               arguments: state.extra,
               transitionKey: const ValueKey('book_information_view'),

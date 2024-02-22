@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
-import 'package:uuid/uuid.dart';
+import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/string_extensions.dart';
 
-abstract class DataContent extends Equatable {
-  const DataContent({
+abstract class Release extends Equatable {
+  const Release({
     required this.url,
     required this.title,
   });
@@ -11,7 +11,7 @@ abstract class DataContent extends Equatable {
 
   final String title;
 
-  String get id => const Uuid().v5(Uuid.NAMESPACE_URL, url);
+  StringID get id => StringID.fromURL(url);
 
   Map<String, dynamic> get toMap;
 

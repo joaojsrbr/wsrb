@@ -8,7 +8,7 @@ class Anime extends Content {
   const Anime({
     required super.url,
     required super.title,
-    required super.dataContents,
+    required super.releases,
     required this.originalImage,
     this.slugSerie,
     this.extraLarge,
@@ -33,7 +33,7 @@ class Anime extends Content {
         url,
         sinopse,
         contentColorScheme,
-        dataContents,
+        releases,
         slugSerie,
         dublado,
         originalImage,
@@ -49,7 +49,7 @@ class Anime extends Content {
 
   @override
   Anime copyWith({
-    DataContents? dataContents,
+    Releases? releases,
     String? title,
     String? url,
     String? animeID,
@@ -71,7 +71,7 @@ class Anime extends Content {
       sinopse: sinopse ?? this.sinopse,
       dublado: dublado ?? this.dublado,
       slugSerie: slugSerie ?? this.slugSerie,
-      dataContents: dataContents ?? this.dataContents,
+      releases: releases ?? this.releases,
       title: title ?? this.title,
       url: url ?? this.url,
       contentColorScheme: contentColorScheme ?? this.contentColorScheme,
@@ -86,7 +86,7 @@ class Anime extends Content {
       'dublado': dublado,
       'slugSerie': slugSerie,
       'sinopse': sinopse,
-      'dataContents': dataContents.map((x) => x.toMap).toList(),
+      'releases': releases.map((x) => x.toMap).toList(),
       'contentColorScheme': contentColorScheme?.toMap,
       'extraLarge': extraLarge,
       'originalImage': originalImage,
@@ -96,13 +96,13 @@ class Anime extends Content {
   }
 
   factory Anime.fromMap(Map<dynamic, dynamic> map) {
-    final DataContents dataContents = DataContents();
+    final Releases releases = Releases();
 
-    final allDataContentMap = map['dataContents'] as List<dynamic>;
+    final releaseMap = map['releases'] as List<dynamic>;
 
-    for (final contentMap in allDataContentMap) {
+    for (final contentMap in releaseMap) {
       try {
-        dataContents.add(Episode.fromMap(contentMap));
+        releases.add(Episode.fromMap(contentMap));
       } catch (_) {
         customLog(contentMap, error: _);
       }
@@ -118,7 +118,7 @@ class Anime extends Content {
           map['largeImage'] != null ? map['largeImage'] as String : null,
       mediumImage:
           map['mediumImage'] != null ? map['mediumImage'] as String : null,
-      dataContents: dataContents,
+      releases: releases,
       sinopse: map['sinopse'] != null ? map['sinopse'] as String : null,
       title: map['title'] as String,
       url: map['url'] as String,

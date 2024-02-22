@@ -200,19 +200,12 @@ class NeoxSource extends RSource {
 
         if (url.isEmpty || title.isEmpty) continue;
 
-        // id: url.urlToId,
-        // chapterNumber: chapterNumber,
-        // chapterDescription: chapterDescription,
-        // fonte: Fonte.NEOX_SCANS,
-        // createdAt: ParseDateTime(data: elementCreatedAt).parse,
         final chapter = Chapter(
           url: url,
           title: title,
         );
 
-        if (!book.dataContents.contains(chapter)) {
-          book.dataContents.add(chapter);
-        }
+        book.releases.addIfNoContains(chapter);
       }
 
       final newBook = book.copyWith(
@@ -267,9 +260,10 @@ class NeoxSource extends RSource {
         //     scrapingUtil.getByText(selector: '.manga-title-badges').noEmpty;
         final String? mediumImage = scrapingUtil
             .getImage(selector: 'img', bySrcSet: true, last: true)
-            .noEmpty;
-        final String? largeImage =
-            scrapingUtil.getImage(selector: 'img', bySrcSet: true).noEmpty;
+            .isEmptyOrNull;
+        final String? largeImage = scrapingUtil
+            .getImage(selector: 'img', bySrcSet: true)
+            .isEmptyOrNull;
 
         /// Vars
         final List<Genre> genres = [];
@@ -297,7 +291,7 @@ class NeoxSource extends RSource {
         if ([originalImage, url, title].isNull) continue;
 
         final Book book = Book(
-          dataContents: DataContents(),
+          releases: Releases(),
           genres: genres,
           source: source,
           url: url,
@@ -321,9 +315,9 @@ class NeoxSource extends RSource {
   }
 
   @override
-  Future<Result<List<Data>>> getContent(DataContent dataContent) async {
+  Future<Result<List<Data>>> getContent(Release release) async {
     bool isChapter() {
-      return dataContent is Chapter;
+      return release is Chapter;
     }
 
     assert(
@@ -331,7 +325,7 @@ class NeoxSource extends RSource {
       "A instancia content precisa ser do tipo Chapter",
     );
 
-    final chapter = dataContent as Chapter;
+    final chapter = release as Chapter;
 
     try {
       final url = chapter.url;

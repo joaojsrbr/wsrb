@@ -1,20 +1,20 @@
 import 'dart:collection';
 
-import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/string_extensions.dart';
+import 'package:app_wsrb_jsr/app/models/release.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 
 abstract class Content extends Equatable {
   String get imageUrl;
 
-  String get id => const Uuid().v5(Uuid.NAMESPACE_URL, url);
+  StringID get id => StringID.fromURL(url);
 
   final String url;
 
   final String? sinopse;
 
-  final DataContents dataContents;
+  final Releases releases;
 
   final ColorScheme? contentColorScheme;
 
@@ -24,7 +24,7 @@ abstract class Content extends Equatable {
     this.contentColorScheme,
     required this.url,
     this.sinopse,
-    required this.dataContents,
+    required this.releases,
     required this.title,
   });
 
@@ -33,34 +33,35 @@ abstract class Content extends Equatable {
     String? sinopse,
     String? url,
     ColorScheme? contentColorScheme,
-    DataContents? dataContents,
+    Releases? releases,
   });
 
   Map<String, dynamic> get toMap;
 }
 
-class DataContents extends ListBase<DataContent> {
-  DataContents();
+class Releases extends ListBase<Release> {
+  Releases();
 
-  DataContents.fromList(Iterable<DataContent> contents) {
+  Releases.fromList(Iterable<Release> contents) {
     _array.addAll(contents);
   }
 
-  final List<DataContent> _array = [];
+  final List<Release> _array = [];
 
   @override
-  DataContent operator [](int index) => _array[index];
+  Release operator [](int index) => _array[index];
 
   @override
-  void add(DataContent element) {
-    _array.add(element);
+  void add(Release element) {
+    return _array.add(element);
   }
 
   @override
-  void operator []=(int index, DataContent value) => _array[index] = value;
+  void operator []=(int index, Release value) => _array[index] = value;
 
   @override
   int get length => _array.length;
+
   @override
   set length(int newLength) => _array.length = newLength;
 }

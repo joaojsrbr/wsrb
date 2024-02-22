@@ -2,7 +2,7 @@
 
 import 'package:app_wsrb_jsr/app/core/constants/source.dart';
 import 'package:app_wsrb_jsr/app/models/content.dart';
-import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/models/release.dart';
 import 'package:app_wsrb_jsr/app/utils/result.dart';
 import 'package:app_wsrb_jsr/app/models/data.dart';
 import 'package:app_wsrb_jsr/app/repositories/content_repository.dart';
@@ -25,5 +25,5 @@ abstract class RSource {
 
   Future<Result<Content>> getData(Content content);
 
-  Future<Result<List<Data>>> getContent(DataContent dataContent);
+  Future<Result<List<Data>>> getContent(Release release);
 }

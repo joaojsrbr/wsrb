@@ -83,7 +83,7 @@ class ItemContent extends StatelessWidget {
                               bottom: 8,
                             ),
                             child: Text(
-                              content.dataContents.first.title,
+                              content.releases.first.title,
                               maxLines: 2,
                               textAlign: TextAlign.start,
                               overflow: TextOverflow.ellipsis,
@@ -100,24 +100,23 @@ class ItemContent extends StatelessWidget {
                 child: InkWell(
                   borderRadius: borderRadius,
                   splashFactory: InkRipple.splashFactory,
-                  onDoubleTap:
-                      content is Anime && content.dataContents.length == 1
-                          ? () async {
-                              await context.push(
-                                RouteName.CONTENTINFO,
-                                extra: ContentInformationArgs(content: content),
-                              );
-                            }
-                          : null,
+                  onDoubleTap: content is Anime && content.releases.length == 1
+                      ? () async {
+                          await context.push(
+                            RouteName.CONTENTINFO,
+                            extra: ContentInformationArgs(content: content),
+                          );
+                        }
+                      : null,
                   onTap: () async {
                     customLog('');
-                    if (content is Anime && content.dataContents.length == 1) {
+                    if (content is Anime && content.releases.length == 1) {
                       final anime = content as Anime;
                       await context.push(
                         RouteName.PLAYER,
                         extra: PlayerArgs(
                           anime: anime,
-                          episode: anime.dataContents.first,
+                          episode: anime.releases.first,
                         ),
                       );
                     } else {
@@ -211,7 +210,7 @@ class _ImageWidget extends StatelessWidget {
     String imageUrl = content.imageUrl;
 
     if (content is Anime) {
-      imageUrl = (content.dataContents.first as Episode).thumbnail ?? '';
+      imageUrl = (content.releases.first as Episode).thumbnail ?? '';
     }
 
     const double width = 145;
