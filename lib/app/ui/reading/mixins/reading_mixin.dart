@@ -10,7 +10,7 @@ mixin _ReadingVars on State<ReadingView> {
   bool _showFooterWidget = true;
   final List<Widget> _contents = [];
   // ignore: unused_field
-  List<DataContent> _dataContents = [];
+  List<Release> _releases = [];
 
   late final ContentRepository _repository;
 

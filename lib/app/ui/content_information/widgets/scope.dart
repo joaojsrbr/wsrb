@@ -2,7 +2,7 @@
 
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
 import 'package:app_wsrb_jsr/app/models/content.dart';
-import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/models/release.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter/widgets.dart';
@@ -10,7 +10,7 @@ import 'package:flutter/widgets.dart';
 enum _BookInformationScopeAspect {
   ISLOADING,
   LISTCHAPTERINDEX,
-  ALLDATACONTENTS,
+  ALLRELEASES,
   CONTENT,
 }
 
@@ -23,7 +23,7 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
     required this.setListIndex,
     required this.content,
     required this.contentOrders,
-    required this.dataContents,
+    required this.releases,
   });
 
   final bool isLoading;
@@ -32,7 +32,7 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
   final SetCallBack<int> setListIndex;
   final int index;
 
-  final List<List<DataContent>> dataContents;
+  final List<List<Release>> releases;
 
   static BookInformationScope of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<BookInformationScope>()!;
@@ -48,8 +48,8 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
   static bool isLoadingOf(BuildContext context) =>
       _of(context, _BookInformationScopeAspect.ISLOADING).isLoading;
 
-  static List<List<DataContent>> dataContentsOf(BuildContext context) =>
-      _of(context, _BookInformationScopeAspect.ALLDATACONTENTS).dataContents;
+  static List<List<Release>> releasesOf(BuildContext context) =>
+      _of(context, _BookInformationScopeAspect.ALLRELEASES).releases;
 
   static Content contentOf(BuildContext context) =>
       _of(context, _BookInformationScopeAspect.CONTENT).content;
@@ -72,8 +72,8 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
           case _BookInformationScopeAspect.LISTCHAPTERINDEX
               when index != oldWidget.index:
             return true;
-          case _BookInformationScopeAspect.ALLDATACONTENTS
-              when !listEquals(_dataContents, oldWidget._dataContents) ||
+          case _BookInformationScopeAspect.ALLRELEASES
+              when !listEquals(_releases, oldWidget._releases) ||
                   contentOrders != oldWidget.contentOrders:
             return true;
           default:
@@ -85,10 +85,10 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
     return false;
   }
 
-  List<DataContent> get _dataContents {
-    final List<DataContent> lista = [];
+  List<Release> get _releases {
+    final List<Release> lista = [];
 
-    for (final content in dataContents) {
+    for (final content in releases) {
       lista.addAll(content);
     }
 
@@ -103,6 +103,6 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
         content != oldWidget.content ||
         index != oldWidget.index ||
         contentOrders != oldWidget.contentOrders ||
-        !listEquals(_dataContents, oldWidget._dataContents);
+        !listEquals(_releases, oldWidget._releases);
   }
 }

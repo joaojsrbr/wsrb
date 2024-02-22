@@ -4,7 +4,7 @@ import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/list_extensio
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
 import 'package:app_wsrb_jsr/app/core/services/hive/hive_controller.dart';
 
-import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/models/release.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
@@ -43,16 +43,15 @@ class ChipContentControllerState extends State<ChipContentController> {
   }
 
   void _startKeys() {
-    final allDataContent = BookInformationScope.dataContentsOf(context);
-    if (_keys.length == allDataContent.length) return;
-    _keys = allDataContent.map((e) => GlobalKey()).toList();
+    final releases = BookInformationScope.releasesOf(context);
+    if (_keys.length == releases.length) return;
+    _keys = releases.map((e) => GlobalKey()).toList();
   }
 
   @override
   void didChangeDependencies() {
     final isLoading = BookInformationScope.isLoadingOf(context);
     if (!isLoading) ifMounted(_startKeys);
-    // Future.delayed(const Duration(seconds: 1), _scrollAtSelect);
 
     super.didChangeDependencies();
   }
@@ -135,29 +134,28 @@ class ChipContentControllerState extends State<ChipContentController> {
 
     final setListChapterIndex = BookInformationScope.of(context).setListIndex;
     final contentOrders = context.watch<HiveController>().contentOrders;
-    final dataContents =
-        BookInformationScope.dataContentsOf(context).reversed.toList();
+    final releases = BookInformationScope.releasesOf(context).reversed.toList();
     final index = BookInformationScope.indexOf(context);
     final hiveController = context.watch<HiveController>();
-    if (dataContents.isEmpty) return const SliverToBoxAdapter();
+    if (releases.isEmpty) return const SliverToBoxAdapter();
 
-    final selectChips = dataContents.map((e) => false).toList();
+    final selectChips = releases.map((e) => false).toList();
     selectChips[index] = true;
 
     final chipsWidgets = List.generate(selectChips.length, (index) {
-      DataContent firstText = dataContents[index].first;
-      DataContent lastText = dataContents[index].last;
+      Release firstText = releases[index].first;
+      Release lastText = releases[index].last;
 
       if (contentOrders) {
-        firstText = dataContents[index].last;
-        lastText = dataContents[index].first;
+        firstText = releases[index].last;
+        lastText = releases[index].first;
         if (hiveController.pageOrders) {
-          firstText = dataContents[index].first;
-          lastText = dataContents[index].last;
+          firstText = releases[index].first;
+          lastText = releases[index].last;
         }
       } else {
-        firstText = dataContents[index].first;
-        lastText = dataContents[index].last;
+        firstText = releases[index].first;
+        lastText = releases[index].last;
       }
 
       return Padding(

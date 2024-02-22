@@ -2,7 +2,7 @@
 import 'dart:async';
 
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
-import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/models/release.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:app_wsrb_jsr/app/models/book.dart';
 import 'package:app_wsrb_jsr/app/models/data.dart';
@@ -46,7 +46,7 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
     if (args is! ReadingViewArgs) {
       Navigator.pop(context);
     } else {
-      _dataContents = args.book.dataContents;
+      _releases = args.book.releases;
       _chapter = args.chapter;
       _book = args.book;
       final data = await _repository.getContent(_chapter!);

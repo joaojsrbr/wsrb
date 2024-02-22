@@ -1,8 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
-import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/models/release.dart';
 
-class Chapter extends DataContent implements Comparable<Chapter> {
+class Chapter extends Release implements Comparable<Chapter> {
   final bool read;
 
   const Chapter({

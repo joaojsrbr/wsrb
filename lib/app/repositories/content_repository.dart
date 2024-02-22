@@ -10,7 +10,7 @@ import 'package:app_wsrb_jsr/app/core/services/hive/hive_controller.dart';
 import 'package:app_wsrb_jsr/app/core/services/jikan.dart';
 import 'package:app_wsrb_jsr/app/models/anime.dart';
 import 'package:app_wsrb_jsr/app/models/content.dart';
-import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/models/release.dart';
 import 'package:app_wsrb_jsr/app/models/episode.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:app_wsrb_jsr/app/utils/result.dart';
@@ -83,7 +83,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
 
   Future<Result<Content>> getData(Content content);
 
-  Future<Result<List<Data>>> getContent(DataContent dataContent);
+  Future<Result<List<Data>>> getContent(Release releases);
 
   @override
   Future<bool> refresh([bool notifyStateChanged = false]) async {
@@ -121,8 +121,8 @@ class _ContentRepositoryImp extends ContentRepository {
       await source.getData(content);
 
   @override
-  Future<Result<List<Data>>> getContent(DataContent dataContent) async =>
-      await source.getContent(dataContent);
+  Future<Result<List<Data>>> getContent(Release release) async =>
+      await source.getContent(release);
 }
 
 // class BookRepositoryController extends ChangeNotifier {}

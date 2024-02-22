@@ -12,9 +12,9 @@ class AnrollSource extends RSource {
   String get BASE_URL => App.ANROLL_URL;
 
   @override
-  Future<Result<List<Data>>> getContent(DataContent dataContent) async {
+  Future<Result<List<Data>>> getContent(Release release) async {
     bool isEpisode() {
-      return dataContent is Episode;
+      return release is Episode;
     }
 
     assert(
@@ -22,7 +22,7 @@ class AnrollSource extends RSource {
       "A instancia content precisa ser do tipo Episode",
     );
 
-    final episode = dataContent as Episode;
+    final episode = release as Episode;
 
     final List<VideoData> data = [];
 
@@ -73,11 +73,9 @@ class AnrollSource extends RSource {
     try {
       final anime = content as Anime;
 
-      final episode = anime.dataContents.first as Episode;
+      final episode = anime.releases.first as Episode;
 
-      final DataContents dataContents = DataContents();
-
-      dataContents.addAll(anime.dataContents);
+      final Releases releases = Releases.fromList(anime.releases);
 
       final (buildId, success) = await getBuildId();
 
@@ -127,7 +125,7 @@ class AnrollSource extends RSource {
             slugSerie: anime.slugSerie,
             thumbnail: thumbnail,
           );
-          if (!dataContents.contains(episode)) dataContents.add(episode);
+          if (!releases.contains(episode)) releases.add(episode);
         }
 
         hasNextPage = episodesResponse.data['meta']['hasNextPage'];
@@ -138,7 +136,7 @@ class AnrollSource extends RSource {
       final newAnime = anime.copyWith(
         url: url,
         animeID: animeID,
-        dataContents: dataContents,
+        releases: releases,
         originalImage: originalImage,
         sinopse: sinopse,
       );
@@ -150,27 +148,27 @@ class AnrollSource extends RSource {
     }
   }
 
-  static Future<Anime> _getAnimePictures(Anime anime) async {
-    return await compute(
-      (Anime anime) async {
-        final result =
-            await JikanService().getAnimePictures(query: anime.title.trim());
-        if (result.isNotEmpty) {
-          final last = result.last;
-          final medium = last.imageUrl;
-          final large = last.imageUrl;
-          final extraLarge = last.largeImageUrl;
-          return anime.copyWith(
-            extraLarge: extraLarge,
-            largeImage: large,
-            mediumImage: medium,
-          );
-        }
-        return anime;
-      },
-      anime,
-    );
-  }
+  // static Future<Anime> _getAnimePictures(Anime anime) async {
+  //   return await compute(
+  //     (Anime anime) async {
+  //       final result =
+  //           await JikanService().getAnimePictures(query: anime.title.trim());
+  //       if (result.isNotEmpty) {
+  //         final last = result.last;
+  //         final medium = last.imageUrl;
+  //         final large = last.imageUrl;
+  //         final extraLarge = last.largeImageUrl;
+  //         return anime.copyWith(
+  //           extraLarge: extraLarge,
+  //           largeImage: large,
+  //           mediumImage: medium,
+  //         );
+  //       }
+  //       return anime;
+  //     },
+  //     anime,
+  //   );
+  // }
 
   Map<String, String> get _headers => {
         "user-agent":
@@ -229,7 +227,7 @@ class AnrollSource extends RSource {
             (release['episode']['anime']['dub'] as int) == 0 ? false : true;
         final n_episodio = release['episode']['n_episodio'];
         final number = int.parse(n_episodio);
-        final dataContents = DataContents();
+        final releases = Releases();
 
         final thumbnail =
             "https://www.anroll.net/_next/image?url=https%3A%2F%2Fstatic.anroll.net%2Fimages%2Fanimes%2Fscreens%2F$slugSerie%2F$n_episodio.jpg&w=1080&q=100";
@@ -242,7 +240,7 @@ class AnrollSource extends RSource {
           thumbnail: thumbnail,
         );
 
-        if (!dataContents.contains(episode)) dataContents.add(episode);
+        if (!releases.contains(episode)) releases.add(episode);
 
         final subKey =
             '_next/data/$buildId/e/$episodeGenerateID.json?episode=$episodeGenerateID';
@@ -255,7 +253,7 @@ class AnrollSource extends RSource {
           dublado: dublado,
           slugSerie: slugSerie,
           title: title,
-          dataContents: dataContents,
+          releases: releases,
         );
 
         if (!contentRepository.contains(anime)) contentRepository.add(anime);

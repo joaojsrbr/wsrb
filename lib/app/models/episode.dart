@@ -1,6 +1,6 @@
-import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/models/release.dart';
 
-class Episode extends DataContent implements Comparable<Episode> {
+class Episode extends Release implements Comparable<Episode> {
   const Episode({
     required super.url,
     required super.title,
@@ -48,20 +48,8 @@ class Episode extends DataContent implements Comparable<Episode> {
   @override
   String get number {
     return title.replaceAll(RegExp(r'[^0-9]'), '').trim();
-    // final rgx = RegExp(r'Cap.+[0-9].-');
-    // final rgx2 = RegExp(r'Cap.+[0-9]');
-
-    // final match = rgx.stringMatch(title) ?? rgx2.stringMatch(title) ?? '';
-
-    // return match
-    //     .replaceAll(RegExp(r'\([0-9]\)|\(\)|\([0-9]'), '')
-    //     .replaceFirst('-', '')
-    //     .replaceAll(RegExp('[^0-9]'), '')
-    //     .trim();
   }
 
   @override
-  int compareTo(Episode other) {
-    return number.compareTo(other.number);
-  }
+  int compareTo(Episode other) => number.compareTo(other.number);
 }

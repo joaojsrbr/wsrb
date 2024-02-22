@@ -24,7 +24,7 @@ class Book extends Content {
 
   const Book({
     super.contentColorScheme,
-    required super.dataContents,
+    required super.releases,
     required super.title,
     required this.source,
     required this.originalImage,
@@ -69,19 +69,12 @@ class Book extends Content {
         originalImage,
         alternativeTitle,
         contentColorScheme,
-        dataContents,
+        releases,
       ];
-
-  // bool get isNovel {
-  //   for(final ChapterContent content in chapters.where((element) => element)){
-  //     if(content is TextChapterContent) return true;
-  //     continue;
-  //   }
-  // }
 
   @override
   Book copyWith({
-    DataContents? dataContents,
+    Releases? releases,
     ColorScheme? contentColorScheme,
     String? title,
     String? url,
@@ -100,7 +93,7 @@ class Book extends Content {
     String? mediumImage,
   }) {
     return Book(
-      dataContents: dataContents ?? this.dataContents,
+      releases: releases ?? this.releases,
       contentColorScheme: contentColorScheme ?? this.contentColorScheme,
       type: type ?? this.type,
       extraLarge: extraLarge ?? this.extraLarge,
@@ -134,7 +127,7 @@ class Book extends Content {
       'status': status,
       'type': type,
       'sinopse': sinopse,
-      'dataContents': dataContents.map((x) => x.toMap).toList(),
+      'releases': releases.map((x) => x.toMap).toList(),
       'contentColorScheme': contentColorScheme?.toMap,
       'extraLarge': extraLarge,
       'originalImage': originalImage,
@@ -144,13 +137,13 @@ class Book extends Content {
   }
 
   factory Book.fromMap(Map<dynamic, dynamic> map) {
-    final DataContents dataContents = DataContents();
+    final Releases releases = Releases();
 
-    final allDataContentMap = map['dataContents'] as List<dynamic>;
+    final releasesMap = map['releases'] as List<dynamic>;
 
-    for (final contentMap in allDataContentMap) {
+    for (final contentMap in releasesMap) {
       try {
-        dataContents.add(Chapter.fromMap(contentMap));
+        releases.add(Chapter.fromMap(contentMap));
       } catch (_) {
         throw Exception();
       }
@@ -179,7 +172,7 @@ class Book extends Content {
           map['largeImage'] != null ? map['largeImage'] as String : null,
       mediumImage:
           map['mediumImage'] != null ? map['mediumImage'] as String : null,
-      dataContents: dataContents,
+      releases: releases,
       contentColorScheme: map['contentColorScheme'] != null
           ? ColorSchemeExtensions.fromMap(map['contentColorScheme'])
           : null,

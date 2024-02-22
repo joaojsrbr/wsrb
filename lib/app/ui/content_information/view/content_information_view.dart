@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
 import 'package:app_wsrb_jsr/app/core/services/hive/hive_controller.dart';
 import 'package:app_wsrb_jsr/app/models/content.dart';
-import 'package:app_wsrb_jsr/app/models/data_content.dart';
+import 'package:app_wsrb_jsr/app/models/release.dart';
 import 'package:app_wsrb_jsr/app/repositories/content_cache.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 
@@ -63,7 +63,7 @@ class _BookInformationStateView
   bool _isLoading = true;
 
   /// list of object list
-  List<List<DataContent>> _dataContents = [];
+  List<List<Release>> _releases = [];
 
   /// [Content] instance
   Content? _content;
@@ -109,8 +109,8 @@ class _BookInformationStateView
   }
 
   /// function that partitions the list [_chapters]
-  void _setAllContents(DataContents dataContents) {
-    _dataContents = partition(dataContents.reversed, 20).toList();
+  void _setAllContents(Releases releases) {
+    _releases = partition(releases.reversed, 20).toList();
     // _index = _chapters.length - 1;
     _reversedAllContents(_hiveController.contentOrders);
   }
@@ -118,8 +118,8 @@ class _BookInformationStateView
   void _reversedAllContents([bool? init]) {
     if (init == false) return;
     // _hiveController.chaptersOrders;
-    _dataContents.forEachIndexed((index, element) {
-      _dataContents[index] = _dataContents[index].reversed.toList();
+    _releases.forEachIndexed((index, element) {
+      _releases[index] = _releases[index].reversed.toList();
     });
   }
 
@@ -152,7 +152,7 @@ class _BookInformationStateView
     _cache.saveContent(data);
     setStateIfMounted(() {
       _content = data.copyWith(contentColorScheme: contentColorScheme);
-      _setAllContents(data.dataContents);
+      _setAllContents(data.releases);
       if (onInit) _isLoading = false;
     });
   }
@@ -184,30 +184,26 @@ class _BookInformationStateView
 
     final size = MediaQuery.sizeOf(context);
 
+    final linearGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.centerRight,
+      colors: <Color>[
+        themeData.highlightColor,
+        themeData.highlightColor,
+        Colors.grey.shade100,
+        themeData.highlightColor,
+        themeData.highlightColor,
+      ],
+      stops: const <double>[0.0, 0.35, 0.5, 0.65, 1.0],
+    );
+
     return Theme(
       data: themeData.copyWith(colorScheme: _content?.contentColorScheme),
       child: Shimmer(
-        linearGradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.centerRight,
-          colors: <Color>[
-            themeData.highlightColor,
-            themeData.highlightColor,
-            Colors.grey.shade100,
-            themeData.highlightColor,
-            themeData.highlightColor,
-          ],
-          stops: const <double>[
-            0.0,
-            0.35,
-            0.5,
-            0.65,
-            1.0,
-          ],
-        ),
+        linearGradient: linearGradient,
         child: BookInformationScope(
           contentOrders: context.watch<HiveController>().contentOrders,
-          dataContents: _dataContents,
+          releases: _releases,
           index: _index,
           setListIndex: _handleSetListIndex,
           content: _content ?? argument.content,

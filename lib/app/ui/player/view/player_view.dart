@@ -216,8 +216,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
   }
 
   bool get _hasNextEpisode {
-    return !(_playerArgs.anime.dataContents.reversed.last ==
-        _playerArgs.episode);
+    return !(_playerArgs.anime.releases.reversed.last == _playerArgs.episode);
   }
 
   void _nextEpisode(Duration position) async {
@@ -286,7 +285,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
                 Expanded(
                   child: ListDismissible<Episode>(
                     titleTextStyle: Theme.of(context).textTheme.labelLarge,
-                    contents: _playerArgs.anime.dataContents,
+                    releases: _playerArgs.anime.releases,
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     selected: (content) => content == _playerArgs.episode,
                     physics: const BouncingScrollPhysics(),
@@ -377,9 +376,9 @@ class _VideoControlls extends StatelessWidget {
                   final playerArgs = playerViewState._playerArgs;
 
                   final indexOf =
-                      playerArgs.anime.dataContents.indexOf(playerArgs.episode);
+                      playerArgs.anime.releases.indexOf(playerArgs.episode);
 
-                  final nexEpisode = playerArgs.anime.dataContents[indexOf - 1];
+                  final nexEpisode = playerArgs.anime.releases[indexOf - 1];
 
                   playerViewState._playerArgs = playerArgs.copyWith(
                     episode: nexEpisode,

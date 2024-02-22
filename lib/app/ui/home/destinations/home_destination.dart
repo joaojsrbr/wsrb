@@ -2,6 +2,7 @@ import 'package:app_wsrb_jsr/app/models/content.dart';
 import 'package:app_wsrb_jsr/app/repositories/content_repository.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/indicator_build.dart';
+import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_more_list/loading_more_list.dart';
 import 'package:provider/provider.dart';
