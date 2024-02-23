@@ -7,10 +7,12 @@ class Episode extends Release implements Comparable<Episode> {
     this.generateID,
     this.slugSerie,
     this.thumbnail,
+    required this.isDublado,
   });
 
   final String? generateID;
   final String? thumbnail;
+  final bool isDublado;
   final String? slugSerie;
 
   @override
@@ -19,6 +21,7 @@ class Episode extends Release implements Comparable<Episode> {
         title,
         url,
         generateID,
+        isDublado,
         thumbnail,
         slugSerie,
       ];
@@ -28,6 +31,7 @@ class Episode extends Release implements Comparable<Episode> {
     return <String, dynamic>{
       'title': title,
       'url': url,
+      'isDublado': isDublado,
       'slugSerie': slugSerie,
       'generateID': generateID,
       'thumbnail': thumbnail,
@@ -36,6 +40,7 @@ class Episode extends Release implements Comparable<Episode> {
 
   factory Episode.fromMap(Map<dynamic, dynamic> map) {
     return Episode(
+      isDublado: map['isDublado'] as bool,
       url: map['url'] as String,
       slugSerie: map['slugSerie'] != null ? map['slugSerie'] as String : null,
       title: map['title'] as String,

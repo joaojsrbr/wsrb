@@ -15,7 +15,7 @@ class Anime extends Content {
     this.mediumImage,
     this.animeID,
     this.largeImage,
-    this.dublado = false,
+    this.isDublado = false,
     super.sinopse,
     super.contentColorScheme,
   });
@@ -25,7 +25,7 @@ class Anime extends Content {
   final String? largeImage;
   final String? mediumImage;
   final String? slugSerie;
-  final bool dublado;
+  final bool isDublado;
 
   @override
   List<Object?> get props => [
@@ -35,7 +35,7 @@ class Anime extends Content {
         contentColorScheme,
         releases,
         slugSerie,
-        dublado,
+        isDublado,
         originalImage,
         extraLarge,
         largeImage,
@@ -58,7 +58,7 @@ class Anime extends Content {
     String? extraLarge,
     String? largeImage,
     String? mediumImage,
-    bool? dublado,
+    bool? isDublado,
     String? sinopse,
     ColorScheme? contentColorScheme,
   }) {
@@ -69,7 +69,7 @@ class Anime extends Content {
       largeImage: largeImage ?? this.largeImage,
       extraLarge: extraLarge ?? this.extraLarge,
       sinopse: sinopse ?? this.sinopse,
-      dublado: dublado ?? this.dublado,
+      isDublado: isDublado ?? this.isDublado,
       slugSerie: slugSerie ?? this.slugSerie,
       releases: releases ?? this.releases,
       title: title ?? this.title,
@@ -83,7 +83,7 @@ class Anime extends Content {
     return <String, dynamic>{
       'title': title,
       'url': url,
-      'dublado': dublado,
+      'isDublado': isDublado,
       'slugSerie': slugSerie,
       'sinopse': sinopse,
       'releases': releases.map((x) => x.toMap).toList(),
@@ -109,7 +109,7 @@ class Anime extends Content {
     }
 
     return Anime(
-      dublado: map['dublado'] as bool,
+      isDublado: map['isDublado'] as bool,
       slugSerie: map['slugSerie'] != null ? map['slugSerie'] as String : null,
       originalImage: map['originalImage'] as String,
       extraLarge:

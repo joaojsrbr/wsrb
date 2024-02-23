@@ -119,6 +119,7 @@ class AnrollSource extends RSource {
               "https://www.anroll.net/_next/image?url=https%3A%2F%2Fstatic.anroll.net%2Fimages%2Fanimes%2Fscreens%2F${anime.slugSerie}%2F$n_episodio.jpg&w=1080&q=100";
 
           final Episode episode = Episode(
+            isDublado: anime.isDublado,
             url: '$BASE_URL/e/$episodeGenerateID',
             generateID: episodeGenerateID,
             title: 'Episódio $number',
@@ -220,43 +221,53 @@ class AnrollSource extends RSource {
           response.data['pageProps']['data']['data_releases'] as List<dynamic>;
 
       for (final release in releases) {
-        final title = release['episode']['anime']['titulo'];
+        final title = release['episode']['anime']['titulo'] as String;
         final slugSerie = release['episode']['anime']['slug_serie'];
         final episodeGenerateID = release['episode']['generate_id'];
-        final dublado =
+        final isDublado =
             (release['episode']['anime']['dub'] as int) == 0 ? false : true;
         final n_episodio = release['episode']['n_episodio'];
         final number = int.parse(n_episodio);
-        final releases = Releases();
 
         final thumbnail =
             "https://www.anroll.net/_next/image?url=https%3A%2F%2Fstatic.anroll.net%2Fimages%2Fanimes%2Fscreens%2F$slugSerie%2F$n_episodio.jpg&w=1080&q=100";
 
         final Episode episode = Episode(
           slugSerie: slugSerie,
+          isDublado: isDublado,
           url: '$BASE_URL/e/$episodeGenerateID',
           generateID: episodeGenerateID,
           title: 'Episódio $number',
           thumbnail: thumbnail,
         );
 
-        if (!releases.contains(episode)) releases.add(episode);
+        // final haveAnime = contentRepository.firstWhereOrNull(
+        //   (element) =>
+        //       element.title.contains(title.replaceAll('- Dublado', '').trim()),
+        // );
 
+        // if (haveAnime != null &&
+        //     !haveAnime.releases
+        //         .any((element) => episode.title.contains(element.title))) {
+        //   haveAnime.releases.add(episode);
+        // } else {
+        final releases = Releases();
         final subKey =
             '_next/data/$buildId/e/$episodeGenerateID.json?episode=$episodeGenerateID';
 
         final String mainURL = '$BASE_URL/$subKey';
-
         final anime = Anime(
           originalImage: '',
           url: mainURL,
-          dublado: dublado,
+          isDublado: isDublado,
           slugSerie: slugSerie,
           title: title,
           releases: releases,
         );
+        if (!releases.contains(episode)) releases.add(episode);
 
         if (!contentRepository.contains(anime)) contentRepository.add(anime);
+        // }
       }
 
       contentRepository.isSuccess = true;

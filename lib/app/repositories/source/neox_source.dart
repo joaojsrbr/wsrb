@@ -14,6 +14,7 @@ class NeoxSource extends RSource {
   @override
   String get BASE_URL => App.NEOX_URL;
 
+  /// Scraping [Element]
   Element? _getElementOnly(List<Element> postContentItem, String contains,
       [String? querySelector]) {
     bool firstWhereGenres(Element element) {
@@ -85,6 +86,7 @@ class NeoxSource extends RSource {
     )?.text.trim();
   }
 
+  /// Scraping [Book] details.
   @override
   Future<Result<Content>> getData(Content content) async {
     bool isBook() {
@@ -229,6 +231,7 @@ class NeoxSource extends RSource {
     }
   }
 
+  /// Scraping all [Book] releases
   @override
   Future<bool> loadData() async {
     if (contentRepository.addMore) contentRepository.index++;
@@ -256,8 +259,7 @@ class NeoxSource extends RSource {
             scrapingUtil.getScore(selector: '.score.total_votes');
         final String title = scrapingUtil.getByText(selector: 'h3 a');
         final String originalImage = scrapingUtil.getImage(selector: 'img');
-        // final String? bookType =
-        //     scrapingUtil.getByText(selector: '.manga-title-badges').noEmpty;
+
         final String? mediumImage = scrapingUtil
             .getImage(selector: 'img', bySrcSet: true, last: true)
             .isEmptyOrNull;
@@ -301,6 +303,7 @@ class NeoxSource extends RSource {
           title: title,
           score: score,
         );
+
         if (!contentRepository.contains(book)) contentRepository.add(book);
       }
       contentRepository.isSuccess = true;
@@ -314,6 +317,7 @@ class NeoxSource extends RSource {
     }
   }
 
+  /// Scraping all [Chapter] data.
   @override
   Future<Result<List<Data>>> getContent(Release release) async {
     bool isChapter() {
@@ -355,8 +359,7 @@ class NeoxSource extends RSource {
       for (final img in imageList) {
         final imageURL = ScrapingUtil(img).getImage();
         if (imageURL.isEmpty || !imageURL.contains('nexoscans')) continue;
-
-        data.add(Data.imageData(imageURL: imageURL));
+        data.addIfNoContains(Data.imageData(imageURL: imageURL));
       }
 
       return Result.success(data);

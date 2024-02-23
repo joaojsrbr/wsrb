@@ -5,9 +5,9 @@ import 'package:app_wsrb_jsr/app/models/episode.dart';
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
-import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 class ItemContent extends StatelessWidget {
@@ -50,7 +50,44 @@ class ItemContent extends StatelessWidget {
                       topRight: Radius.zero,
                       bottomRight: Radius.zero,
                     ),
-                    child: _ImageWidget(content),
+                    child: SizedBox(
+                      width: 155,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          _ImageWidget(content),
+                          if (content is Anime)
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: borderRadius.copyWith(
+                                    topRight: Radius.zero,
+                                    bottomRight: Radius.zero,
+                                    topLeft: Radius.zero,
+                                  ),
+                                ),
+                                margin: EdgeInsets.zero,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(6.0),
+                                  child: Text(
+                                    (content as Anime).isDublado
+                                        ? 'DUB'
+                                        : 'LEG',
+                                    style: textTheme.labelMedium?.copyWith(
+                                      fontSize: 10,
+                                      color: (content as Anime).isDublado
+                                          ? Colors.blue
+                                          : Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
                   Expanded(
                     child: Column(
@@ -109,7 +146,6 @@ class ItemContent extends StatelessWidget {
                         }
                       : null,
                   onTap: () async {
-                    customLog('');
                     if (content is Anime && content.releases.length == 1) {
                       final anime = content as Anime;
                       await context.push(
@@ -215,7 +251,7 @@ class _ImageWidget extends StatelessWidget {
 
     const double width = 145;
     int memCacheHeight = 300;
-    int memCacheWidth = 260;
+    int memCacheWidth = 250;
     // int memCacheWidth = 250;
 
     if (content is Anime) {

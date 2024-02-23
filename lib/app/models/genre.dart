@@ -15,8 +15,6 @@ class Genre extends Equatable {
   }
 
   factory Genre.fromMap(Map<dynamic, dynamic> map) {
-    return Genre(
-      map['label'] as String,
-    );
+    return Genre(map['label'] as String);
   }
 }
