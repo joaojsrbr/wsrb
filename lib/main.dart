@@ -6,12 +6,14 @@ import 'package:app_wsrb_jsr/app/repositories/content_cache.dart';
 import 'package:app_wsrb_jsr/app/repositories/content_repository.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:media_kit/media_kit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   late final HiveController hiveController;
   MediaKit.ensureInitialized();
 
@@ -28,6 +30,7 @@ void main() async {
   final ContentCache bookCache = ContentCache(hiveServiceImpl);
 
   await Future.wait([
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
     Workmanager().initialize(callbackDispatcher, isInDebugMode: true),
     hiveServiceImpl.init(),
   ]);

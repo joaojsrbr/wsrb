@@ -30,44 +30,85 @@ class PlayerView extends StatefulWidget {
   State<PlayerView> createState() => _PlayerViewState();
 }
 
-class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
+class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
+    with WidgetsBindingObserver {
+  /// [PlayerArgs] object used as argument of this page.
   late PlayerArgs _playerArgs;
+
+  /// content repository [ContentRepository] instance.
   late final ContentRepository _repository;
-  // Create a [VideoController] to handle video output from [Player].
+
+  /// Create a [VideoController] to handle video output from [Player].
   VideoController? _videoController;
 
+  /// Anime colors [ColorScheme] instance.
   ColorScheme? _contentColorScheme;
+
+  /// [_mainVideoData] instance used to store video data.
   VideoData? _mainVideoData;
+
   Timer? _setEnabledSystemUIMode;
-  // Create a [Player] to control playback.
+
+  /// Create a [Player] to control playback.
   Player? _player;
 
+  /// variable used to load the page.
   bool _isLoading = true;
+
+  /// variable using to store the initial [BoxFit].
   BoxFit _activeFit = BoxFit.contain;
 
+  /// instance using to store all Subscriptions.
   final Subscriptions _subscriptions = Subscriptions();
+
+  /// instance with single state used to store the [BoxFit] selected on the player button.
   final ValueNotifier<String?> _overlayBoxFit = ValueNotifier(null);
+
+  /// instance with single state using to notify the user and activate the [_nextEpisode] method.
   final ValueNotifier<String?> _overlayNextEpisode = ValueNotifier(null);
+
+  /// Queue instance to store all [BoxFit].
   final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
+
+  /// Queue instance to store all [VideoData] instance.
   final List<VideoData> data = [];
 
+  /// maximum [int] type variable responsible for controlling the [CircularProgressIndicator] animation.
   final int _maxCircularAnimation = 5;
+
+  /// current [int] type variable responsible for controlling the [CircularProgressIndicator] animation.
   int _currentCircularAnimation = 1;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _repository = context.read<ContentRepository>();
     BoxFit.values
         .where((fit) => !(fit == BoxFit.none || fit == _activeFit))
         .forEach(_queueBoxFits.add);
+
     addPostFrameCallback(_onInit);
   }
 
   Future<void> _incrementCurrentCircularAnimation() async {
     setStateIfMounted(() => _currentCircularAnimation++);
-    await Future.delayed(const Duration(milliseconds: 150));
+    await Future.delayed(const Duration(milliseconds: 100));
   }
+
+  // @override
+  // void didChangeAppLifecycleState(AppLifecycleState state) {
+  //   customLog('$runtimeType[$state]');
+  //   switch (state) {
+  //     case AppLifecycleState.resumed:
+  //       break;
+  //     case AppLifecycleState.detached:
+  //       break;
+  //     default:
+  //   }
+
+  //   super.didChangeAppLifecycleState(state);
+  // }
 
   Future<void> _getInitMainVideoData() async {
     final result = await _repository.getContent(_playerArgs.episode);
@@ -83,23 +124,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
       },
     );
   }
-
-  // Future<VideoData?> _showBottomSheet() async {
-  //   final result = showBottomSheet<VideoData>(
-  //     context: context,
-  //     builder: (context) {
-  //       return GridView.builder(
-  //         gridDelegate:
-  //             SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 200),
-  //         itemBuilder: (context, index) {
-  //           return Text('data');
-  //         },
-  //       );
-  //     },
-  //   );
-
-  //   return await result.closed;
-  // }
 
   Future<void> _getContentColorScheme() async {
     try {
@@ -125,7 +149,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
 
   void _onInit(Duration time) async {
     _playerArgs = argument();
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 200));
 
     await _getAllEpisodesAndColorScheme()
         .whenComplete(_incrementCurrentCircularAnimation);
@@ -133,7 +157,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
         .whenComplete(_incrementCurrentCircularAnimation);
     await _getInitMainVideoData()
         .whenComplete(_incrementCurrentCircularAnimation);
-    await _startPlayer().whenComplete(_incrementCurrentCircularAnimation);
+    await _initPlayer().whenComplete(_incrementCurrentCircularAnimation);
     setStateIfMounted(() => _isLoading = false);
   }
 
@@ -141,7 +165,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
   bool get _isFullscreen =>
       PlayerView._videoStateKey.currentState?.isFullscreen() ?? false;
 
-  Future<void> _startPlayer() async {
+  Future<void> _initPlayer() async {
     if (_playing) {
       await _player?.stop();
     } else {
@@ -149,15 +173,17 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
       _videoController = VideoController(_player!);
     }
 
+    final media = Media(
+      _mainVideoData!.videoContent,
+      httpHeaders: {
+        "origin": _repository.source.BASE_URL,
+        "referer": "${_repository.source.BASE_URL}/",
+      },
+    );
+
     await Future.wait([
       if (_player != null && _mainVideoData != null) ...[
-        _player!.open(Media(
-          _mainVideoData!.videoContent,
-          httpHeaders: {
-            "origin": _repository.source.BASE_URL,
-            "referer": "${_repository.source.BASE_URL}/",
-          },
-        )),
+        _player!.open(media),
         _player!.setAudioDevice(AudioDevice.auto()),
         _player!.setVideoTrack(VideoTrack.auto()),
       ],
@@ -276,6 +302,16 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
                   height: height * .35,
                   child: Video(
                     aspectRatio: 16 / 9,
+                    onEnterFullscreen: () async {
+                      await SystemChrome.setPreferredOrientations([
+                        DeviceOrientation.landscapeLeft,
+                        DeviceOrientation.landscapeRight,
+                      ]);
+                    },
+                    onExitFullscreen: () async {
+                      await SystemChrome.setPreferredOrientations(
+                          [DeviceOrientation.portraitUp]);
+                    },
                     fit: _activeFit,
                     controls: _VideoControlls.new,
                     key: PlayerView._videoStateKey,
@@ -301,7 +337,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
                       });
 
                       await _getInitMainVideoData();
-                      await _startPlayer();
+                      await _initPlayer();
                     },
                   ),
                 ),
@@ -323,6 +359,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs> {
     _player?.dispose();
     _overlayBoxFit.dispose();
     _overlayNextEpisode.dispose();
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    WidgetsBinding.instance.removeObserver(this);
+
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
@@ -385,7 +424,7 @@ class _VideoControlls extends StatelessWidget {
                   );
 
                   await playerViewState._getInitMainVideoData();
-                  await playerViewState._startPlayer();
+                  await playerViewState._initPlayer();
                 },
               ),
             ),
