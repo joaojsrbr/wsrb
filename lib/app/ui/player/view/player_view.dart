@@ -1,20 +1,15 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/list_extensions.dart';
-import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
-import 'package:app_wsrb_jsr/app/models/anime.dart';
-import 'package:app_wsrb_jsr/app/models/data.dart';
-import 'package:app_wsrb_jsr/app/models/episode.dart';
-import 'package:app_wsrb_jsr/app/repositories/content_repository.dart';
+import 'package:app_wsrb_jsr/app/ui/player/widgets/material_video_controls.dart';
+import 'package:content_library/content_library.dart';
+
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
-import 'package:app_wsrb_jsr/app/ui/player/widgets/player_custom_overlay.dart';
-import 'package:app_wsrb_jsr/app/ui/player/widgets/player_theme.dart';
+
+import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/list_dismissible.dart';
-import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
-import 'package:app_wsrb_jsr/app/utils/subscriptions.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
@@ -24,7 +19,9 @@ import 'package:provider/provider.dart';
 class PlayerView extends StatefulWidget {
   const PlayerView({super.key});
 
-  static final GlobalKey<VideoState> _videoStateKey = GlobalKey<VideoState>();
+  static final GlobalKey<VideoState> videoStateKey = GlobalKey<VideoState>();
+
+  static final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
 
   @override
   State<PlayerView> createState() => _PlayerViewState();
@@ -33,7 +30,7 @@ class PlayerView extends StatefulWidget {
 class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     with WidgetsBindingObserver {
   /// [PlayerArgs] object used as argument of this page.
-  late PlayerArgs _playerArgs;
+  late PlayerArgs _playerArgs = argument();
 
   /// content repository [ContentRepository] instance.
   late final ContentRepository _repository;
@@ -67,6 +64,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   /// instance with single state using to notify the user and activate the [_nextEpisode] method.
   final ValueNotifier<String?> _overlayNextEpisode = ValueNotifier(null);
 
+  late final ValueNotifier<String> _topTitle = ValueNotifier('');
+
   /// Queue instance to store all [BoxFit].
   final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
 
@@ -74,10 +73,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   final List<VideoData> data = [];
 
   /// maximum [int] type variable responsible for controlling the [CircularProgressIndicator] animation.
-  final int _maxCircularAnimation = 5;
+  final int _maxValueCircularAnimation = 4;
 
   /// current [int] type variable responsible for controlling the [CircularProgressIndicator] animation.
-  int _currentCircularAnimation = 1;
+  int _currentValueCircularAnimation = 1;
 
   @override
   void initState() {
@@ -92,7 +91,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _incrementCurrentCircularAnimation() async {
-    setStateIfMounted(() => _currentCircularAnimation++);
+    setStateIfMounted(() => _currentValueCircularAnimation++);
     await Future.delayed(const Duration(milliseconds: 100));
   }
 
@@ -111,33 +110,37 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   // }
 
   Future<void> _getInitMainVideoData() async {
+    final state = Navigator.of(context);
     final result = await _repository.getContent(_playerArgs.episode);
+    _topTitle.value = _playerArgs.episode.title;
     result.when(
       onSucess: (data) {
-        if (data is! List<VideoData>) Navigator.of(context).pop();
+        if (data.first is! VideoData) state.pop();
 
         setStateIfMounted(() {
-          _currentCircularAnimation++;
+          _currentValueCircularAnimation++;
           data.forEach(this.data.cast().addIfNoContains);
           _mainVideoData = data.first as VideoData;
         });
       },
+      onError: state.pop,
     );
   }
 
-  Future<void> _getContentColorScheme() async {
-    try {
-      _contentColorScheme = await ColorScheme.fromImageProvider(
-        brightness: Theme.of(context).brightness,
-        provider: CachedNetworkImageProvider(
-          _playerArgs.anime.imageUrl,
-          cacheKey: _playerArgs.anime.imageUrl,
-          maxHeight: 330,
-          maxWidth: 245,
-        ),
-      );
-    } catch (_) {}
-  }
+  // Future<void> _getContentColorScheme() async {
+  //   try {
+  //     _contentColorScheme = (await ColorScheme.fromImageProvider(
+  //       brightness: Theme.of(context).brightness,
+  //       provider: CachedNetworkImageProvider(
+  //         _playerArgs.anime.imageUrl,
+  //         cacheKey: _playerArgs.anime.imageUrl,
+  //         maxHeight: 330,
+  //         maxWidth: 245,
+  //       ),
+  //     ))
+  //         .harmonized();
+  //   } catch (_) {}
+  // }
 
   Future<void> _getAllEpisodesAndColorScheme() async {
     final result = await _repository
@@ -148,48 +151,64 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   void _onInit(Duration time) async {
-    _playerArgs = argument();
+    // VolumeOverlay.volumeOverlay(volumeDown: false, volumeUp: false);
+
+    // _playerArgs = argument();
+
     await Future.delayed(const Duration(milliseconds: 200));
 
     await _getAllEpisodesAndColorScheme()
         .whenComplete(_incrementCurrentCircularAnimation);
-    await _getContentColorScheme()
-        .whenComplete(_incrementCurrentCircularAnimation);
+
+    if (_playerArgs.capturedThemes == null) {
+      // await _getContentColorScheme()
+      //     .whenComplete(_incrementCurrentCircularAnimation);
+    } else {
+      await _incrementCurrentCircularAnimation();
+    }
+
     await _getInitMainVideoData()
         .whenComplete(_incrementCurrentCircularAnimation);
-    await _initPlayer().whenComplete(_incrementCurrentCircularAnimation);
+    await _initPlayer(true).whenComplete(_incrementCurrentCircularAnimation);
     setStateIfMounted(() => _isLoading = false);
   }
 
-  bool get _playing => _player?.state.playing ?? false;
-  bool get _isFullscreen =>
-      PlayerView._videoStateKey.currentState?.isFullscreen() ?? false;
+  // bool get _playing => _player?.state.playing ?? false;
 
-  Future<void> _initPlayer() async {
-    if (_playing) {
-      await _player?.stop();
-    } else {
-      _player = Player();
+  bool get isFullscreen =>
+      PlayerView.videoStateKey.currentState?.isFullscreen() ?? false;
+
+  Future<void>? get toggleFullscreen =>
+      PlayerView.videoStateKey.currentState?.toggleFullscreen();
+
+  Future<void> _initPlayer([bool onInit = false]) async {
+    if (onInit) {
+      _player = Player(configuration: const PlayerConfiguration());
       _videoController = VideoController(_player!);
     }
 
-    final media = Media(
-      _mainVideoData!.videoContent,
-      httpHeaders: {
-        "origin": _repository.source.BASE_URL,
-        "referer": "${_repository.source.BASE_URL}/",
-      },
-    );
+    // if (_playing) {
+    //   // await _player?.stop();
+    // } else {
+    //   _player = Player();
+    //   _videoController = VideoController(_player!);
+    // }
 
     await Future.wait([
       if (_player != null && _mainVideoData != null) ...[
-        _player!.open(media),
+        _player!.open(Media(
+          _mainVideoData!.videoContent,
+          httpHeaders: {
+            "origin": _repository.source.BASE_URL,
+            "referer": "${_repository.source.BASE_URL}/",
+          },
+        )),
         _player!.setAudioDevice(AudioDevice.auto()),
-        _player!.setVideoTrack(VideoTrack.auto()),
       ],
       _registerListeners(false),
       if (_videoController != null)
         _videoController!.waitUntilFirstFrameRendered,
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive)
     ]);
   }
 
@@ -208,11 +227,11 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   void _playingListener(bool playing) {
     _setEnabledSystemUIMode?.cancel();
 
-    if (playing && !_isFullscreen) {
+    if (playing) {
       _setEnabledSystemUIMode = Timer(const Duration(milliseconds: 200), () {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       });
-    } else if (!_isFullscreen) {
+    } else {
       _setEnabledSystemUIMode = Timer(const Duration(milliseconds: 300), () {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       });
@@ -225,7 +244,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   void _handleSetFits() async {
-    final videoState = PlayerView._videoStateKey.currentState;
+    final videoState = PlayerView.videoStateKey.currentState;
     if (videoState == null) return;
 
     final nextBoxFit = _queueBoxFits.removeFirst();
@@ -233,11 +252,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     _overlayBoxFit.value = nextBoxFit.name;
 
-    customLog(nextBoxFit);
-
-    setState(() {
+    setStateIfMounted(() {
       _activeFit = nextBoxFit;
-      PlayerView._videoStateKey.currentState?.update(fit: nextBoxFit);
+      PlayerView.videoStateKey.currentState?.update(fit: nextBoxFit);
     });
   }
 
@@ -253,8 +270,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     if (position >= activeOverlay &&
         !diff.inSeconds.isNegative &&
         maxPosition.inSeconds > 0) {
-      _overlayNextEpisode.value =
-          '${_playerArgs.episode.title} - ${diff.inSeconds}';
+      final indexOf =
+          _playerArgs.anime.releases.indexOf(_playerArgs.episode) - 1;
+      final nextEpisode = _playerArgs.anime.releases[indexOf];
+      _overlayNextEpisode.value = '${nextEpisode.title} - ${diff.inSeconds}';
       customLog(_overlayNextEpisode.value);
     }
     // else if (_overlayNextEpisode.value != null) {
@@ -262,98 +281,76 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     // }
   }
 
+  ThemeData _themeData(BuildContext context) {
+    Color? scaffoldBackgroundColor = _contentColorScheme?.background;
+
+    scaffoldBackgroundColor ??= Theme.of(context).colorScheme.background;
+
+    return Theme.of(context).copyWith(
+      scaffoldBackgroundColor: scaffoldBackgroundColor,
+      colorScheme: _contentColorScheme,
+    );
+  }
+
+  Future<void> _handleOnTapEpisodeInOverlay() async {
+    _overlayNextEpisode.value = null;
+    await _player?.pause();
+
+    final indexOf = _playerArgs.anime.releases.indexOf(_playerArgs.episode);
+
+    final nexEpisode = _playerArgs.anime.releases[indexOf - 1] as Episode;
+
+    await _handleOnTapEpisode(nexEpisode);
+
+    _overlayNextEpisode.value = null;
+  }
+
+  Future<void> _handleOnTapEpisode(Episode episode) async {
+    customLog(
+      'tapped name: ${episode.title} - id: ${episode.id}',
+    );
+
+    setState(
+      () => _playerArgs = _playerArgs.copyWith(episode: episode),
+    );
+
+    await _getInitMainVideoData();
+    await _initPlayer();
+  }
+
   @override
   Widget buildByArgument(
     BuildContext context,
     PlayerArgs argument,
   ) {
-    final size = MediaQuery.sizeOf(context);
-    final width = size.width;
-    final height = size.height;
-    return Theme(
-      data: Theme.of(context).copyWith(colorScheme: _contentColorScheme),
-      child: PlayerTheme(
-        setFits: _handleSetFits,
-        child: Scaffold(
-          body: Column(
-            mainAxisAlignment:
-                _isLoading ? MainAxisAlignment.center : MainAxisAlignment.start,
-            children: [
-              if (_isLoading) ...[
-                Center(
-                  child: TweenAnimationBuilder(
-                    duration: const Duration(milliseconds: 300),
-                    tween: Tween(
-                      begin: 0.0,
-                      end: _currentCircularAnimation / _maxCircularAnimation,
-                    ),
-                    builder: (_, value, __) =>
-                        CircularProgressIndicator.adaptive(value: value),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Carregando...',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-              ] else if (_videoController != null) ...[
-                SizedBox(
-                  width: width,
-                  height: height * .35,
-                  child: Video(
-                    aspectRatio: 16 / 9,
-                    onEnterFullscreen: () async {
-                      await SystemChrome.setPreferredOrientations([
-                        DeviceOrientation.landscapeLeft,
-                        DeviceOrientation.landscapeRight,
-                      ]);
-                    },
-                    onExitFullscreen: () async {
-                      await SystemChrome.setPreferredOrientations(
-                          [DeviceOrientation.portraitUp]);
-                    },
-                    fit: _activeFit,
-                    controls: _VideoControlls.new,
-                    key: PlayerView._videoStateKey,
-                    controller: _videoController!,
-                  ),
-                ),
-                Expanded(
-                  child: ListDismissible<Episode>(
-                    titleTextStyle: Theme.of(context).textTheme.labelLarge,
-                    releases: _playerArgs.anime.releases,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    selected: (content) => content == _playerArgs.episode,
-                    physics: const BouncingScrollPhysics(),
-                    onTap: (episode) async {
-                      customLog(
-                        'tapped name: ${episode.title} - id: ${episode.id}',
-                      );
-
-                      setState(() {
-                        _playerArgs = _playerArgs.copyWith(
-                          episode: episode,
-                        );
-                      });
-
-                      await _getInitMainVideoData();
-                      await _initPlayer();
-                    },
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
+    return PlayerScope(
+      scaffoldKey: PlayerView.scaffoldKey,
+      topTitle: _topTitle,
+      overlayBoxFit: _overlayBoxFit,
+      overlayNextEpisode: _overlayNextEpisode,
+      onTapEpisodeInOverlay: _handleOnTapEpisodeInOverlay,
+      onTapEpisode: _handleOnTapEpisode,
+      activeFit: _activeFit,
+      videoController: _videoController,
+      currentValueCircularAnimation: _currentValueCircularAnimation,
+      maxValueCircularAnimation: _maxValueCircularAnimation,
+      isLoading: _isLoading,
+      playerArgs: mounted ? _playerArgs : argument,
+      setFits: _handleSetFits,
+      child: Theme(
+        data: _themeData(context),
+        child: const _BuildScaffold(),
       ),
     );
   }
 
   @override
   void dispose() {
+    _topTitle.dispose();
+    customLog('$runtimeType[dispose]');
     _subscriptions.cancellAll();
-    _videoController?.id.dispose();
     _setEnabledSystemUIMode?.cancel();
+    _videoController?.id.dispose();
     _videoController?.notifier.dispose();
     _videoController?.rect.dispose();
     _player?.dispose();
@@ -361,75 +358,99 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     _overlayNextEpisode.dispose();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     WidgetsBinding.instance.removeObserver(this);
-
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    // VolumeOverlay.volumeOverlay(volumeDown: true, volumeUp: true);
     super.dispose();
   }
 }
 
-class _VideoControlls extends StatelessWidget {
-  const _VideoControlls(this.state);
-
-  final VideoState state;
+class _BuildScaffold extends StatelessWidget {
+  const _BuildScaffold();
 
   @override
   Widget build(BuildContext context) {
-    final playerViewState = PlayerView._videoStateKey.currentContext!
-        .findAncestorStateOfType<_PlayerViewState>();
-    if (playerViewState == null) return const SizedBox.shrink();
+    final scope = PlayerScope.of(context);
+    final isLoading = PlayerScope.isLoadingOf(context);
+    final activeFit = PlayerScope.activeFitOf(context);
+    final playerArgs = PlayerScope.playerArgsOf(context);
+    final videoController = scope.videoController;
+    final scaffoldKey = scope.scaffoldKey;
+    final currentValueCircularAnimation =
+        PlayerScope.currentValueCircularAnimationOf(context);
+    List<Widget> children = [];
 
-    final orientation = MediaQuery.orientationOf(context);
-    final isPortrait = orientation == Orientation.portrait;
-    return Theme(
-      data: Theme.of(context).copyWith(
-        colorScheme: playerViewState._contentColorScheme,
-      ),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: MaterialVideoControls(state),
-          ),
-          Padding(
-            padding: EdgeInsets.only(top: !isPortrait ? 20 : 8),
-            child: CustomOverlay(
-              key: const ValueKey('custom_overlay_1'),
-              begin: const Offset(-1, 0),
-              notifierChange: playerViewState._overlayBoxFit,
+    if (isLoading) {
+      children.addAll([
+        Center(
+          child: TweenAnimationBuilder(
+            duration: const Duration(milliseconds: 300),
+            tween: Tween(
+              begin: 0.0,
+              end: currentValueCircularAnimation /
+                  scope.maxValueCircularAnimation,
             ),
+            builder: (_, value, __) =>
+                CircularProgressIndicator.adaptive(value: value),
           ),
-          Positioned(
-            bottom: !isPortrait ? 100 : 70,
-            right: 0,
-            top: 0,
-            child: Align(
-              alignment: Alignment.bottomRight,
-              child: CustomOverlay(
-                reversedBorder: true,
-                key: const ValueKey('custom_overlay_2'),
-                begin: const Offset(1, 0),
-                end: Offset.zero,
-                enableCancelReversed: false,
-                notifierChange: playerViewState._overlayNextEpisode,
-                onTap: () async {
-                  playerViewState._overlayNextEpisode.value = null;
-                  final playerArgs = playerViewState._playerArgs;
-
-                  final indexOf =
-                      playerArgs.anime.releases.indexOf(playerArgs.episode);
-
-                  final nexEpisode = playerArgs.anime.releases[indexOf - 1];
-
-                  playerViewState._playerArgs = playerArgs.copyWith(
-                    episode: nexEpisode,
-                  );
-
-                  await playerViewState._getInitMainVideoData();
-                  await playerViewState._initPlayer();
-                },
-              ),
-            ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Carregando...',
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+      ]);
+    } else if (videoController != null) {
+      children.addAll([
+        Flexible(
+          flex: 1,
+          child: Video(
+            aspectRatio: 16 / 9,
+            onEnterFullscreen: () async {
+              await SystemChrome.setPreferredOrientations([
+                DeviceOrientation.landscapeLeft,
+                DeviceOrientation.landscapeRight,
+              ]);
+              SystemChrome.setEnabledSystemUIMode(
+                SystemUiMode.immersive,
+              );
+            },
+            onExitFullscreen: () async {
+              await SystemChrome.setPreferredOrientations(
+                [DeviceOrientation.portraitUp],
+              );
+            },
+            fit: activeFit,
+            controls: CustomMaterialControls.new,
+            key: PlayerView.videoStateKey,
+            controller: videoController,
           ),
-        ],
+        ),
+        Expanded(
+          flex: 2,
+          child: ListDismissible<Episode>(
+            titleTextStyle: Theme.of(context).textTheme.labelLarge,
+            releases: playerArgs.anime.releases,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            selected: (content) => content == playerArgs.episode,
+            physics: const BouncingScrollPhysics(),
+            onTap: scope.onTapEpisode,
+          ),
+        ),
+      ]);
+    }
+
+    MainAxisAlignment mainAxisAlignment = MainAxisAlignment.center;
+
+    if (!isLoading) mainAxisAlignment = MainAxisAlignment.start;
+
+    return Scaffold(
+      key: scaffoldKey,
+      extendBodyBehindAppBar: true,
+      extendBody: true,
+      body: Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: mainAxisAlignment,
+        children: children,
       ),
     );
   }

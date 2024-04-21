@@ -1,14 +1,19 @@
 import 'package:animations/animations.dart';
+import 'package:app_wsrb_jsr/app/core/services/theme_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class SharedAxisTransitionPageWrapper extends Page {
   const SharedAxisTransitionPageWrapper({
-    required this.screen,
+    this.screen,
+    this.screenBuilder,
     required ValueKey transitionKey,
     super.arguments,
   }) : super(key: transitionKey);
 
-  final Widget screen;
+  final Widget? screen;
+
+  final WidgetBuilder? screenBuilder;
 
   @override
   Route createRoute(BuildContext context) {
@@ -17,8 +22,10 @@ class SharedAxisTransitionPageWrapper extends Page {
       reverseTransitionDuration: const Duration(milliseconds: 650),
       settings: this,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final ThemeController themeController = context.read<ThemeController>();
+
         return SharedAxisTransition(
-          fillColor: Theme.of(context).cardColor,
+          fillColor: themeController.transitionPageFillColor,
           animation: animation,
           secondaryAnimation: secondaryAnimation,
           transitionType: SharedAxisTransitionType.scaled,
@@ -27,7 +34,9 @@ class SharedAxisTransitionPageWrapper extends Page {
       },
       pageBuilder: (context, animation, secondaryAnimation) {
         // OpenContainer;
-        return screen;
+        return screenBuilder?.call(context) ??
+            screen ??
+            const SizedBox.shrink();
       },
     );
   }

@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:app_wsrb_jsr/app/models/content.dart';
+import 'package:content_library/content_library.dart';
+
 import 'package:equatable/equatable.dart';
 
 class ContentInformationArgs extends Equatable {

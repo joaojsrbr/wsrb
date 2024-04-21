@@ -1,9 +1,8 @@
-import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
 import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/clipper/flexible_space_bar.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 
 class FlexibleSpaceBarWidget extends StatelessWidget {
@@ -19,11 +18,20 @@ class FlexibleSpaceBarWidget extends StatelessWidget {
         context.dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
 
     Widget flexible = ClipRRect(
-      clipper: FlexibleSpaceBarClipper(radius: 18),
-      child: ShimmerLoading(
-        isLoading: isLoading,
+      clipper: _FlexibleSpaceBarClipper(radius: 18),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 150),
         child: isLoading
-            ? const Material(child: SizedBox.expand())
+            ? ShimmerLoading(
+                isLoading: isLoading,
+                child: const Material(
+                  child: Card(
+                    elevation: 2,
+                    margin: EdgeInsets.zero,
+                    child: SizedBox.expand(),
+                  ),
+                ),
+              )
             : const FlexibleSpaceBar(
                 collapseMode: CollapseMode.parallax,
                 background: _BuildContentWidget(),
@@ -142,5 +150,80 @@ class __ImageWidgetState extends State<_ImageWidget> {
       },
       child: imageWidget,
     );
+  }
+}
+
+class _FlexibleSpaceBarClipper extends CustomClipper<RRect> {
+  _FlexibleSpaceBarClipper({
+    // ignore: unused_element
+    this.axis = Axis.vertical,
+    // ignore: unused_element
+    this.topLeft = Radius.zero,
+    // ignore: unused_element
+    this.topRight = Radius.zero,
+    required this.radius,
+  });
+
+  final Axis axis;
+  final double radius;
+  final Radius topLeft;
+  final Radius topRight;
+
+  @override
+  RRect getClip(Size size) {
+    switch (axis) {
+      case Axis.horizontal:
+        final double offset = size.width;
+        if (offset < 0) {
+          return RRect.fromLTRBAndCorners(
+            size.width + offset,
+            0.0,
+            size.width,
+            size.height,
+            topLeft: Radius.circular(radius),
+            bottomLeft: Radius.circular(radius),
+          );
+        }
+        return RRect.fromLTRBAndCorners(
+          0.0,
+          0.0,
+          offset,
+          size.height,
+          topRight: Radius.circular(radius),
+          bottomRight: Radius.circular(radius),
+        );
+      case Axis.vertical:
+        final double offset = size.height;
+
+        if (offset < 0) {
+          return RRect.fromLTRBAndCorners(
+            0.0,
+            size.height + offset,
+            size.width,
+            size.height,
+            bottomRight: Radius.circular(radius),
+            bottomLeft: Radius.circular(radius),
+            topLeft: topLeft,
+            topRight: topRight,
+          );
+        }
+        return RRect.fromLTRBAndCorners(
+          0.0,
+          0.0,
+          size.width,
+          offset,
+          bottomRight: Radius.circular(radius),
+          bottomLeft: Radius.circular(radius),
+          topLeft: topLeft,
+          topRight: topRight,
+        );
+    }
+  }
+
+  RRect getApproximateClipRRect(Size size) => getClip(size);
+
+  @override
+  bool shouldReclip(_FlexibleSpaceBarClipper oldClipper) {
+    return oldClipper.axis != axis;
   }
 }

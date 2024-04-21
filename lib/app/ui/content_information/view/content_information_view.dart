@@ -1,13 +1,9 @@
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
-import 'package:app_wsrb_jsr/app/core/services/hive/hive_controller.dart';
-import 'package:app_wsrb_jsr/app/models/content.dart';
-import 'package:app_wsrb_jsr/app/models/release.dart';
-import 'package:app_wsrb_jsr/app/repositories/content_cache.dart';
-import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
+import 'package:app_wsrb_jsr/app/core/services/theme_controller.dart';
+import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
+import 'package:content_library/content_library.dart';
 
-import 'package:app_wsrb_jsr/app/repositories/content_repository.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/build_contents.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/chip_content_controller.dart';
@@ -16,13 +12,10 @@ import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/sinopse.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
-import 'package:app_wsrb_jsr/app/utils/subscriptions.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:collection/collection.dart';
+
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+
 import 'package:provider/provider.dart';
-import 'package:quiver/iterables.dart';
 
 class BookInformationView extends StatefulWidget {
   const BookInformationView({super.key});
@@ -35,26 +28,12 @@ class _BookInformationStateView
     extends StateByArgument<BookInformationView, ContentInformationArgs> {
   late final Subscriptions _subscriptions;
 
-  @override
-  void initState() {
-    super.initState();
-    _repository = context.read<ContentRepository>();
-    _hiveController = context.read<HiveController>();
-    _cache = context.read<ContentCache>();
-    _subscriptions = Subscriptions()
-      ..add(
-        _hiveController
-            .watchBy('book_info_content_orders')
-            .listen(_ordersListener),
-      );
-    addPostFrameCallback((data) => _onInit());
-  }
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = GlobalKey();
+
+  late final ThemeController _themeController;
 
   /// [BookCache] instance
   late final ContentCache _cache;
-
-  /// [HiveController] instance
-  late final HiveController _hiveController;
 
   /// [ContentRepository] instance
   late final ContentRepository _repository;
@@ -63,13 +42,23 @@ class _BookInformationStateView
   bool _isLoading = true;
 
   /// list of object list
-  List<List<Release>> _releases = [];
+  List<Releases> _releases = [];
 
   /// [Content] instance
   Content? _content;
 
   /// index relating to [_chapters]
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = context.read<ContentRepository>();
+    _cache = context.read<ContentCache>();
+    _themeController = context.read<ThemeController>();
+    _subscriptions = Subscriptions();
+    Future.microtask(_onInit);
+  }
 
   /// Function that controls the value of [_index]
   void _handleSetListIndex(int index) {
@@ -80,29 +69,25 @@ class _BookInformationStateView
 
   void _onInit() async {
     final args = ModalRoute.of(context)?.settings.arguments;
-
+    final navigationState = Navigator.of(context);
     if (args is! ContentInformationArgs) {
-      customLog('O argumento precisa ser do tipo BookInformationArgs');
-      Navigator.pop(context);
+      navigationState.pop(
+        'O argumento precisa ser do tipo BookInformationArgs',
+      );
     } else {
       final content = args.content;
 
       final cacheContent = await _cache.getContent(content.id);
 
       if (cacheContent != null) {
-        await Future.delayed(
-          const Duration(milliseconds: 600),
-          () => _onSucess(cacheContent),
-        );
+        _onSucess(cacheContent);
         return;
       }
 
       final resultCotent = await _repository.getData(content);
 
-      await resultCotent.when(
-        onError: (error) {
-          Navigator.pop(context, resultCotent);
-        },
+      resultCotent.when(
+        onError: navigationState.pop,
         onSucess: _onSucess,
       );
     }
@@ -110,50 +95,69 @@ class _BookInformationStateView
 
   /// function that partitions the list [_chapters]
   void _setAllContents(Releases releases) {
-    _releases = partition(releases.reversed, 20).toList();
-    // _index = _chapters.length - 1;
-    _reversedAllContents(_hiveController.contentOrders);
+    _releases = releases.partition(20);
   }
 
-  void _reversedAllContents([bool? init]) {
-    if (init == false) return;
-    // _hiveController.chaptersOrders;
-    _releases.forEachIndexed((index, element) {
-      _releases[index] = _releases[index].reversed.toList();
-    });
-  }
+  // void _reversedAllContents(bool reverse) {
+  //   _releases.forEachIndexed((index, element) {
+  //     _releases[index] = Releases.fromList(_releases[index].reverse(reverse));
+  //   });
+  // }
 
   /// asynchronous function referring to [RefreshIndicator]
   Future<void> _onRefresh() async {
+    final appSnackBar = context.appSnackBar;
     final resultBook = await _repository.getData(_content!);
 
     return await resultBook.when<Future>(
-      onError: (error) async {
-        customLog(error.toString());
-      },
-      onSucess: (data) => _onSucess(data, false),
+      onError: appSnackBar.onError,
+      onSucess: (data) => _onSucess(data, true),
     );
   }
 
-  Future<void> _onSucess(Content data, [bool onInit = true]) async {
-    if (data == _content) return;
-    ColorScheme? contentColorScheme;
-    try {
-      contentColorScheme = await ColorScheme.fromImageProvider(
-        brightness: Theme.of(context).brightness,
-        provider: CachedNetworkImageProvider(
-          data.imageUrl,
-          cacheKey: data.imageUrl,
-          maxHeight: 330,
-          maxWidth: 245,
-        ),
-      );
-    } catch (_) {}
-    _cache.saveContent(data);
+  // Future<ColorScheme?> _getContentColorScheme(Content data) async {
+  //   if (_content?.contentColorScheme != null) return null;
+
+  //   ColorScheme? contentColorScheme;
+
+  //   try {
+  //     contentColorScheme = await ColorScheme.fromImageProvider(
+  //       brightness: Theme.of(context).brightness,
+  //       provider: CachedNetworkImageProvider(
+  //         data.imageUrl,
+  //         cacheKey: data.imageUrl,
+  //         maxHeight: 330,
+  //         maxWidth: 245,
+  //       ),
+  //     );
+  //   } catch (_) {}
+
+  //   _themeController.setTransitionPageFillColor(contentColorScheme?.background);
+  //   return contentColorScheme;
+  // }
+
+  Future<void> _onSucess(Content data, [bool onRefresh = false]) async {
+    // ColorScheme? contentColorScheme = await _getContentColorScheme(data);
+    final libraryController = context.read<LibraryController>();
+    await _cache.saveContent(data);
+
+    if (libraryController.contains(content: data)) {
+      Entity? entity;
+      switch (data) {
+        case Anime data:
+          entity = data.toEntity(updatedAt: DateTime.now());
+          break;
+        case Book data:
+          entity = data.toEntity(updatedAt: DateTime.now());
+          break;
+      }
+      libraryController.add(entity: entity);
+    }
+
     setStateIfMounted(() {
-      _content = data.copyWith(contentColorScheme: contentColorScheme);
+      _content = data.copyWith();
       _setAllContents(data.releases);
-      if (onInit) _isLoading = false;
+      if (!onRefresh) _isLoading = false;
     });
   }
 
@@ -166,9 +170,9 @@ class _BookInformationStateView
   //   );
   // }
 
-  void _ordersListener(BoxEvent event) {
-    setStateIfMounted(_reversedAllContents);
-  }
+  // void _ordersListener(BoxEvent event) {
+  //   // setStateIfMounted(_reversedAllContents);
+  // }
 
   ScrollPhysics get _physics {
     if (_isLoading) return const NeverScrollableScrollPhysics();
@@ -182,55 +186,54 @@ class _BookInformationStateView
   ) {
     final themeData = Theme.of(context);
 
+    // final hiveController = context.watch<HiveController>();
+
     final size = MediaQuery.sizeOf(context);
 
     final linearGradient = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.centerRight,
       colors: <Color>[
-        themeData.highlightColor,
-        themeData.highlightColor,
-        Colors.grey.shade100,
-        themeData.highlightColor,
-        themeData.highlightColor,
+        themeData.colorScheme.primary.withOpacity(0.12),
+        themeData.colorScheme.primary.withOpacity(0.12),
+        const Color(0xffE6E8EB),
+        themeData.colorScheme.primary.withOpacity(0.12),
+        themeData.colorScheme.primary.withOpacity(0.12),
       ],
-      stops: const <double>[0.0, 0.35, 0.5, 0.65, 1.0],
+      stops: const <double>[0.0, 0.3, 0.5, 0.65, 1.0],
     );
 
-    return Theme(
-      data: themeData.copyWith(colorScheme: _content?.contentColorScheme),
-      child: Shimmer(
-        linearGradient: linearGradient,
-        child: BookInformationScope(
-          contentOrders: context.watch<HiveController>().contentOrders,
-          releases: _releases,
-          index: _index,
-          setListIndex: _handleSetListIndex,
-          content: _content ?? argument.content,
-          isLoading: _isLoading,
-          child: Scaffold(
-            body: RefreshIndicator(
-              onRefresh: _onRefresh,
-              child: CustomScrollView(
-                physics: _physics,
-                slivers: [
-                  SliverAppBar(
-                    snap: false,
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    expandedHeight: size.height * .45,
-                    floating: false,
-                    pinned: true,
-                    stretch: false,
-                    flexibleSpace: const FlexibleSpaceBarWidget(),
+    return Shimmer(
+      linearGradient: linearGradient,
+      child: BookInformationScope(
+        releases: _releases,
+        index: _index,
+        setListIndex: _handleSetListIndex,
+        content: _content ?? argument.content,
+        isLoading: _isLoading,
+        child: Scaffold(
+          body: RefreshIndicator(
+            key: _refreshIndicatorKey,
+            onRefresh: _onRefresh,
+            child: CustomScrollView(
+              physics: _physics,
+              slivers: [
+                SliverAppBar(
+                  snap: false,
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
                   ),
-                  SinopseWidget(sinopse: _content?.sinopse ?? ''),
-                  const ChipContentController(),
-                  const BuildContents(),
-                ],
-              ),
+                  expandedHeight: size.height * .45,
+                  floating: false,
+                  pinned: true,
+                  stretch: false,
+                  flexibleSpace: const FlexibleSpaceBarWidget(),
+                ),
+                SinopseWidget(sinopse: _content?.sinopse ?? ''),
+                const ChipContentController(),
+                const BuildContents(),
+              ],
             ),
           ),
         ),
@@ -241,10 +244,16 @@ class _BookInformationStateView
   @override
   void dispose() {
     _subscriptions.cancellAll();
-    ifMounted(() {
-      _cache.registerTask(_content!.id);
-    });
     super.dispose();
+  }
+
+  @override
+  void deactivate() {
+    if (_content != null) _cache.registerTask(_content!.id);
+    _themeController.setTransitionPageFillColor(
+      Theme.of(context).cardColor,
+    );
+    super.deactivate();
   }
 }
 

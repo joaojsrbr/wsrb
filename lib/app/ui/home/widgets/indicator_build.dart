@@ -1,6 +1,7 @@
+import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:loading_more_list/loading_more_list.dart';
+import 'package:content_library/content_library.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 Widget indicatorBuilder(BuildContext context, IndicatorStatus status) {
@@ -15,6 +16,19 @@ Widget indicatorBuilder(BuildContext context, IndicatorStatus status) {
       break;
     case IndicatorStatus.fullScreenBusying:
       widget = const _FullScreenBusyingWidget();
+      final tabController = HomeScope.maybeOf(context)?.tabController;
+      if (tabController != null && tabController.index != 0) {
+        widget = const SizedBox.shrink();
+        break;
+      }
+
+      final refreshIndicatorState =
+          context.findAncestorStateOfType<RefreshIndicatorState>();
+      if (refreshIndicatorState != null) {
+        refreshIndicatorState.show();
+        widget = const SizedBox.shrink();
+      }
+
       break;
     case IndicatorStatus.error:
       widget = const _ErrorWidget();
@@ -127,7 +141,7 @@ class _FullScreenErrorWidget extends StatelessWidget {
     final isSliver =
         context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
-    // TODO: REPLACE ERROR WIDGET
+    //! TODO: REPLACE ERROR WIDGET
     Widget child = const Center(child: Text('Error'));
     if (isSliver) child = SliverFillRemaining(child: child);
     return child;

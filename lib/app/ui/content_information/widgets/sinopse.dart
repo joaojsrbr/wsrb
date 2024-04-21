@@ -43,9 +43,11 @@ class _SinopseWidgetState extends State<SinopseWidget> {
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(8);
     final isLoading = BookInformationScope.isLoadingOf(context);
+    // const isLoading = true;
+    Widget container;
 
     if (isLoading) {
-      return SliverToBoxAdapter(
+      container = SliverToBoxAdapter(
         child: Padding(
           padding: const EdgeInsets.only(top: 12, right: 8, left: 8),
           child: SizedBox(
@@ -53,6 +55,7 @@ class _SinopseWidgetState extends State<SinopseWidget> {
             child: ShimmerLoading(
               isLoading: isLoading,
               child: Card(
+                elevation: 2,
                 shape: RoundedRectangleBorder(borderRadius: borderRadius),
                 margin: EdgeInsets.zero,
               ),
@@ -60,33 +63,58 @@ class _SinopseWidgetState extends State<SinopseWidget> {
           ),
         ),
       );
-    }
+    } else if (widget.sinopse.isNotEmpty) {
+      if (widget.sinopse.isEmpty) return const SliverToBoxAdapter();
 
-    if (widget.sinopse.isEmpty) return const SliverToBoxAdapter();
-
-    return SliverAnimatedPaintExtent(
-      duration: const Duration(milliseconds: 300),
-      child: SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 12, right: 8, left: 8),
-          child: Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(borderRadius: borderRadius),
-            margin: EdgeInsets.zero,
-            child: InkWell(
-              borderRadius: borderRadius,
-              onTap: _isOver100 ? _onTap : null,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  _isOver100 && !_expanded ? _substring : widget.sinopse,
-                  style: Theme.of(context).textTheme.bodyMedium,
+      container = SliverAnimatedPaintExtent(
+        duration: const Duration(milliseconds: 150),
+        child: SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 12, right: 8, left: 8),
+            child: Card(
+              shape: RoundedRectangleBorder(borderRadius: borderRadius),
+              margin: EdgeInsets.zero,
+              child: InkWell(
+                overlayColor: _OverlayColor(context),
+                borderRadius: borderRadius,
+                onTap: _isOver100 ? _onTap : null,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    _isOver100 && !_expanded ? _substring : widget.sinopse,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
+      );
+    } else {
+      container = const SliverToBoxAdapter();
+    }
+    return SliverAnimatedSwitcher(
+      duration: const Duration(milliseconds: 150),
+      child: container,
     );
+  }
+}
+
+class _OverlayColor extends MaterialStateProperty<Color?> {
+  _OverlayColor(this._context);
+  final BuildContext _context;
+
+  ColorScheme get _colorScheme => Theme.of(_context).colorScheme;
+
+  @override
+  Color? resolve(Set<MaterialState> states) {
+    if (states.contains(MaterialState.pressed)) {
+      return _colorScheme.primary.withOpacity(0.12);
+    } else if (states.contains(MaterialState.hovered)) {
+      return _colorScheme.primary.withOpacity(0.08);
+    } else if (states.contains(MaterialState.focused)) {
+      return Colors.transparent;
+    }
+    return Colors.transparent;
   }
 }

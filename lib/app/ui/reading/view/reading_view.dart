@@ -1,24 +1,19 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
-import 'package:app_wsrb_jsr/app/models/release.dart';
-import 'package:app_wsrb_jsr/app/utils/custom_log.dart';
-import 'package:app_wsrb_jsr/app/models/book.dart';
-import 'package:app_wsrb_jsr/app/models/data.dart';
-import 'package:app_wsrb_jsr/app/repositories/content_repository.dart';
+import 'package:content_library/content_library.dart';
+
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
-import 'package:app_wsrb_jsr/app/models/chapter.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:positioned_scroll_observer/positioned_scroll_observer.dart';
 import 'package:provider/provider.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 
 part '../mixins/reading_mixin.dart';
 
@@ -31,9 +26,12 @@ class ReadingView extends StatefulWidget {
 
 class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
     with _ReadingVars, _ReadingScroll {
+  late final BoxScrollObserver<RenderObject> _observer;
+
   @override
   void initState() {
     super.initState();
+    _observer = ScrollObserver.boxMulti(axis: Axis.vertical);
     addPostFrameCallback((time) => _onInit());
   }
 
@@ -46,7 +44,7 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
     if (args is! ReadingViewArgs) {
       Navigator.pop(context);
     } else {
-      _releases = args.book.releases;
+      _releases.addAll(args.book.releases);
       _chapter = args.chapter;
       _book = args.book;
       final data = await _repository.getContent(_chapter!);
@@ -61,7 +59,7 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
   }
 
   void _onSucess(List<Data> data) async {
-    await Future.delayed(const Duration(seconds: 1));
+    // await Future.delayed(const Duration(seconds: 1));
     setStateIfMounted(() => _isLoading = false);
 
     // final GlobalKey _key = GlobalKey();
@@ -72,8 +70,13 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
       Widget widget;
       switch (data) {
         case ImageData content:
-          widget = ImageCacheWidget(
-            imageURL: content.imageURL,
+          widget = CachedNetworkImage(
+            fit: BoxFit.contain,
+            // memCacheHeight: 1080,
+            maxWidthDiskCache: 1080,
+            fadeInDuration: const Duration(milliseconds: 300),
+            fadeOutDuration: const Duration(milliseconds: 300),
+            imageUrl: content.imageURL,
           );
         case TextData content:
           widget = Padding(
@@ -88,8 +91,7 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           );
-
-        case VideoData _:
+        case _:
           widget = const SizedBox.shrink();
       }
 
@@ -98,12 +100,9 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
       });
     });
 
-    customLog("duration: ${DateTime.now().difference(now)}");
+    _observer.itemCount = _contents.length;
 
-    // setStateIfMounted(() {
-    //   // _data = data;
-    //   _isLoading = false;
-    // });
+    customLog("duration: ${DateTime.now().difference(now)}");
   }
 
   double get _percent => _readerController.percent;
@@ -145,6 +144,30 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
       );
     } else {
       customLog('DoubleTapDown[center][$position]');
+
+      // final items = _observer.getVisibleItems(
+      //   scrollExtent: _readerController.scrollExtent,
+      // );
+
+      // int index;
+
+      // if (items.length > 1) {
+      //   index = items.last;
+      // } else {
+      //   index = items.single;
+      // }
+
+      // await _observer.animateToIndex(
+      //   index + 1,
+      //   position: _readerController.position,
+      //   duration: const Duration(milliseconds: 200),
+      //   curve: Curves.fastLinearToSlowEaseIn,
+      // );
+
+      // final test = _observer.getVisibleItems(
+      //   scrollExtent: ScrollExtent.fromPosition(_readerController.position),
+      // );
+
       // setState(() => _overlay = !_overlay);
       // _handleOverlayInserted();
       // Future.delayed(const Duration(milliseconds: 300), () => _handleOverlayInserted.call(_visible));
@@ -157,16 +180,19 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
     BuildContext context,
     ReadingViewArgs argument,
   ) {
-    return ReadingScope(
-      showFooterWidget: _showFooterWidget,
-      onNotification: _onNotification,
-      onDoubleTapDown: _handleDoubleTapDown,
-      readerController: _readerController,
-      contents: _contents,
-      chapter: _chapter,
-      book: _book,
-      child: Theme(
-        data: argument.bookThemeData,
+    return Theme(
+      data: Theme.of(context).copyWith(
+        scaffoldBackgroundColor: Theme.of(context).colorScheme.background,
+      ),
+      child: ReadingScope(
+        observer: _observer,
+        showFooterWidget: _showFooterWidget,
+        onNotification: _onNotification,
+        onDoubleTapDown: _handleDoubleTapDown,
+        readerController: _readerController,
+        contents: _contents,
+        chapter: _chapter,
+        book: _book,
         child: Scaffold(
           body: NotificationListener<ScrollNotification>(
             onNotification: _onNotification,
@@ -174,10 +200,10 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
               fit: StackFit.expand,
               children: [
                 if (_isLoading)
-                  const LoadContent()
+                  const _LoadContent()
                 else ...[
-                  const BuildContent(),
-                  const FooterWidget(),
+                  const _BuildContent(),
+                  const _FooterWidget(),
                 ],
               ],
             ),
@@ -186,16 +212,10 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
       ),
     );
   }
-
-  @override
-  void dispose() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    super.dispose();
-  }
 }
 
-class LoadContent extends StatelessWidget {
-  const LoadContent({super.key});
+class _LoadContent extends StatelessWidget {
+  const _LoadContent();
 
   @override
   Widget build(BuildContext context) {
@@ -213,8 +233,8 @@ class LoadContent extends StatelessWidget {
   }
 }
 
-class BuildContent extends StatelessWidget {
-  const BuildContent({super.key});
+class _BuildContent extends StatelessWidget {
+  const _BuildContent();
 
   @override
   Widget build(BuildContext context) {
@@ -224,12 +244,13 @@ class BuildContent extends StatelessWidget {
     final onNotification = scope.onNotification;
     final contents = ReadingScope.contentsOf(context);
 
-    itemBuilder(BuildContext context, int index) {
-      final widget = contents[index];
-      return widget;
+    Widget itemBuilder(BuildContext context, int index) {
+      return contents[index];
+      // return ObserverProxy(
+      //   observer: scope.observer,
+      //   child: widget,
+      // );
     }
-
-    // SliverFixedExtentList.builder(itemBuilder: itemBuilder, itemExtent: itemExtent);
 
     return NotificationListener<ScrollNotification>(
       onNotification: onNotification,
@@ -238,18 +259,30 @@ class BuildContent extends StatelessWidget {
         trackVisibility: true,
         child: GestureDetector(
           onDoubleTapDown: (details) => onDoubleTapDown.call(context, details),
-          child: SingleChildScrollView(
+          child: SuperListView.builder(
+            itemCount: contents.length,
+            padding: EdgeInsets.zero,
             controller: readerController,
+            primary: false,
+            cacheExtent: double.infinity,
             physics: const ClampingScrollPhysics(),
-            child: Flex(
-              direction: Axis.vertical,
-              clipBehavior: Clip.hardEdge,
-              children: List.generate(
-                contents.length,
-                (index) => itemBuilder(context, index),
-              ),
-            ),
+            itemBuilder: itemBuilder,
           ),
+          // child: SingleChildScrollView(
+          //   controller: readerController,
+          //   physics: const PositionRetainedScrollPhysics(
+          //     parent: ClampingScrollPhysics(),
+          //   ),
+          //   child: Flex(
+          //     direction: Axis.vertical,
+          //     clipBehavior: Clip.hardEdge,
+          //     children: List.generate(
+          //       contents.length,
+          //       (index) => itemBuilder(context, index),
+          //     ),
+          //   ),
+          // ),
+
           // child: AdaptativePageView.builder(
           //   controller: readerController,
           //   physics: const ClampingScrollPhysics(),
@@ -268,65 +301,21 @@ class BuildContent extends StatelessWidget {
   }
 }
 
-class ImageCacheWidget extends StatelessWidget {
-  const ImageCacheWidget({super.key, required this.imageURL});
-
-  final String imageURL;
-
-  // @override
-  // void didChangeDependencies() {
-  //   precacheImage(NetworkImage(widget.imageURL), context);
-  //   super.didChangeDependencies();
-  // }
+class _FooterWidget extends StatefulWidget {
+  const _FooterWidget();
 
   @override
-  Widget build(BuildContext context) {
-    // return CachedNetworkImage(
-    //   fit: BoxFit.contain,
-    //   fadeInDuration: const Duration(milliseconds: 300),
-    //   fadeOutDuration: const Duration(milliseconds: 300),
-    //   imageUrl: imageURL,
-    // );
-    return Image(
-      fit: BoxFit.contain,
-      image: CachedNetworkImageProvider(imageURL, cacheKey: imageURL),
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return SizedBox(
-          height: MediaQuery.sizeOf(context).height * .2,
-        );
-      },
-    );
-    // return Image.network(
-    //   imageURL,
-    //   loadingBuilder: (context, child, loadingProgress) {
-    //     if (loadingProgress != null) {
-    //       return SizedBox(
-    //         height: MediaQuery.sizeOf(context).height * .2,
-    //       );
-    //     }
-    //     return child;
-    //   },
-    //   fit: BoxFit.contain,
-    // );
-  }
+  State<_FooterWidget> createState() => _FooterWidgetState();
 }
 
-class FooterWidget extends StatefulWidget {
-  const FooterWidget({super.key});
-
-  @override
-  State<FooterWidget> createState() => _FooterWidgetState();
-}
-
-class _FooterWidgetState extends State<FooterWidget> {
+class _FooterWidgetState extends State<_FooterWidget> {
   double? percent;
   ReaderController? _readerController;
 
   @override
   void initState() {
     super.initState();
-    addPostFrameCallback((data) => _onInit());
+    Future.microtask(_onInit);
   }
 
   void _onInit() {
@@ -335,8 +324,9 @@ class _FooterWidgetState extends State<FooterWidget> {
   }
 
   void _listener() {
-    percent = (_readerController!.percent * 100);
-    setState(() {});
+    setState(() {
+      percent = (_readerController!.percent * 100);
+    });
   }
 
   @override
@@ -380,7 +370,6 @@ class _FooterWidgetState extends State<FooterWidget> {
 
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              // crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [

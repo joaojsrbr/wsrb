@@ -1,12 +1,15 @@
 // ignore_for_file: unused_field, constant_identifier_names, unused_element, library_private_types_in_public_api
 
-import 'package:app_wsrb_jsr/app/models/book.dart';
-import 'package:app_wsrb_jsr/app/models/chapter.dart';
+import 'package:content_library/content_library.dart';
+
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:positioned_scroll_observer/positioned_scroll_observer.dart';
 
 class ReaderController extends ScrollController {
+  ScrollExtent get scrollExtent => ScrollExtent.fromPosition(position);
+
   double get pixels {
     if (!position.hasContentDimensions) return 0.0;
     double pixels;
@@ -46,9 +49,12 @@ class ReadingScope extends InheritedModel<_ReadingScopeAspect> {
     required this.readerController,
     required this.contents,
     required this.showFooterWidget,
+    required this.observer,
     required this.onNotification,
     required this.onDoubleTapDown,
   });
+
+  final BoxScrollObserver<RenderObject> observer;
 
   final bool Function(ScrollNotification) onNotification;
   final Book? book;

@@ -30,6 +30,17 @@
                 "--flavor", "Production" 
             ],
             "flutterMode": "release"
+        },
+        {
+            "name": "app_wsrb_jsr (impeller test)",
+            "request": "launch",
+            "type": "dart",
+            
+            "args": [
+                "--flavor", "Production",
+                "--enable-impeller"
+            ],
+            "flutterMode": "release"
         }
     ]
 }

@@ -1,9 +1,10 @@
-import 'package:app_wsrb_jsr/app/models/content.dart';
-import 'package:app_wsrb_jsr/app/repositories/content_repository.dart';
+import 'dart:async';
+
+import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
+import 'package:content_library/content_library.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/indicator_build.dart';
 import 'package:flutter/material.dart';
-import 'package:loading_more_list/loading_more_list.dart';
 import 'package:provider/provider.dart';
 
 class HomeDestination extends StatefulWidget {
@@ -18,28 +19,39 @@ class _HomeDestinationState extends State<HomeDestination>
   @override
   bool get wantKeepAlive => true;
 
+  late final ContentRepository _contentRepository;
+
+  @override
+  void initState() {
+    super.initState();
+    _contentRepository = context.read<ContentRepository>();
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final contentRepository = context.read<ContentRepository>();
+    final TabController tabController = HomeScope.of(context).tabController;
 
     Future<void> onRefresh() async {
-      await contentRepository.refresh(true);
+      if (!mounted) return;
+
+      if (tabController.index != 0) return;
+      await _contentRepository.refresh(true);
     }
 
-    final controller = PrimaryScrollController.maybeOf(context);
+    // final HiveController hiveController = context.watch<HiveController>();
 
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: LoadingMoreList(
         ListConfig<Content>(
-          shrinkWrap: true,
-          controller: controller,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           indicatorBuilder: indicatorBuilder,
           physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
           itemBuilder: _itemBuilder,
-          sourceList: contentRepository,
+          restorationId: 'home_distination',
+          sourceList: _contentRepository,
         ),
       ),
     );

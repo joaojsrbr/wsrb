@@ -2,15 +2,15 @@ part of '../view/reading_view.dart';
 
 mixin _ReadingVars on State<ReadingView> {
   // vars
-  Timer? _setEnabledSystemUIMode;
+  // Timer? _setEnabledSystemUIMode;
   Book? _book;
   Chapter? _chapter;
   bool _isLoading = true;
-  bool _enabledSystemUIMode = false;
+  // bool _enabledSystemUIMode = false;
   bool _showFooterWidget = true;
   final List<Widget> _contents = [];
   // ignore: unused_field
-  List<Release> _releases = [];
+  final Releases _releases = Releases();
 
   late final ContentRepository _repository;
 
@@ -26,34 +26,36 @@ mixin _ReadingScroll on State<ReadingView>, _ReadingVars {
 
   @override
   void initState() {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     _readerController = ReaderController();
     super.initState();
   }
 
   @override
   void dispose() {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _readerController.dispose();
     super.dispose();
   }
 
   void _onStartScroll(ScrollStartNotification scrollNotification) {
-    _setEnabledSystemUIMode?.cancel();
-    _setEnabledSystemUIMode = Timer(const Duration(milliseconds: 400), () {
-      if (!_enabledSystemUIMode) {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-        _enabledSystemUIMode = true;
-      }
-    });
+    // _setEnabledSystemUIMode?.cancel();
+    // _setEnabledSystemUIMode = Timer(const Duration(milliseconds: 400), () {
+    //   if (!_enabledSystemUIMode) {
+    //     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+    //     _enabledSystemUIMode = true;
+    //   }
+    // });
   }
 
   void _onEndScroll(ScrollEndNotification scrollNotification) {
-    _setEnabledSystemUIMode?.cancel();
-    _setEnabledSystemUIMode = Timer(const Duration(milliseconds: 600), () {
-      if (_enabledSystemUIMode) {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-        _enabledSystemUIMode = false;
-      }
-    });
+    // _setEnabledSystemUIMode?.cancel();
+    // _setEnabledSystemUIMode = Timer(const Duration(milliseconds: 600), () {
+    //   if (_enabledSystemUIMode) {
+    //     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    //     _enabledSystemUIMode = false;
+    //   }
+    // });
   }
 
   bool _onNotification(ScrollNotification scrollNotification) {

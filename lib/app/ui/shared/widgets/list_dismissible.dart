@@ -1,8 +1,6 @@
-import 'package:app_wsrb_jsr/app/core/extensions/custom_extensions/state_extensions.dart';
-import 'package:app_wsrb_jsr/app/models/content.dart';
-import 'package:app_wsrb_jsr/app/models/release.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/dismissible.dart'
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_dismissible.dart'
     as customdismissible;
+import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 
 class ListDismissible<T extends Release> extends StatelessWidget {
@@ -24,9 +22,9 @@ class ListDismissible<T extends Release> extends StatelessWidget {
   final ScrollPhysics? physics;
   final bool isSliver;
   final Duration resizeDuration;
-  final SetCallBack<T>? onTap;
+  final ValueChanged<T>? onTap;
   final EdgeInsetsGeometry? padding;
-  final SetCallBack<customdismissible.DismissUpdateDetails>? onUpdate;
+  final ValueChanged<customdismissible.DismissUpdateDetails>? onUpdate;
 
   @override
   Widget build(BuildContext context) {

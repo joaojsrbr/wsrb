@@ -1,0 +1,125 @@
+// ignore_for_file: constant_identifier_names, library_private_types_in_public_api
+
+import 'package:content_library/content_library.dart';
+import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:media_kit_video/media_kit_video.dart';
+
+enum _PlayerScopeAspect {
+  Player_PLAYERARGS,
+  Player_ISLOADING,
+  Player_ACTIVEFIT,
+  Player_CURRENTVALUECIRULARANIMATION,
+  // Player_FOOTERWIDGET,
+}
+
+class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
+  const PlayerScope({
+    super.key,
+    required super.child,
+    required this.playerArgs,
+    required this.isLoading,
+    required this.videoController,
+    required this.maxValueCircularAnimation,
+    required this.currentValueCircularAnimation,
+    required this.setFits,
+    required this.onTapEpisode,
+    required this.activeFit,
+    required this.onTapEpisodeInOverlay,
+    required this.overlayNextEpisode,
+    required this.overlayBoxFit,
+    required this.topTitle,
+    required this.scaffoldKey,
+  });
+  final GlobalKey<ScaffoldState> scaffoldKey;
+  final ValueNotifier<String> topTitle;
+  final ValueNotifier<String?> overlayBoxFit;
+  final ValueNotifier<String?> overlayNextEpisode;
+  final AsyncCallback onTapEpisodeInOverlay;
+  final ValueChanged<Episode> onTapEpisode;
+  final VideoController? videoController;
+  final BoxFit activeFit;
+  final PlayerArgs playerArgs;
+  final VoidCallback setFits;
+  final int currentValueCircularAnimation;
+  final int maxValueCircularAnimation;
+  final bool isLoading;
+
+  static PlayerScope of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<PlayerScope>()!;
+  }
+
+  static PlayerScope _of(BuildContext context, [_PlayerScopeAspect? aspect]) {
+    assert(debugCheckHasMediaQuery(context));
+    return InheritedModel.inheritFrom<PlayerScope>(context, aspect: aspect)!;
+  }
+
+  static PlayerArgs playerArgsOf(BuildContext context) {
+    final playerArgs =
+        _of(context, _PlayerScopeAspect.Player_PLAYERARGS).playerArgs;
+    return playerArgs;
+  }
+
+  static bool isLoadingOf(BuildContext context) {
+    final isLoading =
+        _of(context, _PlayerScopeAspect.Player_ISLOADING).isLoading;
+    return isLoading;
+  }
+
+  static int currentValueCircularAnimationOf(BuildContext context) {
+    final currentValueCircularAnimation =
+        _of(context, _PlayerScopeAspect.Player_CURRENTVALUECIRULARANIMATION)
+            .currentValueCircularAnimation;
+    return currentValueCircularAnimation;
+  }
+
+  static BoxFit activeFitOf(BuildContext context) {
+    final activeFit =
+        _of(context, _PlayerScopeAspect.Player_ACTIVEFIT).activeFit;
+    return activeFit;
+  }
+
+  // static Book bookOf(BuildContext context) {
+  //   final args = ModalRoute.of(context)?.settings.arguments as PlayerViewArgs;
+  //   final book = _of(context, _PlayerScopeAspect.Player_BOOK).book;
+  //   return book ?? args.book;
+  // }
+
+  @override
+  bool updateShouldNotifyDependent(
+      PlayerScope oldWidget, Set<_PlayerScopeAspect> dependencies) {
+    for (final Object dependency in dependencies) {
+      if (dependency is _PlayerScopeAspect) {
+        switch (dependency) {
+          case _PlayerScopeAspect.Player_PLAYERARGS
+              when playerArgs != oldWidget.playerArgs:
+            return true;
+          case _PlayerScopeAspect.Player_ISLOADING
+              when isLoading != oldWidget.isLoading:
+            return true;
+          case _PlayerScopeAspect.Player_ACTIVEFIT
+              when activeFit != oldWidget.activeFit:
+            return true;
+          case _PlayerScopeAspect.Player_CURRENTVALUECIRULARANIMATION
+              when currentValueCircularAnimation !=
+                  oldWidget.currentValueCircularAnimation:
+            return true;
+          default:
+            return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  @override
+  bool updateShouldNotify(covariant PlayerScope oldWidget) {
+    return playerArgs != oldWidget.playerArgs ||
+        isLoading != oldWidget.isLoading ||
+        currentValueCircularAnimation !=
+            oldWidget.currentValueCircularAnimation ||
+        activeFit != oldWidget.activeFit;
+  }
+}

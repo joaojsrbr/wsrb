@@ -1,0 +1,14 @@
+import 'package:content_library/content_library.dart';
+import 'package:isar/isar.dart';
+
+abstract interface class IsarService {
+  Future<Result<(bool, int?)>> remove({Entity? entity});
+
+  Future<Result<(bool, List<int>?)>> removeAll({List<Entity>? entities});
+
+  Future<Result<(bool, int?)>> add({Entity? entity});
+
+  Future<Result<(bool, List<int>?)>> addAll({List<Entity>? entities});
+
+  IsarCollection<T> collection<T>();
+}

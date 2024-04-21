@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
-final _defaultLinearGradient = LinearGradient(
+const _defaultLinearGradient = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.centerRight,
   colors: <Color>[
-    Colors.grey.shade300,
-    Colors.grey.shade300,
-    Colors.grey.shade100,
-    Colors.grey.shade300,
-    Colors.grey.shade300,
+    Color(0xffE6E8EB),
+    Color(0xffE6E8EB),
+    Color(0xffF9F9FB),
+    Color(0xffE6E8EB),
+    Color(0xffE6E8EB),
   ],
-  stops: const <double>[
+  stops: <double>[
     0.0,
     0.35,
     0.5,
@@ -25,7 +25,7 @@ class Shimmer extends StatefulWidget {
     return context.findAncestorStateOfType<_ShimmerState>();
   }
 
-  Shimmer({
+  const Shimmer({
     super.key,
     LinearGradient? linearGradient,
     required this.child,
@@ -47,7 +47,11 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _shimmerController = AnimationController.unbounded(vsync: this)
-      ..repeat(min: -0.5, max: 2.0, period: const Duration(milliseconds: 1000));
+      ..repeat(
+        min: -1,
+        max: 3.6,
+        period: const Duration(seconds: 1),
+      );
   }
 
   @override
