@@ -8,6 +8,7 @@
             "name": "app_wsrb_jsr (Dev mode)",
             "request": "launch",
             "type": "dart",
+            "program": "lib/main.dart",
             "args": [
                 "--flavor", "Dev" 
             ],
@@ -16,6 +17,7 @@
             "name": "app_wsrb_jsr (Demo mode)",
             "request": "launch",
             "type": "dart",
+            "program": "lib/main.dart",
             "args": [
                 "--flavor", "Demo" 
             ],
@@ -25,7 +27,7 @@
             "name": "app_wsrb_jsr (Release mode)",
             "request": "launch",
             "type": "dart",
-            
+            "program": "lib/main.dart",
             "args": [
                 "--flavor", "Production" 
             ],
@@ -35,7 +37,7 @@
             "name": "app_wsrb_jsr (impeller test)",
             "request": "launch",
             "type": "dart",
-            
+            "program": "lib/main.dart",
             "args": [
                 "--flavor", "Production",
                 "--enable-impeller"

@@ -26,22 +26,5 @@ class Chapter extends Release {
   }
 
   @override
-  List<Object?> get props => [title, url, read, id];
-
-  @override
-  Map<String, dynamic> get toMap {
-    return <String, dynamic>{
-      'read': read,
-      'url': url,
-      'title': title,
-    };
-  }
-
-  factory Chapter.fromMap(Map<dynamic, dynamic> map) {
-    return Chapter(
-      read: map['read'] as bool,
-      url: map['url'] as String,
-      title: map['title'] as String,
-    );
-  }
+  List<Object?> get props => [title, url, read, stringID];
 }

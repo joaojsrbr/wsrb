@@ -1,11 +1,15 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+
+import 'dart:async';
+
+import 'package:app_wsrb_jsr/app/ui/home/widgets/home_rail_menu.dart';
+import 'package:content_library/content_library.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
 import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
-import 'package:content_library/content_library.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
-import 'package:app_wsrb_jsr/app/utils/debouncer.dart';
-import 'package:provider/provider.dart';
 
 class LibraryDestination extends StatefulWidget {
   const LibraryDestination({super.key});
@@ -19,77 +23,71 @@ class LibraryeDestinationState extends State<LibraryDestination>
   @override
   bool get wantKeepAlive => true;
 
-  TabController? _homeTabController;
-
   List<Widget> _children = [];
-  late final LibraryController _libraryController;
-  late final CategoryController _categoryController;
-  SubordinateLibraryTabController? _libraryTabController;
-
-  bool _changePage = false;
-
-  final Debouncer _changePageDebouncer = Debouncer(
+  final Debouncer _debouncer = Debouncer(
     duration: const Duration(milliseconds: 200),
   );
 
+  List<List<Content>> _contents = [];
+  int? _initialIndex;
+
+  late final LibraryController _libraryController;
+  late final CategoryController _categoryController;
+
   @override
   void initState() {
-    addPostFrameCallback((value) {
-      _homeTabController = HomeScope.of(context).tabController;
-      _homeTabController?.addListener(_resetIgnorePointerListener);
-      _libraryTabController = HomeScope.of(context).libraryTabController;
-    });
+    super.initState();
+
     _libraryController = context.read<LibraryController>()
       ..addListener(_setChildren);
+
     _categoryController = context.read<CategoryController>()
       ..addListener(_setChildren);
+
+    scheduleMicrotask(() {
+      final libraryTabController =
+          HomeScope.of(context).subordinateLibraryTabController;
+
+      libraryTabController.setParent =
+          context.findAncestorWidgetOfExactType<PageView>()?.controller;
+    });
+
     _setChildren();
-    super.initState();
+  }
+
+  List<List<Content>> _getItens() {
+    return _libraryController.entities
+        .categoryByID(context)
+        .map((e) => e.getContent.toList())
+        .toList();
   }
 
   void _setChildren() {
+    // addPostFrameCallback((timer) {
+    //   final SubordinateLibraryTabController subordinateLibraryTabController =
+    //       HomeScope.of(context).subordinateLibraryTabController;
+    //   subordinateLibraryTabController.setChangePage = false;
+    // });
+
     final noCategories = _libraryController
         .noCategories(_categoryController)
-        .map((entity) => switch (entity) {
-              AnimeEntity data => data.toAnime,
-              BookEntity data => data.toBook,
-              _ => null,
-            })
-        .nonNulls
+        .getContent
         .toList();
 
+    _contents = [noCategories, ..._getItens()];
+
     final List<Widget> newChildrens = [
-      buildGridView(noCategories),
-      ..._getItens(_libraryController, _categoryController)
-          .map((e) => buildGridView(e))
+      buildGridView(noCategories, 0),
+      ..._getItens().mapIndexed((index, e) => buildGridView(e, index))
     ];
 
-    final newkeys = newChildrens.map((widget) => widget.key).nonNulls.toList();
-    final keys = _children.map((widget) => widget.key).nonNulls.toList();
-
-    customLog(!listEquals(newkeys, keys));
-    if (!listEquals(newkeys, keys)) {
-      if (mounted) {
-        setState(() {
-          _children = newChildrens;
-        });
-        return;
-      }
-      _children = [
-        buildGridView(noCategories),
-        ..._getItens(_libraryController, _categoryController)
-            .map((e) => buildGridView(e))
-      ];
-    }
-  }
-
-  void _resetIgnorePointerListener() {
-    _changePageDebouncer.cancel();
-    _changePage = false;
+    _children = newChildrens;
+    setStateIfMounted(() {});
   }
 
   @override
   void didChangeDependencies() {
+    // _setChildren();
     final searchController = HomeScope.of(context).searchController;
     final tabController = HomeScope.of(context).tabController;
 
@@ -102,102 +100,91 @@ class LibraryeDestinationState extends State<LibraryDestination>
     super.didChangeDependencies();
   }
 
-  void _searchControllerListener() {}
+  void _searchControllerListener() async {
+    final searchController = HomeScope.of(context).searchController;
+    final String text = searchController.text.toLowerCase().trim();
 
-  void _scrollNotificationNextPage(ScrollNotification notification) {
-    if (notification is ScrollUpdateNotification) _resetIgnorePointerListener();
-    if (notification is! OverscrollNotification || !mounted) return;
-    final metrics = notification.metrics;
-    final pixels = metrics.pixels.roundToDouble();
-    final maxScrollExtent = metrics.maxScrollExtent.roundToDouble();
-    if (pixels == 0) {
-      _changePageDebouncer.cancel();
-      _changePageDebouncer.call(() {
-        _changePage = true;
+    final SubordinateLibraryTabController subordinateLibraryTabController =
+        HomeScope.of(context).subordinateLibraryTabController;
+    if (text.isEmpty) {
+      _debouncer.call(() {
+        subordinateLibraryTabController.animateTo(_initialIndex!);
       });
-      if (!_changePage) return;
-      _libraryTabController
-          ?.parentPreviousPage()
-          .whenComplete(() => _changePage = false);
-    } else if (pixels == maxScrollExtent) {
-      _changePageDebouncer.cancel();
-      _changePageDebouncer.call(() {
-        _changePage = true;
-      });
-      if (!_changePage) return;
-      _libraryTabController
-          ?.parentNextPage()
-          .whenComplete(() => _changePage = false);
+      return;
+    }
+
+    _initialIndex ??= subordinateLibraryTabController.index;
+
+    final index = _contents.indexWhere((list) =>
+        list.any((content) => content.title.toLowerCase().contains(text)));
+
+    if (index != -1 && index != subordinateLibraryTabController.index) {
+      _debouncer.call(() => subordinateLibraryTabController.animateTo(index));
     }
   }
 
-  List<List<Content>> _getItens(LibraryController libraryController,
-      CategoryController categoryController) {
-    return categoryController.categories
-        .map(
-          (category) => libraryController.entities
-              .where((entity) => switch (entity) {
-                    AnimeEntity data => category.ids.contains(data.stringID),
-                    BookEntity data => category.ids.contains(data.stringID),
-                    _ => false,
-                  })
-              .map((entity) => switch (entity) {
-                    AnimeEntity data => data.toAnime,
-                    BookEntity data => data.toBook,
-                    _ => null,
-                  })
-              .nonNulls
-              .toList(),
-        )
-        .toList();
-  }
+  Widget buildGridView(List<Content> items, int index) {
+    if (items.isEmpty) return const SizedBox.shrink();
 
-  Widget buildGridView(List<Content> itens) {
-    const gridDelegate = SliverGridDelegateWithMaxCrossAxisExtent(
-      maxCrossAxisExtent: 170,
-      childAspectRatio: 1,
-      crossAxisSpacing: 8,
-      mainAxisSpacing: 10,
-      mainAxisExtent: 170,
-    );
+    return Builder(builder: (context) {
+      final RailMenuController railMenuController =
+          HomeRailMenu.menuControllerOf(context);
 
-    return GridView.builder(
-      key: ValueKey(itens.toString()),
-      itemCount: itens.length,
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
-      gridDelegate: gridDelegate,
-      itemBuilder: (context, index) {
-        return ItemContent(
-          content: itens[index],
-          isLibrary: true,
-        );
-      },
-    );
+      // final RailMenuController railMenuController =
+      //     HomeRailMenu.menuControllerOf(context);
+      const gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
+        // maxCrossAxisExtent: 170,
+        crossAxisCount: 2,
+        childAspectRatio: 1,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 10,
+        // mainAxisExtent: 170,
+      );
+
+      final searchController = HomeScope.of(context).searchController;
+
+      final filter = items.where((content) => content.title
+          .toLowerCase()
+          .trim()
+          .contains(searchController.text.toLowerCase().trim()));
+
+      return AnimatedPadding(
+        duration: const Duration(milliseconds: 350),
+        padding: EdgeInsets.only(right: railMenuController.isOpen ? 50 : 0),
+        child: GridView.builder(
+          itemCount: filter.length,
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          padding: const EdgeInsets.only(left: 8, right: 8, top: 12),
+          gridDelegate: gridDelegate,
+          itemBuilder: (context, index) {
+            return ItemContent(
+              content: filter.elementAt(index),
+              isLibrary: true,
+            );
+          },
+        ),
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    final libraryTabController = HomeScope.of(context).libraryTabController;
+    // if (kDebugMode) {
+    // }
+    // _setChildren();
+
+    final SubordinateLibraryTabController subordinateLibraryTabController =
+        HomeScope.of(context).subordinateLibraryTabController;
 
     return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        const horizontalDirections = {AxisDirection.right, AxisDirection.left};
-        const verticalDirections = {AxisDirection.down, AxisDirection.up};
-        final axisDirection = notification.metrics.axisDirection;
-        if (horizontalDirections.contains(axisDirection)) {
-          _scrollNotificationNextPage(notification);
-        } else if (verticalDirections.contains(axisDirection)) {
-          _resetIgnorePointerListener();
-        }
-        return false;
-      },
+      onNotification:
+          subordinateLibraryTabController.scrollNotificationNextPage,
       child: TabBarView(
         physics: const ClampingScrollPhysics(),
-        controller: libraryTabController,
+        controller: subordinateLibraryTabController,
         children: _children,
       ),
     );
@@ -205,8 +192,8 @@ class LibraryeDestinationState extends State<LibraryDestination>
 
   @override
   void dispose() {
-    _changePageDebouncer.cancel();
-    _homeTabController?.removeListener(_resetIgnorePointerListener);
+    _libraryController.removeListener(_setChildren);
+    _categoryController.removeListener(_setChildren);
     super.dispose();
   }
 }

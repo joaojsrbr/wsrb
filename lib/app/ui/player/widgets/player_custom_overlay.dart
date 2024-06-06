@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:flutter/material.dart';
 
-class CustomOverlay extends StatefulWidget {
-  const CustomOverlay({
+class PlayerCustomOverlay extends StatefulWidget {
+  const PlayerCustomOverlay({
     super.key,
     required this.notifierChange,
     required this.begin,
@@ -24,10 +24,11 @@ class CustomOverlay extends StatefulWidget {
   final VoidCallback? onTap;
 
   @override
-  CustomOverlayState createState() => _CustomOverlayState();
+  CustomOverlayState createState() => _PlayerCustomOverlayState();
 }
 
-class _CustomOverlayState extends CustomOverlayState<CustomOverlay> {
+class _PlayerCustomOverlayState
+    extends CustomOverlayState<PlayerCustomOverlay> {
   @override
   Offset? get begin => widget.begin;
 
@@ -45,7 +46,7 @@ class _CustomOverlayState extends CustomOverlayState<CustomOverlay> {
   String? _oldValue;
 
   @override
-  void didAnimation(CustomOverlay widget, CustomOverlay oldWidget) {
+  void didAnimation(PlayerCustomOverlay widget, PlayerCustomOverlay oldWidget) {
     if (widget.begin != oldWidget.begin || widget.end != oldWidget.end) {
       changeAnimation(begin: widget.begin, end: widget.end);
     }

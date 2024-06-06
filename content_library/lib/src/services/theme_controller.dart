@@ -4,14 +4,13 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-part 'color_schemes.g.dart';
+// part 'color_schemes.g.dart';
+part 'theme.dart';
 
 class ThemeController extends ChangeNotifier {
   final HiveService _hiveService;
 
   ThemeController(this._hiveService);
-
-  Color? _transitionPageFillColor;
 
   ColorScheme? _lightSystemColorScheme;
   ColorScheme? _darkSystemColorScheme;
@@ -30,13 +29,7 @@ class ThemeController extends ChangeNotifier {
   );
 
   ThemeMode get themeMode => _themeMode;
-  Color? get transitionPageFillColor => _transitionPageFillColor;
   bool get systemThemeMode => _systemThemeMode;
-
-  void setTransitionPageFillColor(Color? value) {
-    if (value == _transitionPageFillColor) return;
-    _transitionPageFillColor = value;
-  }
 
   Future<void> setThemeMode(ThemeMode? value, [bool notify = true]) async {
     if (value == null || value == _themeMode) return;
@@ -69,18 +62,22 @@ class ThemeController extends ChangeNotifier {
     await _getSystemColorScheme();
   }
 
+  MaterialScheme get _lightScheme => MaterialTheme.lightScheme();
+
+  MaterialScheme get _darkScheme => MaterialTheme.darkScheme();
+
   ColorScheme get _lightColorScheme {
-    if (_systemThemeMode) {
-      return (_lightSystemColorScheme ?? _gLightColorScheme).harmonized();
+    if (_systemThemeMode && _lightSystemColorScheme != null) {
+      return _lightSystemColorScheme!.harmonized();
     }
-    return _gLightColorScheme.harmonized();
+    return _lightScheme.toColorScheme().harmonized();
   }
 
   ColorScheme get _darkColorScheme {
-    if (_systemThemeMode) {
-      return (_darkSystemColorScheme ?? _gDarkColorScheme).harmonized();
+    if (_systemThemeMode && _darkSystemColorScheme != null) {
+      return _darkSystemColorScheme!.harmonized();
     }
-    return _gDarkColorScheme.harmonized();
+    return _darkScheme.toColorScheme().harmonized();
   }
 
   Future<void> _getSystemColorScheme() async {
@@ -129,39 +126,47 @@ class ThemeController extends ChangeNotifier {
     notifyListeners();
   }
 
-  ThemeData get lightTheme => ThemeData(
-        buttonTheme: buttonTheme(_lightColorScheme),
+  TextTheme _textTheme(ColorScheme colorScheme) {
+    return const TextTheme().apply(
+      bodyColor: colorScheme.onSurface,
+      displayColor: colorScheme.onSurface,
+    );
+  }
+
+  ThemeData get lightTheme => const MaterialTheme().light().copyWith(
+        cardTheme: const CardTheme(margin: EdgeInsets.zero),
+        buttonTheme: _buttonTheme(_lightColorScheme),
         splashFactory: InkRipple.splashFactory,
-        useMaterial3: true,
-        scaffoldBackgroundColor: _lightColorScheme.background,
+        textTheme: _textTheme(_lightColorScheme),
+        // scaffoldBackgroundColor: _lightColorScheme.surface,
+        canvasColor: _lightColorScheme.surface,
         applyElevationOverlayColor: true,
         brightness: Brightness.light,
         textButtonTheme: _textButtonTheme(_lightColorScheme),
         scrollbarTheme: ScrollbarThemeData(
           radius: const Radius.circular(8),
-          thumbColor: MaterialStatePropertyAll(_lightColorScheme.primary),
+          thumbColor: WidgetStatePropertyAll(_lightColorScheme.primary),
         ),
-        colorScheme: _lightColorScheme,
       );
-
-  ThemeData get darkTheme => ThemeData(
-        buttonTheme: buttonTheme(_darkColorScheme),
+  ThemeData get darkTheme => const MaterialTheme().dark().copyWith(
+        cardTheme: const CardTheme(margin: EdgeInsets.zero),
+        buttonTheme: _buttonTheme(_darkColorScheme),
         splashFactory: InkRipple.splashFactory,
-        useMaterial3: true,
-        scaffoldBackgroundColor: _darkColorScheme.background,
+        textTheme: _textTheme(_darkColorScheme),
+        canvasColor: _darkColorScheme.surface,
         applyElevationOverlayColor: true,
+        brightness: Brightness.dark,
+        // useMaterial3: true,
+        textButtonTheme: _textButtonTheme(_darkColorScheme),
         scrollbarTheme: ScrollbarThemeData(
           radius: const Radius.circular(8),
-          thumbColor: MaterialStatePropertyAll(_darkColorScheme.primary),
+          thumbColor: WidgetStatePropertyAll(_darkColorScheme.primary),
         ),
-        brightness: Brightness.dark,
-        textButtonTheme: _textButtonTheme(_darkColorScheme),
-        colorScheme: _darkColorScheme,
       );
 
-  ButtonThemeData buttonTheme(ColorScheme colorScheme) {
+  ButtonThemeData _buttonTheme(ColorScheme colorScheme) {
     return ButtonThemeData(
-      shape: _defaultShape.resolve({}),
+      shape: _DefaultShape._value,
       colorScheme: colorScheme,
     );
   }
@@ -170,30 +175,34 @@ class ThemeController extends ChangeNotifier {
     return TextButtonThemeData(
       style: ButtonStyle(
         overlayColor: _OverlayColor(colorScheme),
-        shape: _defaultShape,
+        shape: _DefaultShape(),
       ),
-    );
-  }
-
-  MaterialStateProperty<OutlinedBorder?> get _defaultShape {
-    return MaterialStatePropertyAll(
-      RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
   }
 }
 
-class _OverlayColor extends MaterialStateProperty<Color?> {
+class _DefaultShape extends WidgetStateProperty<OutlinedBorder?> {
+  static OutlinedBorder get _value =>
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(8));
+
+  @override
+  OutlinedBorder? resolve(Set<WidgetState> states) {
+    return _value;
+  }
+}
+
+class _OverlayColor extends WidgetStateProperty<Color?> {
   _OverlayColor(this.colorScheme);
 
   final ColorScheme colorScheme;
 
   @override
-  Color? resolve(Set<MaterialState> states) {
-    if (states.contains(MaterialState.pressed)) {
+  Color? resolve(Set<WidgetState> states) {
+    if (states.contains(WidgetState.pressed)) {
       return colorScheme.primary.withOpacity(0.12);
-    } else if (states.contains(MaterialState.hovered)) {
+    } else if (states.contains(WidgetState.hovered)) {
       return colorScheme.primary.withOpacity(0.08);
-    } else if (states.contains(MaterialState.focused)) {
+    } else if (states.contains(WidgetState.focused)) {
       return Colors.transparent;
     }
     return Colors.transparent;

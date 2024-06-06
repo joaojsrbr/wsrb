@@ -9,7 +9,7 @@ class CategoryEntity extends Entity {
   String title;
   String? description;
 
-  List<String> ids = List.empty(growable: true);
+  List<String> ids = [];
 
   DateTime? createdAt;
 
@@ -27,11 +27,11 @@ class CategoryEntity extends Entity {
 
   @override
   List<Object?> get props => [
+        title,
+        description,
         ids,
         createdAt,
-        stringID,
         updatedAt,
-        description,
-        title,
+        stringID,
       ];
 }

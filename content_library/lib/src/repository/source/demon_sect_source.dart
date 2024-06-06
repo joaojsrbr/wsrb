@@ -25,6 +25,12 @@ class DemonSect extends RSource {
   }
 
   @override
+  Future<Result<Content>> getReleases(Content content, int page) async {
+    // TODO: implement getReleases
+    throw UnimplementedError();
+  }
+
+  @override
   Future<bool> loadData() async {
     try {
       final String subKey =

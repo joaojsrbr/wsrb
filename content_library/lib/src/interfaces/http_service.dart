@@ -55,7 +55,6 @@ abstract interface class IHttpService<IResponseType, IResponse, IE> {
     Encoding? encoding,
   });
 
-  void add(IE element) {
-    interceptors.add(element);
-  }
+  void addInterceptor(IE element);
+  bool removeInterceptor(IE element);
 }

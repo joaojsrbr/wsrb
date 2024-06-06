@@ -17,79 +17,84 @@ const AnimeEntitySchema = CollectionSchema(
   name: r'AnimeEntity',
   id: 2165130097224532509,
   properties: {
-    r'createdAt': PropertySchema(
+    r'animeID': PropertySchema(
       id: 0,
+      name: r'animeID',
+      type: IsarType.string,
+    ),
+    r'createdAt': PropertySchema(
+      id: 1,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'extraLarge': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'extraLarge',
       type: IsarType.string,
     ),
     r'generateID': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'generateID',
       type: IsarType.string,
     ),
     r'isDublado': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'isDublado',
       type: IsarType.bool,
     ),
     r'isFavorite': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isFavorite',
       type: IsarType.bool,
     ),
     r'largeImage': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'largeImage',
       type: IsarType.string,
     ),
     r'mediumImage': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'mediumImage',
       type: IsarType.string,
     ),
     r'originalImage': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'originalImage',
       type: IsarType.string,
     ),
     r'sinopse': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'sinopse',
       type: IsarType.string,
     ),
     r'slugSerie': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'slugSerie',
       type: IsarType.string,
     ),
     r'source': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'source',
       type: IsarType.byte,
       enumMap: _AnimeEntitysourceEnumValueMap,
     ),
     r'stringID': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'stringID',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'url',
       type: IsarType.string,
     )
@@ -135,6 +140,12 @@ int _animeEntityEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.animeID;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.extraLarge;
     if (value != null) {
@@ -184,21 +195,22 @@ void _animeEntitySerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDateTime(offsets[0], object.createdAt);
-  writer.writeString(offsets[1], object.extraLarge);
-  writer.writeString(offsets[2], object.generateID);
-  writer.writeBool(offsets[3], object.isDublado);
-  writer.writeBool(offsets[4], object.isFavorite);
-  writer.writeString(offsets[5], object.largeImage);
-  writer.writeString(offsets[6], object.mediumImage);
-  writer.writeString(offsets[7], object.originalImage);
-  writer.writeString(offsets[8], object.sinopse);
-  writer.writeString(offsets[9], object.slugSerie);
-  writer.writeByte(offsets[10], object.source.index);
-  writer.writeString(offsets[11], object.stringID);
-  writer.writeString(offsets[12], object.title);
-  writer.writeDateTime(offsets[13], object.updatedAt);
-  writer.writeString(offsets[14], object.url);
+  writer.writeString(offsets[0], object.animeID);
+  writer.writeDateTime(offsets[1], object.createdAt);
+  writer.writeString(offsets[2], object.extraLarge);
+  writer.writeString(offsets[3], object.generateID);
+  writer.writeBool(offsets[4], object.isDublado);
+  writer.writeBool(offsets[5], object.isFavorite);
+  writer.writeString(offsets[6], object.largeImage);
+  writer.writeString(offsets[7], object.mediumImage);
+  writer.writeString(offsets[8], object.originalImage);
+  writer.writeString(offsets[9], object.sinopse);
+  writer.writeString(offsets[10], object.slugSerie);
+  writer.writeByte(offsets[11], object.source.index);
+  writer.writeString(offsets[12], object.stringID);
+  writer.writeString(offsets[13], object.title);
+  writer.writeDateTime(offsets[14], object.updatedAt);
+  writer.writeString(offsets[15], object.url);
 }
 
 AnimeEntity _animeEntityDeserialize(
@@ -208,23 +220,24 @@ AnimeEntity _animeEntityDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = AnimeEntity(
-    createdAt: reader.readDateTimeOrNull(offsets[0]),
-    extraLarge: reader.readStringOrNull(offsets[1]),
-    generateID: reader.readStringOrNull(offsets[2]),
-    isDublado: reader.readBoolOrNull(offsets[3]) ?? false,
-    isFavorite: reader.readBoolOrNull(offsets[4]) ?? false,
-    largeImage: reader.readStringOrNull(offsets[5]),
-    mediumImage: reader.readStringOrNull(offsets[6]),
-    originalImage: reader.readString(offsets[7]),
-    sinopse: reader.readStringOrNull(offsets[8]),
-    slugSerie: reader.readStringOrNull(offsets[9]),
+    animeID: reader.readStringOrNull(offsets[0]),
+    createdAt: reader.readDateTimeOrNull(offsets[1]),
+    extraLarge: reader.readStringOrNull(offsets[2]),
+    generateID: reader.readStringOrNull(offsets[3]),
+    isDublado: reader.readBoolOrNull(offsets[4]) ?? false,
+    isFavorite: reader.readBoolOrNull(offsets[5]) ?? false,
+    largeImage: reader.readStringOrNull(offsets[6]),
+    mediumImage: reader.readStringOrNull(offsets[7]),
+    originalImage: reader.readString(offsets[8]),
+    sinopse: reader.readStringOrNull(offsets[9]),
+    slugSerie: reader.readStringOrNull(offsets[10]),
     source:
-        _AnimeEntitysourceValueEnumMap[reader.readByteOrNull(offsets[10])] ??
+        _AnimeEntitysourceValueEnumMap[reader.readByteOrNull(offsets[11])] ??
             Source.ANROLL,
-    stringID: reader.readString(offsets[11]),
-    title: reader.readString(offsets[12]),
-    updatedAt: reader.readDateTimeOrNull(offsets[13]),
-    url: reader.readString(offsets[14]),
+    stringID: reader.readString(offsets[12]),
+    title: reader.readString(offsets[13]),
+    updatedAt: reader.readDateTimeOrNull(offsets[14]),
+    url: reader.readString(offsets[15]),
   );
   object.id = id;
   return object;
@@ -238,35 +251,37 @@ P _animeEntityDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readDateTimeOrNull(offset)) as P;
-    case 1:
       return (reader.readStringOrNull(offset)) as P;
+    case 1:
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
       return (reader.readBoolOrNull(offset) ?? false) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readString(offset)) as P;
-    case 8:
       return (reader.readStringOrNull(offset)) as P;
+    case 8:
+      return (reader.readString(offset)) as P;
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
       return (_AnimeEntitysourceValueEnumMap[reader.readByteOrNull(offset)] ??
           Source.ANROLL) as P;
-    case 11:
-      return (reader.readString(offset)) as P;
     case 12:
       return (reader.readString(offset)) as P;
     case 13:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 14:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 15:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -479,6 +494,158 @@ extension AnimeEntityQueryWhere
 
 extension AnimeEntityQueryFilter
     on QueryBuilder<AnimeEntity, AnimeEntity, QFilterCondition> {
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      animeIDIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'animeID',
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      animeIDIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'animeID',
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition> animeIDEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'animeID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      animeIDGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'animeID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition> animeIDLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'animeID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition> animeIDBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'animeID',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      animeIDStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'animeID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition> animeIDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'animeID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition> animeIDContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'animeID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition> animeIDMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'animeID',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      animeIDIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'animeID',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      animeIDIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'animeID',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
       createdAtIsNull() {
     return QueryBuilder.apply(this, (query) {
@@ -2280,6 +2447,18 @@ extension AnimeEntityQueryLinks
 
 extension AnimeEntityQuerySortBy
     on QueryBuilder<AnimeEntity, AnimeEntity, QSortBy> {
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> sortByAnimeID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'animeID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> sortByAnimeIDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'animeID', Sort.desc);
+    });
+  }
+
   QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -2464,6 +2643,18 @@ extension AnimeEntityQuerySortBy
 
 extension AnimeEntityQuerySortThenBy
     on QueryBuilder<AnimeEntity, AnimeEntity, QSortThenBy> {
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> thenByAnimeID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'animeID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> thenByAnimeIDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'animeID', Sort.desc);
+    });
+  }
+
   QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -2660,6 +2851,13 @@ extension AnimeEntityQuerySortThenBy
 
 extension AnimeEntityQueryWhereDistinct
     on QueryBuilder<AnimeEntity, AnimeEntity, QDistinct> {
+  QueryBuilder<AnimeEntity, AnimeEntity, QDistinct> distinctByAnimeID(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'animeID', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<AnimeEntity, AnimeEntity, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
@@ -2767,6 +2965,12 @@ extension AnimeEntityQueryProperty
   QueryBuilder<AnimeEntity, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<AnimeEntity, String?, QQueryOperations> animeIDProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'animeID');
     });
   }
 

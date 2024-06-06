@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
-import 'package:app_wsrb_jsr/app/utils/value_notifier_list.dart';
+import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +21,13 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
     CustomSearchController controller,
   ) async {
     return const SizedBox.shrink();
+  }
+
+  void _unFocus(BuildContext context) {
+    final FocusScopeNode currentFocus = FocusScope.of(context);
+    if (!currentFocus.hasPrimaryFocus) {
+      currentFocus.focusedChild?.unfocus();
+    }
   }
 
   @override
@@ -44,6 +51,20 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
             searchController.openView();
           }
         },
+        barTrailing: [
+          FadeThroughTransitionSwitcher(
+            enableSecondChild: tabController.index != 1 ||
+                searchController.text.trim().isEmpty,
+            duration: const Duration(seconds: 1),
+            child: IconButton(
+              onPressed: () {
+                searchController.clear();
+                _unFocus(context);
+              },
+              icon: Icon(MdiIcons.close),
+            ),
+          )
+        ],
         barLeading: FadeThroughTransitionSwitcher(
           enableSecondChild: valueNotifierList.isNotEmpty,
           duration: const Duration(seconds: 1),
@@ -59,7 +80,7 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
         labelText: valueNotifierList.isNotEmpty
             ? 'itens ${valueNotifierList.length}'
             : 'Pesquisa',
-        barElevation: const MaterialStatePropertyAll(0),
+        barElevation: const WidgetStatePropertyAll(0),
         barSide: _BarSideMaterialState(themeData.colorScheme),
         viewElevation: 0,
         suggestionsBuilder: _suggestionsBuilder,
@@ -69,26 +90,26 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
 }
 
 class _BarShapeMaterialState
-    extends MaterialStatePropertyAll<RoundedRectangleBorder?> {
+    extends WidgetStateProperty<RoundedRectangleBorder?> {
   final _defaultBarShape = RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(12),
   );
 
-  _BarShapeMaterialState() : super(null);
+  _BarShapeMaterialState();
 
   @override
-  RoundedRectangleBorder? resolve(Set<MaterialState> states) {
+  RoundedRectangleBorder? resolve(Set<WidgetState> states) {
     return _defaultBarShape;
   }
 }
 
-class _BarSideMaterialState extends MaterialStatePropertyAll<BorderSide?> {
-  _BarSideMaterialState(this.colorScheme) : super(null);
+class _BarSideMaterialState extends WidgetStateProperty<BorderSide?> {
+  _BarSideMaterialState(this.colorScheme);
 
   final ColorScheme colorScheme;
 
   @override
-  BorderSide? resolve(Set<MaterialState> states) {
+  BorderSide? resolve(Set<WidgetState> states) {
     // if (states.contains(MaterialState.focused)) {
     //   return BorderSide(
     //     color: colorScheme.primary.withOpacity(0.10),

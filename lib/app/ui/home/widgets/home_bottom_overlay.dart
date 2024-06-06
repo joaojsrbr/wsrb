@@ -1,6 +1,5 @@
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/utils/category_utils.dart';
-import 'package:app_wsrb_jsr/app/utils/value_notifier_list.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -36,32 +35,31 @@ class HomeBottomOverlay extends StatelessWidget {
             overflowAlignment: OverflowBarAlignment.end,
             children: [
               IconButton(
-                onPressed: () async {
-                  final allSelected = repository
-                      .where(
-                          (element) => valueNotifierList.contains(element.id))
-                      .toList()
-                      .unique((content) => content.id);
-                  final entities = allSelected
-                      .map(
-                        (e) => switch (e) {
-                          Anime data => data.toEntity(
-                              isFavorite: true,
-                            ),
-                          Book data => data.toEntity(
-                              isFavorite: true,
-                            ),
-                          _ => null,
-                        },
-                      )
-                      .nonNulls
-                      .toList();
+                onPressed: libraryController.favoritesIDS
+                        .any((id) => valueNotifierList.contains(id))
+                    ? null
+                    : () async {
+                        final allSelected = repository
+                            .where((element) =>
+                                valueNotifierList.contains(element.stringID))
+                            .toList()
+                            .unique((content) => content.stringID);
+                        final contentEntities = allSelected
+                            .map(
+                              (e) => switch (e) {
+                                Anime data => data.toEntity(isFavorite: true),
+                                Book data => data.toEntity(isFavorite: true),
+                                _ => null,
+                              },
+                            )
+                            .nonNulls
+                            .toList();
 
-                  await libraryController.addAll(
-                    entities: entities,
-                  );
-                  valueNotifierList.clear();
-                },
+                        await libraryController.addAll(
+                          contentEntities: contentEntities,
+                        );
+                        valueNotifierList.clear();
+                      },
                 icon: FadeThroughTransitionSwitcher(
                   enableSecondChild: valueNotifierList.length != 1,
                   duration: const Duration(seconds: 1),
@@ -70,7 +68,7 @@ class HomeBottomOverlay extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: libraryController.ids
+                onPressed: libraryController.favoritesIDS
                         .any((element) => valueNotifierList.contains(element))
                     ? () async {
                         final CategoryController categoryController =
@@ -88,8 +86,9 @@ class HomeBottomOverlay extends StatelessWidget {
                         final removeIDS = <CategoryEntity>{};
 
                         for (final category in categoryController.categories) {
-                          final id = libraryController.ids.firstWhereOrNull(
-                              (id) => category.ids.contains(id));
+                          final id = libraryController.favoritesIDS
+                              .firstWhereOrNull(
+                                  (id) => category.ids.contains(id));
 
                           if (id != null) {
                             final newIDS = List<String>.from(category.ids);
@@ -102,7 +101,9 @@ class HomeBottomOverlay extends StatelessWidget {
 
                         final futures = [
                           ...removeIDS.map((e) => categoryController.add(e)),
-                          libraryController.removeAll(entities: removeEntities),
+                          libraryController.removeAll(
+                            contentEntities: removeEntities.cast(),
+                          ),
                         ];
 
                         await Future.wait(futures);
@@ -118,8 +119,8 @@ class HomeBottomOverlay extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: libraryController.ids
-                        .any((element) => valueNotifierList.contains(element))
+                onPressed: libraryController.favoritesIDS
+                        .any((id) => valueNotifierList.contains(id))
                     ? () {
                         final CategoryUtils utils = CategoryUtils();
                         utils.selectCategory(context);

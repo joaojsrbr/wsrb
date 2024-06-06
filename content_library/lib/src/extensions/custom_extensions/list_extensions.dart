@@ -1,5 +1,6 @@
 import 'package:content_library/content_library.dart';
-import 'package:quiver/iterables.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 extension CustomListExtensions<E, Id> on List<E> {
   bool get isNull {
@@ -18,11 +19,7 @@ extension CustomListExtensions<E, Id> on List<E> {
   }
 
   bool containsOneElement(List elements) {
-    for (final element in elements) {
-      if (contains(element)) return true;
-    }
-
-    return false;
+    return elements.any(contains);
   }
 
   List<E> unique([Id Function(E element)? id, bool inplace = true]) {
@@ -33,21 +30,48 @@ extension CustomListExtensions<E, Id> on List<E> {
   }
 }
 
-typedef MapIndexWhere<E>
-    = Map<E, bool Function(Entity element, Entity element1)>;
+extension EntityListExtensions on Iterable<Entity> {
+  Iterable<Content> get getContent => map((entity) => switch (entity) {
+        AnimeEntity data => data.toAnime,
+        BookEntity data => data.toBook,
+        _ => null,
+      }).nonNulls;
 
-extension CustomEntityListExtensions<Id> on List<Entity> {
-  int eIndexWhere<E, T extends Entity>(MapIndexWhere<E> map, T entity) {
-    for (final element in EnumerateIterable(this)) {
-      if (map.containsKey(element.value.runtimeType) &&
-          element.value.runtimeType == entity.runtimeType) {
-        final result = map[element.value.runtimeType]?.call(
-          entity,
-          element.value,
-        );
-        if (result == true) return element.index;
-      }
-    }
-    return -1;
+  Iterable<Entity> get getCotentEntity => map((entity) => switch (entity) {
+        AnimeEntity data => data,
+        BookEntity data => data,
+        _ => null,
+      }).nonNulls;
+
+  Iterable<Iterable<Entity>> categoryByID(BuildContext context) {
+    return context
+        .read<CategoryController>()
+        .categories
+        .map((category) => where((entity) => switch (entity) {
+              AnimeEntity data when data.isFavorite =>
+                category.ids.contains(data.stringID),
+              BookEntity data when data.isFavorite =>
+                category.ids.contains(data.stringID),
+              _ => false,
+            }));
   }
 }
+
+// typedef MapIndexWhere<E>
+//     = Map<E, bool Function(Entity element, Entity element1)>;
+
+// extension CustomEntityListExtensions<Id> on List<Entity> {
+//   int eIndexWhere<E, T extends Entity>(MapIndexWhere<E> map, T entity) {
+//     for (final element in EnumerateIterable(this)) {
+//       if (map.containsKey(element.value.runtimeType) &&
+//           element.value.runtimeType == entity.runtimeType) {
+//         final result = map[element.value.runtimeType]?.call(
+//           entity,
+//           element.value,
+//         );
+//         if (result == true) return element.index;
+//       }
+//     }
+//     return -1;
+//   }
+// }

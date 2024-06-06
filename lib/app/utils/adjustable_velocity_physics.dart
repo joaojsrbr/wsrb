@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 class AdjustableVelocityScrollPhysics extends ScrollPhysics {
   final double speedMultiplier;
 
-  const AdjustableVelocityScrollPhysics(
-      {super.parent, required this.speedMultiplier});
+  const AdjustableVelocityScrollPhysics({
+    super.parent,
+    required this.speedMultiplier,
+  });
 
   @override
   AdjustableVelocityScrollPhysics applyTo(ScrollPhysics? ancestor) {

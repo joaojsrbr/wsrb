@@ -4,11 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
 class CategoryController extends ChangeNotifier {
-  final List<CategoryEntity> _categories = [];
+  List<CategoryEntity> _categories = [];
 
   final IsarServiceImpl _isarService;
 
-  CategoryController(this._isarService);
+  CategoryController(this._isarService) {
+    Future.delayed(const Duration(seconds: 1), () {
+      _isarService
+          .collection<CategoryEntity>()
+          .watchLazy()
+          .listen((event) async {
+        await start();
+        notifyListeners();
+      });
+    });
+  }
 
   Future<Result<bool>> add(CategoryEntity entity) async {
     final result = await _isarService.add(entity: entity);
@@ -56,6 +66,6 @@ class CategoryController extends ChangeNotifier {
     final categoryColetions =
         await _isarService.collection<CategoryEntity>().where().findAll();
 
-    _categories.addAll(categoryColetions);
+    _categories = categoryColetions;
   }
 }

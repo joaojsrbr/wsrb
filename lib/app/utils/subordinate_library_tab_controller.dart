@@ -1,94 +1,116 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
-
-import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
-import 'package:app_wsrb_jsr/app/utils/debouncer.dart';
 
 class SubordinateLibraryTabController extends TabController {
   SubordinateLibraryTabController({
-    this.currentIndex = 1,
     required super.vsync,
     super.initialIndex,
     required super.length,
-  }) {
-    final pageview = HomeAnchor.getWidget<PageView>();
-    pageview.then((pageview) {
-      parent = pageview?.controller;
-      parent?.addListener(_setIgnorePointer);
-    });
-  }
+  });
 
-  final int currentIndex;
+  // int get _currentIndex => 1;
 
   final Debouncer _changePageDebouncer = Debouncer(
     duration: const Duration(milliseconds: 200),
   );
 
-  PageController? parent;
+  PageController? _parent;
+
+  set setParent(PageController? pageView) {
+    _parent?.removeListener(_setIgnorePointer);
+    _parent = pageView;
+    _parent?.addListener(_setIgnorePointer);
+  }
+
+  bool _changePage = false;
+
+  set setChangePage(bool changePag) {
+    _changePage = changePag;
+  }
 
   void _setIgnorePointer() {
-    if (parent?.page == null) return;
-    final parentPage = parent!.page!;
+    if (_parent?.page == null) return;
+
+    final parentPage = _parent!.page!;
     final nextPage = parentPage + 1;
     final previousPage = parentPage - 1;
 
-    if (parentPage.toInt() == nextPage.toInt() ||
-        parentPage.toInt() == previousPage.toInt()) {
+    if ([
+      nextPage.toInt(),
+      previousPage.toInt(),
+    ].contains(parentPage.toInt())) {
       _changePageDebouncer.cancel();
-      // _changePage = false;
+      _changePage = false;
     }
 
-    if (parentPage < nextPage && parentPage >= currentIndex) {
-      parent?.position.context.setIgnorePointer(false);
-    } else if (currentIndex != 0 &&
-        parentPage > 0.8 &&
-        parentPage < currentIndex) {
-      parent?.position.context.setIgnorePointer(false);
-    }
+    // customLog(_currentIndex);
+    // customLog(parentPage);
+
+    // if (parentPage < nextPage && parentPage >= _currentIndex) {
+    //   _parent?.position.context.setIgnorePointer(true);
+    // } else if (_currentIndex != 0 &&
+    //     parentPage > 0.8 &&
+    //     parentPage < _currentIndex) {
+    //   _parent?.position.context.setIgnorePointer(false);
+    // }
   }
 
   Future<void> parentNextPage() async {
-    if (parent?.page == null) return;
-    await parent?.animateToPage(
-      parent!.page!.toInt() + 1,
+    if (_parent?.page == null) return;
+    await _parent?.animateToPage(
+      _parent!.page!.toInt() + 1,
       duration: kTabScrollDuration,
       curve: Curves.ease,
     );
+    _changePage = false;
   }
 
   Future<void> parentPreviousPage() async {
-    if (parent?.page == null) return;
-    await parent?.animateToPage(
-      parent!.page!.toInt() - 1,
+    if (_parent?.page == null) return;
+    await _parent?.animateToPage(
+      _parent!.page!.toInt() - 1,
       duration: kTabScrollDuration,
       curve: Curves.ease,
     );
+    _changePage = false;
   }
 
-  // void _nextPage() async {
-  //   if (offset.round() == position.maxScrollExtent.round()) {
-  //     _changePageDebouncer.call(() {
-  //       _changePage = true;
-  //     });
-  //     if (!_changePage) return;
-  //     await parentNextPage();
-  //   } else if (offset.round() == position.minScrollExtent.round() &&
-  //       parent?.page != 0) {
-  //     _changePageDebouncer.call(() {
-  //       _changePage = true;
-  //     });
-  //     if (!_changePage) return;
-  //     await parentPreviousPage();
-  //   } else {
-  //     _changePageDebouncer.cancel();
-  //     _changePage = false;
-  //   }
-  // }
+  bool scrollNotificationNextPage(ScrollNotification notification) {
+    // const horizontalDirections = {AxisDirection.right, AxisDirection.left};
+    const verticalDirections = {AxisDirection.down, AxisDirection.up};
+    final axisDirection = notification.metrics.axisDirection;
+
+    if (verticalDirections.contains(axisDirection)) {
+      _setIgnorePointer();
+      return false;
+    }
+
+    if (notification is ScrollUpdateNotification) _setIgnorePointer();
+    if (notification is OverscrollNotification) {
+      _changePageDebouncer.cancel();
+      final ScrollMetrics metrics = notification.metrics;
+      final double pixels = metrics.pixels.roundToDouble();
+      final double maxScrollExtent = metrics.maxScrollExtent.roundToDouble();
+      final double minScrollExtent = metrics.minScrollExtent;
+      if (pixels == minScrollExtent) {
+        _changePageDebouncer.call(() => _changePage = true);
+        if (!_changePage) return false;
+        parentPreviousPage();
+      } else if (pixels == maxScrollExtent) {
+        _changePageDebouncer.call(() => _changePage = true);
+        if (!_changePage) return false;
+        parentNextPage();
+      }
+    }
+    return false;
+  }
 
   @override
   void dispose() {
+    // removeListener(_setIgnorePointer);
     _changePageDebouncer.cancel();
-    parent?.removeListener(_setIgnorePointer);
+    _parent?.removeListener(_setIgnorePointer);
     super.dispose();
   }
 
@@ -102,8 +124,9 @@ class SubordinateLibraryTabController extends TabController {
       vsync: vsync,
       length: length ?? this.length,
       initialIndex: initialIndex ?? index,
-      currentIndex: currentIndex ?? this.currentIndex,
     );
+
+    newTabController.setParent = _parent;
 
     dispose();
     return newTabController;

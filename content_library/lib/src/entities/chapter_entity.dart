@@ -1,14 +1,16 @@
 import 'package:content_library/src/entities/entity.dart';
+
 import 'package:isar/isar.dart';
 
 part 'chapter_entity.g.dart';
 
 @Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode'})
-class ChapterEntity extends Entity {
+class ChapterEntity extends HistoryEntity {
   double readPercent;
 
   @Index(replace: true, unique: true)
   String stringID;
+  String animeStringID;
 
   DateTime? createdAt;
   DateTime? updatedAt;
@@ -20,16 +22,16 @@ class ChapterEntity extends Entity {
         readPercent,
         stringID,
         isComplete,
+        createdAt,
+        updatedAt,
       ];
 
   ChapterEntity({
     required this.readPercent,
     required this.stringID,
+    required this.animeStringID,
     this.createdAt,
     this.updatedAt,
     this.isComplete = false,
   });
-
-  @override
-  String get imageUrl => '';
 }

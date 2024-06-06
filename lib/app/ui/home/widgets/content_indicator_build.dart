@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:content_library/content_library.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
-Widget indicatorBuilder(BuildContext context, IndicatorStatus status) {
+Widget contentIndicatorBuilder(BuildContext context, IndicatorStatus status) {
   Widget widget;
 
   switch (status) {

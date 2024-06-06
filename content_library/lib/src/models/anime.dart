@@ -11,6 +11,8 @@ class Anime extends Content {
     this.extraLarge,
     this.mediumImage,
     this.animeID,
+    this.totalOfEpisodes,
+    this.totalOfPages,
     this.largeImage,
     this.generateID,
     this.isDublado = false,
@@ -26,27 +28,8 @@ class Anime extends Content {
   final String? slugSerie;
   final bool isDublado;
 
-  @override
-  List<Object?> get props => [
-        title,
-        url,
-        source,
-        sinopse,
-        releases,
-        slugSerie,
-        isDublado,
-        originalImage,
-        extraLarge,
-        generateID,
-        largeImage,
-        mediumImage,
-        animeID,
-        releases,
-      ];
-
-  @override
-  String get imageUrl =>
-      extraLarge ?? largeImage ?? mediumImage ?? originalImage;
+  final int? totalOfEpisodes;
+  final int? totalOfPages;
 
   @override
   Anime copyWith({
@@ -62,10 +45,14 @@ class Anime extends Content {
     String? mediumImage,
     bool? isDublado,
     Source? source,
+    int? totalOfEpisodes,
+    int? totalOfPages,
     String? sinopse,
   }) {
     return Anime(
       source: source ?? this.source,
+      totalOfPages: totalOfPages ?? this.totalOfPages,
+      totalOfEpisodes: totalOfEpisodes ?? this.totalOfEpisodes,
       generateID: generateID ?? this.generateID,
       animeID: animeID ?? this.animeID,
       originalImage: originalImage ?? this.originalImage,
@@ -82,56 +69,6 @@ class Anime extends Content {
   }
 
   @override
-  Map<String, dynamic> get toMap {
-    return <String, dynamic>{
-      'title': title,
-      'source': source.index,
-      'url': url,
-      'isDublado': isDublado,
-      'slugSerie': slugSerie,
-      'generateID': generateID,
-      'sinopse': sinopse,
-      'releases': releases.map((x) => x.toMap).toList(),
-      'extraLarge': extraLarge,
-      'originalImage': originalImage,
-      'largeImage': largeImage,
-      'mediumImage': mediumImage,
-    };
-  }
-
-  factory Anime.fromMap(Map<dynamic, dynamic> map) {
-    final Releases releases = Releases();
-
-    final releaseMap = map['releases'] as List<dynamic>;
-
-    for (final contentMap in releaseMap) {
-      try {
-        releases.add(Episode.fromMap(contentMap));
-      } catch (_) {
-        customLog(contentMap, error: _);
-      }
-    }
-
-    return Anime(
-      source: Source.values.elementAt(map['source'] as int),
-      isDublado: map['isDublado'] as bool,
-      slugSerie: map['slugSerie'] != null ? map['slugSerie'] as String : null,
-      originalImage: map['originalImage'] as String,
-      extraLarge:
-          map['extraLarge'] != null ? map['extraLarge'] as String : null,
-      generateID:
-          map['generateID'] != null ? map['generateID'] as String : null,
-      largeImage:
-          map['largeImage'] != null ? map['largeImage'] as String : null,
-      mediumImage:
-          map['mediumImage'] != null ? map['mediumImage'] as String : null,
-      releases: releases,
-      sinopse: map['sinopse'] != null ? map['sinopse'] as String : null,
-      title: map['title'] as String,
-      url: map['url'] as String,
-    );
-  }
-
   AnimeEntity toEntity({
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -139,7 +76,8 @@ class Anime extends Content {
   }) {
     return AnimeEntity(
       source: source,
-      stringID: id,
+      animeID: animeID,
+      stringID: stringID,
       slugSerie: slugSerie,
       sinopse: sinopse,
       isDublado: isDublado,
@@ -157,4 +95,27 @@ class Anime extends Content {
           : originalImage,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        title,
+        url,
+        stringID,
+        source,
+        sinopse,
+        releases,
+        slugSerie,
+        isDublado,
+        originalImage,
+        extraLarge,
+        generateID,
+        largeImage,
+        mediumImage,
+        animeID,
+        releases,
+      ];
+
+  @override
+  String get imageUrl =>
+      extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 }

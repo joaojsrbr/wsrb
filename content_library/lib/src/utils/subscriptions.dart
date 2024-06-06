@@ -23,9 +23,9 @@ class Subscriptions extends ListBase<StreamSubscription<dynamic>> {
     _array.add(element);
   }
 
-  Future<void> cancellAll([bool removeAll = false]) async {
+  Future<void> dispose() async {
     await Future.wait(map((element) => element.cancel()));
-    if (removeAll) clear();
+    clear();
   }
 
   @override

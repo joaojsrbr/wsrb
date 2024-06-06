@@ -1,10 +1,14 @@
-import 'package:content_library/content_library.dart';
-import 'package:isar/isar.dart';
+import 'package:content_library/src/constants/source.dart';
+import 'package:content_library/src/entities/chapter_entity.dart';
+import 'package:content_library/src/entities/entity.dart';
+import 'package:content_library/src/models/book.dart';
 
+import 'package:content_library/src/utils/releases.dart';
+import 'package:isar/isar.dart';
 part 'book_entity.g.dart';
 
 @Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toBook'})
-class BookEntity extends Entity {
+class BookEntity extends ContentEntity {
   @Index(replace: true, unique: true)
   String stringID;
   String title;
@@ -40,23 +44,25 @@ class BookEntity extends Entity {
     this.isFavorite = false,
   });
 
-  @override
   String get imageUrl =>
       extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   @override
   List<Object?> get props => [
+        stringID,
         title,
         url,
-        sinopse,
+        createdAt,
+        updatedAt,
         source,
+        sinopse,
         alternativeTitle,
-        extraLarge,
+        isFavorite,
         originalImage,
+        extraLarge,
         largeImage,
         mediumImage,
         chapters,
-        isFavorite,
       ];
 
   Book get toBook {

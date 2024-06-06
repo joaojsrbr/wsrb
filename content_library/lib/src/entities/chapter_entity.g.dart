@@ -17,28 +17,33 @@ const ChapterEntitySchema = CollectionSchema(
   name: r'ChapterEntity',
   id: 6656881136352185615,
   properties: {
-    r'createdAt': PropertySchema(
+    r'animeStringID': PropertySchema(
       id: 0,
+      name: r'animeStringID',
+      type: IsarType.string,
+    ),
+    r'createdAt': PropertySchema(
+      id: 1,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'isComplete': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'isComplete',
       type: IsarType.bool,
     ),
     r'readPercent': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'readPercent',
       type: IsarType.double,
     ),
     r'stringID': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'stringID',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -77,6 +82,7 @@ int _chapterEntityEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.animeStringID.length * 3;
   bytesCount += 3 + object.stringID.length * 3;
   return bytesCount;
 }
@@ -87,11 +93,12 @@ void _chapterEntitySerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDateTime(offsets[0], object.createdAt);
-  writer.writeBool(offsets[1], object.isComplete);
-  writer.writeDouble(offsets[2], object.readPercent);
-  writer.writeString(offsets[3], object.stringID);
-  writer.writeDateTime(offsets[4], object.updatedAt);
+  writer.writeString(offsets[0], object.animeStringID);
+  writer.writeDateTime(offsets[1], object.createdAt);
+  writer.writeBool(offsets[2], object.isComplete);
+  writer.writeDouble(offsets[3], object.readPercent);
+  writer.writeString(offsets[4], object.stringID);
+  writer.writeDateTime(offsets[5], object.updatedAt);
 }
 
 ChapterEntity _chapterEntityDeserialize(
@@ -101,11 +108,12 @@ ChapterEntity _chapterEntityDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = ChapterEntity(
-    createdAt: reader.readDateTimeOrNull(offsets[0]),
-    isComplete: reader.readBoolOrNull(offsets[1]) ?? false,
-    readPercent: reader.readDouble(offsets[2]),
-    stringID: reader.readString(offsets[3]),
-    updatedAt: reader.readDateTimeOrNull(offsets[4]),
+    animeStringID: reader.readString(offsets[0]),
+    createdAt: reader.readDateTimeOrNull(offsets[1]),
+    isComplete: reader.readBoolOrNull(offsets[2]) ?? false,
+    readPercent: reader.readDouble(offsets[3]),
+    stringID: reader.readString(offsets[4]),
+    updatedAt: reader.readDateTimeOrNull(offsets[5]),
   );
   object.id = id;
   return object;
@@ -119,14 +127,16 @@ P _chapterEntityDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readDateTimeOrNull(offset)) as P;
-    case 1:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
-    case 2:
-      return (reader.readDouble(offset)) as P;
-    case 3:
       return (reader.readString(offset)) as P;
+    case 1:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 2:
+      return (reader.readBoolOrNull(offset) ?? false) as P;
+    case 3:
+      return (reader.readDouble(offset)) as P;
     case 4:
+      return (reader.readString(offset)) as P;
+    case 5:
       return (reader.readDateTimeOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -329,6 +339,142 @@ extension ChapterEntityQueryWhere
 
 extension ChapterEntityQueryFilter
     on QueryBuilder<ChapterEntity, ChapterEntity, QFilterCondition> {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      animeStringIDEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'animeStringID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      animeStringIDGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'animeStringID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      animeStringIDLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'animeStringID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      animeStringIDBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'animeStringID',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      animeStringIDStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'animeStringID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      animeStringIDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'animeStringID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      animeStringIDContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'animeStringID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      animeStringIDMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'animeStringID',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      animeStringIDIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'animeStringID',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      animeStringIDIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'animeStringID',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
       createdAtIsNull() {
     return QueryBuilder.apply(this, (query) {
@@ -752,6 +898,20 @@ extension ChapterEntityQueryLinks
 
 extension ChapterEntityQuerySortBy
     on QueryBuilder<ChapterEntity, ChapterEntity, QSortBy> {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
+      sortByAnimeStringID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'animeStringID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
+      sortByAnimeStringIDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'animeStringID', Sort.desc);
+    });
+  }
+
   QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -820,6 +980,20 @@ extension ChapterEntityQuerySortBy
 
 extension ChapterEntityQuerySortThenBy
     on QueryBuilder<ChapterEntity, ChapterEntity, QSortThenBy> {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
+      thenByAnimeStringID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'animeStringID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
+      thenByAnimeStringIDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'animeStringID', Sort.desc);
+    });
+  }
+
   QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -900,6 +1074,14 @@ extension ChapterEntityQuerySortThenBy
 
 extension ChapterEntityQueryWhereDistinct
     on QueryBuilder<ChapterEntity, ChapterEntity, QDistinct> {
+  QueryBuilder<ChapterEntity, ChapterEntity, QDistinct> distinctByAnimeStringID(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'animeStringID',
+          caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<ChapterEntity, ChapterEntity, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
@@ -938,6 +1120,13 @@ extension ChapterEntityQueryProperty
   QueryBuilder<ChapterEntity, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<ChapterEntity, String, QQueryOperations>
+      animeStringIDProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'animeStringID');
     });
   }
 

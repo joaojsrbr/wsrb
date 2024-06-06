@@ -17,33 +17,48 @@ const EpisodeEntitySchema = CollectionSchema(
   name: r'EpisodeEntity',
   id: 3638102932149212917,
   properties: {
-    r'createdAt': PropertySchema(
+    r'animeStringID': PropertySchema(
       id: 0,
+      name: r'animeStringID',
+      type: IsarType.string,
+    ),
+    r'createdAt': PropertySchema(
+      id: 1,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'currentDuration': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'currentDuration',
       type: IsarType.long,
     ),
     r'episodeDuration': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'episodeDuration',
       type: IsarType.long,
     ),
     r'isComplete': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'isComplete',
       type: IsarType.bool,
     ),
+    r'numberEpisode': PropertySchema(
+      id: 5,
+      name: r'numberEpisode',
+      type: IsarType.long,
+    ),
+    r'sinopse': PropertySchema(
+      id: 6,
+      name: r'sinopse',
+      type: IsarType.string,
+    ),
     r'stringID': PropertySchema(
-      id: 4,
+      id: 7,
       name: r'stringID',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 5,
+      id: 8,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -82,6 +97,13 @@ int _episodeEntityEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.animeStringID.length * 3;
+  {
+    final value = object.sinopse;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.stringID.length * 3;
   return bytesCount;
 }
@@ -92,12 +114,15 @@ void _episodeEntitySerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDateTime(offsets[0], object.createdAt);
-  writer.writeLong(offsets[1], object.currentDuration);
-  writer.writeLong(offsets[2], object.episodeDuration);
-  writer.writeBool(offsets[3], object.isComplete);
-  writer.writeString(offsets[4], object.stringID);
-  writer.writeDateTime(offsets[5], object.updatedAt);
+  writer.writeString(offsets[0], object.animeStringID);
+  writer.writeDateTime(offsets[1], object.createdAt);
+  writer.writeLong(offsets[2], object.currentDuration);
+  writer.writeLong(offsets[3], object.episodeDuration);
+  writer.writeBool(offsets[4], object.isComplete);
+  writer.writeLong(offsets[5], object.numberEpisode);
+  writer.writeString(offsets[6], object.sinopse);
+  writer.writeString(offsets[7], object.stringID);
+  writer.writeDateTime(offsets[8], object.updatedAt);
 }
 
 EpisodeEntity _episodeEntityDeserialize(
@@ -107,12 +132,15 @@ EpisodeEntity _episodeEntityDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = EpisodeEntity(
-    createdAt: reader.readDateTimeOrNull(offsets[0]),
-    currentDuration: reader.readLong(offsets[1]),
-    episodeDuration: reader.readLong(offsets[2]),
-    isComplete: reader.readBoolOrNull(offsets[3]) ?? false,
-    stringID: reader.readString(offsets[4]),
-    updatedAt: reader.readDateTimeOrNull(offsets[5]),
+    animeStringID: reader.readString(offsets[0]),
+    createdAt: reader.readDateTimeOrNull(offsets[1]),
+    currentDuration: reader.readLong(offsets[2]),
+    episodeDuration: reader.readLong(offsets[3]),
+    isComplete: reader.readBoolOrNull(offsets[4]) ?? false,
+    numberEpisode: reader.readLongOrNull(offsets[5]),
+    sinopse: reader.readStringOrNull(offsets[6]),
+    stringID: reader.readString(offsets[7]),
+    updatedAt: reader.readDateTimeOrNull(offsets[8]),
   );
   object.id = id;
   return object;
@@ -126,16 +154,22 @@ P _episodeEntityDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 2:
       return (reader.readLong(offset)) as P;
     case 3:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
+      return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readString(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 5:
+      return (reader.readLongOrNull(offset)) as P;
+    case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
+    case 8:
       return (reader.readDateTimeOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -338,6 +372,142 @@ extension EpisodeEntityQueryWhere
 
 extension EpisodeEntityQueryFilter
     on QueryBuilder<EpisodeEntity, EpisodeEntity, QFilterCondition> {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      animeStringIDEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'animeStringID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      animeStringIDGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'animeStringID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      animeStringIDLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'animeStringID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      animeStringIDBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'animeStringID',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      animeStringIDStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'animeStringID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      animeStringIDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'animeStringID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      animeStringIDContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'animeStringID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      animeStringIDMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'animeStringID',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      animeStringIDIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'animeStringID',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      animeStringIDIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'animeStringID',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
       createdAtIsNull() {
     return QueryBuilder.apply(this, (query) {
@@ -589,6 +759,234 @@ extension EpisodeEntityQueryFilter
   }
 
   QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      numberEpisodeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'numberEpisode',
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      numberEpisodeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'numberEpisode',
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      numberEpisodeEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'numberEpisode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      numberEpisodeGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'numberEpisode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      numberEpisodeLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'numberEpisode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      numberEpisodeBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'numberEpisode',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      sinopseIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'sinopse',
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      sinopseIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'sinopse',
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      sinopseEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sinopse',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      sinopseGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'sinopse',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      sinopseLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'sinopse',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      sinopseBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'sinopse',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      sinopseStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'sinopse',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      sinopseEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'sinopse',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      sinopseContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'sinopse',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      sinopseMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'sinopse',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      sinopseIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sinopse',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      sinopseIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'sinopse',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
       stringIDEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -807,6 +1205,20 @@ extension EpisodeEntityQueryLinks
 
 extension EpisodeEntityQuerySortBy
     on QueryBuilder<EpisodeEntity, EpisodeEntity, QSortBy> {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
+      sortByAnimeStringID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'animeStringID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
+      sortByAnimeStringIDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'animeStringID', Sort.desc);
+    });
+  }
+
   QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -861,6 +1273,32 @@ extension EpisodeEntityQuerySortBy
     });
   }
 
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
+      sortByNumberEpisode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'numberEpisode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
+      sortByNumberEpisodeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'numberEpisode', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortBySinopse() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sinopse', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortBySinopseDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sinopse', Sort.desc);
+    });
+  }
+
   QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByStringID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'stringID', Sort.asc);
@@ -890,6 +1328,20 @@ extension EpisodeEntityQuerySortBy
 
 extension EpisodeEntityQuerySortThenBy
     on QueryBuilder<EpisodeEntity, EpisodeEntity, QSortThenBy> {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
+      thenByAnimeStringID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'animeStringID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
+      thenByAnimeStringIDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'animeStringID', Sort.desc);
+    });
+  }
+
   QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -956,6 +1408,32 @@ extension EpisodeEntityQuerySortThenBy
     });
   }
 
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
+      thenByNumberEpisode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'numberEpisode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
+      thenByNumberEpisodeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'numberEpisode', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenBySinopse() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sinopse', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenBySinopseDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sinopse', Sort.desc);
+    });
+  }
+
   QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByStringID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'stringID', Sort.asc);
@@ -985,6 +1463,14 @@ extension EpisodeEntityQuerySortThenBy
 
 extension EpisodeEntityQueryWhereDistinct
     on QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct> {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct> distinctByAnimeStringID(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'animeStringID',
+          caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
@@ -1011,6 +1497,20 @@ extension EpisodeEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct>
+      distinctByNumberEpisode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'numberEpisode');
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct> distinctBySinopse(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'sinopse', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct> distinctByStringID(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1030,6 +1530,13 @@ extension EpisodeEntityQueryProperty
   QueryBuilder<EpisodeEntity, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, String, QQueryOperations>
+      animeStringIDProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'animeStringID');
     });
   }
 
@@ -1054,6 +1561,18 @@ extension EpisodeEntityQueryProperty
   QueryBuilder<EpisodeEntity, bool, QQueryOperations> isCompleteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isComplete');
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, int?, QQueryOperations> numberEpisodeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'numberEpisode');
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, String?, QQueryOperations> sinopseProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'sinopse');
     });
   }
 

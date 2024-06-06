@@ -5,6 +5,7 @@ import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:quiver/iterables.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
 class ChipContentController extends StatefulWidget {
@@ -23,6 +24,19 @@ class _ChipContentControllerState extends State<ChipContentController> {
     _scrollController = ScrollController()..addListener(_scrollListener);
   }
 
+  late final Content content = BookInformationScope.contentOf(context);
+
+  late final List<List<int>> partitionOfInt = content is Anime
+      ? partition(
+          List.generate(
+              (content as Anime).totalOfEpisodes!, (index) => index + 1),
+          content.releases.length,
+        ).toList()
+      : partition(
+          List.generate(content.releases.length, (index) => index + 1),
+          content.releases.length,
+        ).toList();
+
   void _scrollListener() {}
 
   @override
@@ -30,40 +44,24 @@ class _ChipContentControllerState extends State<ChipContentController> {
     final isLoading = BookInformationScope.isLoadingOf(context);
 
     Widget container = const SliverToBoxAdapter();
-    final releases = BookInformationScope.releasesOf(context);
+
     final index = BookInformationScope.indexOf(context);
 
     if (isLoading) {
       container = const _ShimmerWidget();
-    } else if (releases.isNotEmpty) {
+    } else {
       final setListChapterIndex = BookInformationScope.of(context).setListIndex;
-      // final contentOrders = context.watch<HiveController>().contentOrders;
       final hiveController = context.watch<HiveController>();
 
-      final selectChips = List.generate(releases.length, (index) => false);
+      final int length = partitionOfInt.length;
+
+      final selectChips = List.generate(length, (index) => false);
 
       selectChips[index] = true;
 
       final chipsWidgets = List.generate(selectChips.length, (index) {
-        Release firstText = releases[index].first;
-        Release lastText = releases[index].last;
-
-        // if (selectChips.length == 1 && hiveController.contentOrders) {
-        //   firstText = releases[index].last;
-        //   lastText = releases[index].first;
-
-        //   if (releases[index].last is Chapter) {
-        //     firstText = releases[index].first;
-        //     lastText = releases[index].last;
-        //   }
-        // } else if (selectChips.length == 1 && !hiveController.contentOrders) {
-        //   firstText = releases[index].first;
-        //   lastText = releases[index].last;
-        //   if (releases[index].last is Chapter) {
-        //     firstText = releases[index].last;
-        //     lastText = releases[index].first;
-        //   }
-        // }
+        int firstText = partitionOfInt[index].first;
+        int lastText = partitionOfInt[index].last;
 
         return Padding(
           padding: const EdgeInsets.only(right: 8),
@@ -71,7 +69,7 @@ class _ChipContentControllerState extends State<ChipContentController> {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             selected: selectChips[index],
             onSelected: (value) => setListChapterIndex.call(index),
-            label: Text('${firstText.number} - ${lastText.number}'),
+            label: Text('$firstText - $lastText'),
           ),
         );
       });

@@ -55,6 +55,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls> {
   int swipeDuration = 0;
   bool showSwipeDuration = false;
 
+  // ignore: prefer_final_fields
   bool _speedUpIndicator = false;
   late Playlist playlist = controller(context).player.state.playlist;
   late bool buffering = controller(context).player.state.buffering;
@@ -276,7 +277,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls> {
     // for (final subscription in _subscriptions) {
     //   subscription.cancel();
     // }
-    _subscriptions.cancellAll();
+    _subscriptions.dispose();
 
     // --------------------------------------------------
     // package:screen_brightness
@@ -651,7 +652,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls> {
             ),
             Padding(
               padding: EdgeInsets.only(top: !isPortrait ? 20 : 8),
-              child: CustomOverlay(
+              child: PlayerCustomOverlay(
                 key: const ValueKey('custom_overlay_1'),
                 begin: const Offset(-1, 0),
                 notifierChange: scope.overlayBoxFit,
@@ -663,7 +664,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls> {
               top: 0,
               child: Align(
                 alignment: Alignment.bottomRight,
-                child: CustomOverlay(
+                child: PlayerCustomOverlay(
                   reversedBorder: true,
                   key: const ValueKey('custom_overlay_2'),
                   begin: const Offset(1, 0),
@@ -866,6 +867,26 @@ class _ControllsState extends State<_Controlls>
   );
   final List<StreamSubscription> _subscriptions = [];
 
+  bool get _reversedCurrentDuration =>
+      FullscreenInheritedWidget.maybeOf(context)
+          ?.parent
+          .reversedCurrentDuration ??
+      widget.state.widget.state.reversedCurrentDuration;
+
+  set setReversedCurrentDuration(bool reversedCurrentDuration) {
+    if (!mounted) return;
+    setState(() {
+      if (FullscreenInheritedWidget.maybeOf(context) != null) {
+        FullscreenInheritedWidget.maybeOf(context)
+            ?.parent
+            .reversedCurrentDuration = reversedCurrentDuration;
+      } else {
+        widget.state.widget.state.reversedCurrentDuration =
+            reversedCurrentDuration;
+      }
+    });
+  }
+
   @override
   void setState(VoidCallback fn) {
     if (mounted) {
@@ -1007,7 +1028,6 @@ class _ControllsState extends State<_Controlls>
                   onPressed: controller(context).player.playOrPause,
                   iconSize: 48,
                   padding: EdgeInsets.zero,
-                  alignment: Alignment.center,
                   icon: IgnorePointer(
                     child: AnimatedIcon(
                       progress: _animation,
@@ -1051,61 +1071,68 @@ class _BottomButtons extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
-          textDirection: Directionality.of(context),
+          crossAxisAlignment: CrossAxisAlignment.end,
+          // textDirection: Directionality.of(context),
           children: [
             _LockWidget(
-              child: TextButton(
-                style: const ButtonStyle(
-                  alignment: Alignment.bottomCenter,
-                  padding: MaterialStatePropertyAll(
-                    EdgeInsets.only(left: 30),
+              child: Container(
+                padding: const EdgeInsets.only(left: 18),
+                child: TextButton(
+                  style: const ButtonStyle(
+                    visualDensity: VisualDensity(vertical: -4),
                   ),
-                ),
-                onPressed: null,
-                child: Text(
-                  '${state._position.label(reference: state._duration)} / ${state._duration.label(reference: state._duration)}',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: const Color(0xFFFFFFFF),
-                      ),
+                  onPressed: () {
+                    state.setReversedCurrentDuration =
+                        !state._reversedCurrentDuration;
+                  },
+                  child: Text(
+                    state._reversedCurrentDuration
+                        ? "-${(state._duration - state._position).label(reference: state._duration)} / ${state._duration.label(reference: state._duration)}"
+                        : '${state._position.label(reference: state._duration)} / ${state._duration.label(reference: state._duration)}',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: const Color(0xFFFFFFFF),
+                        ),
+                  ),
                 ),
               ),
             ),
             const Spacer(),
+            // OverflowBox(),
+            // SizedBox.expand(),
             _LockWidget(
               child: IconButton(
-                alignment: Alignment.bottomCenter,
                 padding: EdgeInsets.zero,
-                // visualDensity: VisualDensity(horizontal: 0, vertical: 0),
+                visualDensity: const VisualDensity(vertical: -4),
                 onPressed: scope.setFits,
-                iconSize: 24,
+                iconSize: 22,
                 icon: Icon(MdiIcons.fitToScreen),
               ),
             ),
             IconButton(
-              alignment: Alignment.bottomCenter,
+              visualDensity: const VisualDensity(vertical: -4),
               padding: EdgeInsets.zero,
               onPressed: () {
                 state.widget.state.setLockPlayer =
                     !state.widget.state._lockPlayer;
               },
-              iconSize: 24,
+              iconSize: 22,
               icon: Icon(MdiIcons.lock),
             ),
             _LockWidget(
-              child: Builder(builder: (context) {
-                return IconButton(
-                  alignment: Alignment.bottomCenter,
-                  padding: const EdgeInsets.only(
-                    right: 28,
-                    left: 8,
-                  ),
+              child: Container(
+                width: 65,
+                padding: const EdgeInsets.only(
+                  right: 24,
+                ),
+                child: IconButton(
+                  visualDensity: const VisualDensity(vertical: -4),
                   onPressed: () => toggleFullscreen(context),
-                  iconSize: 24,
+                  iconSize: 22,
                   icon: fullscreen
                       ? Icon(MdiIcons.fullscreenExit)
                       : Icon(MdiIcons.fullscreen),
-                );
-              }),
+                ),
+              ),
             ),
           ],
         ),
@@ -1155,7 +1182,9 @@ class _LockWidget extends StatelessWidget {
     // if (state?._lockPlayer == true) return const SizedBox.shrink();
     return IgnorePointer(
       ignoring: state?._lockPlayer == true,
-      child: Opacity(
+      child: AnimatedOpacity(
+        curve: Curves.fastLinearToSlowEaseIn,
+        duration: const Duration(milliseconds: 350),
         opacity: state?._lockPlayer == true ? 0.0 : 1.0,
         child: child,
       ),

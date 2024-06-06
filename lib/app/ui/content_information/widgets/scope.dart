@@ -2,12 +2,11 @@
 
 import 'package:content_library/content_library.dart';
 
-import 'package:flutter/foundation.dart';
-
 import 'package:flutter/widgets.dart';
 
 enum _BookInformationScopeAspect {
   ISLOADING,
+  RELEASESISLOADING,
   LISTCHAPTERINDEX,
   ALLRELEASES,
   CONTENT,
@@ -21,15 +20,14 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
     required this.index,
     required this.setListIndex,
     required this.content,
-    required this.releases,
+    required this.releasesIsLoading,
   });
 
+  final bool releasesIsLoading;
   final bool isLoading;
   final Content content;
   final ValueSetter<int> setListIndex;
   final int index;
-
-  final List<Releases> releases;
 
   static BookInformationScope of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<BookInformationScope>()!;
@@ -45,14 +43,14 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
   static bool isLoadingOf(BuildContext context) =>
       _of(context, _BookInformationScopeAspect.ISLOADING).isLoading;
 
-  static List<Releases> releasesOf(BuildContext context) =>
-      _of(context, _BookInformationScopeAspect.ALLRELEASES).releases;
-
   static Content contentOf(BuildContext context) =>
       _of(context, _BookInformationScopeAspect.CONTENT).content;
 
   static int indexOf(BuildContext context) =>
       _of(context, _BookInformationScopeAspect.LISTCHAPTERINDEX).index;
+  static bool releasesIsLoadingOf(BuildContext context) =>
+      _of(context, _BookInformationScopeAspect.RELEASESISLOADING)
+          .releasesIsLoading;
 
   @override
   bool updateShouldNotifyDependent(BookInformationScope oldWidget,
@@ -69,10 +67,9 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
           case _BookInformationScopeAspect.LISTCHAPTERINDEX
               when index != oldWidget.index:
             return true;
-          case _BookInformationScopeAspect.ALLRELEASES
-              when !listEquals(releases, oldWidget.releases):
+          case _BookInformationScopeAspect.RELEASESISLOADING
+              when releasesIsLoading != oldWidget.releasesIsLoading:
             return true;
-
           default:
             return true;
         }
@@ -86,7 +83,7 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
   bool updateShouldNotify(BookInformationScope oldWidget) {
     return isLoading != oldWidget.isLoading ||
         content != oldWidget.content ||
-        index != oldWidget.index ||
-        !listEquals(releases, oldWidget.releases);
+        releasesIsLoading != oldWidget.releasesIsLoading ||
+        index != oldWidget.index;
   }
 }

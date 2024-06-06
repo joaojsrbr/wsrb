@@ -3,6 +3,8 @@ import 'package:isar/isar.dart';
 
 abstract class Entity with EquatableMixin {
   Id id = Isar.autoIncrement;
-
-  String? get imageUrl => null;
 }
+
+abstract class ContentEntity extends Entity {}
+
+abstract class HistoryEntity extends Entity {}

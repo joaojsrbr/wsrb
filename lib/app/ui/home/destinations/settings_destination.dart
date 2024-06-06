@@ -1,7 +1,7 @@
 import 'dart:collection';
 
-import 'package:app_wsrb_jsr/app/core/services/theme_controller.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
+import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';

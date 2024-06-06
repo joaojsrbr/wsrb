@@ -50,8 +50,11 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   late final List<RSource> _sources;
   final HiveController _hiveController;
 
-  ContentRepository._internal(this._hiveController) {
-    _dio = DioClient();
+  ContentRepository._internal(
+    this._hiveController,
+    this._dio,
+  ) {
+    _dio.addInterceptor(_DefaultAppHeadersInterceptor());
     // _jikanService = JikanService();
     _sources = [
       NeoxSource(this),
@@ -73,8 +76,8 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
 
   bool get addMore => isSuccess && _hasMore;
 
-  factory ContentRepository(HiveController hiveController) =>
-      _ContentRepositoryImp(hiveController);
+  factory ContentRepository(HiveController hiveController, DioClient dio) =>
+      _ContentRepositoryImp(hiveController, dio);
 
   RSource get source => _sources.firstWhere(
         (source) => source.source == _hiveController.source,
@@ -83,6 +86,8 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   Future<Result<Content>> getData(Content content);
 
   Future<Result<List<Data>>> getContent(Release releases);
+
+  Future<Result<Content>> getReleases(Content content, int page);
 
   @override
   Future<bool> refresh([bool notifyStateChanged = false]) async {
@@ -100,15 +105,18 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
 
   @override
   void dispose() {
-    _subscriptions.cancellAll(true);
+    _subscriptions.dispose();
     super.dispose();
   }
 }
 
 class _ContentRepositoryImp extends ContentRepository {
-  _ContentRepositoryImp(super._hiveController) : super._internal() {
-    ui.WidgetsBinding.instance
-        .addPostFrameCallback((timeStamp) => refresh(true));
+  _ContentRepositoryImp(
+    super._hiveController,
+    super.dio,
+  ) : super._internal() {
+    // ui.WidgetsBinding.instance
+    //     .addPostFrameCallback((timeStamp) => refresh(true));
   }
 
   @override
@@ -122,6 +130,16 @@ class _ContentRepositoryImp extends ContentRepository {
   @override
   Future<Result<List<Data>>> getContent(Release release) async =>
       await source.getContent(release);
+
+  @override
+  Future<Result<Content>> getReleases(Content content, int page) async =>
+      await source.getReleases(content, page);
 }
 
-// class BookRepositoryController extends ChangeNotifier {}
+class _DefaultAppHeadersInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    options.headers = App.HEADERS;
+    super.onRequest(options, handler);
+  }
+}

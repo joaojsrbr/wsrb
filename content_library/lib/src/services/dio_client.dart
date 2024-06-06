@@ -38,7 +38,21 @@ class DioClient
 
   DioClient._internal([dio.BaseOptions? options]) {
     _dio = dio.Dio(options);
-    add(_DioStatus());
+    addInterceptor(_DioStatus());
+  }
+
+  @override
+  bool removeInterceptor(dio.Interceptor element) {
+    return interceptors.remove(element);
+  }
+
+  @override
+  void addInterceptor(dio.Interceptor interceptor) {
+    if (interceptors.contains(interceptor)) {
+      removeInterceptor(interceptor);
+    }
+
+    interceptors.add(interceptor);
   }
 
   factory DioClient.createInstance([dio.BaseOptions? options]) =>
@@ -164,11 +178,6 @@ class DioClient
         responseType: responseType,
       ),
     );
-  }
-
-  @override
-  void add(dio.Interceptor element) {
-    if (!interceptors.contains(element)) _dio.interceptors.add(element);
   }
 
   @override

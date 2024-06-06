@@ -4,7 +4,7 @@ void _hiveAdapters() {
   Hive.registerAdapter(_OrderByAdapter());
   Hive.registerAdapter(_SourceAdapter());
   Hive.registerAdapter(_ThemeModeAdapter());
-  Hive.registerAdapter(_CotentAdapter());
+  Hive.registerAdapter(_AnrollDataAdapter());
 }
 
 class _OrderByAdapter extends TypeAdapter<OrderBy> {
@@ -39,31 +39,47 @@ class _SourceAdapter extends TypeAdapter<Source> {
   }
 }
 
-class _CotentAdapter extends TypeAdapter<Content> {
+class _AnrollDataAdapter extends TypeAdapter<AnrollData> {
   @override
-  Content read(BinaryReader reader) {
-    final Map<dynamic, dynamic> map = reader.readMap();
-    try {
-      return Book.fromMap(map);
-    } catch (_) {
-      return Anime.fromMap(map);
-    }
+  AnrollData read(BinaryReader reader) {
+    final map = reader.readMap();
+    return AnrollData.fromMap(map);
   }
 
   @override
-  int get typeId => 4;
+  int get typeId => 3;
 
   @override
-  void write(BinaryWriter writer, Content obj) {
-    if (obj is Anime) {
-      final anime = obj;
-      writer.writeMap(anime.toMap);
-    } else if (obj is Book) {
-      final book = obj;
-      writer.writeMap(book.toMap);
-    }
+  void write(BinaryWriter writer, AnrollData obj) {
+    writer.writeMap(obj.toMap);
   }
 }
+
+// class _CotentAdapter extends TypeAdapter<Content> {
+//   @override
+//   Content read(BinaryReader reader) {
+//     final Map<dynamic, dynamic> map = reader.readMap();
+//     try {
+//       return Book.fromMap(map);
+//     } catch (_) {
+//       return Anime.fromMap(map);
+//     }
+//   }
+
+//   @override
+//   int get typeId => 4;
+
+//   @override
+//   void write(BinaryWriter writer, Content obj) {
+//     if (obj is Anime) {
+//       final anime = obj;
+//       writer.writeMap(anime.toMap);
+//     } else if (obj is Book) {
+//       final book = obj;
+//       writer.writeMap(book.toMap);
+//     }
+//   }
+// }
 
 class _ThemeModeAdapter extends TypeAdapter<ThemeMode> {
   @override

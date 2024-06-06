@@ -46,20 +46,63 @@ class AnrollSource extends RSource {
 
     data.add(Data.videoData(videoContent: videoContent));
 
-    // try {
-    //   await contentRepository._dio.get(
-    //     videoContent,
-    //     headers: {
-    //       "origin": BASE_URL,
-    //       "referer": "$BASE_URL/",
-    //       ..._headers,
-    //     },
-    //   );
-    // return Result.success(data);
-    // } on DioException catch (_, __) {
-    //   return Result.failure(_);
-    // }
     return Result.success(data);
+  }
+
+  @override
+  Future<Result<Content>> getReleases(Content content, int page) async {
+    bool isAnime() => content is Anime;
+    assert(
+      isAnime(),
+      "A instancia content precisa ser do tipo Anime",
+    );
+    try {
+      final Anime anime = content as Anime;
+
+      final releases = anime.releases;
+
+      final episodesResponse = await contentRepository._dio.get(
+        'https://apiv3-prd.anroll.net/animes/${anime.animeID}/episodes?page=$page&order=asc',
+      );
+
+      final episodesList = episodesResponse.data['data'] as List;
+
+      int? totalOfEpisodes =
+          episodesResponse.data['meta']['totalOfEpisodes'] as int?;
+      int? totalOfPages = episodesResponse.data['meta']['totalOfPages'] as int?;
+
+      for (final map in episodesList) {
+        final n_episodio = map['n_episodio'];
+        final number = int.parse(n_episodio);
+        final title_episode = map['titulo_episodio'] as String;
+        final pageNumber = episodesResponse.data['meta']['pageNumber'] as int?;
+        final sinopse_episode = map['sinopse_episodio'] as String?;
+        final episodeGenerateID = map['generate_id'];
+        final thumbnail =
+            "https://www.anroll.net/_next/image?url=https%3A%2F%2Fstatic.anroll.net%2Fimages%2Fanimes%2Fscreens%2F${anime.slugSerie}%2F$n_episodio.jpg&w=1080&q=100";
+
+        final Episode episode = Episode(
+          numberEpisode: number,
+          isDublado: anime.isDublado,
+          url: '$BASE_URL/e/$episodeGenerateID',
+          generateID: episodeGenerateID,
+          pageNumber: pageNumber,
+          title: title_episode.contains('Episódio') ? 'N/A' : title_episode,
+          sinopse: sinopse_episode,
+          slugSerie: anime.slugSerie,
+          thumbnail: thumbnail,
+        );
+        if (!releases.contains(episode)) releases.add(episode);
+      }
+      return Result.success(
+        anime.copyWith(
+          totalOfPages: totalOfPages,
+          totalOfEpisodes: totalOfEpisodes,
+        ),
+      );
+    } on DioException catch (_, __) {
+      return Result.failure(_);
+    }
   }
 
   @override
@@ -74,20 +117,19 @@ class AnrollSource extends RSource {
     );
 
     try {
-      final Anime anime = content as Anime;
+      Anime anime = content as Anime;
 
       final String generateID =
           (anime.releases.firstOrNull as Episode?)?.generateID ??
               anime.generateID!;
 
-      final Releases releases = Releases.fromList(anime.releases);
+      final Releases releases = Releases();
 
       final buildId = await getBuildId();
 
       final Response responseAnimeData = await contentRepository._dio.get(
         '$BASE_URL/_next/data/$buildId/e/$generateID.json?episode=$generateID',
         responseType: ResponseType.json,
-        headers: _headers,
       );
 
       final animeData = responseAnimeData.data['pageProps']['data'];
@@ -101,49 +143,32 @@ class AnrollSource extends RSource {
 
       String? sinopse = animeData['sinopse_episodio'];
 
-      bool hasNextPage = false;
+      int? totalOfEpisodes;
 
-      int page = 1;
+      int? totalOfPages;
 
-      do {
-        final episodesResponse = await contentRepository._dio.get(
-          'https://apiv3-prd.anroll.net/animes/$animeID/episodes?page=$page&order=desc',
-          headers: _headers,
-        );
-
-        final episodesList = episodesResponse.data['data'] as List;
-
-        for (final map in episodesList) {
-          final n_episodio = map['n_episodio'];
-          final number = int.parse(n_episodio);
-
-          final episodeGenerateID = map['generate_id'];
-          final thumbnail =
-              "https://www.anroll.net/_next/image?url=https%3A%2F%2Fstatic.anroll.net%2Fimages%2Fanimes%2Fscreens%2F${anime.slugSerie}%2F$n_episodio.jpg&w=1080&q=100";
-
-          final Episode episode = Episode(
-            isDublado: anime.isDublado,
-            url: '$BASE_URL/e/$episodeGenerateID',
-            generateID: episodeGenerateID,
-            title: 'Episódio $number',
-            slugSerie: anime.slugSerie,
-            thumbnail: thumbnail,
-          );
-          if (!releases.contains(episode)) releases.add(episode);
-        }
-
-        hasNextPage = episodesResponse.data['meta']['hasNextPage'];
-        if (hasNextPage) page++;
-      } while (hasNextPage);
-
-      // final newAnime = (await _getAnimePictures(anime)).copyWith(
-      final newAnime = anime.copyWith(
+      Anime newAnime = anime.copyWith(
         url: url,
         animeID: animeID,
         releases: releases,
+        totalOfEpisodes: totalOfEpisodes,
+        totalOfPages: totalOfPages,
         originalImage: originalImage,
         sinopse: sinopse,
       );
+
+      if (anime.totalOfEpisodes == null) {
+        bool hasNextPage = false;
+
+        int page = 1;
+
+        do {
+          final result = await getReleases(newAnime, page);
+          result.when(onSucess: (data) => newAnime = data as Anime);
+          hasNextPage = anime.totalOfEpisodes == anime.releases.length;
+          if (hasNextPage) page++;
+        } while (hasNextPage);
+      }
 
       return Result.success(newAnime);
     } on DioException catch (_, __) {
@@ -176,12 +201,9 @@ class AnrollSource extends RSource {
   //   );
   // }
 
-  Map<String, String> get _headers => App.HEADERS;
-
   Future<String> getBuildId() async {
     final Response responseTest = await contentRepository._dio.get(
       BASE_URL,
-      headers: _headers,
       responseType: ResponseType.plain,
     );
 
@@ -192,7 +214,6 @@ class AnrollSource extends RSource {
       throw AnrollGetIdException();
     } else {
       final map = jsonDecode(element.text);
-
       final buildId = map['buildId'] as String;
       return buildId;
     }
@@ -209,7 +230,6 @@ class AnrollSource extends RSource {
 
       final Response response = await contentRepository._dio.get(
         mainURL,
-        headers: _headers,
         responseType: ResponseType.json,
       );
 
@@ -221,7 +241,8 @@ class AnrollSource extends RSource {
         final slugSerie = release['episode']['anime']['slug_serie'];
         final episodeGenerateID = release['episode']['generate_id'];
         final isDublado =
-            (release['episode']['anime']['dub'] as int) == 0 ? false : true;
+            ((release['episode']['anime']['dub'] as int) == 0 ? false : true) |
+                title.toLowerCase().contains('dublado');
         final n_episodio = release['episode']['n_episodio'];
         final number = int.parse(n_episodio);
 

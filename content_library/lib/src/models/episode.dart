@@ -8,10 +8,16 @@ class Episode extends Release {
     required super.title,
     this.generateID,
     this.slugSerie,
+    this.numberEpisode,
+    this.pageNumber,
+    this.sinopse,
     this.thumbnail,
     required this.isDublado,
   });
 
+  final String? sinopse;
+  final int? pageNumber;
+  final int? numberEpisode;
   final String? generateID;
   final String? thumbnail;
   final bool isDublado;
@@ -19,41 +25,21 @@ class Episode extends Release {
 
   @override
   List<Object?> get props => [
-        id,
+        stringID,
         title,
         url,
+        pageNumber,
         generateID,
         isDublado,
         thumbnail,
+        numberEpisode,
+        sinopse,
         slugSerie,
       ];
 
   @override
-  Map<String, dynamic> get toMap {
-    return <String, dynamic>{
-      'title': title,
-      'url': url,
-      'isDublado': isDublado,
-      'slugSerie': slugSerie,
-      'generateID': generateID,
-      'thumbnail': thumbnail,
-    };
-  }
-
-  factory Episode.fromMap(Map<dynamic, dynamic> map) {
-    return Episode(
-      isDublado: map['isDublado'] as bool,
-      url: map['url'] as String,
-      slugSerie: map['slugSerie'] != null ? map['slugSerie'] as String : null,
-      title: map['title'] as String,
-      generateID:
-          map['generateID'] != null ? map['generateID'] as String : null,
-      thumbnail: map['thumbnail'] != null ? map['thumbnail'] as String : null,
-    );
-  }
-
-  @override
   String get number {
-    return title.replaceAll(RegExp(r'[^0-9]'), '').trim();
+    return numberEpisode?.toString() ??
+        title.replaceAll(RegExp(r'[^0-9]'), '').trim();
   }
 }

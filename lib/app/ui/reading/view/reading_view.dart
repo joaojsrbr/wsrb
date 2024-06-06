@@ -180,33 +180,28 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
     BuildContext context,
     ReadingViewArgs argument,
   ) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        scaffoldBackgroundColor: Theme.of(context).colorScheme.background,
-      ),
-      child: ReadingScope(
-        observer: _observer,
-        showFooterWidget: _showFooterWidget,
-        onNotification: _onNotification,
-        onDoubleTapDown: _handleDoubleTapDown,
-        readerController: _readerController,
-        contents: _contents,
-        chapter: _chapter,
-        book: _book,
-        child: Scaffold(
-          body: NotificationListener<ScrollNotification>(
-            onNotification: _onNotification,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (_isLoading)
-                  const _LoadContent()
-                else ...[
-                  const _BuildContent(),
-                  const _FooterWidget(),
-                ],
+    return ReadingScope(
+      observer: _observer,
+      showFooterWidget: _showFooterWidget,
+      onNotification: _onNotification,
+      onDoubleTapDown: _handleDoubleTapDown,
+      readerController: _readerController,
+      contents: _contents,
+      chapter: _chapter,
+      book: _book,
+      child: Scaffold(
+        body: NotificationListener<ScrollNotification>(
+          onNotification: _onNotification,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (_isLoading)
+                const _LoadContent()
+              else ...[
+                const _BuildContent(),
+                const _FooterWidget(),
               ],
-            ),
+            ],
           ),
         ),
       ),

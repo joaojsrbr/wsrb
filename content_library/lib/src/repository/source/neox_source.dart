@@ -86,6 +86,12 @@ class NeoxSource extends RSource {
     )?.text.trim();
   }
 
+  @override
+  Future<Result<Content>> getReleases(Content content, int page) async {
+    // TODO: implement getReleases
+    throw UnimplementedError();
+  }
+
   /// Scraping [Book] details.
   @override
   Future<Result<Content>> getData(Content content) async {

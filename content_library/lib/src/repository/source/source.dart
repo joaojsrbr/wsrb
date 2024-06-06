@@ -26,4 +26,6 @@ abstract class RSource {
   Future<Result<Content>> getData(Content content);
 
   Future<Result<List<Data>>> getContent(Release release);
+
+  Future<Result<Content>> getReleases(Content content, int page);
 }

@@ -20,7 +20,7 @@ class HiveController extends ChangeNotifier {
   static const _defaultValueSource =
       HiveDefaultValue('repository_source', Source.ANROLL);
   static const _defaultValueReverseContent =
-      HiveDefaultValue('bookInfo_reverseContents', true);
+      HiveDefaultValue('bookInfo_reverse_contents', true);
 
   bool get reverseContents => _reverseContents;
   OrderBy get orderBy => _orderBy;
@@ -68,8 +68,12 @@ class HiveController extends ChangeNotifier {
       ),
     ]);
 
-    _reverseContents = result.elementAt(0) as bool;
-    _orderBy = result.elementAt(1) as OrderBy;
-    _source = result.elementAt(2) as Source;
+    _reverseContents = result.getElementAt<bool>(0);
+    _orderBy = result.getElementAt<OrderBy>(1);
+    _source = result.getElementAt<Source>(2);
   }
+}
+
+extension on List<Object> {
+  T getElementAt<T>(int index) => this[index] as T;
 }

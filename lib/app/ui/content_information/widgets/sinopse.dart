@@ -44,6 +44,7 @@ class _SinopseWidgetState extends State<SinopseWidget> {
     final borderRadius = BorderRadius.circular(8);
     final isLoading = BookInformationScope.isLoadingOf(context);
     // const isLoading = true;
+    final ThemeData themeData = Theme.of(context);
     Widget container;
 
     if (isLoading) {
@@ -71,9 +72,9 @@ class _SinopseWidgetState extends State<SinopseWidget> {
         child: SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.only(top: 12, right: 8, left: 8),
-            child: Card(
+            child: Card.filled(
+              color: themeData.colorScheme.primary.withOpacity(0.04),
               shape: RoundedRectangleBorder(borderRadius: borderRadius),
-              margin: EdgeInsets.zero,
               child: InkWell(
                 overlayColor: _OverlayColor(context),
                 borderRadius: borderRadius,
@@ -100,19 +101,19 @@ class _SinopseWidgetState extends State<SinopseWidget> {
   }
 }
 
-class _OverlayColor extends MaterialStateProperty<Color?> {
+class _OverlayColor extends WidgetStateProperty<Color?> {
   _OverlayColor(this._context);
   final BuildContext _context;
 
   ColorScheme get _colorScheme => Theme.of(_context).colorScheme;
 
   @override
-  Color? resolve(Set<MaterialState> states) {
-    if (states.contains(MaterialState.pressed)) {
+  Color? resolve(Set<WidgetState> states) {
+    if (states.contains(WidgetState.pressed)) {
       return _colorScheme.primary.withOpacity(0.12);
-    } else if (states.contains(MaterialState.hovered)) {
+    } else if (states.contains(WidgetState.hovered)) {
       return _colorScheme.primary.withOpacity(0.08);
-    } else if (states.contains(MaterialState.focused)) {
+    } else if (states.contains(WidgetState.focused)) {
       return Colors.transparent;
     }
     return Colors.transparent;

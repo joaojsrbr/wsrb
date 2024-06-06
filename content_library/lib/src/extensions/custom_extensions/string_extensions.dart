@@ -16,13 +16,8 @@ extension StringExtensions on String {
     );
     return list.reduce((value, element) => '$value$element');
   }
-}
 
-extension type const StringID._(String _) implements String {
-  StringID.fromURL(String title)
-      : _ = const Uuid().v5(Uuid.NAMESPACE_URL, title);
-}
+  String get toID => trim().replaceAll(' ', '_');
 
-extension type const StringRouter(String _) implements String {
-  String get subRouter => _.replaceFirst('/', '');
+  String get toUuID => const Uuid().v5(Uuid.NAMESPACE_URL, trim());
 }

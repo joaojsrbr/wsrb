@@ -1,7 +1,5 @@
 import 'package:animations/animations.dart';
-import 'package:app_wsrb_jsr/app/core/services/theme_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class SharedAxisTransitionPageWrapper extends Page {
   const SharedAxisTransitionPageWrapper({
@@ -22,10 +20,8 @@ class SharedAxisTransitionPageWrapper extends Page {
       reverseTransitionDuration: const Duration(milliseconds: 650),
       settings: this,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final ThemeController themeController = context.read<ThemeController>();
-
         return SharedAxisTransition(
-          fillColor: themeController.transitionPageFillColor,
+          fillColor: Theme.of(context).canvasColor,
           animation: animation,
           secondaryAnimation: secondaryAnimation,
           transitionType: SharedAxisTransitionType.scaled,

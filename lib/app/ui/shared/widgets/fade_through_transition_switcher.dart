@@ -24,9 +24,10 @@ class FadeThroughTransitionSwitcher extends StatelessWidget {
     super.key,
     this.fillColor = Colors.transparent,
     required this.child,
+    bool? enableSecondChild,
     this.duration = const Duration(milliseconds: 300),
   })  : _onlySwitch = true,
-        enableSecondChild = false,
+        enableSecondChild = enableSecondChild ?? false,
         secondChild = const SizedBox.shrink();
 
   static Widget defaultLayoutBuilder(
@@ -77,13 +78,18 @@ class TabBarSwitcher extends FadeThroughTransitionSwitcher
     required TabBar secondTabBar,
     super.duration = const Duration(milliseconds: 300),
     super.enableSecondChild = false,
-  }) : super(child: tabBar, secondChild: secondTabBar);
+  })  : _firstChild = tabBar,
+        _secondChild = secondTabBar,
+        super(child: tabBar, secondChild: secondTabBar);
+
+  final Widget _secondChild;
+  final Widget _firstChild;
 
   @override
   Size get preferredSize {
-    TabBar tabBar = child as TabBar;
+    TabBar tabBar = _firstChild as TabBar;
     if (enableSecondChild) {
-      tabBar = secondChild as TabBar;
+      tabBar = _secondChild as TabBar;
     }
 
     double maxHeight = _kTabHeight;

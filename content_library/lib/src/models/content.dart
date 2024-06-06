@@ -1,11 +1,12 @@
 import 'package:equatable/equatable.dart';
+import '../entities/entity.dart';
 import '../extensions/custom_extensions/string_extensions.dart';
 import '../utils/releases.dart';
 
 abstract class Content extends Equatable {
   String get imageUrl;
 
-  StringID get id => StringID.fromURL(title);
+  String get stringID => title.toUuID;
 
   final String url;
 
@@ -29,5 +30,12 @@ abstract class Content extends Equatable {
     Releases? releases,
   });
 
-  Map<String, dynamic> get toMap;
+  @override
+  String toString() => title.trim();
+
+  ContentEntity toEntity({
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool isFavorite = false,
+  });
 }

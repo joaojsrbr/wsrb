@@ -11,9 +11,7 @@ abstract class Release extends Equatable implements Comparable<Release> {
 
   final String title;
 
-  StringID get id => StringID.fromURL(url);
-
-  Map<String, dynamic> get toMap;
+  String get stringID => url.toUuID;
 
   String get number;
 

@@ -1,14 +1,12 @@
+import 'package:content_library/src/services/anroll_login.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:path_provider/path_provider.dart' as path;
 
 import '../../constants/app.dart';
 import '../../constants/order.dart';
 import '../../constants/source.dart';
 import '../../interfaces/hive_service.dart';
-import '../../models/anime.dart';
-import '../../models/book.dart';
-import '../../models/content.dart';
 import '../../utils/custom_log.dart';
 
 part 'hive_adapters.dart';
@@ -16,22 +14,26 @@ part 'hive_adapters.dart';
 class HiveCacheServiceImpl implements HiveService {
   final String _boxName = App.APP_CACHE_BOX_NAME;
 
-  late final Box<dynamic> _hiveBox;
+  late Box<dynamic> _hiveBox;
 
-  HiveCacheServiceImpl();
+  final bool registerAdapters;
+
+  HiveCacheServiceImpl({
+    this.registerAdapters = false,
+  });
 
   @override
   Future<void> init() async {
-    final docsDir = await getApplicationCacheDirectory();
+    if (registerAdapters) _hiveAdapters();
+    final docsDir = await path.getTemporaryDirectory();
 
     Hive.init(docsDir.path);
-
     _hiveBox = await Hive.openBox<dynamic>(_boxName, path: docsDir.path);
   }
 
   @override
   Stream<BoxEvent> watchBy(String key) {
-    return _hiveBox.watch(key: key);
+    throw UnimplementedError();
   }
 
   @override
@@ -42,9 +44,15 @@ class HiveCacheServiceImpl implements HiveService {
   }) async {
     try {
       final T loaded = _hiveBox.get(key, defaultValue: defaultValue) as T;
+
+      if (debug) {
+        final message = 'Hive type: $key as ${loaded.runtimeType}'
+            '\nHive loaded: $key as $loaded with ${loaded.runtimeType}';
+        customLog(message);
+      }
       return Future.value(loaded);
     } catch (_, __) {
-      customLog('HiveError : $_\nStackTrace: $__,');
+      if (debug) customLog('HiveError : $_\nStackTrace: $__,');
       return Future.value(defaultValue);
     }
   }
@@ -58,17 +66,24 @@ class HiveCacheServiceImpl implements HiveService {
     try {
       await _hiveBox.put(key, value);
     } on HiveError catch (_, __) {
-      customLog('HiveError : $_\nStackTrace: $__,');
+      if (debug) customLog('HiveError : $_\nStackTrace: $__,');
     }
   }
 
   @override
-  Future<void> delete<T>(String key) async {
+  Future<void> delete<T>(
+    String key, {
+    bool debug = true,
+  }) async {
     try {
       await _hiveBox.delete(key);
-      customLog('$key deleted');
+
+      if (debug) {
+        final message = 'Hive delete: $key';
+        customLog(message);
+      }
     } on HiveError catch (_, __) {
-      customLog('HiveError : $_\nStackTrace: $__,');
+      if (debug) customLog('HiveError : $_\nStackTrace: $__,');
     }
   }
 }
@@ -79,18 +94,13 @@ class HiveServiceImpl implements HiveService {
 
   late final Box<dynamic> _hiveBox;
 
-  final bool registerAdapters;
-
-  HiveServiceImpl({
-    this.start,
-    this.registerAdapters = true,
-  });
+  HiveServiceImpl({this.start});
 
   @override
   Future<void> init() async {
-    if (registerAdapters) _hiveAdapters();
+    _hiveAdapters();
 
-    final docsDir = await getApplicationDocumentsDirectory();
+    final docsDir = await path.getApplicationDocumentsDirectory();
 
     Hive.init(docsDir.path);
 
@@ -117,16 +127,22 @@ class HiveServiceImpl implements HiveService {
 
       // print?.call(_hiveBox.get(key, defaultValue: defaultValue) as T) ??
 
-      if (debug) {
-        customLog(
-            'Hive type: $key as ${loaded.runtimeType}\nHive loaded: $key as $loaded with ${loaded.runtimeType}');
-      }
+      final StringBuffer stringBuffer = StringBuffer()
+        ..write('Hive type: $key as ${loaded.runtimeType}')
+        ..write(
+          '\nHive loaded: $key as $loaded with ${loaded.runtimeType}',
+        );
+      customLog(stringBuffer.toString());
 
       return Future.value(loaded);
     } catch (_, __) {
       if (debug) {
-        customLog(
-            'Hive type: $key as ${defaultValue.runtimeType}\nHive loaded: $key as $defaultValue with ${defaultValue.runtimeType}');
+        final StringBuffer stringBuffer = StringBuffer()
+          ..write('Hive type: $key as ${defaultValue.runtimeType}')
+          ..write(
+            '\nHive loaded: $key as $defaultValue with ${defaultValue.runtimeType}',
+          );
+        customLog(stringBuffer.toString());
       }
 
       return Future.value(defaultValue);
@@ -141,20 +157,27 @@ class HiveServiceImpl implements HiveService {
   }) async {
     try {
       await _hiveBox.put(key, value);
-      if (debug) {
-        customLog(
-            'Hive save_type : $key as ${value.runtimeType}\nHive save : $key as $value with ${value.runtimeType}');
-      }
+
+      final StringBuffer stringBuffer = StringBuffer()
+        ..write('Hive save_type: $key as ${value.runtimeType}')
+        ..write(
+          '\nHive save: $key as $value with ${value.runtimeType}',
+        );
+      customLog(stringBuffer.toString());
     } on HiveError catch (_, __) {
       if (debug) customLog('HiveError : $_\nStackTrace: $__,');
     }
   }
 
   @override
-  Future<void> delete<T>(String key) async {
+  Future<void> delete<T>(String key, {bool debug = true}) async {
     try {
       await _hiveBox.delete(key);
-      customLog('$key deleted');
+      if (debug) {
+        final StringBuffer stringBuffer = StringBuffer()
+          ..write('Hive delete: $key');
+        customLog(stringBuffer.toString());
+      }
     } on HiveError catch (_, __) {
       customLog('HiveError : $_\nStackTrace: $__,');
     }

@@ -57,14 +57,14 @@ class CustomSearchAnchor extends StatefulWidget {
     GestureTapCallback? onTap,
     ValueChanged<String>? onSubmitted,
     ValueChanged<String>? onChanged,
-    MaterialStateProperty<double?>? barElevation,
-    MaterialStateProperty<Color?>? barBackgroundColor,
-    MaterialStateProperty<Color?>? barOverlayColor,
-    MaterialStateProperty<BorderSide?>? barSide,
-    MaterialStateProperty<RoundedRectangleBorder?>? barShape,
-    MaterialStateProperty<EdgeInsetsGeometry?>? barPadding,
-    MaterialStateProperty<TextStyle?>? barTextStyle,
-    MaterialStateProperty<TextStyle?>? barHintStyle,
+    WidgetStateProperty<double?>? barElevation,
+    WidgetStateProperty<Color?>? barBackgroundColor,
+    WidgetStateProperty<Color?>? barOverlayColor,
+    WidgetStateProperty<BorderSide?>? barSide,
+    WidgetStateProperty<RoundedRectangleBorder?>? barShape,
+    WidgetStateProperty<EdgeInsetsGeometry?>? barPadding,
+    WidgetStateProperty<TextStyle?>? barTextStyle,
+    WidgetStateProperty<TextStyle?>? barHintStyle,
     Widget? viewLeading,
     Iterable<Widget>? viewTrailing,
     String? viewHintText,
@@ -706,18 +706,17 @@ class _ViewContentState extends State<_ViewContent> {
                               hintText: widget.viewHintText,
                               fillColor: Colors.transparent,
                               backgroundColor:
-                                  const MaterialStatePropertyAll<Color>(
+                                  const WidgetStatePropertyAll<Color>(
                                 Colors.transparent,
                               ),
-                              overlayColor:
-                                  const MaterialStatePropertyAll<Color>(
+                              overlayColor: const WidgetStatePropertyAll<Color>(
                                 Colors.transparent,
                               ),
                               elevation:
-                                  const MaterialStatePropertyAll<double>(0.0),
-                              textStyle: MaterialStatePropertyAll<TextStyle?>(
+                                  const WidgetStatePropertyAll<double>(0.0),
+                              textStyle: WidgetStatePropertyAll<TextStyle?>(
                                   effectiveTextStyle),
-                              hintStyle: MaterialStatePropertyAll<TextStyle?>(
+                              hintStyle: WidgetStatePropertyAll<TextStyle?>(
                                   effectiveHintStyle),
                               controller: _controller,
                               onChanged: (String value) {
@@ -772,14 +771,14 @@ class _CustomSearchAnchorWithSearchBar extends CustomSearchAnchor {
     Iterable<Widget>? barTrailing,
     String? barHintText,
     GestureTapCallback? onTap,
-    MaterialStateProperty<double?>? barElevation,
-    MaterialStateProperty<Color?>? barBackgroundColor,
-    MaterialStateProperty<Color?>? barOverlayColor,
-    MaterialStateProperty<BorderSide?>? barSide,
-    MaterialStateProperty<RoundedRectangleBorder?>? barShape,
-    MaterialStateProperty<EdgeInsetsGeometry?>? barPadding,
-    MaterialStateProperty<TextStyle?>? barTextStyle,
-    MaterialStateProperty<TextStyle?>? barHintStyle,
+    WidgetStateProperty<double?>? barElevation,
+    WidgetStateProperty<Color?>? barBackgroundColor,
+    WidgetStateProperty<Color?>? barOverlayColor,
+    WidgetStateProperty<BorderSide?>? barSide,
+    WidgetStateProperty<RoundedRectangleBorder?>? barShape,
+    WidgetStateProperty<EdgeInsetsGeometry?>? barPadding,
+    WidgetStateProperty<TextStyle?>? barTextStyle,
+    WidgetStateProperty<TextStyle?>? barHintStyle,
     super.viewLeading,
     super.viewTrailing,
     String? viewHintText,
@@ -921,25 +920,25 @@ class CustomSearchBar extends StatefulWidget {
 
   final BoxConstraints? constraints;
 
-  final MaterialStateProperty<double?>? elevation;
+  final WidgetStateProperty<double?>? elevation;
 
-  final MaterialStateProperty<Color?>? backgroundColor;
+  final WidgetStateProperty<Color?>? backgroundColor;
 
-  final MaterialStateProperty<Color?>? shadowColor;
+  final WidgetStateProperty<Color?>? shadowColor;
 
-  final MaterialStateProperty<Color?>? surfaceTintColor;
+  final WidgetStateProperty<Color?>? surfaceTintColor;
 
-  final MaterialStateProperty<Color?>? overlayColor;
+  final WidgetStateProperty<Color?>? overlayColor;
 
-  final MaterialStateProperty<BorderSide?>? side;
+  final WidgetStateProperty<BorderSide?>? side;
 
-  final MaterialStateProperty<RoundedRectangleBorder?>? shape;
+  final WidgetStateProperty<RoundedRectangleBorder?>? shape;
 
-  final MaterialStateProperty<EdgeInsetsGeometry?>? padding;
+  final WidgetStateProperty<EdgeInsetsGeometry?>? padding;
 
-  final MaterialStateProperty<TextStyle?>? textStyle;
+  final WidgetStateProperty<TextStyle?>? textStyle;
 
-  final MaterialStateProperty<TextStyle?>? hintStyle;
+  final WidgetStateProperty<TextStyle?>? hintStyle;
 
   final TextCapitalization? textCapitalization;
 
@@ -954,7 +953,7 @@ class CustomSearchBar extends StatefulWidget {
 }
 
 class _CustomSearchBarState extends State<CustomSearchBar> {
-  late final MaterialStatesController _internalStatesController;
+  late final WidgetStatesController _internalStatesController;
   FocusNode? _internalFocusNode;
   FocusNode get _focusNode =>
       widget.focusNode ?? (_internalFocusNode ??= FocusNode());
@@ -962,7 +961,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
   @override
   void initState() {
     super.initState();
-    _internalStatesController = MaterialStatesController();
+    _internalStatesController = WidgetStatesController();
     _internalStatesController.addListener(_listener);
   }
 
@@ -988,11 +987,11 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
     final SearchBarThemeData defaults = _SearchBarDefaultsM3(context);
 
     T? resolve<T>(
-      MaterialStateProperty<T>? widgetValue,
-      MaterialStateProperty<T>? themeValue,
-      MaterialStateProperty<T>? defaultValue,
+      WidgetStateProperty<T>? widgetValue,
+      WidgetStateProperty<T>? themeValue,
+      WidgetStateProperty<T>? defaultValue,
     ) {
-      final Set<MaterialState> states = _internalStatesController.value;
+      final Set<WidgetState> states = _internalStatesController.value;
       return widgetValue?.resolve(states) ??
           themeValue?.resolve(states) ??
           defaultValue?.resolve(states);
@@ -1015,14 +1014,14 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
     final RoundedRectangleBorder? effectiveShape =
         resolve<RoundedRectangleBorder?>(
       widget.shape,
-      const MaterialStatePropertyAll(RoundedRectangleBorder()),
-      const MaterialStatePropertyAll(RoundedRectangleBorder()),
+      const WidgetStatePropertyAll(RoundedRectangleBorder()),
+      const WidgetStatePropertyAll(RoundedRectangleBorder()),
     );
     final BorderSide? effectiveSide =
         resolve<BorderSide?>(widget.side, searchBarTheme.side, defaults.side);
     // final EdgeInsetsGeometry? effectivePadding = resolve<EdgeInsetsGeometry?>(
     //     widget.padding, searchBarTheme.padding, defaults.padding);
-    final MaterialStateProperty<Color?>? effectiveOverlayColor =
+    final WidgetStateProperty<Color?>? effectiveOverlayColor =
         widget.overlayColor ??
             searchBarTheme.overlayColor ??
             defaults.overlayColor;
@@ -1031,7 +1030,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
             searchBarTheme.textCapitalization ??
             defaults.textCapitalization!;
 
-    final Set<MaterialState> states = _internalStatesController.value;
+    final Set<WidgetState> states = _internalStatesController.value;
     final TextStyle? effectiveHintStyle = widget.hintStyle?.resolve(states) ??
         searchBarTheme.hintStyle?.resolve(states) ??
         widget.textStyle?.resolve(states) ??
@@ -1067,22 +1066,28 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
               ))
           .toList();
     }
+
     final FlexibleSpaceBarSettings? settings =
         context.dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
 
     void onSubmitted(String value) {
       widget.onSubmitted?.call(value);
       if (_focusNode.hasFocus) {
-        _internalStatesController.update(MaterialState.focused, false);
+        _internalStatesController.update(WidgetState.focused, false);
       }
     }
+
+    bool isScrolledUnder = settings?.isScrolledUnder ?? false;
 
     return ConstrainedBox(
       constraints: widget.constraints ??
           searchBarTheme.constraints ??
           defaults.constraints!,
-      child: Opacity(
-        opacity: settings?.toolbarOpacity ?? 1,
+      child: AnimatedOpacity(
+        opacity: !isScrolledUnder ? 1 : 0,
+        // opacity: 1,
+        duration: const Duration(milliseconds: 250),
+        curve: const Cubic(0.2, 0.0, 0.0, 1.0),
         child: Material(
           elevation: effectiveElevation!,
           shadowColor: effectiveShadowColor,
@@ -1165,7 +1170,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                       ?.copyWith(side: effectiveSide)
                       .borderRadius as BorderRadius,
                 ),
-                focusColor: colorScheme.background.withOpacity(0.5),
+                focusColor: colorScheme.surface.withOpacity(0.5),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: effectiveShape
                       ?.copyWith(side: effectiveSide)
@@ -1193,39 +1198,39 @@ class _SearchBarDefaultsM3 extends SearchBarThemeData {
   late final TextTheme _textTheme = Theme.of(context).textTheme;
 
   @override
-  MaterialStateProperty<Color?>? get backgroundColor =>
-      MaterialStateColor.resolveWith(
-        (Set<MaterialState> states) {
-          if (states.contains(MaterialState.disabled)) {
+  WidgetStateProperty<Color?>? get backgroundColor =>
+      WidgetStateColor.resolveWith(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
             return _colors.onSurface.withOpacity(0.04);
           }
-          return _colors.surfaceVariant.withOpacity(0.16);
+          return _colors.surfaceContainerHighest.withOpacity(0.16);
         },
       );
-  // MaterialStatePropertyAll<Color>(_colors.surface);
+  // WidgetStatePropertyAll<Color>(_colors.surface);
 
   @override
-  MaterialStateProperty<double>? get elevation =>
-      const MaterialStatePropertyAll<double>(6.0);
+  WidgetStateProperty<double>? get elevation =>
+      const WidgetStatePropertyAll<double>(6.0);
 
   @override
-  MaterialStateProperty<Color>? get shadowColor =>
-      MaterialStatePropertyAll<Color>(_colors.shadow);
+  WidgetStateProperty<Color>? get shadowColor =>
+      WidgetStatePropertyAll<Color>(_colors.shadow);
 
   @override
-  MaterialStateProperty<Color>? get surfaceTintColor =>
-      MaterialStatePropertyAll<Color>(_colors.surfaceTint);
+  WidgetStateProperty<Color>? get surfaceTintColor =>
+      WidgetStatePropertyAll<Color>(_colors.surfaceTint);
 
   @override
-  MaterialStateProperty<Color?>? get overlayColor =>
-      MaterialStateProperty.resolveWith((Set<MaterialState> states) {
-        if (states.contains(MaterialState.pressed)) {
+  WidgetStateProperty<Color?>? get overlayColor =>
+      WidgetStateProperty.resolveWith((Set<WidgetState> states) {
+        if (states.contains(WidgetState.pressed)) {
           return _colors.onSurface.withOpacity(0.12);
         }
-        if (states.contains(MaterialState.hovered)) {
+        if (states.contains(WidgetState.hovered)) {
           return _colors.onSurface.withOpacity(0.08);
         }
-        if (states.contains(MaterialState.focused)) {
+        if (states.contains(WidgetState.focused)) {
           return Colors.transparent;
         }
         return Colors.transparent;
@@ -1234,22 +1239,22 @@ class _SearchBarDefaultsM3 extends SearchBarThemeData {
   // No default side
 
   @override
-  MaterialStateProperty<OutlinedBorder>? get shape =>
-      const MaterialStatePropertyAll<OutlinedBorder>(StadiumBorder());
+  WidgetStateProperty<OutlinedBorder>? get shape =>
+      const WidgetStatePropertyAll<OutlinedBorder>(StadiumBorder());
 
   @override
-  MaterialStateProperty<EdgeInsetsGeometry>? get padding =>
-      const MaterialStatePropertyAll<EdgeInsetsGeometry>(
+  WidgetStateProperty<EdgeInsetsGeometry>? get padding =>
+      const WidgetStatePropertyAll<EdgeInsetsGeometry>(
           EdgeInsets.symmetric(horizontal: 8.0));
 
   @override
-  MaterialStateProperty<TextStyle?> get textStyle =>
-      MaterialStatePropertyAll<TextStyle?>(
+  WidgetStateProperty<TextStyle?> get textStyle =>
+      WidgetStatePropertyAll<TextStyle?>(
           _textTheme.bodyLarge?.copyWith(color: _colors.onSurface));
 
   @override
-  MaterialStateProperty<TextStyle?> get hintStyle =>
-      MaterialStatePropertyAll<TextStyle?>(
+  WidgetStateProperty<TextStyle?> get hintStyle =>
+      WidgetStatePropertyAll<TextStyle?>(
           _textTheme.bodyLarge?.copyWith(color: _colors.onSurfaceVariant));
 
   @override

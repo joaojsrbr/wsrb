@@ -15,7 +15,10 @@ abstract interface class HiveService {
     bool debug = true,
   });
 
-  Future<void> delete<T>(String key);
+  Future<void> delete<T>(
+    String key, {
+    bool debug = true,
+  });
 
   Stream<BoxEvent> watchBy(String key);
 }

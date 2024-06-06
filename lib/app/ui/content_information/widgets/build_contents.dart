@@ -1,11 +1,11 @@
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
 
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/list_dismissible.dart';
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -16,74 +16,162 @@ class BuildContents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool releasesIsLoading =
+        BookInformationScope.releasesIsLoadingOf(context);
+    final bool isLoadingOf = BookInformationScope.isLoadingOf(context);
+    // final int index = BookInformationScope.indexOf(context);
+    // final ThemeData themeData = Theme.of(context);
     final HiveController hiveController = context.watch<HiveController>();
-    final bool isLoading = BookInformationScope.isLoadingOf(context);
-    final ThemeData themeData = Theme.of(context);
-    final releases = BookInformationScope.releasesOf(context);
+    final Content content = BookInformationScope.contentOf(context);
+
     Widget container = const SliverToBoxAdapter();
 
-    if (isLoading) {
+    if (isLoadingOf || releasesIsLoading) {
       container = SliverFillRemaining(
-        child: ShimmerLoading(
-          isLoading: isLoading,
-          child: const Material(
-            child: Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(),
-              margin: EdgeInsets.zero,
-              child: SizedBox.expand(),
-            ),
-          ),
-        ),
+        // child: Center(child: CircularProgressIndicator()),
+        child: releasesIsLoading && !isLoadingOf
+            ? const Center(child: CircularProgressIndicator())
+            : ShimmerLoading(
+                isLoading: isLoadingOf,
+                child: const Material(
+                  child: Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(),
+                    margin: EdgeInsets.zero,
+                    child: SizedBox.expand(),
+                  ),
+                ),
+              ),
       );
-    } else if (releases.isNotEmpty) {
-      final index = BookInformationScope.indexOf(context);
-      final releasesIndex = BookInformationScope.releasesOf(context)
-          .elementAt(index)
-          .reverse(hiveController.reverseContents);
-      final content = BookInformationScope.contentOf(context);
+    } else if (content.releases.isNotEmpty && !releasesIsLoading) {
+      final List<Release> releases = content.releases
+          // .slices(20)
+          // .elementAt(index)
+          .reverse(hiveController.reverseContents)
+          .toList();
+      container = SliverPadding(
+        padding: const EdgeInsets.only(bottom: 12),
+        sliver: SliverList.separated(
+          separatorBuilder: (context, index) => const SizedBox(height: 8),
+          itemCount: releases.length,
+          itemBuilder: (context, index) {
+            final Release release = releases[index];
+            String? thumbnail;
+            String? sinopse;
 
-      container = SliverAnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        child: ListDismissible(
-          // key: ValueKey(hiveController.contentOrders),
-          isSliver: true,
-          titleTextStyle: themeData.textTheme.labelLarge,
-          releases: Releases.fromList(releasesIndex),
-          onTap: (Release data) async {
-            customLog(
-              'tapped name: ${data.title} - id: ${data.id}',
-            );
-
-            final GoRouter goRouter = GoRouter.of(context);
-
-            if (data is Chapter && content is Book) {
-              await goRouter.push(
-                RouteName.READ,
-                extra: ReadingViewArgs(
-                  capturedThemes: InheritedTheme.capture(
-                    from: context,
-                    to: Navigator.of(context).context,
-                  ),
-                  chapter: data,
-                  releases: releasesIndex,
-                  currentIndex: index,
-                  book: content,
-                ),
-              );
-            } else if (data is Episode && content is Anime) {
-              await goRouter.push(
-                RouteName.PLAYER,
-                extra: PlayerArgs(
-                  anime: content,
-                  capturedThemes: InheritedTheme.capture(
-                    from: context,
-                    to: Navigator.of(context).context,
-                  ),
-                  episode: data,
-                ),
-              );
+            if (release is Episode) {
+              sinopse = release.sinopse ?? '';
+              thumbnail = release.thumbnail;
             }
+
+            return ListTile(
+              leading: thumbnail != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: CachedNetworkImage(
+                        width: 112,
+                        imageUrl: thumbnail,
+                        placeholder: (context, url) => Card(
+                          margin: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 1,
+                          child: const SizedBox.expand(),
+                        ),
+                        fit: BoxFit.cover,
+                        maxWidthDiskCache: 300,
+                        maxHeightDiskCache: 200,
+                      ),
+                    )
+                  : Card(
+                      margin: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 1,
+                      child: const SizedBox(
+                        width: 112,
+                        height: double.infinity,
+                      ),
+                    ),
+              titleTextStyle: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+              onTap: () async {
+                customLog(
+                  'tapped name: ${release.title} - id: ${release.stringID}',
+                );
+
+                final GoRouter goRouter = GoRouter.of(context);
+
+                if (release is Chapter && content is Book) {
+                  await goRouter.push(
+                    RouteName.READ,
+                    extra: ReadingViewArgs(
+                      capturedThemes: InheritedTheme.capture(
+                        from: context,
+                        to: Navigator.of(context).context,
+                      ),
+                      chapter: release,
+                      releases: releases,
+                      currentIndex: index,
+                      book: content,
+                    ),
+                  );
+                } else if (release is Episode && content is Anime) {
+                  await goRouter.push(
+                    RouteName.PLAYER,
+                    extra: PlayerArgs(anime: content, episode: release),
+                  );
+                }
+              },
+              onLongPress: sinopse?.isNotEmpty == true
+                  ? () {
+                      showModalBottomSheet(
+                        isScrollControlled: false,
+                        isDismissible: true,
+                        showDragHandle: true,
+                        useRootNavigator: true,
+                        context: context,
+                        builder: (context) {
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12.0,
+                                ),
+                                child: Text(
+                                  'Sinopse',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: Text(
+                                  sinopse!.trim(),
+                                  textAlign: TextAlign.justify,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              ),
+                              const SizedBox(height: 30),
+                            ],
+                          );
+                        },
+                      );
+                    }
+                  : null,
+              visualDensity: const VisualDensity(vertical: 2, horizontal: -2),
+              title: Text('${release.number}. ${release.title}'),
+            );
           },
         ),
       );

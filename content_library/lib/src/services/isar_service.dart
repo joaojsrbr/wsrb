@@ -11,4 +11,10 @@ abstract interface class IsarService {
   Future<Result<(bool, List<int>?)>> addAll({List<Entity>? entities});
 
   IsarCollection<T> collection<T>();
+
+  Future<void> startDatabase({
+    Future<void> Function()? onStart,
+    List<CollectionSchema<dynamic>>? schemas,
+    bool inspector = true,
+  });
 }

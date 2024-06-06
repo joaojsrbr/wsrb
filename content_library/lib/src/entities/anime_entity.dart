@@ -1,18 +1,23 @@
-import 'package:content_library/content_library.dart';
+import 'package:content_library/src/constants/source.dart';
+import 'package:content_library/src/entities/entity.dart';
+import 'package:content_library/src/entities/episode_entity.dart';
+import 'package:content_library/src/models/anime.dart';
+import 'package:content_library/src/utils/releases.dart';
 import 'package:isar/isar.dart';
 
 part 'anime_entity.g.dart';
 
 @Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toAnime'})
-class AnimeEntity extends Entity {
+class AnimeEntity extends ContentEntity {
   @Index(replace: true, unique: true)
   String stringID;
 
   final IsarLinks<EpisodeEntity> episodes = IsarLinks<EpisodeEntity>();
 
   DateTime? createdAt;
-  String? sinopse;
+  String? animeID;
   DateTime? updatedAt;
+  String? sinopse;
   @enumerated
   Source source;
   bool isDublado;
@@ -32,6 +37,7 @@ class AnimeEntity extends Entity {
     required this.title,
     required this.source,
     this.createdAt,
+    this.animeID,
     this.isDublado = false,
     this.slugSerie,
     this.updatedAt,
@@ -44,29 +50,34 @@ class AnimeEntity extends Entity {
     this.mediumImage,
   });
 
-  @override
   String get imageUrl =>
       extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   @override
   List<Object?> get props => [
+        animeID,
         stringID,
-        generateID,
-        title,
-        sinopse,
         episodes,
-        url,
-        slugSerie,
+        createdAt,
+        sinopse,
+        updatedAt,
+        source,
+        isDublado,
         isFavorite,
+        slugSerie,
+        url,
+        title,
         originalImage,
         extraLarge,
         largeImage,
         mediumImage,
+        generateID,
       ];
 
   Anime get toAnime {
     return Anime(
       url: url,
+      animeID: animeID,
       title: title,
       generateID: generateID,
       slugSerie: slugSerie,

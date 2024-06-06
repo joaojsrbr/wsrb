@@ -6,13 +6,16 @@ class App {
   const App._();
 
   /// [URL] do site da NeoxScan [SCAN].
-  static const String NEOX_URL = 'https://nexoscans.net';
+  static const String NEOX_URL = 'https://nexoscans.com';
 
   /// [URL] do site da Demonsect [SCAN].
   static const String DEMON_SECT_URL = 'https://demonsect.com.br';
 
   /// [URL] do site da Anroll [ANIME].
   static const String ANROLL_URL = 'https://www.anroll.net';
+
+  /// [URL] da api da Anroll [ANIME].
+  static const String ANROLL_USER_URL = 'https://api-user.anroll.net';
 
   static Map<String, String> HEADERS = {
     "user-agent":
@@ -28,6 +31,6 @@ class App {
 
   static const String APP_MAIN_BOX_NAME = 'WSRB_HIVE';
   static const String APP_CACHE_BOX_NAME = 'WSRB_HIVE_CACHE';
-  static const String APP_CACHE_TASK_DELETE_BY_ID = 'TASK_CLEAR_CACHE_BY_ID';
-  static const String APP_CACHE_TASK_DELETE_ALL = 'TASK_CLEAR_CACHE_ALL';
+  // static const String APP_CACHE_TASK_DELETE_BY_ID = 'TASK_CLEAR_CACHE_BY_ID';
+  // static const String APP_CACHE_TASK_DELETE_ALL = 'TASK_CLEAR_CACHE_ALL';
 }
