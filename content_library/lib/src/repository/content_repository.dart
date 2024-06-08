@@ -43,6 +43,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   bool isSuccess = false;
   bool _hasMore = true;
   bool forceRefresh = false;
+  Exception? fullScreenError;
 
   late final DioClient _dio;
   // late final JikanService _jikanService;

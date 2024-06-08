@@ -19,6 +19,9 @@ enum OrderBy {
 
   @override
   String toString() => name;
+
+  static List<OrderBy> get list =>
+      OrderBy.values.where((element) => element != OrderBy.RELEVANCE).toList();
 }
 
 extension OrderByExtension on OrderBy {

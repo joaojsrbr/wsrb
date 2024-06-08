@@ -11,6 +11,9 @@ class App {
   /// [URL] do site da Demonsect [SCAN].
   static const String DEMON_SECT_URL = 'https://demonsect.com.br';
 
+  /// [URL] do site da Goyabu [SCAN].
+  static const String GOYABU_URL = 'https://goyabu.to';
+
   /// [URL] do site da Anroll [ANIME].
   static const String ANROLL_URL = 'https://www.anroll.net';
 

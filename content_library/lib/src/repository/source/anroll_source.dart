@@ -279,13 +279,16 @@ class AnrollSource extends RSource {
       }
       contentRepository.isSuccess = true;
       contentRepository._hasMore = false;
+      contentRepository.fullScreenError = null;
       return Future.value(false);
     } on AnrollGetIdException catch (_, __) {
+      contentRepository.fullScreenError = _;
       contentRepository.isSuccess = false;
       contentRepository._hasMore = false;
       customLog('ERROR[${_.runtimeType}]: ${_.message}', stackTrace: __);
       return Future.value(false);
     } on DioException catch (_, __) {
+      contentRepository.fullScreenError = _;
       contentRepository.isSuccess = false;
       contentRepository._hasMore = false;
       return Future.value(false);

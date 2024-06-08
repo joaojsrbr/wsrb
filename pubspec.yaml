@@ -60,6 +60,7 @@ dependencies:
   flutter_sticky_header: ^0.6.5
   super_sliver_list: ^0.4.1
   extended_nested_scroll_view: ^6.2.1
+  open_settings_plus: ^0.3.3
 
 dev_dependencies:
   flutter_test:

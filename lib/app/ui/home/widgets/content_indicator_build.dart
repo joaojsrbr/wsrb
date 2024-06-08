@@ -1,8 +1,16 @@
+import 'dart:async';
+
+import 'package:another_flushbar/flushbar.dart';
 import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
+import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:content_library/content_library.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:open_settings_plus/open_settings_plus.dart';
+
+final Debouncer _debouncer = Debouncer();
 
 Widget contentIndicatorBuilder(BuildContext context, IndicatorStatus status) {
   Widget widget;
@@ -133,16 +141,113 @@ class _NoMoreLoadWidget extends StatelessWidget {
   }
 }
 
-class _FullScreenErrorWidget extends StatelessWidget {
+class _FullScreenErrorWidget extends StatefulWidget {
   const _FullScreenErrorWidget();
+
+  @override
+  State<_FullScreenErrorWidget> createState() => _FullScreenErrorWidgetState();
+}
+
+class _FullScreenErrorWidgetState extends State<_FullScreenErrorWidget> {
+  late final ContentRepository _contentRepository;
+
+  @override
+  void initState() {
+    _contentRepository = context.read<ContentRepository>();
+    scheduleMicrotask(_showSnackBar);
+
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant _FullScreenErrorWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+  }
+
+  Future<void> _showSnackBar([BuildContext? context]) async {
+    _debouncer.cancel();
+    _debouncer.call(() {
+      final fullScreenError = _contentRepository.fullScreenError;
+      if (fullScreenError is DioException && fullScreenError.response == null) {
+        final AppSnackBar appSnackBar = AppSnackBar(context ?? this.context);
+        appSnackBar.show(
+          const Text(
+            'Verifique sua conexão com a internet.',
+          ),
+          flushbarPosition: FlushbarPosition.TOP,
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final isSliver =
         context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
-    //! TODO: REPLACE ERROR WIDGET
-    Widget child = const Center(child: Text('Error'));
+    Widget child = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        switch (_contentRepository.fullScreenError) {
+          AnrollGetIdException data => Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                data.message,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          DioException data => Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                data.message ?? '',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          _ => const SizedBox.shrink()
+        },
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FilledButton(
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                _contentRepository.refresh(true);
+              },
+              child: const Text('Atualizar'),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () async {
+                switch (OpenSettingsPlus.shared) {
+                  case OpenSettingsPlusAndroid settings:
+                    // await settings.wifi();
+
+                    settings.sendCustomMessage('message');
+                    break;
+                  case OpenSettingsPlusIOS settings:
+                    await settings.wifi();
+                    break;
+                }
+
+                await _contentRepository.refresh(true);
+              },
+              child: const Text('configurações de wi-fi'),
+            ),
+          ],
+        )
+      ],
+    );
+
     if (isSliver) child = SliverFillRemaining(child: child);
     return child;
   }

@@ -228,16 +228,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _MenuButton(
-                            data: Source.values.toList(),
+                            data: Source.list,
                             onTap: hiveController.setSource,
                             enableSecondChild: tabController.index != 0,
                             child: Text(hiveController.source.toString()),
                           ),
                           _MenuButton(
-                            data: OrderBy.values
-                                .where(
-                                    (element) => element != OrderBy.RELEVANCE)
-                                .toList(),
+                            data: OrderBy.list,
                             onTap: hiveController.setOrderBy,
                             leadingMenuItem: (data) => Icon(data.iconData),
                             enableSecondChild:
@@ -357,51 +354,55 @@ class _MenuButtonState<T> extends State<_MenuButton<T>> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            onPressed: () async {
-              final RenderBox? button =
-                  _buttonKey.currentContext?.findRenderObject() as RenderBox?;
+            onPressed: (widget.data.length == 1)
+                ? null
+                : () async {
+                    final RenderBox? button = _buttonKey.currentContext
+                        ?.findRenderObject() as RenderBox?;
 
-              final RenderBox? overlay = Navigator.of(context)
-                  .overlay
-                  ?.context
-                  .findRenderObject() as RenderBox?;
-              if (overlay != null && button != null) {
-                final size = button.size;
+                    final RenderBox? overlay = Navigator.of(context)
+                        .overlay
+                        ?.context
+                        .findRenderObject() as RenderBox?;
+                    if (overlay != null && button != null) {
+                      final size = button.size;
 
-                final RelativeRect position = RelativeRect.fromRect(
-                  Rect.fromPoints(
-                    button.localToGlobal(size.bottomLeft(Offset.zero)),
-                    button.localToGlobal(size.bottomLeft(Offset.zero)),
-                  ),
-                  Offset(size.width > 100 ? -5 : size.width, -5) & overlay.size,
-                );
+                      final RelativeRect position = RelativeRect.fromRect(
+                        Rect.fromPoints(
+                          button.localToGlobal(size.bottomLeft(Offset.zero)),
+                          button.localToGlobal(size.bottomLeft(Offset.zero)),
+                        ),
+                        Offset(size.width > 100 ? -5 : size.width, -5) &
+                            overlay.size,
+                      );
 
-                final result = await showMenu(
-                  context: context,
-                  position: position,
-                  items: widget.data
-                      .map((e) => PopupMenuItem(
-                            value: e,
-                            enabled: widget.enableMenuItem?.call(e) ?? true,
-                            child: ListTile(
-                                leading: widget.leadingMenuItem?.call(e),
-                                title: Text(e.toString())),
-                          ))
-                      .toList(),
-                );
+                      final result = await showMenu(
+                        context: context,
+                        position: position,
+                        items: widget.data
+                            .map((e) => PopupMenuItem(
+                                  value: e,
+                                  enabled:
+                                      widget.enableMenuItem?.call(e) ?? true,
+                                  child: ListTile(
+                                      leading: widget.leadingMenuItem?.call(e),
+                                      title: Text(e.toString())),
+                                ))
+                            .toList(),
+                      );
 
-                if (result == null) return;
+                      if (result == null) return;
 
-                widget.onTap?.call(result);
+                      widget.onTap?.call(result);
 
-                // Future.delayed(
-                //   const Duration(milliseconds: 200),
-                //   () => _buttonLastSize = button.size,
-                // );
-              }
+                      // Future.delayed(
+                      //   const Duration(milliseconds: 200),
+                      //   () => _buttonLastSize = button.size,
+                      // );
+                    }
 
-              // customLog(button.size);
-            },
+                    // customLog(button.size);
+                  },
             child: widget.child,
           ),
         ),
