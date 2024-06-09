@@ -8,12 +8,13 @@ import 'package:content_library/src/extensions/custom_extensions/list_extensions
 import 'package:content_library/src/extensions/custom_extensions/string_extensions.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart' as ui;
-
+// import 'package:flutter_webview_plugin/flutter_webview_plugin.dart' as plugin;
 import 'package:hive/hive.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 
 import 'package:loading_more_list/loading_more_list.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import '../constants/app.dart';
 import '../constants/source.dart';
@@ -35,6 +36,7 @@ import '../utils/subscriptions.dart';
 import 'source/source.dart';
 
 part 'source/neox_source.dart';
+part 'source/goyabu_source.dart';
 part 'source/demon_sect_source.dart';
 part 'source/anroll_source.dart';
 
@@ -59,6 +61,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
     // _jikanService = JikanService();
     _sources = [
       NeoxSource(this),
+      GoyabuSource(this),
       AnrollSource(this),
       DemonSect(this),
     ];
@@ -140,7 +143,7 @@ class _ContentRepositoryImp extends ContentRepository {
 class _DefaultAppHeadersInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    options.headers = App.HEADERS;
+    options.headers.addEntries(App.HEADERS.entries);
     super.onRequest(options, handler);
   }
 }

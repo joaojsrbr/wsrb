@@ -65,36 +65,22 @@ class BuildContents extends StatelessWidget {
             }
 
             return ListTile(
-              leading: thumbnail != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: CachedNetworkImage(
-                        width: 112,
-                        imageUrl: thumbnail,
-                        placeholder: (context, url) => Card(
-                          margin: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          elevation: 1,
-                          child: const SizedBox.expand(),
-                        ),
-                        fit: BoxFit.cover,
-                        maxWidthDiskCache: 300,
-                        maxHeightDiskCache: 200,
-                      ),
-                    )
-                  : Card(
-                      margin: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(
+              leading: SizedBox(
+                width: 112,
+                height: double.infinity,
+                child: thumbnail != null
+                    ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                      ),
-                      elevation: 1,
-                      child: const SizedBox(
-                        width: 112,
-                        height: double.infinity,
-                      ),
-                    ),
+                        child: CachedNetworkImage(
+                          imageUrl: thumbnail,
+                          placeholder: (context, url) => const Card.filled(),
+                          fit: BoxFit.cover,
+                          maxWidthDiskCache: 300,
+                          maxHeightDiskCache: 200,
+                        ),
+                      )
+                    : const Card.filled(),
+              ),
               titleTextStyle: Theme.of(context)
                   .textTheme
                   .titleMedium

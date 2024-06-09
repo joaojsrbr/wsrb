@@ -146,22 +146,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         final TabController tabController = HomeScope.of(context).tabController;
 
         return Scaffold(
-          // floatingActionButton: FloatingActionButton(
-          //   onPressed: () async {
-          //     final anrollLoginService = context.read<AnrollLoginService>();
-          //     final (_, message) = await anrollLoginService.logout();
-          //     customLog(message);
-          //   },
-          // ),
           body: ExtendedNestedScrollView(
             controller: _scrollController,
             physics: _mainPhysics,
-            // onlyOneScrollInBody: true,
-            // pinnedHeaderSliverHeightBuilder: () {
-            //   if (tabController.index == 0) return 0;
-            //   final height = TabBar(tabs: tabBarIcons).preferredSize.height;
-            //   return height + 30;
-            // },
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               final CategoryController categoryController =
                   context.watch<CategoryController>();
@@ -187,8 +174,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
               return [
                 SliverAppBar(
-                  pinned: true,
-                  floating: true,
+                  pinned: false,
+                  floating: false,
                   bottom: TabBarSwitcher(
                     duration: const Duration(seconds: 1),
                     enableSecondChild: tabController.index == 1,
@@ -237,9 +224,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                             data: OrderBy.list,
                             onTap: hiveController.setOrderBy,
                             leadingMenuItem: (data) => Icon(data.iconData),
-                            enableSecondChild:
-                                hiveController.source == Source.ANROLL ||
-                                    tabController.index != 0,
+                            enableSecondChild: Source.disableSourceMenuFilter(
+                                  hiveController.source,
+                                ) ||
+                                tabController.index != 0,
                             child: Text(hiveController.orderBy.toString()),
                           ),
                         ],

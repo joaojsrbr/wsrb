@@ -42,6 +42,9 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls> {
   final ValueNotifier<Duration> _seekBarDeltaValueNotifier =
       ValueNotifier<Duration>(Duration.zero);
 
+  late final PlayerScope _playerScope =
+      PlayerScope.of(PlayerView.videoStateKey.currentContext!);
+
   double _brightnessValue = 0.0;
   bool _brightnessIndicator = false;
   Timer? _brightnessTimer;
@@ -64,23 +67,14 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls> {
   bool _mountSeekForwardButton = false;
   bool _hideSeekBackwardButton = false;
   bool _hideSeekForwardButton = false;
-  bool get _lockPlayer =>
-      FullscreenInheritedWidget.maybeOf(context)?.parent.lockPlayer ??
-      widget.state.lockPlayer;
+  bool get _lockPlayer => _playerScope.lockPlayer.value;
 
   set setLockPlayer(bool lockPlayer) {
     if (!mounted) return;
     setState(() {
-      if (FullscreenInheritedWidget.maybeOf(context) != null) {
-        FullscreenInheritedWidget.maybeOf(context)?.parent.lockPlayer =
-            lockPlayer;
-      } else {
-        widget.state.lockPlayer = lockPlayer;
-      }
+      _playerScope.lockPlayer.value = lockPlayer;
     });
   }
-
-  // final List<StreamSubscription> subscriptions = [];
 
   double get subtitleVerticalShiftOffset =>
       (_theme(context).padding?.bottom ?? 0.0) +
@@ -135,6 +129,8 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls> {
   @override
   void initState() {
     Future.microtask(() async {
+      widget.state;
+
       try {
         VolumeController().showSystemUI = false;
         _volumeValue = await VolumeController().getVolume();
@@ -860,6 +856,10 @@ class _ControllsState extends State<_Controlls>
     with SingleTickerProviderStateMixin {
   late Duration _position = controller(context).player.state.position;
   late Duration _duration = controller(context).player.state.duration;
+
+  late final PlayerScope _playerScope =
+      PlayerScope.of(PlayerView.videoStateKey.currentContext!);
+
   late final AnimationController _animation = AnimationController(
     vsync: this,
     value: controller(context).player.state.playing ? 1 : 0,
@@ -868,22 +868,12 @@ class _ControllsState extends State<_Controlls>
   final List<StreamSubscription> _subscriptions = [];
 
   bool get _reversedCurrentDuration =>
-      FullscreenInheritedWidget.maybeOf(context)
-          ?.parent
-          .reversedCurrentDuration ??
-      widget.state.widget.state.reversedCurrentDuration;
+      _playerScope.reversedCurrentDuration.value;
 
   set setReversedCurrentDuration(bool reversedCurrentDuration) {
     if (!mounted) return;
     setState(() {
-      if (FullscreenInheritedWidget.maybeOf(context) != null) {
-        FullscreenInheritedWidget.maybeOf(context)
-            ?.parent
-            .reversedCurrentDuration = reversedCurrentDuration;
-      } else {
-        widget.state.widget.state.reversedCurrentDuration =
-            reversedCurrentDuration;
-      }
+      _playerScope.reversedCurrentDuration.value = reversedCurrentDuration;
     });
   }
 

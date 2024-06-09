@@ -134,7 +134,10 @@ class ThemeController extends ChangeNotifier {
   }
 
   ThemeData get lightTheme => const MaterialTheme().light().copyWith(
-        cardTheme: const CardTheme(margin: EdgeInsets.zero),
+        cardTheme: CardTheme(
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
         buttonTheme: _buttonTheme(_lightColorScheme),
         splashFactory: InkRipple.splashFactory,
         textTheme: _textTheme(_lightColorScheme),
@@ -149,7 +152,10 @@ class ThemeController extends ChangeNotifier {
         ),
       );
   ThemeData get darkTheme => const MaterialTheme().dark().copyWith(
-        cardTheme: const CardTheme(margin: EdgeInsets.zero),
+        cardTheme: CardTheme(
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
         buttonTheme: _buttonTheme(_darkColorScheme),
         splashFactory: InkRipple.splashFactory,
         textTheme: _textTheme(_darkColorScheme),

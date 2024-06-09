@@ -17,6 +17,13 @@ enum Source implements _DisableEnum {
     Source.DEMON_SECT,
   };
 
+  static bool disableSourceMenuFilter(Source source) {
+    return {
+      Source.ANROLL,
+      Source.GOYABU,
+    }.contains(source);
+  }
+
   final String baseURL;
   final String label;
   final String name;

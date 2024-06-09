@@ -7,7 +7,10 @@ sealed class Data extends Equatable {
 
   const factory Data.imageData({required String imageURL}) = ImageData;
 
-  const factory Data.videoData({required String videoContent}) = VideoData;
+  const factory Data.videoData({
+    required String videoContent,
+    Map<String, String>? httpHeaders,
+  }) = VideoData;
 }
 
 class ImageData extends Data {
@@ -20,7 +23,11 @@ class ImageData extends Data {
 
 class VideoData extends Data {
   final String videoContent;
-  const VideoData({required this.videoContent});
+  final Map<String, String>? httpHeaders;
+  const VideoData({
+    required this.videoContent,
+    this.httpHeaders,
+  });
 
   @override
   List<Object?> get props => [videoContent];

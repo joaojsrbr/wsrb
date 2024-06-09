@@ -31,6 +31,7 @@ export 'src/entities/entity.dart';
 export 'src/services/volume_overlay.dart';
 export 'src/services/anroll_login.dart';
 export 'src/services/library_controller.dart';
+export 'src/services/internet_connection_checker.dart';
 export 'src/entities/anime_entity.dart';
 export 'src/entities/book_entity.dart';
 export 'src/services/historic_controller.dart';

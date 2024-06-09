@@ -44,7 +44,13 @@ class AnrollSource extends RSource {
     final videoContent =
         'https://cdn-zenitsu-gamabunta.b-cdn.net/cf/hls/animes/${episode.slugSerie}/$stringNumber.mp4/media-1/stream.m3u8';
 
-    data.add(Data.videoData(videoContent: videoContent));
+    data.add(Data.videoData(
+      videoContent: videoContent,
+      httpHeaders: {
+        "origin": BASE_URL,
+        "referer": "$BASE_URL/",
+      },
+    ));
 
     return Result.success(data);
   }

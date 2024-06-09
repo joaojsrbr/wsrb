@@ -11,7 +11,7 @@ import 'package:media_kit/media_kit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // MediaKit.ensureInitialized();
+  MediaKit.ensureInitialized();
   late final HiveController hiveController;
   late final AnrollLoginService anrollLoginService;
   late final ThemeController themeController;
@@ -26,6 +26,7 @@ void main() async {
   }
 
   final IsarServiceImpl isarServiceImpl = IsarServiceImpl();
+  final ConnectionChecker connectionChecker = ConnectionChecker();
   final ValueNotifierList valueNotifierList = ValueNotifierList();
   final HiveService hiveServiceImpl = HiveServiceImpl(start: start);
   final HiveCacheServiceImpl hiveCacheServiceImpl = HiveCacheServiceImpl();
@@ -53,6 +54,7 @@ void main() async {
     isarServiceImpl.startDatabase(onStart: libraryStart),
     hiveCacheServiceImpl.init(),
     hiveServiceImpl.init(),
+    connectionChecker.start(),
   ]);
 
   runApp(
@@ -60,6 +62,7 @@ void main() async {
       providers: [
         Provider(create: (context) => anrollLoginService),
         Provider(create: (context) => dioClient),
+        ChangeNotifierProvider(create: (context) => connectionChecker),
         ChangeNotifierProvider(create: (context) => themeController),
         ChangeNotifierProvider(create: (context) => hiveController),
         ChangeNotifierProvider(create: (context) => libraryController),

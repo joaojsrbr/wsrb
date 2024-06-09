@@ -8,6 +8,7 @@ class Anime extends Content {
     required this.source,
     required this.originalImage,
     this.slugSerie,
+    this.genres,
     this.extraLarge,
     this.mediumImage,
     this.animeID,
@@ -18,6 +19,7 @@ class Anime extends Content {
     this.isDublado = false,
     super.sinopse,
   });
+  final List<Genre>? genres;
   final String? generateID;
   final String? animeID;
   final Source source;
@@ -48,9 +50,11 @@ class Anime extends Content {
     int? totalOfEpisodes,
     int? totalOfPages,
     String? sinopse,
+    List<Genre>? genres,
   }) {
     return Anime(
       source: source ?? this.source,
+      genres: genres ?? this.genres,
       totalOfPages: totalOfPages ?? this.totalOfPages,
       totalOfEpisodes: totalOfEpisodes ?? this.totalOfEpisodes,
       generateID: generateID ?? this.generateID,
@@ -99,6 +103,7 @@ class Anime extends Content {
   @override
   List<Object?> get props => [
         title,
+        genres,
         url,
         stringID,
         source,

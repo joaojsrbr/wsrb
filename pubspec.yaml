@@ -48,10 +48,14 @@ dependencies:
     sdk: flutter
   media_kit: ^1.1.10
   media_kit_video:
-    path: ../media-kit/media_kit_video
+    git:
+      url: https://github.com/media-kit/media-kit.git
+      path: media_kit_video
+  # media_kit_video:
+  #   path: ../media-kit/media_kit_video
   media_kit_libs_video: ^1.0.4
   volume_controller: ^2.0.7
-  screen_brightness: ^1.0.0
+  screen_brightness: ^0.2.2
   positioned_scroll_observer: ^2.2.2
   settings_ui: ^2.0.2
   content_library:
@@ -61,6 +65,7 @@ dependencies:
   super_sliver_list: ^0.4.1
   extended_nested_scroll_view: ^6.2.1
   open_settings_plus: ^0.3.3
+  webview_flutter: ^4.8.0
 
 dev_dependencies:
   flutter_test:

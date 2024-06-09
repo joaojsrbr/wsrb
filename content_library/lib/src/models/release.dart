@@ -16,5 +16,5 @@ abstract class Release extends Equatable implements Comparable<Release> {
   String get number;
 
   @override
-  int compareTo(other) => number.compareTo(other.number);
+  int compareTo(other) => int.parse(number).compareTo(int.parse(other.number));
 }
