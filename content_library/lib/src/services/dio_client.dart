@@ -41,6 +41,10 @@ class DioClient
     addInterceptor(_DioStatus());
   }
 
+  void close() {
+    _dio.close();
+  }
+
   @override
   bool removeInterceptor(dio.Interceptor element) {
     return interceptors.remove(element);

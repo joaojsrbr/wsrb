@@ -42,6 +42,8 @@ class ThemeController extends ChangeNotifier {
     if (value == null || value == _systemThemeMode) return;
     _systemThemeMode = value;
     if (notify) notifyListeners();
+    // await _getSystemColorScheme();
+
     await _hiveService.save(_defaultValueSystemThemeMode.key, value);
   }
 

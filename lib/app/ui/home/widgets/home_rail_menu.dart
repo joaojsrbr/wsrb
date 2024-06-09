@@ -156,7 +156,7 @@ class _LibraryButtons extends StatelessWidget {
         final paddingPercent =
             ((scrollable.position.pixels).clamp(0.0, 100) / 100);
 
-        final padding = (100 * paddingPercent).clamp(10.0, 100.0);
+        final padding = (100 * paddingPercent).clamp(10.0, 50.0);
         // ((tabController.index == 1 ? 100 : 100) * paddingPercent)
         //     .clamp(10.0, tabController.index == 1 ? 100.0 : 100.0);
         return Padding(

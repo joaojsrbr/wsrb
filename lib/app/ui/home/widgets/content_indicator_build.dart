@@ -56,7 +56,14 @@ Widget contentIndicatorBuilder(BuildContext context, IndicatorStatus status) {
   }
   return _StatusNotifier(
     status: status,
-    child: widget,
+    child: Builder(builder: (context) {
+      // final ConnectionChecker connectionChecker =
+      //     context.watch<ConnectionChecker>();
+      // if (!connectionChecker.hasConnection) {
+      //   return const _FullScreenErrorWidget();
+      // }
+      return widget;
+    }),
   );
 }
 
@@ -160,6 +167,18 @@ class _FullScreenErrorWidgetState extends State<_FullScreenErrorWidget> {
   }
 
   @override
+  void didChangeDependencies() {
+    final ConnectionChecker connectionChecker =
+        context.watch<ConnectionChecker>();
+
+    if (!connectionChecker.hasConnection) {
+      // scheduleMicrotask(() => _contentRepository.refresh(true));
+      scheduleMicrotask(_showSnackBar);
+    }
+    super.didChangeDependencies();
+  }
+
+  @override
   void didUpdateWidget(covariant _FullScreenErrorWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
   }
@@ -167,8 +186,10 @@ class _FullScreenErrorWidgetState extends State<_FullScreenErrorWidget> {
   Future<void> _showSnackBar([BuildContext? context]) async {
     _debouncer.cancel();
     _debouncer.call(() {
+      // _contentRepository.refresh(true);
       final fullScreenError = _contentRepository.fullScreenError;
-      if (fullScreenError is DioException && fullScreenError.response == null) {
+      setStateIfMounted(() {});
+      if (fullScreenError is DioException) {
         final AppSnackBar appSnackBar = AppSnackBar(context ?? this.context);
         appSnackBar.show(
           const Text(
@@ -182,6 +203,8 @@ class _FullScreenErrorWidgetState extends State<_FullScreenErrorWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final ConnectionChecker connectionChecker =
+        context.watch<ConnectionChecker>();
     final isSliver =
         context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
@@ -220,31 +243,33 @@ class _FullScreenErrorWidgetState extends State<_FullScreenErrorWidget> {
               },
               child: const Text('Atualizar'),
             ),
-            const SizedBox(width: 8),
-            FilledButton(
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            if (!connectionChecker.hasConnection) ...[
+              const SizedBox(width: 8),
+              FilledButton(
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
+                onPressed: () async {
+                  switch (OpenSettingsPlus.shared) {
+                    case OpenSettingsPlusAndroid settings:
+                      // await settings.wifi();
+
+                      settings.sendCustomMessage('message');
+                      break;
+                    case OpenSettingsPlusIOS settings:
+                      await settings.wifi();
+                      break;
+                  }
+
+                  await _contentRepository.refresh(true);
+                },
+                child: const Text('configurações de wi-fi'),
               ),
-              onPressed: () async {
-                switch (OpenSettingsPlus.shared) {
-                  case OpenSettingsPlusAndroid settings:
-                    // await settings.wifi();
-
-                    settings.sendCustomMessage('message');
-                    break;
-                  case OpenSettingsPlusIOS settings:
-                    await settings.wifi();
-                    break;
-                }
-
-                await _contentRepository.refresh(true);
-              },
-              child: const Text('configurações de wi-fi'),
-            ),
+            ],
           ],
-        )
+        ),
       ],
     );
 

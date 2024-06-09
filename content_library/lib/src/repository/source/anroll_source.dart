@@ -291,7 +291,6 @@ class AnrollSource extends RSource {
       contentRepository.fullScreenError = _;
       contentRepository.isSuccess = false;
       contentRepository._hasMore = false;
-      customLog('ERROR[${_.runtimeType}]: ${_.message}', stackTrace: __);
       return Future.value(false);
     } on DioException catch (_, __) {
       contentRepository.fullScreenError = _;

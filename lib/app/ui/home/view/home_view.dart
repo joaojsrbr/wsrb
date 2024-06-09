@@ -147,6 +147,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
         return Scaffold(
           body: ExtendedNestedScrollView(
+            onlyOneScrollInBody: true,
             controller: _scrollController,
             physics: _mainPhysics,
             headerSliverBuilder: (context, innerBoxIsScrolled) {

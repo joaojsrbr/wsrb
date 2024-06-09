@@ -322,6 +322,7 @@ class GoyabuSource extends RSource {
       contentRepository.isSuccess = true;
       contentRepository._hasMore = true;
       contentRepository.fullScreenError = null;
+
       return Future.value(true);
     } on DioException catch (_, __) {
       contentRepository.fullScreenError = _;

@@ -15,6 +15,7 @@
             android:hardwareAccelerated="true"
             android:launchMode="singleTop"
             android:usesCleartextTraffic="true"
+            android:enableOnBackInvokedCallback="true"
             android:theme="@style/LaunchTheme"
             android:windowSoftInputMode="adjustResize">
             <meta-data
