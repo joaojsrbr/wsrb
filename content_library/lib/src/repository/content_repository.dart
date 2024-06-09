@@ -109,7 +109,8 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
 
   @override
   void dispose() {
-    _subscriptions.dispose();
+    _subscriptions.cancelAll();
+
     super.dispose();
   }
 }

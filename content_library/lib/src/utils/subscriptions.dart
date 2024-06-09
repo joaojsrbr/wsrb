@@ -23,7 +23,7 @@ class Subscriptions extends ListBase<StreamSubscription<dynamic>> {
     _array.add(element);
   }
 
-  Future<void> dispose() async {
+  Future<void> cancelAll() async {
     await Future.wait(map((element) => element.cancel()));
     clear();
   }

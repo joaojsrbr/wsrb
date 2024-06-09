@@ -55,7 +55,8 @@ class ConnectionChecker extends ChangeNotifier {
 
   @override
   void dispose() {
-    _subscriptions.dispose();
+    _subscriptions.cancelAll();
+
     super.dispose();
   }
 }

@@ -9,7 +9,6 @@ import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
@@ -221,7 +220,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   Future<void> _registerListeners(bool clearListeners) async {
     if (clearListeners) {
-      await _subscriptions.dispose();
+      await _subscriptions.cancelAll();
     } else {
       _subscriptions.addAll([
         _player!.stream.playing.listen(_playingListener),
@@ -439,7 +438,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     if (_mainVideoData != null) _saveVideoData();
     _topTitle.dispose();
     customLog('$runtimeType[dispose]');
-    _subscriptions.dispose();
+    _subscriptions.cancelAll();
+
     _setEnabledSystemUIMode?.cancel();
     _videoController?.id.dispose();
     _videoController?.notifier.dispose();

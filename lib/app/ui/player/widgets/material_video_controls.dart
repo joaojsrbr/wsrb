@@ -273,7 +273,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls> {
     // for (final subscription in _subscriptions) {
     //   subscription.cancel();
     // }
-    _subscriptions.dispose();
+    _subscriptions.cancelAll();
 
     // --------------------------------------------------
     // package:screen_brightness

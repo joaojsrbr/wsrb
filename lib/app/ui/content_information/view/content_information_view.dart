@@ -225,7 +225,8 @@ class _BookInformationStateView
 
   @override
   void dispose() {
-    _subscriptions.dispose();
+    _subscriptions.cancelAll();
+
     super.dispose();
   }
 }
