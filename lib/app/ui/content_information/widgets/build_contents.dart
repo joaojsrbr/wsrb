@@ -64,56 +64,8 @@ class BuildContents extends StatelessWidget {
               thumbnail = release.thumbnail;
             }
 
-            return ListTile(
-              leading: SizedBox(
-                width: 112,
-                height: double.infinity,
-                child: thumbnail != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: CachedNetworkImage(
-                          imageUrl: thumbnail,
-                          placeholder: (context, url) => const Card.filled(),
-                          fit: BoxFit.cover,
-                          maxWidthDiskCache: 300,
-                          maxHeightDiskCache: 200,
-                        ),
-                      )
-                    : const Card.filled(),
-              ),
-              titleTextStyle: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
-              onTap: () async {
-                customLog(
-                  'tapped name: ${release.title} - id: ${release.stringID}',
-                );
-
-                final GoRouter goRouter = GoRouter.of(context);
-
-                if (release is Chapter && content is Book) {
-                  await goRouter.push(
-                    RouteName.READ,
-                    extra: ReadingViewArgs(
-                      capturedThemes: InheritedTheme.capture(
-                        from: context,
-                        to: Navigator.of(context).context,
-                      ),
-                      chapter: release,
-                      releases: releases,
-                      currentIndex: index,
-                      book: content,
-                    ),
-                  );
-                } else if (release is Episode && content is Anime) {
-                  await goRouter.push(
-                    RouteName.PLAYER,
-                    extra: PlayerArgs(anime: content, episode: release),
-                  );
-                }
-              },
-              onLongPress: sinopse?.isNotEmpty == true
+            return GestureDetector(
+              onDoubleTap: sinopse?.isNotEmpty == true
                   ? () {
                       showModalBottomSheet(
                         isScrollControlled: false,
@@ -155,8 +107,59 @@ class BuildContents extends StatelessWidget {
                       );
                     }
                   : null,
-              visualDensity: const VisualDensity(vertical: 2, horizontal: -2),
-              title: Text('${release.number}. ${release.title}'),
+              child: ListTile(
+                leading: SizedBox(
+                  width: 112,
+                  height: double.infinity,
+                  child: thumbnail != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: CachedNetworkImage(
+                            imageUrl: thumbnail,
+                            placeholder: (context, url) => const Card.filled(),
+                            fit: BoxFit.cover,
+                            maxWidthDiskCache: 300,
+                            maxHeightDiskCache: 200,
+                          ),
+                        )
+                      : const Card.filled(),
+                ),
+                titleTextStyle: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+                onTap: () async {
+                  customLog(
+                    'tapped name: ${release.title} - id: ${release.stringID}',
+                  );
+
+                  final GoRouter goRouter = GoRouter.of(context);
+
+                  if (release is Chapter && content is Book) {
+                    await goRouter.push(
+                      RouteName.READ,
+                      extra: ReadingViewArgs(
+                        capturedThemes: InheritedTheme.capture(
+                          from: context,
+                          to: Navigator.of(context).context,
+                        ),
+                        chapter: release,
+                        releases: releases,
+                        currentIndex: index,
+                        book: content,
+                      ),
+                    );
+                  } else if (release is Episode && content is Anime) {
+                    await goRouter.push(
+                      RouteName.PLAYER,
+                      extra: PlayerArgs(anime: content, episode: release),
+                    );
+                  }
+                },
+                onLongPress: () {},
+                visualDensity: const VisualDensity(vertical: 2, horizontal: -2),
+                title: Text('${release.number}. ${release.title}'),
+              ),
             );
           },
         ),

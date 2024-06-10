@@ -47,15 +47,15 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   media_kit: ^1.1.10
-  media_kit_video:
-    git:
-      url: https://github.com/media-kit/media-kit.git
-      path: media_kit_video
   # media_kit_video:
-  #   path: ../media-kit/media_kit_video
+  #   git:
+  #     url: https://github.com/media-kit/media-kit.git
+  #     path: media_kit_video
+  media_kit_video:
+    path: ../media-kit/media_kit_video
   media_kit_libs_video: ^1.0.4
   volume_controller: ^2.0.7
-  screen_brightness: ^0.2.2
+  screen_brightness: ^1.0.0
   positioned_scroll_observer: ^2.2.2
   settings_ui: ^2.0.2
   content_library:

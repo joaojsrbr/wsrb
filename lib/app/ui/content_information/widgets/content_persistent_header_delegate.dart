@@ -92,6 +92,18 @@ class _BuildContentWidget extends StatelessWidget {
 
     // customLog(opacity);
     // final size = MediaQuery.sizeOf(context);
+
+    List<Genre>? genres;
+
+    switch (content) {
+      case Anime data:
+        genres = data.genres;
+        break;
+      case Book data:
+        genres = data.genres;
+        break;
+    }
+
     final titleLarge =
         themeData.textTheme.titleLarge?.copyWith(color: Colors.white);
     final titleSmall = themeData.textTheme.titleSmall?.copyWith();
@@ -227,35 +239,60 @@ class _BuildContentWidget extends StatelessWidget {
                     opacity: opacity <= 0.40 ? 0 : 1,
                     child: opacity <= 0.40
                         ? const SizedBox.shrink()
-                        : Row(
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (content is Anime)
-                                Card(
-                                  margin: EdgeInsets.zero,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(4.0),
-                                    child: Text(
-                                      content.isDublado
-                                          ? "Dublado"
-                                          : "Legendado",
-                                      style: titleSmall?.copyWith(
-                                        fontSize: 10,
-                                        color: content.isDublado
-                                            ? Colors.blue
-                                            : Colors.red,
+                              Row(
+                                children: [
+                                  if (content is Anime)
+                                    Card(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(4.0),
+                                        child: Text(
+                                          content.isDublado
+                                              ? "Dublado"
+                                              : "Legendado",
+                                          style: titleSmall?.copyWith(
+                                            fontSize: 10,
+                                            color: content.isDublado
+                                                ? Colors.blue
+                                                : Colors.red,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                              if (content is Book)
-                                Text(
-                                  content.genres.join(','),
-                                  style: titleLarge,
-                                  maxLines: 1,
-                                ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              if ((genres?.length ?? 0) > 0)
+                                Wrap(
+                                  spacing: 3.0,
+                                  runSpacing: 0.0,
+                                  children: genres!
+                                      .map((genre) => genre.label)
+                                      .map(
+                                        (label) => Card(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(4.0),
+                                            child: Text(
+                                              label,
+                                              style: titleSmall?.copyWith(
+                                                fontSize: 10,
+                                                color: Colors.orangeAccent,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
+                                )
                             ],
                           ),
                   ),

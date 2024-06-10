@@ -107,8 +107,8 @@ class _BookInformationStateView
     final releases = _releases.elementAtOrNull(_index);
 
     if (releases == null || onRefresh) {
-      final result = await _repository.getReleases(
-          content.copyWith(releases: Releases()), _index + 1);
+      final result =
+          await _repository.getReleases(content.copyWith(), _index + 1);
 
       result.when(onSucess: (data) {
         final stringID = data.releases.first.stringID;
@@ -204,14 +204,6 @@ class _BookInformationStateView
                     minExtent: 100,
                   ),
                 ),
-                // DecoratedSliver(
-                //   decoration: BoxDecoration(
-                //     color: Colors.blue,
-                //     borderRadius:
-                //         BorderRadius.vertical(top: Radius.circular(18)),
-                //   ),
-                //   sliver:
-                // ),
                 SinopseWidget(sinopse: _content?.sinopse ?? ''),
                 const ChipContentController(),
                 const BuildContents(),

@@ -102,19 +102,14 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     await Future.delayed(const Duration(milliseconds: 50));
   }
 
-  // @override
-  // void didChangeAppLifecycleState(AppLifecycleState state) {
-  //   customLog('$runtimeType[$state]');
-  //   switch (state) {
-  //     case AppLifecycleState.resumed:
-  //       break;
-  //     case AppLifecycleState.detached:
-  //       break;
-  //     default:
-  //   }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if ([AppLifecycleState.hidden, AppLifecycleState.paused].contains(state)) {
+      _saveVideoData();
+    }
 
-  //   super.didChangeAppLifecycleState(state);
-  // }
+    super.didChangeAppLifecycleState(state);
+  }
 
   Future<void> _getInitMainVideoData() async {
     final state = Navigator.of(context);
@@ -133,21 +128,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       onError: state.pop,
     );
   }
-
-  // Future<void> _getContentColorScheme() async {
-  //   try {
-  //     _contentColorScheme = (await ColorScheme.fromImageProvider(
-  //       brightness: Theme.of(context).brightness,
-  //       provider: CachedNetworkImageProvider(
-  //         _playerArgs.anime.imageUrl,
-  //         cacheKey: _playerArgs.anime.imageUrl,
-  //         maxHeight: 330,
-  //         maxWidth: 245,
-  //       ),
-  //     ))
-  //         .harmonized();
-  //   } catch (_) {}
-  // }
 
   Future<void> _getAllEpisodes() async {
     Anime anime = _playerArgs.anime;
@@ -264,13 +244,13 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     setStateIfMounted(() {
       _activeFit = nextBoxFit;
-      PlayerView.videoStateKey.currentState?.update(fit: nextBoxFit);
+      videoState.update(fit: nextBoxFit);
     });
   }
 
   bool get _hasNextEpisode {
-    return !(_playerArgs.anime.releases.last.stringID ==
-        _playerArgs.episode.stringID);
+    return !(_playerArgs.anime.releases.last.stringID
+        .contains(_playerArgs.episode.stringID));
   }
 
   void _nextEpisode(Duration position) async {
@@ -296,11 +276,14 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     final entity = _historicController.entities
         .firstWhereOrNull((entity) => switch (entity) {
               EpisodeEntity data =>
-                data.stringID.contains(_playerArgs.episode.stringID),
+                data.stringID.contains(_playerArgs.episode.stringID) &&
+                    data.animeStringID.contains(_playerArgs.anime.stringID),
               _ => false,
             }) as EpisodeEntity?;
 
     if (entity == null) return;
+
+    customLog('_continueVideo[${entity.numberEpisode}]');
 
     final videoPercent =
         ((entity.currentDuration / entity.episodeDuration)).abs();
@@ -315,7 +298,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
           actionsAlignment: MainAxisAlignment.spaceBetween,
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: () => Navigator.of(context).pop(false),
               child: const Text(
                 'NÃO',
                 style: TextStyle(color: Colors.red),
@@ -352,15 +335,18 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   Future<void> _handleOnTapEpisode(Episode episode) async {
     await _player?.pause();
+    _seekInVideoPosition.value = null;
     _overlayNextEpisode.value = null;
     customLog(
       'tapped title: ${episode.title} - id: ${episode.stringID}',
     );
 
-    setState(
+    await _saveVideoData();
+
+    setStateIfMounted(
       () => _playerArgs = _playerArgs.copyWith(episode: episode),
     );
-    await _saveVideoData();
+
     await _getInitMainVideoData();
     await _startPlayerController();
     await _continueVideo();
@@ -398,7 +384,15 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       numberEpisode: int.tryParse(_playerArgs.episode.number),
     );
 
-    final animeEntity = _playerArgs.anime.toEntity();
+    customLog('save-episode[${episodeEntity.numberEpisode}]');
+
+    final animeEntity = _libraryController.entities.firstWhere(
+      (content) {
+        return content is AnimeEntity &&
+            content.stringID.contains(_playerArgs.anime.stringID);
+      },
+      orElse: () => _playerArgs.anime.toEntity(),
+    ) as AnimeEntity;
 
     animeEntity.episodes.add(episodeEntity);
     await _libraryController.add(contentEntity: animeEntity);
@@ -441,9 +435,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     _subscriptions.cancelAll();
 
     _setEnabledSystemUIMode?.cancel();
-    _videoController?.id.dispose();
-    _videoController?.notifier.dispose();
-    _videoController?.rect.dispose();
+    // _videoController?.id.dispose();
+    // _videoController?.notifier.dispose();
+    // _videoController?.rect.dispose();
+    _seekInVideoPosition.dispose();
+    _lockPlayer.dispose();
+    _reversedCurrentDuration.dispose();
     _player?.dispose();
     _overlayBoxFit.dispose();
     _overlayNextEpisode.dispose();

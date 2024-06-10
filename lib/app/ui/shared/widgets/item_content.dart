@@ -430,7 +430,7 @@ class _ImageWidget extends StatelessWidget {
       return const SizedBox(
         width: width,
         height: double.infinity,
-        child: Card(margin: EdgeInsets.zero),
+        child: Card(),
       );
     }
 
@@ -440,6 +440,9 @@ class _ImageWidget extends StatelessWidget {
       fit: BoxFit.cover,
       alignment: FractionalOffset.center,
       imageUrl: imageUrl,
+      errorWidget: (context, url, error) {
+        return const Card.filled(shape: RoundedRectangleBorder());
+      },
       fadeOutDuration: const Duration(milliseconds: 600),
       fadeInDuration: const Duration(milliseconds: 300),
       maxHeightDiskCache: isLibrary ? 300 : 500,

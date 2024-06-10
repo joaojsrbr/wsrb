@@ -806,6 +806,7 @@ class _MaterialSeekBarState extends State<_MaterialSeekBar> {
   @override
   Widget build(BuildContext context) {
     bool disableSlider = duration.inMilliseconds == 0;
+    bool disableBufferSlider = buffer.inMilliseconds > 1;
 
     final lockPlayer = widget.state._lockPlayer;
 
@@ -822,7 +823,8 @@ class _MaterialSeekBarState extends State<_MaterialSeekBar> {
           child: Slider.adaptive(
             divisions: null,
             label: position.label(),
-            secondaryTrackValue: buffer.inMilliseconds.toDouble(),
+            secondaryTrackValue:
+                disableBufferSlider ? null : buffer.inMilliseconds.toDouble(),
             value: disableSlider ? 0.0 : position.inMilliseconds.toDouble(),
             max: disableSlider ? 1.0 : duration.inMilliseconds.toDouble(),
             onChangeStart: lockPlayer || disableSlider ? null : _onChangeStart,

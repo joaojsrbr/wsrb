@@ -16,20 +16,6 @@ final class Success<T> extends Result<T> {
 final class Failure<T> extends Result<T> {
   final Object error;
   const Failure(this.error);
-
-  // Future<void> snackBar(BuildContext context) async {
-  //   final snackBar = SnackBar(
-  //     duration: const Duration(milliseconds: 1500),
-  //     behavior: SnackBarBehavior.fixed,
-  //     // backgroundColor: Theme.of(context).colorScheme.,
-  //     content: Padding(
-  //       padding: const EdgeInsets.all(4.0),
-  //       child: Text(error.toString()),
-  //     ),
-  //   );
-
-  //   ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  // }
 }
 
 sealed class Result<T> {
