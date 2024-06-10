@@ -292,11 +292,13 @@ const _AnimeEntitysourceEnumValueMap = {
   'ANROLL': 0,
   'NEOX_SCANS': 1,
   'DEMON_SECT': 2,
+  'GOYABU': 3,
 };
 const _AnimeEntitysourceValueEnumMap = {
   0: Source.ANROLL,
   1: Source.NEOX_SCANS,
   2: Source.DEMON_SECT,
+  3: Source.GOYABU,
 };
 
 Id _animeEntityGetId(AnimeEntity object) {
