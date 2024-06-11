@@ -26,6 +26,7 @@ export 'src/utils/subscriptions.dart';
 export 'src/interfaces/http_service.dart';
 export 'src/interfaces/hive_service.dart';
 export 'src/services/isar_service_impl.dart';
+export 'src/services/library_service.dart';
 export 'src/services/theme_controller.dart';
 export 'src/entities/entity.dart';
 export 'src/services/volume_overlay.dart';

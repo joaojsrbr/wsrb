@@ -15,6 +15,7 @@ class HomeBottomOverlay extends StatelessWidget {
     final ContentRepository repository = context.read<ContentRepository>();
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
+    final LibraryService libraryService = LibraryService(libraryController);
 
     if (valueNotifierList.isEmpty) return const SizedBox.shrink();
 
@@ -35,7 +36,7 @@ class HomeBottomOverlay extends StatelessWidget {
             overflowAlignment: OverflowBarAlignment.end,
             children: [
               IconButton(
-                onPressed: libraryController.favoritesIDS
+                onPressed: libraryService.favoritesIDS
                         .any((id) => valueNotifierList.contains(id))
                     ? null
                     : () async {
@@ -68,7 +69,7 @@ class HomeBottomOverlay extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: libraryController.favoritesIDS
+                onPressed: libraryService.favoritesIDS
                         .any((element) => valueNotifierList.contains(element))
                     ? () async {
                         final CategoryController categoryController =
@@ -77,7 +78,7 @@ class HomeBottomOverlay extends StatelessWidget {
                             libraryController.entities
                                 .where(
                                   (element) => valueNotifierList.contains(
-                                    libraryController.getStringID(element),
+                                    libraryService.getStringID(element),
                                   ),
                                 )
                                 .toList()
@@ -86,7 +87,7 @@ class HomeBottomOverlay extends StatelessWidget {
                         final removeIDS = <CategoryEntity>{};
 
                         for (final category in categoryController.categories) {
-                          final id = libraryController.favoritesIDS
+                          final id = libraryService.favoritesIDS
                               .firstWhereOrNull(
                                   (id) => category.ids.contains(id));
 
@@ -119,7 +120,7 @@ class HomeBottomOverlay extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: libraryController.favoritesIDS
+                onPressed: libraryService.favoritesIDS
                         .any((id) => valueNotifierList.contains(id))
                     ? () {
                         final CategoryUtils utils = CategoryUtils();

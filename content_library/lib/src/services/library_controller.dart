@@ -1,12 +1,15 @@
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/services/library_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
 class LibraryController extends ChangeNotifier {
   final IsarServiceImpl _isarService;
-
-  LibraryController(this._isarService);
+  late final LibraryService _libraryService;
+  LibraryController(this._isarService) {
+    _libraryService = LibraryService(this);
+  }
 
   final List<ContentEntity> _entities = [];
 
@@ -22,61 +25,6 @@ class LibraryController extends ChangeNotifier {
 
   UnmodifiableListView<ContentEntity> get entities =>
       UnmodifiableListView(_entities);
-
-  UnmodifiableListView<String> get favoritesIDS =>
-      UnmodifiableListView(_entities
-          .where((entity) => switch (entity) {
-                AnimeEntity data => data.isFavorite,
-                BookEntity data => data.isFavorite,
-                _ => false,
-              })
-          .map(_map)
-          .nonNulls);
-
-  UnmodifiableListView<String> get noFavoritesIDS =>
-      UnmodifiableListView(_entities
-          .where((entity) => switch (entity) {
-                AnimeEntity data => !data.isFavorite,
-                BookEntity data => !data.isFavorite,
-                _ => false,
-              })
-          .map(_map)
-          .nonNulls);
-
-  String? _map(ContentEntity contentEntity) {
-    return switch (contentEntity) {
-      AnimeEntity data => data.stringID,
-      BookEntity data => data.stringID,
-      _ => null,
-    };
-  }
-
-  // Stream<dynamic> collectionChanged<T>() =>
-  //     _isarService.collection<T>().watchLazy();
-
-  bool contains({ContentEntity? contentEntity, Content? content}) {
-    bool result = false;
-    if (content != null) {
-      assert(contentEntity == null);
-      result = switch (content) {
-        Anime data => favoritesIDS.contains(data.stringID),
-        Book data => favoritesIDS.contains(data.stringID),
-        _ => false,
-      };
-    } else if (contentEntity != null) {
-      assert(content == null);
-      result = switch (contentEntity) {
-        EpisodeEntity data => favoritesIDS.contains(data.stringID),
-        ChapterEntity data => favoritesIDS.contains(data.stringID),
-        _ => false,
-      };
-    }
-    return result;
-  }
-
-  // UnmodifiableListView<T> getByTypeEntities<T extends Entity>() {
-  //   return UnmodifiableListView(entities.whereType<T>());
-  // }
 
   Future<Result<(bool, List<int>?)>> add({
     ContentEntity? contentEntity,
@@ -106,28 +54,20 @@ class LibraryController extends ChangeNotifier {
   void _setDateTime(ContentEntity contentEntity) {
     switch (contentEntity) {
       case AnimeEntity data:
-        if (contains(contentEntity: data)) {
+        if (_libraryService.contains(contentEntity: data)) {
           data.updatedAt = DateTime.now();
           break;
         }
         data.createdAt = DateTime.now();
         break;
       case BookEntity data:
-        if (contains(contentEntity: data)) {
+        if (_libraryService.contains(contentEntity: data)) {
           data.updatedAt = DateTime.now();
           break;
         }
         data.createdAt = DateTime.now();
         break;
     }
-  }
-
-  String getStringID(ContentEntity contentEntity) {
-    return switch (contentEntity) {
-      AnimeEntity data => data.stringID.trim(),
-      BookEntity data => data.stringID.trim(),
-      _ => '',
-    };
   }
 
   void _addOrUpdate(ContentEntity contentEntity) {
@@ -220,19 +160,5 @@ class LibraryController extends ChangeNotifier {
 
     notifyListeners();
     return Result.success((isSucess, ids));
-  }
-
-  List<Entity> noCategories(CategoryController categoryController) {
-    return entities
-        .where((element) => switch (element) {
-              AnimeEntity data when data.isFavorite => !categoryController
-                  .categories
-                  .any((element) => element.ids.contains(data.stringID)),
-              BookEntity data when data.isFavorite => !categoryController
-                  .categories
-                  .any((element) => element.ids.contains(data.stringID)),
-              _ => false
-            })
-        .toList();
   }
 }

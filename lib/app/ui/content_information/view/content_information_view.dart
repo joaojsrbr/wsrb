@@ -129,6 +129,7 @@ class _BookInformationStateView
   Future<void> _onSucess(Content data, [bool onRefresh = false]) async {
     if (!mounted) return;
     final libraryController = context.read<LibraryController>();
+    final LibraryService libraryService = LibraryService(libraryController);
 
     if (data.releases.isEmpty) {
       await _getReleases(data, onRefresh);
@@ -136,7 +137,7 @@ class _BookInformationStateView
       _releases.add(data.releases);
     }
 
-    if (libraryController.contains(content: data)) {
+    if (libraryService.contains(content: data)) {
       libraryController.add(
         contentEntity: data.toEntity(
           updatedAt: DateTime.now(),

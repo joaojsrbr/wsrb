@@ -84,6 +84,8 @@ class _BuildContentWidget extends StatelessWidget {
     final LibraryController libraryController =
         context.watch<LibraryController>();
 
+    final LibraryService libraryService = LibraryService(libraryController);
+
     // customLog(opacity);
     // final size = MediaQuery.sizeOf(context);
 
@@ -167,7 +169,7 @@ class _BuildContentWidget extends StatelessWidget {
                   onPressed: () {
                     customLog(
                         'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${content.title} - id: ${content.stringID}');
-                    if (libraryController.favoritesIDS
+                    if (libraryService.favoritesIDS
                         .contains(content.stringID)) {
                       libraryController.remove(
                           contentEntity: content.toEntity());
@@ -177,7 +179,7 @@ class _BuildContentWidget extends StatelessWidget {
                     }
                   },
                   icon: FadeThroughTransitionSwitcher(
-                    enableSecondChild: libraryController.favoritesIDS.contains(
+                    enableSecondChild: libraryService.favoritesIDS.contains(
                       content.stringID,
                     ),
                     secondChild: Icon(MdiIcons.heart, color: Colors.red),

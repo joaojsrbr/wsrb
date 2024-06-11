@@ -147,6 +147,7 @@ class _LibraryButtons extends StatelessWidget {
     final ContentRepository repository = context.read<ContentRepository>();
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
+    final LibraryService libraryService = LibraryService(libraryController);
 
     final ScrollableState scrollable = Scrollable.of(context);
     final TabController tabController = HomeScope.of(context).tabController;
@@ -214,7 +215,7 @@ class _LibraryButtons extends StatelessWidget {
                           libraryController.entities
                               .where(
                                 (element) => valueNotifierList.contains(
-                                  libraryController.getStringID(element),
+                                  libraryService.getStringID(element),
                                 ),
                               )
                               .toList()
@@ -223,9 +224,8 @@ class _LibraryButtons extends StatelessWidget {
                       final removeIDS = <CategoryEntity>{};
 
                       for (final category in categoryController.categories) {
-                        final id = libraryController.favoritesIDS
-                            .firstWhereOrNull(
-                                (id) => category.ids.contains(id));
+                        final id = libraryService.favoritesIDS.firstWhereOrNull(
+                            (id) => category.ids.contains(id));
 
                         if (id != null) {
                           final newIDS = List<String>.from(category.ids);
@@ -255,7 +255,7 @@ class _LibraryButtons extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    onPressed: libraryController.favoritesIDS
+                    onPressed: libraryService.favoritesIDS
                             .any((id) => valueNotifierList.contains(id))
                         ? () {
                             final CategoryUtils utils = CategoryUtils();

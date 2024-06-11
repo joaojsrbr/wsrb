@@ -32,6 +32,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
   int? _initialIndex;
 
   late final LibraryController _libraryController;
+  late final LibraryService _libraryService;
   late final CategoryController _categoryController;
 
   @override
@@ -40,6 +41,8 @@ class LibraryeDestinationState extends State<LibraryDestination>
 
     _libraryController = context.read<LibraryController>()
       ..addListener(_setChildren);
+
+    _libraryService = LibraryService(_libraryController);
 
     _categoryController = context.read<CategoryController>()
       ..addListener(_setChildren);
@@ -55,13 +58,6 @@ class LibraryeDestinationState extends State<LibraryDestination>
     _setChildren();
   }
 
-  List<List<Content>> _getItens() {
-    return _libraryController.entities
-        .categoryByID(context)
-        .map((e) => e.getContent.toList())
-        .toList();
-  }
-
   void _setChildren() {
     // addPostFrameCallback((timer) {
     //   final SubordinateLibraryTabController subordinateLibraryTabController =
@@ -69,16 +65,21 @@ class LibraryeDestinationState extends State<LibraryDestination>
     //   subordinateLibraryTabController.setChangePage = false;
     // });
 
-    final noCategories = _libraryController
-        .noCategories(_categoryController)
+    final noCategories = _libraryService
+        .byCategories(_categoryController, true)
         .getContent
         .toList();
 
-    _contents = [noCategories, ..._getItens()];
+    final yesCategories = _libraryService.entities
+        .categoryByID(context)
+        .map((e) => e.getContent.toList())
+        .toList();
+
+    _contents = [noCategories, ...yesCategories];
 
     final List<Widget> newChildrens = [
       buildGridView(noCategories, 0),
-      ..._getItens().mapIndexed((index, e) => buildGridView(e, index))
+      ...yesCategories.mapIndexed((index, e) => buildGridView(e, index))
     ];
 
     _children = newChildrens;
