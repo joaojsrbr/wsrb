@@ -806,7 +806,10 @@ class _MaterialSeekBarState extends State<_MaterialSeekBar> {
   @override
   Widget build(BuildContext context) {
     bool disableSlider = duration.inMilliseconds == 0;
-    bool disableBufferSlider = buffer.inMilliseconds > 1;
+    bool disableBufferSlider =
+        buffer.inMilliseconds > duration.inMilliseconds.toDouble();
+
+    customLog(disableBufferSlider);
 
     final lockPlayer = widget.state._lockPlayer;
 
