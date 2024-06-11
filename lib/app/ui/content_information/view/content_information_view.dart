@@ -55,7 +55,6 @@ class _BookInformationStateView
     Future.microtask(_onInit);
   }
 
-  /// Function that controls the value of [_index]
   void _handleSetListIndex(int index) async {
     if (index == _index) return;
     // customLog(index);
@@ -92,7 +91,6 @@ class _BookInformationStateView
     );
   }
 
-  /// asynchronous function referring to [RefreshIndicator]
   Future<void> _onRefresh() async {
     final appSnackBar = context.appSnackBar;
     final resultBook = await _repository.getData(_content!);
