@@ -6,9 +6,12 @@ import '../interfaces/http_service.dart';
 import '../utils/custom_log.dart';
 
 class _DioStatus extends dio.Interceptor {
+  Stopwatch? _stopwatch;
+
   @override
   void onRequest(
       dio.RequestOptions options, dio.RequestInterceptorHandler handler) {
+    _stopwatch = Stopwatch()..start();
     final message = 'REQUEST[${options.method}] => PATH: ${options.path}';
     customLog(message);
     return super.onRequest(options, handler);
@@ -17,11 +20,24 @@ class _DioStatus extends dio.Interceptor {
   @override
   void onResponse(
       dio.Response response, dio.ResponseInterceptorHandler handler) {
-    final message =
+    _stopwatch?.stop();
+
+    final requestDuration = _stopwatch?.elapsed;
+    String message =
         'RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}';
+
+    if (requestDuration != null) {
+      message =
+          'RESPONSE[${response.statusCode}][${_format(requestDuration)}] => PATH: ${response.requestOptions.path}';
+      _stopwatch = null;
+    }
+
     customLog(message);
     return super.onResponse(response, handler);
   }
+
+  String _format(Duration d) =>
+      d.toString().split('.').first.padLeft(8, "0").replaceFirst("00:", "");
 
   @override
   void onError(dio.DioException err, dio.ErrorInterceptorHandler handler) {
