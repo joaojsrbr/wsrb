@@ -55,7 +55,7 @@ class _ChipContentControllerState extends State<ChipContentController> {
 
       final int length = partitionOfInt.length;
 
-      final selectChips = List.generate(length, (index) => false);
+      final BoolList selectChips = BoolList.generate(length, (index) => false);
 
       selectChips[index] = true;
 
