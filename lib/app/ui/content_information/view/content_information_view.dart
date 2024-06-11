@@ -165,19 +165,17 @@ class _BookInformationStateView
   ) {
     final size = MediaQuery.sizeOf(context);
 
-    final themeData = Theme.of(context);
-
-    final linearGradient = LinearGradient(
+    const linearGradient = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.centerRight,
       colors: <Color>[
-        themeData.canvasColor.withOpacity(0.85),
-        themeData.canvasColor.withOpacity(0.85),
-        const Color(0xffE6E8EB),
-        themeData.canvasColor.withOpacity(0.85),
-        themeData.canvasColor.withOpacity(0.85),
+        Color.fromARGB(90, 176, 190, 197),
+        Color.fromARGB(90, 176, 190, 197),
+        Color(0xffE6E8EB),
+        Color.fromARGB(90, 176, 190, 197),
+        Color.fromARGB(90, 176, 190, 197),
       ],
-      stops: const <double>[0.0, 0.3, 0.5, 0.65, 1.0],
+      stops: <double>[0.0, 0.35, 0.5, 0.65, 1.0],
     );
 
     return Shimmer(
