@@ -66,6 +66,8 @@ dependencies:
   extended_nested_scroll_view: ^6.2.1
   open_settings_plus: ^0.3.3
   webview_flutter: ^4.8.0
+  shimmer_pro: ^0.0.6
+  shimmer_animation: ^2.1.0+1
 
 dev_dependencies:
   flutter_test:

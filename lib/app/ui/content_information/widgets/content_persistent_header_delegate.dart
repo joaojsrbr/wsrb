@@ -48,17 +48,11 @@ class ContentPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
     Widget flexible = ClipRRect(
       clipper: _FlexibleSpaceBarClipper(radius: 18),
       child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 150),
+        duration: const Duration(milliseconds: 350),
         child: isLoading
             ? ShimmerLoading(
                 isLoading: isLoading,
-                child: const Material(
-                  child: Card(
-                    // elevation: 2,
-                    // margin: EdgeInsets.zero,
-                    child: SizedBox.expand(),
-                  ),
-                ),
+                child: const Material(child: Card(child: SizedBox.expand())),
               )
             : _BuildContentWidget(opacity),
       ),
@@ -171,6 +165,8 @@ class _BuildContentWidget extends StatelessWidget {
                 duration: const Duration(milliseconds: 600),
                 child: IconButton(
                   onPressed: () {
+                    customLog(
+                        'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${content.title} - id: ${content.stringID}');
                     if (libraryController.favoritesIDS
                         .contains(content.stringID)) {
                       libraryController.remove(
@@ -184,11 +180,7 @@ class _BuildContentWidget extends StatelessWidget {
                     enableSecondChild: libraryController.favoritesIDS.contains(
                       content.stringID,
                     ),
-                    secondChild: Icon(
-                      MdiIcons.heart,
-                      key: UniqueKey(),
-                      color: Colors.red,
-                    ),
+                    secondChild: Icon(MdiIcons.heart, color: Colors.red),
                     child: Icon(MdiIcons.heartOutline),
                   ),
                 ),

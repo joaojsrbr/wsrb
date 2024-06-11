@@ -50,7 +50,7 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
       ..repeat(
         min: -1,
         max: 3.6,
-        period: const Duration(seconds: 1),
+        period: const Duration(milliseconds: 1500),
       );
   }
 
@@ -154,7 +154,7 @@ class _ShimmerLoadingState extends State<ShimmerLoading> {
   @override
   Widget build(BuildContext context) {
     if (!widget.isLoading) {
-      return widget.child;
+      return const SizedBox.shrink();
     }
 
     // Collect ancestor shimmer info.

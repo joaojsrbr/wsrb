@@ -172,14 +172,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               }
 
               categoryController.categories.forEach(add);
-
               return [
                 SliverAppBar(
                   pinned: false,
                   floating: false,
                   bottom: TabBarSwitcher(
-                    duration: const Duration(seconds: 1),
-                    enableSecondChild: tabController.index == 1,
+                    duration: const Duration(milliseconds: 650),
+                    enableSecondChild: identical(tabController.index, 1),
                     tabBar: TabBar(
                       controller: _tabController,
                       tabs: tabBarIcons,
@@ -192,7 +191,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     ),
                   ),
                   actions: [
-                    if (tabController.index == 1)
+                    if (identical(tabController.index, 1))
                       IconButton(
                         onPressed: () =>
                             CategoryUtils().createCategory(context),

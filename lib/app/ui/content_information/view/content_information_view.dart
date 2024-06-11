@@ -164,19 +164,19 @@ class _BookInformationStateView
     BuildContext context,
     ContentInformationArgs argument,
   ) {
-    final themeData = Theme.of(context);
-
     final size = MediaQuery.sizeOf(context);
+
+    final themeData = Theme.of(context);
 
     final linearGradient = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.centerRight,
       colors: <Color>[
-        themeData.colorScheme.primary.withOpacity(0.12),
-        themeData.colorScheme.primary.withOpacity(0.12),
+        themeData.canvasColor.withOpacity(0.85),
+        themeData.canvasColor.withOpacity(0.85),
         const Color(0xffE6E8EB),
-        themeData.colorScheme.primary.withOpacity(0.12),
-        themeData.colorScheme.primary.withOpacity(0.12),
+        themeData.canvasColor.withOpacity(0.85),
+        themeData.canvasColor.withOpacity(0.85),
       ],
       stops: const <double>[0.0, 0.3, 0.5, 0.65, 1.0],
     );
