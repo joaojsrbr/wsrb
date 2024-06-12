@@ -95,18 +95,10 @@ class NeoxSource extends RSource {
   /// Scraping [Book] details.
   @override
   Future<Result<Content>> getData(Content content) async {
-    bool isBook() {
-      return content is Book;
-    }
-
-    assert(
-      isBook(),
-      "A instancia content precisa ser do tipo Book",
-    );
-
-    final book = content as Book;
-
     try {
+      if (content is! Book) throw BookGetDataException();
+      final Book book = content;
+
       final response = await Future.wait([
         contentRepository._dio.get(
           book.url,
@@ -128,27 +120,24 @@ class NeoxSource extends RSource {
       );
 
       if (scrapingUtil.error) {
-        return const Result.failure(
-          BookException(
-            message: 'Error ao buscar o livro documento possivelmente nulo.',
-          ),
-        );
+        throw BookGetDataException(
+            message: "Error ao buscar o livro documento possivelmente nulo");
       }
 
       final List<Element> postContentItem =
           scrapingUtil.querySelectorAll('.post-content_item');
 
-      final List<Genre> genres = [...book.genres];
+      // final List<Genre> genres = [...book.genres];
       String? status;
       String? type;
-      List<String> authors = [...book.authors];
+      // List<String> authors = [...book.authors];
       String? alternativeTitle;
 
       if (postContentItem.isNotEmpty) {
-        _setGenres(genres, postContentItem);
+        _setGenres(book.genres, postContentItem);
         status = _setStatus(book.status, postContentItem);
         type = _setType(null, postContentItem);
-        _setAuthors(authors, postContentItem);
+        _setAuthors(book.authors, postContentItem);
         alternativeTitle = _setAlternativeTitle(
           book.alternativeTitle,
           postContentItem,
@@ -196,21 +185,16 @@ class NeoxSource extends RSource {
       final newBook = book.copyWith(
         originalImage: image,
         type: type,
-        authors: authors,
         score: score,
         alternativeTitle: alternativeTitle,
         sinopse: sinopse,
         status: status,
-        genres: genres,
-        // mediumImage: medium,
-        // largeImage: large,
-        // extraLarge: extraLarge,
       );
 
       return Result.success(newBook);
     } on DioException catch (_, __) {
       return Result.failure(_);
-    } on BookException catch (_, __) {
+    } on BookGetDataException catch (_, __) {
       customLog('ERROR[${_.runtimeType}]: ${_.message}', stackTrace: __);
       return Result.failure(_);
     }
@@ -292,7 +276,7 @@ class NeoxSource extends RSource {
           score: score,
         );
 
-        if (!contentRepository.contains(book)) contentRepository.add(book);
+        contentRepository.addIfNoContains(book);
       }
       contentRepository.isSuccess = true;
       contentRepository._hasMore = true;
@@ -316,16 +300,15 @@ class NeoxSource extends RSource {
       "A instancia content precisa ser do tipo Chapter",
     );
 
-    final chapter = release as Chapter;
-
     try {
-      final url = chapter.url;
+      final Chapter chapter = release as Chapter;
 
       final Response response = await contentRepository._dio.get(
-        url,
+        chapter.url,
         headers: App.HEADERS,
         responseType: ResponseType.plain,
       );
+
       final Document document = parse(response.data);
 
       final List<Data> data = [];

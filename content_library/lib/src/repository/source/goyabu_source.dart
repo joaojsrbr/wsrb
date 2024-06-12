@@ -162,31 +162,24 @@ class GoyabuSource extends RSource {
 
   @override
   Future<Result<Content>> getData(Content content) async {
-    bool isAnime() {
-      return content is Anime;
-    }
-
-    assert(
-      isAnime(),
-      "A instancia content precisa ser do tipo Anime",
-    );
-
     try {
-      final Episode episodeURL = (content as Anime).releases.first;
+      if (content is! Anime) throw AnimeGetDataException();
 
-      final responseAnimeURL = await contentRepository._dio.get(
-        episodeURL.url,
+      final Response<dynamic> responseAnimeURL =
+          await contentRepository._dio.get(
+        content.releases.first.url,
         responseType: ResponseType.plain,
       );
 
       final Document episodeDocument = parse(responseAnimeURL.data);
 
       final String animeURL = episodeDocument
-          .querySelectorAll('.paginationEP a')[1]
+          .querySelectorAll('.paginationEP a')
+          .elementAt(1)
           .attributes['href']!;
 
       final Anime anime = content.copyWith(
-        releases: Releases(),
+        releases: EpisodeReleases(),
         url: animeURL,
       );
 
@@ -199,7 +192,9 @@ class GoyabuSource extends RSource {
 
       final Element? pageElement = document.querySelector('.rwl');
 
-      if (pageElement == null) throw Exception('Element[rwl] == null');
+      if (pageElement == null) {
+        throw AnimeGetDataException(message: 'Element[rwl] == null');
+      }
 
       final ScrapingUtil scrapingUtil = ScrapingUtil(pageElement);
 
@@ -212,18 +207,10 @@ class GoyabuSource extends RSource {
           .map((element) => Genre(element.text.trim()))
           .toList();
 
-      final episodesElements =
+      final List<Element> episodesElements =
           scrapingUtil.element.querySelectorAll('.listaEps li');
 
-      // final bool isDublado = scrapingUtil.element
-      //         .querySelector('.genres.ghs li')
-      //         ?.text
-      //         .trim()
-      //         .toLowerCase()
-      //         .contains('dub') ??
-      //     false;
-
-      for (final episodeElement in episodesElements) {
+      for (final Element episodeElement in episodesElements) {
         final ScrapingUtil episodeScrapingUtil = ScrapingUtil(episodeElement);
 
         final int? numberEpisode = int.tryParse(episodeScrapingUtil
@@ -242,7 +229,7 @@ class GoyabuSource extends RSource {
           isDublado: anime.isDublado,
         );
 
-        if (!anime.releases.contains(episode)) anime.releases.add(episode);
+        anime.releases.addIfNoContains(episode);
       }
 
       final Anime newAnime = anime.copyWith(
@@ -254,7 +241,8 @@ class GoyabuSource extends RSource {
       return Result.success(newAnime);
     } on DioException catch (_, __) {
       return Result.failure(_);
-    } on Exception catch (_, __) {
+    } on AnimeGetDataException catch (_, __) {
+      customLog('ERROR[${_.runtimeType}]: ${_.message}', stackTrace: __);
       return Result.failure(_);
     }
   }
@@ -264,7 +252,7 @@ class GoyabuSource extends RSource {
     if (contentRepository.addMore) contentRepository.index++;
 
     try {
-      final subKey = "lancamentos/page/${contentRepository.index}";
+      final String subKey = "lancamentos/page/${contentRepository.index}";
 
       final String mainURL = '$BASE_URL/$subKey';
 
@@ -278,14 +266,10 @@ class GoyabuSource extends RSource {
       final List<Element> elements = document.querySelectorAll('.boxEP');
 
       if (elements.isEmpty) {
-        contentRepository.isSuccess = false;
-        contentRepository._hasMore = false;
-        return Future.value(false);
+        throw GoyabuLoadDataException(message: 'elements é vazio');
       }
 
       for (final Element element in elements) {
-        final EpisodeReleases releases = EpisodeReleases();
-
         final ScrapingUtil scrapingUtil = ScrapingUtil(element);
 
         final String episodeURL = scrapingUtil.getURL(selector: '.boxEP a');
@@ -303,28 +287,28 @@ class GoyabuSource extends RSource {
           thumbnail: thumbnail,
         );
 
-        if (!releases.contains(episode)) releases.add(episode);
-
         final String animeTitle = scrapingUtil.getByText(selector: '.title');
-
-        //  '$BASE_URL/anime/${animeTitle.trim().toLowerCase().replaceAll(' ', '-')}';
 
         final Anime anime = Anime(
           title: animeTitle,
-          releases: releases,
+          releases: EpisodeReleases()..add(episode),
           source: source,
           url: '',
           originalImage: thumbnail,
         );
-        if (!contentRepository.contains(anime)) contentRepository.add(anime);
+        contentRepository.addIfNoContains(anime);
       }
 
       contentRepository.isSuccess = true;
       contentRepository._hasMore = true;
       contentRepository.fullScreenError = null;
-
       return Future.value(true);
     } on DioException catch (_, __) {
+      contentRepository.fullScreenError = _;
+      contentRepository.isSuccess = false;
+      contentRepository._hasMore = false;
+      return Future.value(false);
+    } on GoyabuLoadDataException catch (_, __) {
       contentRepository.fullScreenError = _;
       contentRepository.isSuccess = false;
       contentRepository._hasMore = false;

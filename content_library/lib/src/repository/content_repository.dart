@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:content_library/src/exceptions/anroll_get_id_exception.dart';
+import 'package:content_library/src/exceptions/anime_exception.dart';
 import 'package:content_library/src/exceptions/book_exception.dart';
 import 'package:content_library/src/extensions/custom_extensions/list_extensions.dart';
 import 'package:content_library/src/extensions/custom_extensions/string_extensions.dart';
@@ -58,7 +58,6 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
     this._dio,
   ) {
     _dio.addInterceptor(_DefaultAppHeadersInterceptor());
-    // _jikanService = JikanService();
     _sources = [
       NeoxSource(this),
       GoyabuSource(this),
@@ -110,7 +109,6 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   @override
   void dispose() {
     _subscriptions.cancelAll();
-
     super.dispose();
   }
 }
@@ -119,10 +117,7 @@ class _ContentRepositoryImp extends ContentRepository {
   _ContentRepositoryImp(
     super._hiveController,
     super.dio,
-  ) : super._internal() {
-    // ui.WidgetsBinding.instance
-    //     .addPostFrameCallback((timeStamp) => refresh(true));
-  }
+  ) : super._internal();
 
   @override
   Future<bool> loadData([bool isLoadMoreAction = false]) async =>

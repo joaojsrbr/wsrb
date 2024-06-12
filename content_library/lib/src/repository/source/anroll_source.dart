@@ -113,24 +113,15 @@ class AnrollSource extends RSource {
 
   @override
   Future<Result<Content>> getData(Content content) async {
-    bool isAnime() {
-      return content is Anime;
-    }
-
-    assert(
-      isAnime(),
-      "A instancia content precisa ser do tipo Anime",
-    );
-
     try {
-      Anime anime = content as Anime;
+      if (content is! Anime) throw AnimeGetDataException();
 
       final String generateID =
-          anime.releases.firstOrNull?.generateID ?? anime.generateID!;
+          content.releases.firstOrNull?.generateID ?? content.generateID!;
 
-      final Releases releases = Releases();
+      final Anime anime = content.copyWith(releases: EpisodeReleases());
 
-      final buildId = await getBuildId();
+      final String buildId = await getBuildId();
 
       final Response responseAnimeData = await contentRepository._dio.get(
         '$BASE_URL/_next/data/$buildId/e/$generateID.json?episode=$generateID',
@@ -155,7 +146,6 @@ class AnrollSource extends RSource {
       Anime newAnime = anime.copyWith(
         url: url,
         animeID: animeID,
-        releases: releases,
         totalOfEpisodes: totalOfEpisodes,
         totalOfPages: totalOfPages,
         originalImage: originalImage,
@@ -170,7 +160,7 @@ class AnrollSource extends RSource {
         do {
           final result = await getReleases(newAnime, page);
           result.fold(onSucess: (data) => newAnime = data as Anime);
-          hasNextPage = anime.totalOfEpisodes == anime.releases.length;
+          hasNextPage = (anime.totalOfEpisodes == anime.releases.length);
           if (hasNextPage) page++;
         } while (hasNextPage);
       }
@@ -181,30 +171,11 @@ class AnrollSource extends RSource {
     } on AnrollGetIdException catch (_, __) {
       customLog('ERROR[${_.runtimeType}]: ${_.message}', stackTrace: __);
       return Result.failure(_);
+    } on AnimeGetDataException catch (_, __) {
+      customLog('ERROR[${_.runtimeType}]: ${_.message}', stackTrace: __);
+      return Result.failure(_);
     }
   }
-
-  // static Future<Anime> _getAnimePictures(Anime anime) async {
-  //   return await compute(
-  //     (Anime anime) async {
-  //       final result =
-  //           await JikanService().getAnimePictures(query: anime.title.trim());
-  //       if (result.isNotEmpty) {
-  //         final last = result.last;
-  //         final medium = last.imageUrl;
-  //         final large = last.imageUrl;
-  //         final extraLarge = last.largeImageUrl;
-  //         return anime.copyWith(
-  //           extraLarge: extraLarge,
-  //           largeImage: large,
-  //           mediumImage: medium,
-  //         );
-  //       }
-  //       return anime;
-  //     },
-  //     anime,
-  //   );
-  // }
 
   Future<String> getBuildId() async {
     final Response responseTest = await contentRepository._dio.get(
@@ -219,7 +190,7 @@ class AnrollSource extends RSource {
       throw AnrollGetIdException();
     } else {
       final map = jsonDecode(element.text);
-      final buildId = map['buildId'] as String;
+      final String buildId = map['buildId'] as String;
       return buildId;
     }
   }
@@ -227,9 +198,9 @@ class AnrollSource extends RSource {
   @override
   Future<bool> loadData() async {
     try {
-      final buildId = await getBuildId();
+      final String buildId = await getBuildId();
 
-      final subKey = "_next/data/$buildId/lancamentos.json";
+      final String subKey = "_next/data/$buildId/lancamentos.json";
 
       final String mainURL = '$BASE_URL/$subKey';
 
@@ -238,37 +209,36 @@ class AnrollSource extends RSource {
         responseType: ResponseType.json,
       );
 
-      final releases =
+      final List<dynamic> releases =
           response.data['pageProps']['data']['data_releases'] as List<dynamic>;
 
       for (final release in releases) {
-        final title = release['episode']['anime']['titulo'] as String;
-        final slugSerie = release['episode']['anime']['slug_serie'];
-        final episodeGenerateID = release['episode']['generate_id'];
-        final isDublado =
-            ((release['episode']['anime']['dub'] as int) == 0 ? false : true) |
+        final String title = release['episode']['anime']['titulo'] as String;
+        final String slugSerie = release['episode']['anime']['slug_serie'];
+        final String episodeGenerateID = release['episode']['generate_id'];
+        final bool isDublado =
+            ((release['episode']['anime']['dub'] as int) == 0 ? false : true) ||
                 title.toLowerCase().contains('dublado');
-        final n_episodio = release['episode']['n_episodio'];
-        final number = int.parse(n_episodio);
+        final int nEpisodio = int.parse(release['episode']['n_episodio']);
 
-        final thumbnail =
-            "https://www.anroll.net/_next/image?url=https%3A%2F%2Fstatic.anroll.net%2Fimages%2Fanimes%2Fscreens%2F$slugSerie%2F$n_episodio.jpg&w=1080&q=100";
+        final String thumbnail =
+            "https://www.anroll.net/_next/image?url=https%3A%2F%2Fstatic.anroll.net%2Fimages%2Fanimes%2Fscreens%2F$slugSerie%2F$nEpisodio.jpg&w=1080&q=100";
 
         final Episode episode = Episode(
           slugSerie: slugSerie,
           isDublado: isDublado,
           url: '$BASE_URL/e/$episodeGenerateID',
           generateID: episodeGenerateID,
-          title: 'Episódio $number',
+          title: 'Episódio $nEpisodio',
           thumbnail: thumbnail,
         );
 
-        final releases = EpisodeReleases();
-        final subKey =
+        final String subKey =
             '_next/data/$buildId/e/$episodeGenerateID.json?episode=$episodeGenerateID';
 
         final String mainURL = '$BASE_URL/$subKey';
-        final anime = Anime(
+
+        final Anime anime = Anime(
           generateID: episodeGenerateID,
           originalImage: thumbnail,
           source: source,
@@ -276,11 +246,10 @@ class AnrollSource extends RSource {
           isDublado: isDublado,
           slugSerie: slugSerie,
           title: title,
-          releases: releases,
+          releases: EpisodeReleases()..add(episode),
         );
-        if (!releases.contains(episode)) releases.add(episode);
 
-        if (!contentRepository.contains(anime)) contentRepository.add(anime);
+        contentRepository.addIfNoContains(anime);
       }
       contentRepository.isSuccess = true;
       contentRepository._hasMore = false;

@@ -219,6 +219,13 @@ class _FullScreenErrorWidgetState extends State<_FullScreenErrorWidget> {
                 textAlign: TextAlign.center,
               ),
             ),
+          GoyabuLoadDataException data => Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                data.message,
+                textAlign: TextAlign.center,
+              ),
+            ),
           DioException data => Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
