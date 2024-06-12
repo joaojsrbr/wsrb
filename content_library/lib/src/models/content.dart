@@ -12,15 +12,17 @@ abstract class Content extends Equatable {
 
   final String? sinopse;
 
-  final Releases releases;
+  final Releases _releases;
+
+  Releases get releases => _releases;
 
   final String title;
 
-  const Content({
+  const Content(
+    this._releases, {
     required this.url,
-    this.sinopse,
-    required this.releases,
     required this.title,
+    this.sinopse,
   });
 
   Content copyWith({

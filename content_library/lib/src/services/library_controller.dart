@@ -1,5 +1,4 @@
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/services/library_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
@@ -38,7 +37,7 @@ class LibraryController extends ChangeNotifier {
 
     final result = await _isarService.add(entity: contentEntity);
 
-    result.when(onSucess: (data) {
+    result.fold(onSucess: (data) {
       if (data.$2 != null) ids.add(data.$2!);
       if (data.$1) isSucess = data.$1;
     });
@@ -103,7 +102,7 @@ class LibraryController extends ChangeNotifier {
 
     final result = await _isarService.addAll(entities: entities);
 
-    result.when(onSucess: (data) {
+    result.fold(onSucess: (data) {
       if (data.$2 != null) ids.addAll(data.$2!);
       if (data.$1) isSucess = data.$1;
     });
@@ -128,7 +127,7 @@ class LibraryController extends ChangeNotifier {
 
     final result = await _isarService.removeAll(entities: entities);
 
-    result.when(onSucess: (data) {
+    result.fold(onSucess: (data) {
       if (data.$2 != null) ids.addAll(data.$2!);
       if (data.$1) isSucess = data.$1;
     });
@@ -145,7 +144,7 @@ class LibraryController extends ChangeNotifier {
 
     final result = await _isarService.remove(entity: contentEntity);
 
-    result.when(onSucess: (data) {
+    result.fold(onSucess: (data) {
       if (data.$2 != null) ids.add(data.$2!);
       if (data.$1) isSucess = data.$1;
     });

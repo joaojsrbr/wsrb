@@ -5,7 +5,7 @@ import 'package:quiver/iterables.dart' as quiver;
 
 import '../../content_library.dart';
 
-class Releases extends ListBase<Release> with EquatableMixin {
+class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
   Releases() {
     _array = [];
   }
@@ -14,7 +14,7 @@ class Releases extends ListBase<Release> with EquatableMixin {
     _array = List.from(contents);
   }
 
-  late List<Release> _array;
+  late List<T> _array;
 
   List<Releases> partition(int size) {
     return quiver
@@ -24,20 +24,20 @@ class Releases extends ListBase<Release> with EquatableMixin {
   }
 
   @override
-  Releases toList({bool growable = true}) {
+  Releases<T> toList({bool growable = true}) {
     return Releases.fromList(this);
   }
 
   @override
-  Release operator [](int index) => _array[index];
+  T operator [](int index) => _array[index];
 
   @override
-  void add(Release element) {
+  void add(T element) {
     return _array.add(element);
   }
 
   @override
-  void operator []=(int index, Release value) => _array[index] = value;
+  void operator []=(int index, T value) => _array[index] = value;
 
   @override
   int get length => _array.length;
@@ -47,4 +47,15 @@ class Releases extends ListBase<Release> with EquatableMixin {
 
   @override
   List<Object?> get props => this;
+}
+
+class EpisodeReleases extends Releases<Episode> {
+  EpisodeReleases() : super();
+  EpisodeReleases.from(super.contents) : super.fromList();
+}
+
+class ChapterReleases extends Releases<Chapter> {
+  ChapterReleases() : super();
+
+  ChapterReleases.from(super.contents) : super.fromList();
 }

@@ -71,7 +71,7 @@ class BookEntity extends ContentEntity {
       source: source,
       url: url,
       title: title,
-      releases: Releases(),
+      releases: ChapterReleases(),
       extraLarge: extraLarge,
       largeImage: largeImage,
       mediumImage: mediumImage,

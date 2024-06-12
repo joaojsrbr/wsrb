@@ -23,7 +23,7 @@ class CategoryController extends ChangeNotifier {
   Future<Result<bool>> add(CategoryEntity entity) async {
     final result = await _isarService.add(entity: entity);
     bool dataResult = false;
-    result.when(onSucess: (data) {
+    result.fold(onSucess: (data) {
       dataResult = data.$1;
 
       _categories.addIfNoContains(entity);
@@ -36,10 +36,12 @@ class CategoryController extends ChangeNotifier {
   Future<Result<bool>> remove(CategoryEntity entity) async {
     final result = await _isarService.remove(entity: entity);
     bool dataResult = false;
-    result.when(onSucess: (data) {
-      _categories.remove(entity);
-      dataResult = true;
-    });
+    result.fold(
+      onSucess: (data) {
+        _categories.remove(entity);
+        dataResult = true;
+      },
+    );
     notifyListeners();
 
     return Result.success(dataResult);

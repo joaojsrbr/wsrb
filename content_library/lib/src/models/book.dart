@@ -22,7 +22,7 @@ class Book extends Content {
   final String? mediumImage;
 
   const Book({
-    required super.releases,
+    required ChapterReleases releases,
     required super.title,
     required this.source,
     required this.originalImage,
@@ -38,7 +38,10 @@ class Book extends Content {
     this.largeImage,
     this.mediumImage,
     this.artists = const [],
-  });
+  }) : super(releases);
+
+  @override
+  ChapterReleases get releases => super.releases as ChapterReleases;
 
   @override
   String get imageUrl =>
@@ -89,7 +92,7 @@ class Book extends Content {
     String? mediumImage,
   }) {
     return Book(
-      releases: releases ?? this.releases,
+      releases: ChapterReleases.from(releases ?? this.releases),
       type: type ?? this.type,
       extraLarge: extraLarge ?? this.extraLarge,
       title: title ?? this.title,

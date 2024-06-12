@@ -151,7 +151,7 @@ class IsarServiceImpl implements IsarService {
           final futures =
               await Future.wait(entities.map((e) => add(entity: e)));
           futures
-              .map((e) => e.when(onSucess: (data) => data.$2))
+              .map((e) => e.fold(onSucess: (data) => data.$2))
               .nonNulls
               .forEach(ids.add);
         }
@@ -210,7 +210,7 @@ class IsarServiceImpl implements IsarService {
           final futures =
               await Future.wait(entities.map((e) => remove(entity: e)));
           futures
-              .map((e) => e.when(onSucess: (data) => data.$2))
+              .map((e) => e.fold(onSucess: (data) => data.$2))
               .nonNulls
               .forEach(ids.add);
           isSucess = true;

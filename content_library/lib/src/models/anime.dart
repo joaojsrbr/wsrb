@@ -4,7 +4,7 @@ class Anime extends Content {
   const Anime({
     required super.url,
     required super.title,
-    required super.releases,
+    required EpisodeReleases releases,
     required this.source,
     required this.originalImage,
     this.slugSerie,
@@ -18,7 +18,11 @@ class Anime extends Content {
     this.generateID,
     this.isDublado = false,
     super.sinopse,
-  });
+  }) : super(releases);
+
+  @override
+  EpisodeReleases get releases => super.releases as EpisodeReleases;
+
   final List<Genre>? genres;
   final String? generateID;
   final String? animeID;
@@ -66,7 +70,7 @@ class Anime extends Content {
       sinopse: sinopse ?? this.sinopse,
       isDublado: isDublado ?? this.isDublado,
       slugSerie: slugSerie ?? this.slugSerie,
-      releases: releases ?? this.releases,
+      releases: EpisodeReleases.from(releases ?? this.releases),
       title: title ?? this.title,
       url: url ?? this.url,
     );
@@ -95,7 +99,7 @@ class Anime extends Content {
       createdAt: createdAt,
       updatedAt: updatedAt,
       originalImage: originalImage.isEmpty
-          ? (releases.firstOrNull as Episode?)?.thumbnail ?? ''
+          ? releases.firstOrNull?.thumbnail ?? ''
           : originalImage,
     );
   }

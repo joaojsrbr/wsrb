@@ -83,7 +83,7 @@ class AnimeEntity extends ContentEntity {
       slugSerie: slugSerie,
       source: source,
       sinopse: sinopse,
-      releases: Releases(),
+      releases: EpisodeReleases(),
       originalImage: originalImage,
       extraLarge: extraLarge,
       largeImage: largeImage,

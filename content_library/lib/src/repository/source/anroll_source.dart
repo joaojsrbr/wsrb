@@ -126,8 +126,7 @@ class AnrollSource extends RSource {
       Anime anime = content as Anime;
 
       final String generateID =
-          (anime.releases.firstOrNull as Episode?)?.generateID ??
-              anime.generateID!;
+          anime.releases.firstOrNull?.generateID ?? anime.generateID!;
 
       final Releases releases = Releases();
 
@@ -170,7 +169,7 @@ class AnrollSource extends RSource {
 
         do {
           final result = await getReleases(newAnime, page);
-          result.when(onSucess: (data) => newAnime = data as Anime);
+          result.fold(onSucess: (data) => newAnime = data as Anime);
           hasNextPage = anime.totalOfEpisodes == anime.releases.length;
           if (hasNextPage) page++;
         } while (hasNextPage);
@@ -264,7 +263,7 @@ class AnrollSource extends RSource {
           thumbnail: thumbnail,
         );
 
-        final releases = Releases();
+        final releases = EpisodeReleases();
         final subKey =
             '_next/data/$buildId/e/$episodeGenerateID.json?episode=$episodeGenerateID';
 

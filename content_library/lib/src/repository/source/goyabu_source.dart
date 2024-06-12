@@ -172,7 +172,7 @@ class GoyabuSource extends RSource {
     );
 
     try {
-      final Episode episodeURL = (content as Anime).releases.first as Episode;
+      final Episode episodeURL = (content as Anime).releases.first;
 
       final responseAnimeURL = await contentRepository._dio.get(
         episodeURL.url,
@@ -284,7 +284,7 @@ class GoyabuSource extends RSource {
       }
 
       for (final Element element in elements) {
-        final Releases releases = Releases();
+        final EpisodeReleases releases = EpisodeReleases();
 
         final ScrapingUtil scrapingUtil = ScrapingUtil(element);
 

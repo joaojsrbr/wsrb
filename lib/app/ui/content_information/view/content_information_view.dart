@@ -85,7 +85,7 @@ class _BookInformationStateView
 
     final resultCotent = await _repository.getData(content);
 
-    resultCotent.when(
+    resultCotent.fold(
       onError: navigationState.pop,
       onSucess: _onSucess,
     );
@@ -95,7 +95,7 @@ class _BookInformationStateView
     final appSnackBar = context.appSnackBar;
     final resultBook = await _repository.getData(_content!);
 
-    return await resultBook.when<Future>(
+    return await resultBook.fold<Future>(
       onError: appSnackBar.onError,
       onSucess: (data) => _onSucess(data, true),
     );
@@ -108,17 +108,21 @@ class _BookInformationStateView
       final result =
           await _repository.getReleases(content.copyWith(), _index + 1);
 
-      result.when(onSucess: (data) {
-        final stringID = data.releases.first.stringID;
-        final index = _releases.indexWhere((element) =>
-            element.any((element) => element.stringID.contains(stringID)));
-        if (index != -1) {
-          _releases[index] = data.releases;
-        } else {
-          _releases.add(data.releases);
-        }
-        setStateIfMounted(() => _content = data);
-      });
+      result.fold(
+        onSucess: (data) {
+          final stringID = data.releases.first.stringID;
+          customLog(stringID);
+          final index = _releases.indexWhere((element) =>
+              element.any((element) => element.stringID.contains(stringID)));
+          if (index != -1) {
+            _releases[index] = data.releases;
+          } else {
+            _releases.add(data.releases);
+          }
+          // setState(() {});
+          setStateIfMounted(() => _content = data);
+        },
+      );
     } else {
       _releases[_index] = content.releases;
     }
@@ -145,8 +149,8 @@ class _BookInformationStateView
     }
 
     setStateIfMounted(() {
-      _content = data;
       if (!onRefresh) {
+        _content = data;
         _releasesIsLoading = false;
         _isLoading = false;
       }

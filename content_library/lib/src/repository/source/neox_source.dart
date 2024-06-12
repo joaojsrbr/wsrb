@@ -281,7 +281,7 @@ class NeoxSource extends RSource {
         if ([originalImage, url, title].isNull) continue;
 
         final Book book = Book(
-          releases: Releases(),
+          releases: ChapterReleases(),
           genres: genres,
           source: source,
           url: url,

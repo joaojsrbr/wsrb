@@ -26,50 +26,34 @@ class PlayerView extends StatefulWidget {
 
 class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     with WidgetsBindingObserver {
-  /// [PlayerArgs] object used as argument of this page.
   late PlayerArgs _playerArgs = argument();
 
-  /// content repository [ContentRepository] instance.
   late final ContentRepository _repository;
 
-  /// Create a [VideoController] to handle video output from [Player].
   VideoController? _videoController;
 
-  /// [_mainVideoData] instance used to store video data.
   VideoData? _mainVideoData;
 
-  Timer? _setEnabledSystemUIMode;
-
-  /// Create a [Player] to control playback.
   Player? _player;
 
-  /// variable used to load the page.
   bool _isLoading = true;
 
-  /// variable using to store the initial [BoxFit].
   BoxFit _activeFit = BoxFit.contain;
 
-  /// instance using to store all Subscriptions.
   final Subscriptions _subscriptions = Subscriptions();
 
-  /// instance with single state used to store the [BoxFit] selected on the player button.
   final ValueNotifier<String?> _overlayBoxFit = ValueNotifier(null);
 
-  /// instance with single state using to notify the user and activate the [_nextEpisode] method.
   final ValueNotifier<String?> _overlayNextEpisode = ValueNotifier(null);
 
   late final ValueNotifier<String> _topTitle = ValueNotifier('');
 
-  /// Queue instance to store all [BoxFit].
   final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
 
-  /// Queue instance to store all [VideoData] instance.
   final List<VideoData> data = [];
 
-  /// maximum [int] type variable responsible for controlling the [CircularProgressIndicator] animation.
   final int _maxValueCircularAnimation = 2;
 
-  /// current [int] type variable responsible for controlling the [CircularProgressIndicator] animation.
   int _currentValueCircularAnimation = 0;
 
   late final LibraryController _libraryController;
@@ -81,6 +65,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   final ValueNotifier<bool> _reversedCurrentDuration = ValueNotifier(false);
 
   final ValueNotifier<Duration?> _seekInVideoPosition = ValueNotifier(null);
+
+  late final Timer _systemUIModeTimer;
+
+  Timer? _setEnabledSystemUIModeTimer;
 
   @override
   void initState() {
@@ -94,7 +82,33 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     _libraryController = context.read<LibraryController>();
 
+    _systemUIModeTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      _setEnabledSystemUIMode,
+    );
+
     addPostFrameCallback(_onInit);
+  }
+
+  void _setEnabledSystemUIMode(Timer timer) {
+    final player = _player;
+    if (player == null) return;
+
+    // final playing = player.state.playing;
+
+    _setEnabledSystemUIModeTimer?.cancel();
+
+    if (_playing && !player.state.completed) {
+      _setEnabledSystemUIModeTimer =
+          Timer(const Duration(milliseconds: 200), () {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      });
+    } else {
+      _setEnabledSystemUIModeTimer =
+          Timer(const Duration(milliseconds: 200), () {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      });
+    }
   }
 
   Future<void> _incrementCurrentCircularAnimation() async {
@@ -115,7 +129,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     final state = Navigator.of(context);
     final result = await _repository.getContent(_playerArgs.episode);
     _topTitle.value = 'Episódio ${_playerArgs.episode.number}'.trim();
-    result.when(
+    result.fold(
       onSucess: (data) {
         if (data.first is! VideoData) state.pop();
 
@@ -134,7 +148,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     if (_playerArgs.anime.releases.length == 1) {
       final result = await _repository
           .getData(_playerArgs.anime)
-          .then((result) => result.when(onSucess: (data) => data as Anime));
+          .then((result) => result.fold(onSucess: (data) => data as Anime));
       if (result != null) anime = result;
     }
 
@@ -164,7 +178,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
   }
 
-  // bool get _playing => _player?.state.playing ?? false;
+  bool get _playing => _player?.state.playing ?? false;
 
   bool get isFullscreen =>
       PlayerView.videoStateKey.currentState?.isFullscreen() ?? false;
@@ -210,19 +224,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
   }
 
-  void _playingListener(bool playing) {
-    _setEnabledSystemUIMode?.cancel();
-
-    if (playing) {
-      _setEnabledSystemUIMode = Timer(const Duration(milliseconds: 200), () {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-      });
-    } else {
-      _setEnabledSystemUIMode = Timer(const Duration(milliseconds: 300), () {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      });
-    }
-  }
+  void _playingListener(bool playing) {}
 
   void _positionListener(Duration position) {
     if (_seekInVideoPosition.value != null) {
@@ -326,7 +328,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     final indexOf = _playerArgs.anime.releases.indexOf(_playerArgs.episode);
 
-    final nexEpisode = _playerArgs.anime.releases[indexOf + 1] as Episode;
+    final nexEpisode = _playerArgs.anime.releases[indexOf + 1];
 
     await _handleOnTapEpisode(nexEpisode);
 
@@ -380,7 +382,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       episodeDuration: duration.inMilliseconds,
       stringID: _playerArgs.episode.stringID,
       isComplete: isComplete,
-      sinopse: (_playerArgs.episode as Episode).sinopse,
+      sinopse: _playerArgs.episode.sinopse,
       numberEpisode: int.tryParse(_playerArgs.episode.number),
     );
 
@@ -433,11 +435,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     _topTitle.dispose();
     customLog('$runtimeType[dispose]');
     _subscriptions.cancelAll();
-
-    _setEnabledSystemUIMode?.cancel();
-    // _videoController?.id.dispose();
-    // _videoController?.notifier.dispose();
-    // _videoController?.rect.dispose();
+    _setEnabledSystemUIModeTimer?.cancel();
+    _systemUIModeTimer.cancel();
     _seekInVideoPosition.dispose();
     _lockPlayer.dispose();
     _reversedCurrentDuration.dispose();
@@ -568,8 +567,7 @@ class _BuildScaffold extends StatelessWidget {
                       itemCount: playerArgs.anime.releases.length,
                       itemBuilder: (context, index) {
                         final Episode episode =
-                            playerArgs.anime.releases.reversed.elementAt(index)
-                                as Episode;
+                            playerArgs.anime.releases.reversed.elementAt(index);
                         final String? thumbnail = episode.thumbnail;
 
                         return ListTile(

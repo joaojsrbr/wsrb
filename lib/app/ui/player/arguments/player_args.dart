@@ -3,7 +3,7 @@
 import 'package:content_library/content_library.dart';
 
 class PlayerArgs {
-  final Release episode;
+  final Episode episode;
   final Anime anime;
 
   const PlayerArgs({
@@ -12,7 +12,7 @@ class PlayerArgs {
   });
 
   PlayerArgs copyWith({
-    Release? episode,
+    Episode? episode,
     Anime? anime,
   }) {
     return PlayerArgs(
