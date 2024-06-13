@@ -60,14 +60,12 @@ class HistoricController extends ChangeNotifier {
   }
 
   Future<Result<(bool, List<int>?)>> add({
-    HistoryEntity? historyEntity,
+    required HistoryEntity historyEntity,
   }) async {
     bool isSucess = false;
     final List<int> ids = [];
 
-    if (historyEntity != null) {
-      _setDateTime(historyEntity);
-    }
+    _setDateTime(historyEntity);
 
     final result = await _isarService.add(entity: historyEntity);
 
@@ -76,9 +74,7 @@ class HistoricController extends ChangeNotifier {
       if (data.$1) isSucess = data.$1;
     });
 
-    if (historyEntity != null) {
-      _addOrUpdate(historyEntity);
-    }
+    _addOrUpdate(historyEntity);
 
     notifyListeners();
     return Result.success((isSucess, ids));
@@ -89,16 +85,14 @@ class HistoricController extends ChangeNotifier {
       case EpisodeEntity data:
         if (contains(historyEntity: data)) {
           data.updatedAt = DateTime.now();
-          break;
         }
-        data.createdAt = DateTime.now();
+        data.createdAt ??= DateTime.now();
         break;
       case ChapterEntity data:
         if (contains(historyEntity: data)) {
           data.updatedAt = DateTime.now();
-          break;
         }
-        data.createdAt = DateTime.now();
+        data.createdAt ??= DateTime.now();
         break;
     }
   }

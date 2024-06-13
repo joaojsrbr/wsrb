@@ -4,47 +4,34 @@ import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
 class SinopseWidget extends StatefulWidget {
-  const SinopseWidget({super.key, required this.sinopse});
-
-  final String sinopse;
+  const SinopseWidget({super.key});
 
   @override
   State<SinopseWidget> createState() => _SinopseWidgetState();
 }
 
 class _SinopseWidgetState extends State<SinopseWidget> {
-  String _substring = "";
   bool _expanded = false;
-
-  bool get _isOver100 => widget.sinopse.length > 100;
-
-  @override
-  void initState() {
-    super.initState();
-
-    if (_isOver100) {
-      _substring = "${widget.sinopse.substring(0, 100)} ...";
-    }
-  }
 
   void _onTap() {
     setState(() => _expanded = !_expanded);
   }
 
   @override
-  void didUpdateWidget(covariant SinopseWidget oldWidget) {
-    if (widget.sinopse != oldWidget.sinopse && widget.sinopse.length > 100) {
-      _substring = "${widget.sinopse.substring(0, 100)} ...";
-    }
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(8);
     final isLoading = BookInformationScope.isLoadingOf(context);
-    // const isLoading = true;
+
+    final content = BookInformationScope.contentOf(context);
+    String substring = content.sinopse ?? "";
     final ThemeData themeData = Theme.of(context);
+
+    final bool isOver100 = (content.sinopse ?? "").length > 100;
+
+    if (isOver100 && _expanded) {
+      substring = "${content.sinopse?.substring(0, 100)} ...";
+    }
+
     Widget container;
 
     if (isLoading) {
@@ -64,8 +51,8 @@ class _SinopseWidgetState extends State<SinopseWidget> {
           ),
         ),
       );
-    } else if (widget.sinopse.isNotEmpty) {
-      if (widget.sinopse.isEmpty) return const SliverToBoxAdapter();
+    } else if (substring.isNotEmpty) {
+      if (substring.isEmpty) return const SliverToBoxAdapter();
 
       container = SliverAnimatedPaintExtent(
         duration: const Duration(milliseconds: 150),
@@ -78,11 +65,12 @@ class _SinopseWidgetState extends State<SinopseWidget> {
               child: InkWell(
                 overlayColor: _OverlayColor(context),
                 borderRadius: borderRadius,
-                onTap: _isOver100 ? _onTap : null,
+                onTap: isOver100 ? _onTap : null,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    _isOver100 && !_expanded ? _substring : widget.sinopse,
+                    // isOver100 && !_expanded ? substring : widget.sinopse,
+                    substring,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_wsrb_jsr/app/my_app.dart';
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
 import 'package:content_library/content_library.dart';
 
 import 'package:flutter/material.dart';
@@ -31,6 +32,9 @@ void main() async {
   final HiveService hiveServiceImpl = HiveServiceImpl(start: start);
   final HiveCacheServiceImpl hiveCacheServiceImpl = HiveCacheServiceImpl();
 
+  final ContentRepository contentRepository =
+      ContentRepository(hiveController, dioClient);
+
   final LibraryController libraryController =
       LibraryController(isarServiceImpl);
 
@@ -53,6 +57,7 @@ void main() async {
     Workmanager().initialize(callbackDispatcher, isInDebugMode: true),
     isarServiceImpl.startDatabase(onStart: libraryStart),
     hiveCacheServiceImpl.init(),
+    PlayerAudioHandlerMixin.startPlayerAudio(),
     hiveServiceImpl.init(),
     connectionChecker.start(),
   ]);
@@ -70,10 +75,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => historicController),
         ChangeNotifierProvider(create: (context) => valueNotifierList),
         Provider(
-          create: (context) => ContentRepository(
-            context.read(),
-            context.read(),
-          ),
+          create: (context) => contentRepository,
           dispose: (context, repository) => repository.dispose(),
         ),
       ],

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/player/widgets/player_custom_overlay.dart';
 import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
-import 'package:content_library/content_library.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:flutter/material.dart';
 
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -32,11 +32,10 @@ class CustomMaterialControls extends StatefulWidget {
   State<CustomMaterialControls> createState() => _CustomMaterialControlsState();
 }
 
-class _CustomMaterialControlsState extends State<CustomMaterialControls> {
+class _CustomMaterialControlsState extends State<CustomMaterialControls>
+    with SubscriptionsMixin {
   late bool mount = _theme(context).visibleOnMount;
   late bool visible = _theme(context).visibleOnMount;
-
-  final Subscriptions _subscriptions = Subscriptions();
 
   Timer? _timer;
   final ValueNotifier<Duration> _seekBarDeltaValueNotifier =
@@ -134,7 +133,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls> {
       try {
         VolumeController().showSystemUI = false;
         _volumeValue = await VolumeController().getVolume();
-        _subscriptions.add(
+        subscriptions.add(
           VolumeController().listener((value) {
             if (mounted && !_volumeInterceptEventStream) {
               setState(() {
@@ -149,7 +148,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls> {
     Future.microtask(() async {
       try {
         _brightnessValue = await ScreenBrightness().current;
-        _subscriptions.add(
+        subscriptions.add(
           ScreenBrightness().onCurrentBrightnessChanged.listen((value) {
             if (mounted) {
               setState(() {
@@ -186,8 +185,8 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_subscriptions.isEmpty) {
-      _subscriptions.addAll(
+    if (subscriptions.isEmpty) {
+      subscriptions.addAll(
         [
           controller(context).player.stream.playlist.listen(
             (event) {
@@ -270,10 +269,10 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls> {
     _timer?.cancel();
     _volumeTimer?.cancel();
     _seekBarDeltaValueNotifier.dispose();
-    // for (final subscription in _subscriptions) {
+    // for (final subscription in subscriptions) {
     //   subscription.cancel();
     // }
-    _subscriptions.cancelAll();
+    subscriptions.cancelAll();
 
     // --------------------------------------------------
     // package:screen_brightness
@@ -809,8 +808,6 @@ class _MaterialSeekBarState extends State<_MaterialSeekBar> {
     bool disableBufferSlider =
         buffer.inMilliseconds > duration.inMilliseconds.toDouble();
 
-    customLog(disableBufferSlider);
-
     final lockPlayer = widget.state._lockPlayer;
 
     return SliderTheme(
@@ -858,7 +855,7 @@ class _Controlls extends StatefulWidget {
 }
 
 class _ControllsState extends State<_Controlls>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, SubscriptionsMixin {
   late Duration _position = controller(context).player.state.position;
   late Duration _duration = controller(context).player.state.duration;
 
@@ -870,7 +867,6 @@ class _ControllsState extends State<_Controlls>
     value: controller(context).player.state.playing ? 1 : 0,
     duration: const Duration(milliseconds: 200),
   );
-  final List<StreamSubscription> _subscriptions = [];
 
   bool get _reversedCurrentDuration =>
       _playerScope.reversedCurrentDuration.value;
@@ -892,8 +888,8 @@ class _ControllsState extends State<_Controlls>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_subscriptions.isEmpty) {
-      _subscriptions.addAll(
+    if (subscriptions.isEmpty) {
+      subscriptions.addAll(
         [
           controller(context).player.stream.position.listen((event) {
             setState(() {
@@ -919,9 +915,6 @@ class _ControllsState extends State<_Controlls>
 
   @override
   void dispose() {
-    for (final subscription in _subscriptions) {
-      subscription.cancel();
-    }
     _animation.dispose();
     super.dispose();
   }

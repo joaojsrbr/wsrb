@@ -85,7 +85,7 @@ class AnrollSource extends RSource {
         final sinopse_episode = map['sinopse_episodio'] as String?;
         final episodeGenerateID = map['generate_id'];
         final thumbnail =
-            "https://www.anroll.net/_next/image?url=https%3A%2F%2Fstatic.anroll.net%2Fimages%2Fanimes%2Fscreens%2F${anime.slugSerie}%2F$n_episodio.jpg&w=1080&q=100";
+            "https://static.anroll.net/images/animes/screens/${anime.slugSerie}/$n_episodio.jpg";
 
         final Episode episode = Episode(
           numberEpisode: number,
@@ -133,7 +133,7 @@ class AnrollSource extends RSource {
       final String url = '$BASE_URL/a/${animeData['anime']['generate_id']}';
 
       final String originalImage =
-          'https://www.anroll.net/_next/image?url=https%3A%2F%2Fstatic.anroll.net%2Fimages%2Fanimes%2Fcapas%2F${anime.slugSerie}.jpg&w=1080&q=100';
+          'https://static.anroll.net/images/animes/capas/${anime.slugSerie}.jpg';
 
       final String animeID = (animeData['id_serie']).toString();
 
@@ -222,7 +222,7 @@ class AnrollSource extends RSource {
         final int nEpisodio = int.parse(release['episode']['n_episodio']);
 
         final String thumbnail =
-            "https://www.anroll.net/_next/image?url=https%3A%2F%2Fstatic.anroll.net%2Fimages%2Fanimes%2Fscreens%2F$slugSerie%2F$nEpisodio.jpg&w=1080&q=100";
+            "https://static.anroll.net/images/animes/screens/$slugSerie/${release['episode']['n_episodio']}.jpg";
 
         final Episode episode = Episode(
           slugSerie: slugSerie,

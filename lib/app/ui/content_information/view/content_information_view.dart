@@ -2,6 +2,7 @@
 import 'dart:async';
 
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/content_persistent_header_delegate.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -23,9 +24,8 @@ class BookInformationView extends StatefulWidget {
 }
 
 class _BookInformationStateView
-    extends StateByArgument<BookInformationView, ContentInformationArgs> {
-  late final Subscriptions _subscriptions;
-
+    extends StateByArgument<BookInformationView, ContentInformationArgs>
+    with SubscriptionsMixin {
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = GlobalKey();
 
   /// [ContentRepository] instance
@@ -51,7 +51,6 @@ class _BookInformationStateView
     super.initState();
 
     _repository = context.read<ContentRepository>();
-    _subscriptions = Subscriptions();
     Future.microtask(_onInit);
   }
 
@@ -162,6 +161,19 @@ class _BookInformationStateView
     return const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
   }
 
+  static const _linearGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.centerRight,
+    colors: <Color>[
+      Color.fromARGB(90, 176, 190, 197),
+      Color.fromARGB(90, 176, 190, 197),
+      Color(0xffE6E8EB),
+      Color.fromARGB(90, 176, 190, 197),
+      Color.fromARGB(90, 176, 190, 197),
+    ],
+    stops: <double>[0.0, 0.35, 0.5, 0.65, 1.0],
+  );
+
   @override
   Widget buildByArgument(
     BuildContext context,
@@ -169,21 +181,8 @@ class _BookInformationStateView
   ) {
     final size = MediaQuery.sizeOf(context);
 
-    const linearGradient = LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.centerRight,
-      colors: <Color>[
-        Color.fromARGB(90, 176, 190, 197),
-        Color.fromARGB(90, 176, 190, 197),
-        Color(0xffE6E8EB),
-        Color.fromARGB(90, 176, 190, 197),
-        Color.fromARGB(90, 176, 190, 197),
-      ],
-      stops: <double>[0.0, 0.35, 0.5, 0.65, 1.0],
-    );
-
     return Shimmer(
-      linearGradient: linearGradient,
+      linearGradient: _linearGradient,
       child: BookInformationScope(
         index: _index,
         releasesIsLoading: _releasesIsLoading,
@@ -205,7 +204,7 @@ class _BookInformationStateView
                     minExtent: 100,
                   ),
                 ),
-                SinopseWidget(sinopse: _content?.sinopse ?? ''),
+                const SinopseWidget(),
                 const ChipContentController(),
                 const BuildContents(),
               ],
@@ -214,12 +213,5 @@ class _BookInformationStateView
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _subscriptions.cancelAll();
-
-    super.dispose();
   }
 }

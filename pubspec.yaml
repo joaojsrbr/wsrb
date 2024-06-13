@@ -66,6 +66,8 @@ dependencies:
   extended_nested_scroll_view: ^6.2.1
   open_settings_plus: ^0.3.3
   webview_flutter: ^4.8.0
+  audio_service: ^0.18.13
+  audio_session: ^0.1.19
 
 dev_dependencies:
   flutter_test:

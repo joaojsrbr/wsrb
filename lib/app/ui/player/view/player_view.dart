@@ -1,7 +1,12 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_session.dart';
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:app_wsrb_jsr/app/ui/player/widgets/material_video_controls.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
@@ -25,7 +30,12 @@ class PlayerView extends StatefulWidget {
 }
 
 class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
-    with WidgetsBindingObserver {
+    with
+        WidgetsBindingObserver,
+        SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs>,
+        PlayerControllerMixin,
+        PlayerAudioHandlerMixin,
+        PlayerAudioSessionMixin {
   late PlayerArgs _playerArgs = argument();
 
   late final ContentRepository _repository;
@@ -34,13 +44,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   VideoData? _mainVideoData;
 
-  Player? _player;
-
   bool _isLoading = true;
 
   BoxFit _activeFit = BoxFit.contain;
-
-  final Subscriptions _subscriptions = Subscriptions();
 
   final ValueNotifier<String?> _overlayBoxFit = ValueNotifier(null);
 
@@ -91,14 +97,13 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   void _setEnabledSystemUIMode(Timer timer) {
-    final player = _player;
     if (player == null) return;
 
     // final playing = player.state.playing;
 
     _setEnabledSystemUIModeTimer?.cancel();
 
-    if (_playing && !player.state.completed) {
+    if (_playing && !player!.state.completed) {
       _setEnabledSystemUIModeTimer =
           Timer(const Duration(milliseconds: 200), () {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
@@ -118,6 +123,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    customLog(state);
     if ([AppLifecycleState.hidden, AppLifecycleState.paused].contains(state)) {
       _saveVideoData();
     }
@@ -173,12 +179,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         .whenComplete(_incrementCurrentCircularAnimation);
     setStateIfMounted(() => _isLoading = false);
 
-    if (_player?.state.playing == true) {
+    if (player?.state.playing == true) {
       await _continueVideo();
     }
   }
 
-  bool get _playing => _player?.state.playing ?? false;
+  bool get _playing => player?.state.playing ?? false;
 
   bool get isFullscreen =>
       PlayerView.videoStateKey.currentState?.isFullscreen() ?? false;
@@ -187,51 +193,105 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       PlayerView.videoStateKey.currentState?.toggleFullscreen();
 
   Future<void> _startPlayerController([bool onInit = false]) async {
+    final playbackState = playerAudioHandler.playbackState;
+    playerAudioHandler.playbackState.add(playbackState.value.copyWith.call(
+      systemActions: {MediaAction.playPause, MediaAction.play},
+      controls: [MediaControl.pause, MediaControl.play],
+      processingState: AudioProcessingState.loading,
+    ));
+
     if (onInit) {
-      _player = Player(configuration: const PlayerConfiguration());
-      _videoController = VideoController(_player!);
+      setPlayer = Player(configuration: const PlayerConfiguration());
+      _videoController = VideoController(player!);
     }
 
-    await Future.wait([
-      if (_player != null && _mainVideoData != null) ...[
-        _player!.open(Media(
+    List<Future> futures = [
+      _registerListeners(false),
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive)
+    ];
+
+    if (player != null && _mainVideoData != null) {
+      futures.addAll([
+        player!.open(Media(
           _mainVideoData!.videoContent,
           httpHeaders: _mainVideoData?.httpHeaders,
         )),
-        _player!.setAudioDevice(AudioDevice.auto()),
-      ],
-      _registerListeners(false),
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive)
-    ]);
-    await _videoController!.waitUntilFirstFrameRendered;
+        player!.setAudioDevice(AudioDevice.auto()),
+      ]);
+    }
+
+    await Future.wait(futures);
+
+    playerAudioHandler.setPlayerController = this;
+
+    await _videoController?.waitUntilFirstFrameRendered;
+
+    Future.delayed(const Duration(seconds: 2), () async {
+      if (player != null && _mainVideoData != null) {
+        final item = MediaItem(
+          displayTitle: _playerArgs.anime.title,
+          id: _mainVideoData!.videoContent,
+          title: _playerArgs.anime.title,
+          duration: player!.state.duration,
+          artUri: (_playerArgs.episode.thumbnail != null
+              ? Uri.parse(_playerArgs.episode.thumbnail!)
+              : null),
+        );
+        await addMediaItem(item);
+      }
+    });
+    playerAudioHandler.playbackState.add(playbackState.value.copyWith.call(
+      processingState: AudioProcessingState.ready,
+    ));
   }
 
   void _completedListener(bool completed) {
     if (completed) {
       _saveVideoData();
+      final playbackState = playerAudioHandler.playbackState;
+
+      playbackState.add(playbackState.value.copyWith(
+        processingState: AudioProcessingState.idle,
+      ));
     }
   }
 
   Future<void> _registerListeners(bool clearListeners) async {
     if (clearListeners) {
-      await _subscriptions.cancelAll();
+      await subscriptions.cancelAll();
     } else {
-      _subscriptions.addAll([
-        _player!.stream.playing.listen(_playingListener),
-        _player!.stream.position.listen(_positionListener),
-        _player!.stream.completed.listen(_completedListener),
+      subscriptions.addAll([
+        player!.stream.playing.listen(_playingListener),
+        player!.stream.position.listen(_positionListener),
+        player!.stream.buffer.listen(_bufferListener),
+        player!.stream.completed.listen(_completedListener),
       ]);
     }
   }
 
-  void _playingListener(bool playing) {}
+  void _bufferListener(Duration buffer) {
+    playerAudioHandler.playbackState.add(
+      playerAudioHandler.transformEvent(player!.state),
+    );
+  }
+
+  void _playingListener(bool playing) {
+    // playerAudioHandler.playbackState.add(
+    //   playerAudioHandler.transformEvent(player!.state),
+    // );
+    setActiveAudioService(playing);
+  }
 
   void _positionListener(Duration position) {
+    playerAudioHandler.playbackState.add(
+      playerAudioHandler.transformEvent(player!.state),
+    );
+
     if (_seekInVideoPosition.value != null) {
-      _player?.seek(_seekInVideoPosition.value!);
+      player?.seek(_seekInVideoPosition.value!);
       _seekInVideoPosition.value = null;
     }
-    if (_player == null) return;
+    if (player == null) return;
     if (_hasNextEpisode) _nextEpisode(position);
   }
 
@@ -256,9 +316,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   void _nextEpisode(Duration position) async {
-    final maxPosition = _player!.state.duration;
+    final maxPosition = player!.state.duration;
     final activeOverlay = maxPosition - const Duration(seconds: 90);
-    final diff = _player!.state.duration - position;
+    final diff = player!.state.duration - position;
 
     if (position >= activeOverlay &&
         !diff.inSeconds.isNegative &&
@@ -323,7 +383,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   Future<void> _handleOnTapEpisodeInOverlay() async {
     _overlayNextEpisode.value = null;
-    await _player?.pause();
+    await player?.pause();
     // await _player?.stop();
 
     final indexOf = _playerArgs.anime.releases.indexOf(_playerArgs.episode);
@@ -336,7 +396,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _handleOnTapEpisode(Episode episode) async {
-    await _player?.pause();
+    if (episode.stringID.contains(_playerArgs.episode.stringID)) return;
+    await player?.pause();
     _seekInVideoPosition.value = null;
     _overlayNextEpisode.value = null;
     customLog(
@@ -355,10 +416,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   double get _videoPercent {
-    if (_player != null) {
-      final Duration position = _player!.state.position;
+    if (player != null) {
+      final Duration position = player!.state.position;
 
-      final Duration duration = _player!.state.duration;
+      final Duration duration = player!.state.duration;
 
       return ((position.inMilliseconds / duration.inMilliseconds)).abs();
     }
@@ -366,13 +427,11 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _saveVideoData() async {
-    if (_videoPercent == 0.0) return;
-
-    final Duration position = _player!.state.position;
-
-    final Duration duration = _player!.state.duration;
-
     if (_videoPercent < 0.20) return;
+
+    final Duration position = player!.state.position;
+
+    final Duration duration = player!.state.duration;
 
     bool isComplete = _videoPercent >= 0.85;
 
@@ -434,13 +493,11 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     if (_mainVideoData != null) _saveVideoData();
     _topTitle.dispose();
     customLog('$runtimeType[dispose]');
-    _subscriptions.cancelAll();
     _setEnabledSystemUIModeTimer?.cancel();
     _systemUIModeTimer.cancel();
     _seekInVideoPosition.dispose();
     _lockPlayer.dispose();
     _reversedCurrentDuration.dispose();
-    _player?.dispose();
     _overlayBoxFit.dispose();
     _overlayNextEpisode.dispose();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -526,8 +583,7 @@ class _BuildScaffold extends StatelessWidget {
           flex: 2,
           child: DraggableScrollableSheet(
             minChildSize: 0.8,
-            initialChildSize: 1.0,
-            // expand: false,
+            initialChildSize: 0.8,
             builder: (context, scrollController) {
               return Column(
                 children: [
