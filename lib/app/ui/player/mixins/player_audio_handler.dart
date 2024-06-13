@@ -37,8 +37,9 @@ mixin PlayerAudioHandlerMixin
     final playbackState = _playerAudioHandler.playbackState;
 
     _playerAudioHandler.playbackState.add(playbackState.value.copyWith.call(
-      processingState: AudioProcessingState.completed,
+      processingState: AudioProcessingState.idle,
     ));
+
     super.dispose();
   }
 }
