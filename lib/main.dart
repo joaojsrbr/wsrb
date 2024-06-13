@@ -32,9 +32,6 @@ void main() async {
   final HiveService hiveServiceImpl = HiveServiceImpl(start: start);
   final HiveCacheServiceImpl hiveCacheServiceImpl = HiveCacheServiceImpl();
 
-  final ContentRepository contentRepository =
-      ContentRepository(hiveController, dioClient);
-
   final LibraryController libraryController =
       LibraryController(isarServiceImpl);
 
@@ -61,6 +58,9 @@ void main() async {
     hiveServiceImpl.init(),
     connectionChecker.start(),
   ]);
+
+  final ContentRepository contentRepository =
+      ContentRepository(hiveController, dioClient);
 
   runApp(
     MultiProvider(
