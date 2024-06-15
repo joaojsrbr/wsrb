@@ -23,8 +23,6 @@ class PlayerView extends StatefulWidget {
 
   static final GlobalKey<VideoState> videoStateKey = GlobalKey<VideoState>();
 
-  static final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
-
   @override
   State<PlayerView> createState() => _PlayerViewState();
 }
@@ -98,8 +96,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   void _setEnabledSystemUIMode(Timer timer) {
     if (player == null) return;
-
-    // final playing = player.state.playing;
 
     _setEnabledSystemUIModeTimer?.cancel();
 
@@ -189,14 +185,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   bool get isFullscreen =>
       PlayerView.videoStateKey.currentState?.isFullscreen() ?? false;
 
-  Future<void>? get toggleFullscreen =>
-      PlayerView.videoStateKey.currentState?.toggleFullscreen();
-
   Future<void> _startPlayerController([bool onInit = false]) async {
     final playbackState = playerAudioHandler.playbackState;
     playerAudioHandler.playbackState.add(playbackState.value.copyWith.call(
-      systemActions: {MediaAction.playPause, MediaAction.play},
-      controls: [MediaControl.pause, MediaControl.play],
       processingState: AudioProcessingState.loading,
     ));
 
@@ -250,7 +241,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       _saveVideoData();
       final playbackState = playerAudioHandler.playbackState;
 
-      playbackState.add(playbackState.value.copyWith(
+      playerAudioHandler.playbackState.add(playbackState.value.copyWith(
         processingState: AudioProcessingState.idle,
       ));
     }
@@ -271,15 +262,14 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   void _bufferListener(Duration buffer) {
     playerAudioHandler.playbackState.add(
-      playerAudioHandler.transformEvent(player!.state),
+      playerAudioHandler.playbackState.value.copyWith.call(
+        bufferedPosition: buffer,
+      ),
     );
   }
 
-  void _playingListener(bool playing) {
-    // playerAudioHandler.playbackState.add(
-    //   playerAudioHandler.transformEvent(player!.state),
-    // );
-    setActiveAudioService(playing);
+  void _playingListener(bool playing) async {
+    setSessionActive(playing);
   }
 
   void _positionListener(Duration position) {
@@ -291,11 +281,11 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       player?.seek(_seekInVideoPosition.value!);
       _seekInVideoPosition.value = null;
     }
-    if (player == null) return;
+
     if (_hasNextEpisode) _nextEpisode(position);
   }
 
-  void _handleSetFits() async {
+  Future<void> _handleSetFits() async {
     final videoState = PlayerView.videoStateKey.currentState;
     if (videoState == null) return;
 
@@ -317,10 +307,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   void _nextEpisode(Duration position) async {
     final maxPosition = player!.state.duration;
-    final activeOverlay = maxPosition - const Duration(seconds: 90);
+    final positionActiveOverlay = maxPosition - const Duration(seconds: 90);
     final diff = player!.state.duration - position;
 
-    if (position >= activeOverlay &&
+    if (position >= positionActiveOverlay &&
         !diff.inSeconds.isNegative &&
         _hasNextEpisode &&
         maxPosition.inSeconds > 0) {
@@ -350,7 +340,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     final videoPercent =
         ((entity.currentDuration / entity.episodeDuration)).abs();
 
-    if (!mounted || videoPercent < 0.20) return;
+    if (videoPercent < 0.20) return;
 
     final result = await showDialog(
       context: context,
@@ -375,7 +365,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       },
     );
 
-    if (result == true) {
+    if (result == true && mounted) {
       _seekInVideoPosition.value =
           Duration(milliseconds: entity.currentDuration);
     }
@@ -384,7 +374,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   Future<void> _handleOnTapEpisodeInOverlay() async {
     _overlayNextEpisode.value = null;
     await player?.pause();
-    // await _player?.stop();
 
     final indexOf = _playerArgs.anime.releases.indexOf(_playerArgs.episode);
 
@@ -406,13 +395,15 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     await _saveVideoData();
 
-    setStateIfMounted(
-      () => _playerArgs = _playerArgs.copyWith(episode: episode),
-    );
+    if (!mounted) return;
 
-    await _getInitMainVideoData();
-    await _startPlayerController();
-    await _continueVideo();
+    ifMounted(() async {
+      setState(() => _playerArgs = _playerArgs.copyWith(episode: episode));
+
+      await _getInitMainVideoData();
+      await _startPlayerController();
+      await _continueVideo();
+    });
   }
 
   double get _videoPercent {
@@ -456,10 +447,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     ) as AnimeEntity;
 
     animeEntity.episodes.add(episodeEntity);
+
     await _libraryController.add(contentEntity: animeEntity);
 
-    // if (!_libraryController.contains(contentEntity: animeEntity)) {
-    // }
     await _historicController.add(historyEntity: episodeEntity);
   }
 
@@ -471,7 +461,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     return PlayerScope(
       lockPlayer: _lockPlayer,
       reversedCurrentDuration: _reversedCurrentDuration,
-      scaffoldKey: PlayerView.scaffoldKey,
       topTitle: _topTitle,
       overlayBoxFit: _overlayBoxFit,
       overlayNextEpisode: _overlayNextEpisode,
@@ -517,7 +506,6 @@ class _BuildScaffold extends StatelessWidget {
     final BoxFit activeFit = PlayerScope.activeFitOf(context);
     final PlayerArgs playerArgs = PlayerScope.playerArgsOf(context);
     final VideoController? videoController = scope.videoController;
-    final GlobalKey<ScaffoldState> scaffoldKey = scope.scaffoldKey;
     final int currentValueCircularAnimation =
         PlayerScope.currentValueCircularAnimationOf(context);
     List<Widget> children = [];
@@ -729,7 +717,6 @@ class _BuildScaffold extends StatelessWidget {
     if (!isLoading) mainAxisAlignment = MainAxisAlignment.start;
 
     return Scaffold(
-      key: scaffoldKey,
       extendBodyBehindAppBar: true,
       extendBody: true,
       body: Column(

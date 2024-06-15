@@ -34,12 +34,7 @@ mixin PlayerAudioHandlerMixin
   @override
   void dispose() {
     _playerAudioHandler.setPlayerController = null;
-    final playbackState = _playerAudioHandler.playbackState;
-
-    _playerAudioHandler.playbackState.add(playbackState.value.copyWith.call(
-      processingState: AudioProcessingState.idle,
-    ));
-
+    _playerAudioHandler.stop();
     super.dispose();
   }
 }

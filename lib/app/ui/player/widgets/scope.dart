@@ -30,13 +30,11 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
     required this.overlayNextEpisode,
     required this.overlayBoxFit,
     required this.topTitle,
-    required this.scaffoldKey,
     required this.lockPlayer,
     required this.reversedCurrentDuration,
   });
   final ValueNotifier<bool> lockPlayer;
   final ValueNotifier<bool> reversedCurrentDuration;
-  final GlobalKey<ScaffoldState> scaffoldKey;
   final ValueNotifier<String> topTitle;
   final ValueNotifier<String?> overlayBoxFit;
   final ValueNotifier<String?> overlayNextEpisode;

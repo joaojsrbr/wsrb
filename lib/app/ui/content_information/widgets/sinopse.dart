@@ -28,7 +28,7 @@ class _SinopseWidgetState extends State<SinopseWidget> {
 
     final bool isOver100 = (content.sinopse ?? "").length > 100;
 
-    if (isOver100 && _expanded) {
+    if (isOver100 && !_expanded) {
       substring = "${content.sinopse?.substring(0, 100)} ...";
     }
 
@@ -45,7 +45,6 @@ class _SinopseWidgetState extends State<SinopseWidget> {
               child: Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(borderRadius: borderRadius),
-                margin: EdgeInsets.zero,
               ),
             ),
           ),
