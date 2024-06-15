@@ -56,7 +56,10 @@ class _AudioPlayerHandler extends PlayerAudioHandler {
   Future<void> pause() async => await _player?.pause();
 
   @override
-  Future<void> stop() async => await _player?.stop();
+  Future<void> stop() async {
+    await _player?.stop();
+    await super.stop();
+  }
 
   @override
   Future<void> play() async => await _player?.play();
