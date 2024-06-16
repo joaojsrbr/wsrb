@@ -32,7 +32,7 @@ class _SinopseWidgetState extends State<SinopseWidget> {
       substring = "${content.sinopse?.substring(0, 100)} ...";
     }
 
-    Widget container;
+    Widget container = const SliverToBoxAdapter();
 
     if (isLoading) {
       container = SliverToBoxAdapter(
@@ -78,8 +78,6 @@ class _SinopseWidgetState extends State<SinopseWidget> {
           ),
         ),
       );
-    } else {
-      container = const SliverToBoxAdapter();
     }
     return SliverAnimatedSwitcher(
       duration: const Duration(milliseconds: 150),
