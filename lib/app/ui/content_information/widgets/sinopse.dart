@@ -21,10 +21,10 @@ class _SinopseWidgetState extends State<SinopseWidget> {
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(8);
     final isLoading = BookInformationScope.isLoadingOf(context);
-
-    final content = BookInformationScope.contentOf(context);
-    String substring = content.sinopse ?? "";
     final ThemeData themeData = Theme.of(context);
+    final content = BookInformationScope.contentOf(context);
+
+    String substring = content.sinopse ?? "";
 
     final bool isOver100 = (content.sinopse ?? "").length > 100;
 

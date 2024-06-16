@@ -27,16 +27,12 @@ class ItemContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeData = Theme.of(context);
+    final ThemeData themeData = Theme.of(context);
 
-    final textTheme = themeData.textTheme;
-
-    final title = content.title;
+    final TextTheme textTheme = themeData.textTheme;
 
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
-
-    bool selected = valueNotifierList.contains(content.stringID);
 
     final RailMenuController railMenuController =
         HomeRailMenu.menuControllerOf(context);
@@ -51,7 +47,9 @@ class ItemContent extends StatelessWidget {
             : null,
         decoration: BoxDecoration(
           borderRadius: _borderRadius.add(BorderRadius.circular(1.2)),
-          border: selected ? Border.all(color: Colors.white, width: 1.5) : null,
+          border: valueNotifierList.contains(content.stringID)
+              ? Border.all(color: Colors.white, width: 1.5)
+              : null,
         ),
         child: Card.filled(
           color: themeData.colorScheme.primary.withOpacity(0.04),
@@ -128,7 +126,7 @@ class ItemContent extends StatelessWidget {
                                 fontSize: railMenuController.isOpen ? 14 : 16,
                               ),
                               child: Text(
-                                title,
+                                content.title,
                                 maxLines: 2,
                                 textAlign: TextAlign.start,
                                 overflow: TextOverflow.ellipsis,
@@ -194,7 +192,7 @@ class ItemContent extends StatelessWidget {
                             fontSize: railMenuController.isOpen ? 12 : 14,
                           ),
                           child: Text(
-                            title,
+                            content.title,
                             maxLines: 2,
                             textAlign: TextAlign.start,
                             overflow: TextOverflow.ellipsis,
@@ -336,69 +334,6 @@ class _OverlayColor extends WidgetStateProperty<Color?> {
   }
 }
 
-// class BookItem extends StatelessWidget {
-//   const BookItem({required this.item, super.key});
-
-//   final Book item;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final themeData = Theme.of(context);
-//     final textTheme = themeData.textTheme;
-
-//     final state = context.findAncestorStateOfType<HomeUtils>();
-
-//     return OpenContainerWidgetWrapper(
-//       closedElevation: 0,
-//       openElevation: 0,
-//       clipBehavior: Clip.hardEdge,
-//       borderRadius: BorderRadius.circular(8),
-//       openColor: themeData.cardColor,
-//       closedColor: themeData.cardColor,
-//       transitionDuration: const Duration(milliseconds: 500),
-//       onClosed: (data) async {
-//         await Future.delayed(const Duration(milliseconds: 500));
-//         state?.disableScroll(false);
-//       },
-//       arguments: BookInformationArgs(book: item),
-//       widgetBuilder: (context) => Stack(
-//         fit: StackFit.expand,
-//         children: [
-//           _ImageWidget(item),
-//           Container(
-//             alignment: Alignment.bottomCenter,
-//             padding: const EdgeInsets.all(8),
-//             child: Text(
-//               item.title,
-//               maxLines: 2,
-//               textAlign: TextAlign.center,
-//               overflow: TextOverflow.ellipsis,
-//               style: textTheme.titleLarge?.copyWith(
-//                 fontSize: 14,
-//                 fontWeight: FontWeight.bold,
-//               ),
-//             ),
-//           ),
-//           Material(
-//             color: Colors.transparent,
-//             child: InkWell(
-//               splashFactory: InkRipple.splashFactory,
-//               onTap: () async {
-//                 final result = await OpenContainerWidgetWrapper.action(context);
-//                 state?.disableScroll(true);
-
-//                 if (result is Failure && context.mounted) {
-//                   result.snackBar(context);
-//                 }
-//               },
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
 class _ImageWidget extends StatelessWidget {
   const _ImageWidget(this.content);
 
@@ -417,20 +352,12 @@ class _ImageWidget extends StatelessWidget {
     }
 
     const double width = 145;
-    // int memCacheHeight = 300;
-    // int memCacheWidth = 250;
-    // int memCacheWidth = 250;
-
-    // if (content is Anime) {
-    //   memCacheHeight = 300;
-    //   memCacheWidth = 450;
-    // }
 
     if (imageUrl.isEmpty && !isLibrary) {
       return const SizedBox(
         width: width,
         height: double.infinity,
-        child: Card(),
+        child: Card.filled(shape: RoundedRectangleBorder()),
       );
     }
 
@@ -440,6 +367,8 @@ class _ImageWidget extends StatelessWidget {
       fit: BoxFit.cover,
       alignment: FractionalOffset.center,
       imageUrl: imageUrl,
+      width: width,
+      height: double.infinity,
       errorWidget: (context, url, error) {
         return const Card.filled(shape: RoundedRectangleBorder());
       },

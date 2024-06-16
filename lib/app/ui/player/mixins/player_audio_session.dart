@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
@@ -10,7 +11,8 @@ import 'package:content_library/content_library.dart';
 mixin PlayerAudioSessionMixin
     on
         PlayerControllerMixin,
-        SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs> {
+        SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs>,
+        PlayerAudioHandlerMixin {
   @override
   void initState() {
     super.initState();
@@ -35,35 +37,32 @@ mixin PlayerAudioSessionMixin
     if (event.begin) {
       switch (event.type) {
         case AudioInterruptionType.duck:
-          // Another app started playing audio and we should duck.
           break;
         case AudioInterruptionType.pause:
         case AudioInterruptionType.unknown:
-          player?.pause();
-          // Another app started playing audio and we should pause.
+          playerAudioHandler.pause();
           break;
       }
     } else {
       switch (event.type) {
         case AudioInterruptionType.duck:
-          // The interruption ended and we should unduck.
           break;
         case AudioInterruptionType.pause:
-        // The interruption ended and we should resume.
         case AudioInterruptionType.unknown:
-          // The interruption ended but we should not resume.
           break;
       }
     }
   }
 
   void _devicesChangedListener(AudioDevicesChangedEvent event) {
-    customLog('Devices added:   ${event.devicesAdded}');
-    customLog('Devices removed: ${event.devicesRemoved}');
+    customLog(
+        '[Devices added: ${event.devicesAdded}]_devicesChangedListener()');
+    customLog(
+        '[Devices removed: ${event.devicesRemoved}]_devicesChangedListener()');
   }
 
   Future<void> _configureAudioSession() async {
-    await _session.configure(const AudioSessionConfiguration.music());
+    await _session.configure(const AudioSessionConfiguration.speech());
   }
 
   Future<bool> setSessionActive(bool active) async {

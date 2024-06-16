@@ -26,9 +26,23 @@ mixin PlayerAudioHandlerMixin
     );
   }
 
-  Future<void> addMediaItem(MediaItem mediaItem) async {
-    _playerAudioHandler.mediaItem.add(mediaItem);
-    await _playerAudioHandler.playMediaItem(mediaItem);
+  void setPlayerMedia(PlayerArgs playerArgs) async {
+    final mediaItem =
+        await _playerAudioHandler.getMediaItem(playerArgs.episode.stringID);
+    // customLog("[${player!.state.duration}]setPlayerMedia()");
+    if (mediaItem == null) {
+      final mediaItem = MediaItem(
+        displayTitle: playerArgs.anime.title,
+        id: playerArgs.episode.stringID,
+        title: playerArgs.anime.title,
+        duration: player!.state.duration,
+        artUri: (playerArgs.episode.thumbnail != null
+            ? Uri.parse(playerArgs.episode.thumbnail!)
+            : null),
+      );
+      _playerAudioHandler.mediaItem.add(mediaItem);
+      await _playerAudioHandler.playMediaItem(mediaItem);
+    }
   }
 
   @override
@@ -48,7 +62,7 @@ abstract class PlayerAudioHandler extends BaseAudioHandler with SeekHandler {
     _controller = controller;
   }
 
-  PlaybackState transformEvent(PlayerState event);
+  void setPlaybackState(PlayerState state);
 }
 
 class _AudioPlayerHandler extends PlayerAudioHandler {
@@ -68,17 +82,15 @@ class _AudioPlayerHandler extends PlayerAudioHandler {
   Future<void> seek(Duration position) async => await _player?.seek(position);
 
   @override
-  PlaybackState transformEvent(PlayerState event) {
-    return playbackState.value.copyWith.call(
-      controls: [
-        event.playing ? MediaControl.play : MediaControl.pause,
-      ],
+  void setPlaybackState(PlayerState state) {
+    playbackState.add(playbackState.value.copyWith.call(
+      controls: [state.playing ? MediaControl.play : MediaControl.pause],
       systemActions: MediaAction.values.toSet(),
       processingState: AudioProcessingState.ready,
-      playing: event.playing,
-      updatePosition: event.position,
-      bufferedPosition: event.buffer,
-      speed: event.rate,
-    );
+      playing: state.playing,
+      updatePosition: state.position,
+      bufferedPosition: state.buffer,
+      speed: state.rate,
+    ));
   }
 }

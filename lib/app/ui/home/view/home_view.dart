@@ -120,23 +120,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final HiveController hiveController = context.watch<HiveController>();
 
-    final tabBarIcons = List.generate(
-      _tabController.length,
-      (index) => Builder(
-        builder: (context) {
-          final tabIndex = HomeScope.of(context).tabController.index;
-
-          final icons = {
-            tabIndex == 0 ? MdiIcons.home : MdiIcons.homeOutline,
-            tabIndex == 1 ? MdiIcons.library : MdiIcons.libraryOutline,
-            tabIndex == 2 ? MdiIcons.cog : MdiIcons.cogOutline,
-          };
-
-          return Tab(icon: Icon(icons.elementAt(index)));
-        },
-      ),
-    );
-
     return HomeScope(
       subordinateLibraryTabController: _subordinateLibraryTabController,
       searchController: _searchController,
@@ -181,7 +164,29 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     enableSecondChild: identical(tabController.index, 1),
                     tabBar: TabBar(
                       controller: _tabController,
-                      tabs: tabBarIcons,
+                      tabs: List.generate(
+                        _tabController.length,
+                        (index) => Builder(
+                          builder: (context) {
+                            final tabIndex =
+                                HomeScope.of(context).tabController.index;
+
+                            final icons = {
+                              tabIndex == 0
+                                  ? MdiIcons.home
+                                  : MdiIcons.homeOutline,
+                              tabIndex == 1
+                                  ? MdiIcons.library
+                                  : MdiIcons.libraryOutline,
+                              tabIndex == 2
+                                  ? MdiIcons.cog
+                                  : MdiIcons.cogOutline,
+                            };
+
+                            return Tab(icon: Icon(icons.elementAt(index)));
+                          },
+                        ),
+                      ),
                     ),
                     secondTabBar: TabBar(
                       tabAlignment: TabAlignment.start,
@@ -382,14 +387,7 @@ class _MenuButtonState<T> extends State<_MenuButton<T>> {
                       if (result == null) return;
 
                       widget.onTap?.call(result);
-
-                      // Future.delayed(
-                      //   const Duration(milliseconds: 200),
-                      //   () => _buttonLastSize = button.size,
-                      // );
                     }
-
-                    // customLog(button.size);
                   },
             child: widget.child,
           ),

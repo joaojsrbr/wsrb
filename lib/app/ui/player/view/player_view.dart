@@ -74,6 +74,29 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   Timer? _setEnabledSystemUIModeTimer;
 
+  Timer? _setContinueVideoTimer;
+
+  bool get _hasNextEpisode {
+    return !(_playerArgs.anime.releases.last.stringID
+        .contains(_playerArgs.episode.stringID));
+  }
+
+  bool get _playing => player?.state.playing ?? false;
+
+  bool get isFullscreen =>
+      PlayerView.videoStateKey.currentState?.isFullscreen() ?? false;
+
+  double get _videoPercent {
+    if (player != null) {
+      final Duration position = player!.state.position;
+
+      final Duration duration = player!.state.duration;
+
+      return ((position.inMilliseconds / duration.inMilliseconds)).abs();
+    }
+    return 0.0;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -114,7 +137,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   Future<void> _incrementCurrentCircularAnimation() async {
     setStateIfMounted(() => _currentValueCircularAnimation++);
-    await Future.delayed(const Duration(milliseconds: 50));
+    await Future.delayed(const Duration(milliseconds: 60));
   }
 
   @override
@@ -130,7 +153,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   Future<void> _getInitMainVideoData() async {
     final state = Navigator.of(context);
     final result = await _repository.getContent(_playerArgs.episode);
-    _topTitle.value = 'Episódio ${_playerArgs.episode.number}'.trim();
+    _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
     result.fold(
       onSucess: (data) {
         if (data.first is! VideoData) state.pop();
@@ -156,9 +179,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     _playerArgs = _playerArgs.copyWith(
       anime: anime.copyWith(
-        releases: _playerArgs.anime.releases.length > anime.releases.length
+        releases: (_playerArgs.anime.releases.length > anime.releases.length
             ? _playerArgs.anime.releases
-            : null,
+            : null),
       ),
     );
     _playerArgs.anime.releases.sort(
@@ -168,7 +191,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   void _onInit(Duration time) async {
     await _getAllEpisodes().whenComplete(_incrementCurrentCircularAnimation);
-
     await _getInitMainVideoData()
         .whenComplete(_incrementCurrentCircularAnimation);
     await _startPlayerController(true)
@@ -180,16 +202,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
   }
 
-  bool get _playing => player?.state.playing ?? false;
-
-  bool get isFullscreen =>
-      PlayerView.videoStateKey.currentState?.isFullscreen() ?? false;
-
   Future<void> _startPlayerController([bool onInit = false]) async {
     final playbackState = playerAudioHandler.playbackState;
-    playerAudioHandler.playbackState.add(playbackState.value.copyWith.call(
-      processingState: AudioProcessingState.loading,
-    ));
+    playerAudioHandler.setPlayerController = this;
+
+    playbackState.add(playbackState.value.copyWith
+        .call(processingState: AudioProcessingState.loading));
 
     if (onInit) {
       setPlayer = Player(configuration: const PlayerConfiguration());
@@ -197,43 +215,19 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
 
     List<Future> futures = [
+      player!.open(Media(_mainVideoData!.videoContent,
+          httpHeaders: _mainVideoData?.httpHeaders)),
+      player!.setAudioDevice(AudioDevice.auto()),
       _registerListeners(false),
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive)
     ];
 
-    if (player != null && _mainVideoData != null) {
-      futures.addAll([
-        player!.open(Media(
-          _mainVideoData!.videoContent,
-          httpHeaders: _mainVideoData?.httpHeaders,
-        )),
-        player!.setAudioDevice(AudioDevice.auto()),
-      ]);
-    }
-
     await Future.wait(futures);
-
-    playerAudioHandler.setPlayerController = this;
 
     await _videoController?.waitUntilFirstFrameRendered;
 
-    Future.delayed(const Duration(seconds: 2), () async {
-      if (player != null && _mainVideoData != null) {
-        final item = MediaItem(
-          displayTitle: _playerArgs.anime.title,
-          id: _mainVideoData!.videoContent,
-          title: _playerArgs.anime.title,
-          duration: player!.state.duration,
-          artUri: (_playerArgs.episode.thumbnail != null
-              ? Uri.parse(_playerArgs.episode.thumbnail!)
-              : null),
-        );
-        await addMediaItem(item);
-      }
-    });
-    playerAudioHandler.playbackState.add(playbackState.value.copyWith.call(
-      processingState: AudioProcessingState.ready,
-    ));
+    playbackState.add(playbackState.value.copyWith
+        .call(processingState: AudioProcessingState.ready));
   }
 
   void _completedListener(bool completed) {
@@ -241,9 +235,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       _saveVideoData();
       final playbackState = playerAudioHandler.playbackState;
 
-      playerAudioHandler.playbackState.add(playbackState.value.copyWith(
-        processingState: AudioProcessingState.idle,
-      ));
+      playbackState.add(playbackState.value.copyWith
+          .call(processingState: AudioProcessingState.idle));
     }
   }
 
@@ -254,31 +247,28 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       subscriptions.addAll([
         player!.stream.playing.listen(_playingListener),
         player!.stream.position.listen(_positionListener),
+        player!.stream.duration.listen(_durationListener),
         player!.stream.buffer.listen(_bufferListener),
         player!.stream.completed.listen(_completedListener),
       ]);
     }
   }
 
-  void _bufferListener(Duration buffer) {
-    playerAudioHandler.playbackState.add(
-      playerAudioHandler.playbackState.value.copyWith.call(
-        bufferedPosition: buffer,
-      ),
-    );
-  }
+  void _bufferListener(Duration buffer) {}
 
   void _playingListener(bool playing) async {
     setSessionActive(playing);
   }
 
+  void _durationListener(Duration duration) {
+    if (duration != Duration.zero) setPlayerMedia(_playerArgs);
+  }
+
   void _positionListener(Duration position) {
-    playerAudioHandler.playbackState.add(
-      playerAudioHandler.transformEvent(player!.state),
-    );
+    playerAudioHandler.setPlaybackState(player!.state);
 
     if (_seekInVideoPosition.value != null) {
-      player?.seek(_seekInVideoPosition.value!);
+      playerAudioHandler.seek(_seekInVideoPosition.value!);
       _seekInVideoPosition.value = null;
     }
 
@@ -294,15 +284,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     _overlayBoxFit.value = nextBoxFit.name;
 
+    customLog("[$_queueBoxFits]_handleSetFits()");
+
     setStateIfMounted(() {
       _activeFit = nextBoxFit;
       videoState.update(fit: nextBoxFit);
     });
-  }
-
-  bool get _hasNextEpisode {
-    return !(_playerArgs.anime.releases.last.stringID
-        .contains(_playerArgs.episode.stringID));
   }
 
   void _nextEpisode(Duration position) async {
@@ -335,17 +322,26 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     if (entity == null) return;
 
-    customLog('_continueVideo[${entity.numberEpisode}]');
+    customLog('[${entity.numberEpisode}]_continueVideo()');
 
     final videoPercent =
         ((entity.currentDuration / entity.episodeDuration)).abs();
 
     if (videoPercent < 0.20) return;
 
+    final GlobalKey anchor = GlobalKey();
+
+    _setContinueVideoTimer = Timer(const Duration(seconds: 5), () {
+      if (anchor.currentContext != null) {
+        Navigator.of(anchor.currentContext!).pop();
+      }
+    });
+
     final result = await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog.adaptive(
+          key: anchor,
           title: const Text('Continuar de onde parou?'),
           actionsAlignment: MainAxisAlignment.spaceBetween,
           actions: [
@@ -365,7 +361,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       },
     );
 
+    _setContinueVideoTimer?.cancel();
+
     if (result == true && mounted) {
+      _setContinueVideoTimer = null;
       _seekInVideoPosition.value =
           Duration(milliseconds: entity.currentDuration);
     }
@@ -373,7 +372,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   Future<void> _handleOnTapEpisodeInOverlay() async {
     _overlayNextEpisode.value = null;
-    await player?.pause();
 
     final indexOf = _playerArgs.anime.releases.indexOf(_playerArgs.episode);
 
@@ -386,16 +384,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   Future<void> _handleOnTapEpisode(Episode episode) async {
     if (episode.stringID.contains(_playerArgs.episode.stringID)) return;
-    await player?.pause();
+    await playerAudioHandler.stop();
     _seekInVideoPosition.value = null;
     _overlayNextEpisode.value = null;
-    customLog(
-      'tapped title: ${episode.title} - id: ${episode.stringID}',
-    );
+    customLog('[${episode.title}]_handleOnTapEpisode()');
 
     await _saveVideoData();
-
-    if (!mounted) return;
 
     ifMounted(() async {
       setState(() => _playerArgs = _playerArgs.copyWith(episode: episode));
@@ -404,17 +398,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       await _startPlayerController();
       await _continueVideo();
     });
-  }
-
-  double get _videoPercent {
-    if (player != null) {
-      final Duration position = player!.state.position;
-
-      final Duration duration = player!.state.duration;
-
-      return ((position.inMilliseconds / duration.inMilliseconds)).abs();
-    }
-    return 0.0;
   }
 
   Future<void> _saveVideoData() async {
@@ -436,7 +419,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       numberEpisode: int.tryParse(_playerArgs.episode.number),
     );
 
-    customLog('save-episode[${episodeEntity.numberEpisode}]');
+    customLog('[${episodeEntity.numberEpisode}]_saveVideoData()');
 
     final animeEntity = _libraryController.entities.firstWhere(
       (content) {
@@ -488,6 +471,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     _lockPlayer.dispose();
     _reversedCurrentDuration.dispose();
     _overlayBoxFit.dispose();
+    _setContinueVideoTimer?.cancel();
     _overlayNextEpisode.dispose();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     WidgetsBinding.instance.removeObserver(this);
@@ -517,8 +501,8 @@ class _BuildScaffold extends StatelessWidget {
             duration: const Duration(milliseconds: 300),
             tween: Tween(
               begin: 0.0,
-              end: currentValueCircularAnimation /
-                  scope.maxValueCircularAnimation,
+              end: (currentValueCircularAnimation /
+                  scope.maxValueCircularAnimation),
             ),
             builder: (_, value, __) =>
                 CircularProgressIndicator.adaptive(value: value),
@@ -571,7 +555,7 @@ class _BuildScaffold extends StatelessWidget {
           flex: 2,
           child: DraggableScrollableSheet(
             minChildSize: 0.8,
-            initialChildSize: 0.8,
+            initialChildSize: 1.0,
             builder: (context, scrollController) {
               return Column(
                 children: [
