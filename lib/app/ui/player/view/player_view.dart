@@ -155,7 +155,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     final result = await _repository.getContent(_playerArgs.episode);
     _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
     result.fold(
-      onSucess: (data) {
+      onSuccess: (data) {
         if (data.first is! VideoData) state.pop();
 
         setStateIfMounted(() {
@@ -173,7 +173,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     if (_playerArgs.anime.releases.length == 1) {
       final result = await _repository
           .getData(_playerArgs.anime)
-          .then((result) => result.fold(onSucess: (data) => data as Anime));
+          .then((result) => result.fold(onSuccess: (data) => data as Anime));
       if (result != null) anime = result;
     }
 

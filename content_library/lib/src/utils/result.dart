@@ -20,14 +20,14 @@ sealed class Result<T extends Object> {
   const factory Result.empty() = Empty<T>;
 
   S? fold<S>({
-    S Function(T success)? onSucess,
+    S Function(T success)? onSuccess,
     S Function(Object error)? onError,
     S Function()? onEmpty,
     Map<Type, S? Function<O>(O data)>? map,
   }) {
     if (map != null) {
       final result = map[runtimeType]?.call(fold(
-        onSucess: (success) => success,
+        onSuccess: (success) => success,
         onError: (error) => error,
         onEmpty: () => this,
       ));
@@ -35,24 +35,9 @@ sealed class Result<T extends Object> {
     }
 
     return switch (this) {
-      Success<T> success => onSucess?.call(success.data),
+      Success<T> success => onSuccess?.call(success.data),
       Failure<T> failure => onError?.call(failure.error),
       Empty<T> _ => onEmpty?.call(),
     };
   }
-
-  // S? when<S>({
-  //   S Function(T data)? onSucess,
-  //   S Function(Object error)? onError,
-  //   S Function()? onEmpty,
-  // }) {
-  //   switch (this) {
-  //     case Success<T> success:
-  //       return onSucess?.call(success.data);
-  //     case Failure<T> except:
-  //       return onError?.call(except.error);
-  //     case Empty<T> _:
-  //       return onEmpty?.call();
-  //   }
-  // }
 }

@@ -86,7 +86,7 @@ class _BookInformationStateView
 
     resultCotent.fold(
       onError: navigationState.pop,
-      onSucess: _onSucess,
+      onSuccess: _onSucess,
     );
   }
 
@@ -96,7 +96,7 @@ class _BookInformationStateView
 
     return await resultBook.fold<Future>(
       onError: appSnackBar.onError,
-      onSucess: (data) => _onSucess(data, true),
+      onSuccess: (data) => _onSucess(data, true),
     );
   }
 
@@ -108,7 +108,7 @@ class _BookInformationStateView
           await _repository.getReleases(content.copyWith(), _index + 1);
 
       result.fold(
-        onSucess: (data) {
+        onSuccess: (data) {
           final stringID = data.releases.first.stringID;
           customLog(stringID);
           final index = _releases.indexWhere((element) =>

@@ -60,4 +60,9 @@ class DemonSect extends RSource {
       return Future.value(false);
     }
   }
+
+  @override
+  Future<Result<List<Content>>> search(String query) async {
+    return Result.failure(Exception('UnimplementedError'));
+  }
 }

@@ -37,7 +37,7 @@ class LibraryController extends ChangeNotifier {
 
     final result = await _isarService.add(entity: contentEntity);
 
-    result.fold(onSucess: (data) {
+    result.fold(onSuccess: (data) {
       if (data.$2 != null) ids.add(data.$2!);
       if (data.$1) isSucess = data.$1;
     });
@@ -102,7 +102,7 @@ class LibraryController extends ChangeNotifier {
 
     final result = await _isarService.addAll(entities: entities);
 
-    result.fold(onSucess: (data) {
+    result.fold(onSuccess: (data) {
       if (data.$2 != null) ids.addAll(data.$2!);
       if (data.$1) isSucess = data.$1;
     });
@@ -127,7 +127,7 @@ class LibraryController extends ChangeNotifier {
 
     final result = await _isarService.removeAll(entities: entities);
 
-    result.fold(onSucess: (data) {
+    result.fold(onSuccess: (data) {
       if (data.$2 != null) ids.addAll(data.$2!);
       if (data.$1) isSucess = data.$1;
     });
@@ -144,7 +144,7 @@ class LibraryController extends ChangeNotifier {
 
     final result = await _isarService.remove(entity: contentEntity);
 
-    result.fold(onSucess: (data) {
+    result.fold(onSuccess: (data) {
       if (data.$2 != null) ids.add(data.$2!);
       if (data.$1) isSucess = data.$1;
     });

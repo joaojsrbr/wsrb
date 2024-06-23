@@ -16,11 +16,65 @@ class HomeViewFlexibleSpace extends StatefulWidget {
 }
 
 class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
+  late final ContentRepository _contentRepository;
+
+  final ValueNotifier<bool> _isLoading = ValueNotifier(false);
+
+  final Debouncer _searchDebouncer =
+      Debouncer(duration: const Duration(seconds: 1));
+
+  CustomSearchController? _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _contentRepository = context.read<ContentRepository>();
+    scheduleMicrotask(() {
+      _searchController = HomeScope.of(context).searchController
+        ..addListener(_searchControllerListener);
+    });
+    // _searchContents(value.trim());
+  }
+
+  void _searchControllerListener() {
+    _searchDebouncer.cancel();
+    _searchDebouncer.call(() {
+      _searchContents(_searchController!.text.trim());
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchDebouncer.cancel();
+    _isLoading.dispose();
+    _searchController?.removeListener(_searchControllerListener);
+    super.dispose();
+  }
+
+  Future<void> _searchContents(String query) async {
+    if (query.length < 4) return;
+    _isLoading.value = true;
+    await _contentRepository.searchContents(
+      query,
+      searchSources: Source.list,
+      onSuccess: (value) {
+        customLog(value);
+      },
+    );
+    _isLoading.value = false;
+  }
+
   FutureOr<Widget> _suggestionsBuilder(
     BuildContext context,
     CustomSearchController controller,
   ) async {
-    return const SizedBox.shrink();
+    return Center(
+      child: Container(
+        height: 200,
+        width: 200,
+        color: Colors.blue,
+      ),
+    );
   }
 
   void _unFocus(BuildContext context) {
@@ -40,9 +94,20 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
 
+    final ConnectionChecker connectionChecker =
+        context.watch<ConnectionChecker>();
+
     return IgnorePointer(
-      ignoring: tabController.index == 2 || valueNotifierList.isNotEmpty,
+      ignoring: tabController.index == 2 ||
+          valueNotifierList.isNotEmpty ||
+          (!connectionChecker.hasConnection && tabController.index == 1),
       child: CustomSearchAnchor(
+        dividerWidget: AnimatedBuilder(
+          animation: _isLoading,
+          child: const LinearProgressIndicator(),
+          builder: (context, child) =>
+              _isLoading.value ? child! : const Divider(height: 1),
+        ),
         onChanged: (String value) {
           if (tabController.index != 0) return;
           if (value.trim().isEmpty && searchController.isOpen) {

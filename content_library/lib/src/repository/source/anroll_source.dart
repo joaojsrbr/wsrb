@@ -159,7 +159,7 @@ class AnrollSource extends RSource {
 
         do {
           final result = await getReleases(newAnime, page);
-          result.fold(onSucess: (data) => newAnime = data as Anime);
+          result.fold(onSuccess: (data) => newAnime = data as Anime);
           hasNextPage = (anime.totalOfEpisodes == anime.releases.length);
           if (hasNextPage) page++;
         } while (hasNextPage);
@@ -265,6 +265,50 @@ class AnrollSource extends RSource {
       contentRepository.isSuccess = false;
       contentRepository._hasMore = false;
       return Future.value(false);
+    }
+  }
+
+  @override
+  Future<Result<List<Content>>> search(String query) async {
+    try {
+      final Response response = await contentRepository._dio.get(
+        'https://apiv3-prd.anroll.net/animes/search/data?q=$query',
+        responseType: ResponseType.json,
+      );
+
+      final data = response.data['data'] as List;
+
+      final List<Anime> animes = [];
+
+      for (final map in data) {
+        final String episodeGenerateID = map['gen_id'];
+        final String slugSerie = map['slug'];
+        final int? totalOfEpisodes = map['total_eps'];
+        final String url =
+            'www.anroll.net${map['friendly_path'] ?? map['generic_path']}';
+        final String originalImage =
+            'https://static.anroll.net/images/animes/capas/$slugSerie.jpg';
+        final String title = map['title'];
+        final String animeID = (map['id']).toString();
+
+        final Anime anime = Anime(
+          animeID: animeID,
+          totalOfEpisodes: totalOfEpisodes,
+          url: url,
+          title: title,
+          slugSerie: slugSerie,
+          generateID: episodeGenerateID,
+          releases: EpisodeReleases(),
+          source: source,
+          originalImage: originalImage,
+        );
+
+        animes.add(anime);
+      }
+
+      return Result.success(animes);
+    } on DioException catch (_, __) {
+      return Result.failure(_);
     }
   }
 }

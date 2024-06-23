@@ -48,7 +48,7 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
       _chapter = args.chapter;
       _book = args.book;
       final data = await _repository.getContent(_chapter!);
-      data.fold(onError: _onError, onSucess: _onSucess);
+      data.fold(onError: _onError, onSuccess: _onSucess);
     }
   }
 

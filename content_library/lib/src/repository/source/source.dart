@@ -28,4 +28,6 @@ abstract class RSource {
   Future<Result<List<Data>>> getContent(Release release);
 
   Future<Result<Content>> getReleases(Content content, int page);
+
+  Future<Result<List<Content>>> search(String query);
 }

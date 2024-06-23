@@ -34,6 +34,7 @@ class CustomSearchAnchor extends StatefulWidget {
     this.viewBackgroundColor,
     this.viewElevation,
     this.viewSurfaceTintColor,
+    this.dividerWidget,
     this.viewSide,
     this.viewShape,
     this.headerTextStyle,
@@ -69,6 +70,7 @@ class CustomSearchAnchor extends StatefulWidget {
     Iterable<Widget>? viewTrailing,
     String? viewHintText,
     Color? viewBackgroundColor,
+    Widget? dividerWidget,
     double? viewElevation,
     BorderSide? viewSide,
     RoundedRectangleBorder? viewShape,
@@ -109,6 +111,8 @@ class CustomSearchAnchor extends StatefulWidget {
   final BorderSide? viewSide;
 
   final RoundedRectangleBorder? viewShape;
+
+  final Widget? dividerWidget;
 
   final TextStyle? headerTextStyle;
 
@@ -186,6 +190,7 @@ class _CustomSearchAnchorState extends State<CustomSearchAnchor> {
     navigator.push(_SearchViewRoute(
       viewOnChanged: widget.viewOnChanged,
       viewOnSubmitted: widget.viewOnSubmitted,
+      dividerWidget: widget.dividerWidget,
       viewLeading: widget.viewLeading,
       viewTrailing: widget.viewTrailing,
       viewHintText: widget.viewHintText,
@@ -270,6 +275,7 @@ class _SearchViewRoute extends PopupRoute<_SearchViewRoute> {
     this.viewHintText,
     this.viewBackgroundColor,
     this.viewElevation,
+    this.dividerWidget,
     this.viewSurfaceTintColor,
     this.viewSide,
     this.viewShape,
@@ -306,6 +312,7 @@ class _SearchViewRoute extends PopupRoute<_SearchViewRoute> {
   final BoxConstraints? viewConstraints;
   final TextCapitalization? textCapitalization;
   final bool showFullScreenView;
+  final Widget? dividerWidget;
   final GlobalKey anchorKey;
   final CustomSearchController searchController;
   final CustomSearchSuggestionsBuilder suggestionsBuilder;
@@ -443,6 +450,7 @@ class _SearchViewRoute extends PopupRoute<_SearchViewRoute> {
             ),
             child: capturedThemes.wrap(
               _ViewContent(
+                dividerWidget: dividerWidget,
                 viewOnChanged: viewOnChanged,
                 viewOnSubmitted: viewOnSubmitted,
                 viewLeading: viewLeading,
@@ -496,6 +504,7 @@ class _ViewContent extends StatefulWidget {
     this.viewHeaderHintStyle,
     this.dividerColor,
     this.textCapitalization,
+    this.dividerWidget,
     required this.showFullScreenView,
     required this.topPadding,
     required this.animation,
@@ -510,6 +519,7 @@ class _ViewContent extends StatefulWidget {
   final ValueChanged<String>? viewOnChanged;
   final ValueChanged<String>? viewOnSubmitted;
   final CustomSearchViewBuilder? viewBuilder;
+
   final Widget? viewLeading;
   final Iterable<Widget>? viewTrailing;
   final String? viewHintText;
@@ -521,6 +531,7 @@ class _ViewContent extends StatefulWidget {
   final TextStyle? viewHeaderTextStyle;
   final TextStyle? viewHeaderHintStyle;
   final Color? dividerColor;
+  final Widget? dividerWidget;
   final TextCapitalization? textCapitalization;
   final bool showFullScreenView;
   final double topPadding;
@@ -655,7 +666,7 @@ class _ViewContentState extends State<_ViewContent> {
 
     final Widget viewDivider = DividerTheme(
       data: dividerTheme.copyWith(color: effectiveDividerColor),
-      child: const Divider(height: 1),
+      child: widget.dividerWidget ?? const Divider(height: 1),
     );
 
     return Align(
@@ -770,6 +781,7 @@ class _CustomSearchAnchorWithSearchBar extends CustomSearchAnchor {
     Widget? barLeading,
     Iterable<Widget>? barTrailing,
     String? barHintText,
+    super.dividerWidget,
     GestureTapCallback? onTap,
     WidgetStateProperty<double?>? barElevation,
     WidgetStateProperty<Color?>? barBackgroundColor,
@@ -815,7 +827,6 @@ class _CustomSearchAnchorWithSearchBar extends CustomSearchAnchor {
                 //   onTap?.call();
                 // },
                 onTap: onTap,
-
                 onChanged: onChanged,
                 onSubmitted: onSubmitted,
                 hintText: barHintText,

@@ -338,4 +338,9 @@ class NeoxSource extends RSource {
       return Result.failure(_);
     }
   }
+
+  @override
+  Future<Result<List<Content>>> search(String query) async {
+    return Result.failure(Exception('UnimplementedError'));
+  }
 }

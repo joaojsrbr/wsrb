@@ -92,6 +92,12 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
 
   Future<Result<Content>> getReleases(Content content, int page);
 
+  Future<void> searchContents(
+    String query, {
+    required List<Source> searchSources,
+    required ui.ValueChanged<(Source, List<Content>)> onSuccess,
+  });
+
   @override
   Future<bool> refresh([bool notifyStateChanged = false]) async {
     index = source.initialIndex;
@@ -134,6 +140,24 @@ class _ContentRepositoryImp extends ContentRepository {
   @override
   Future<Result<Content>> getReleases(Content content, int page) async =>
       await source.getReleases(content, page);
+
+  @override
+  Future<void> searchContents(
+    String query, {
+    required List<Source> searchSources,
+    required ui.ValueChanged<(Source, List<Content>)> onSuccess,
+  }) async {
+    final futures =
+        _sources.where((source) => searchSources.contains(source.source)).map(
+              (source) => source.search(query).then((value) => value.fold(
+                  onSuccess: (data) => onSuccess((source.source, data)))),
+            );
+    for (final future in futures) {
+      try {
+        await future;
+      } on Exception catch (_) {}
+    }
+  }
 }
 
 class _DefaultAppHeadersInterceptor extends Interceptor {

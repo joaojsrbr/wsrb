@@ -9,6 +9,12 @@ class GoyabuSource extends RSource {
   });
 
   @override
+  Source get source => Source.GOYABU;
+
+  @override
+  String get BASE_URL => source.baseURL;
+
+  @override
   Future<Result<List<Data>>> getContent(Release release) async {
     bool isEpisode() {
       return release is Episode;
@@ -317,8 +323,7 @@ class GoyabuSource extends RSource {
   }
 
   @override
-  Source get source => Source.GOYABU;
-
-  @override
-  String get BASE_URL => source.baseURL;
+  Future<Result<List<Content>>> search(String query) async {
+    return Result.failure(Exception('UnimplementedError'));
+  }
 }

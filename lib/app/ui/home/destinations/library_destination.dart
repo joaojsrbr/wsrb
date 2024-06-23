@@ -23,7 +23,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
   @override
   bool get wantKeepAlive => true;
 
-  List<Widget> _children = [];
+  final List<Widget> _children = [];
   final Debouncer _debouncer = Debouncer(
     duration: const Duration(milliseconds: 200),
   );
@@ -82,7 +82,9 @@ class LibraryeDestinationState extends State<LibraryDestination>
       ...yesCategories.mapIndexed((index, e) => buildGridView(e, index))
     ];
 
-    _children = newChildrens;
+    _children
+      ..clear()
+      ..addAll(newChildrens);
     setStateIfMounted(() {});
   }
 
@@ -108,9 +110,8 @@ class LibraryeDestinationState extends State<LibraryDestination>
     final SubordinateLibraryTabController subordinateLibraryTabController =
         HomeScope.of(context).subordinateLibraryTabController;
     if (text.isEmpty) {
-      _debouncer.call(() {
-        subordinateLibraryTabController.animateTo(_initialIndex!);
-      });
+      _debouncer.call(
+          () => subordinateLibraryTabController.animateTo(_initialIndex!));
       return;
     }
 
@@ -195,6 +196,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
   void dispose() {
     _libraryController.removeListener(_setChildren);
     _categoryController.removeListener(_setChildren);
+    _debouncer.cancel();
     super.dispose();
   }
 }
