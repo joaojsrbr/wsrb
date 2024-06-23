@@ -92,6 +92,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     final ValueNotifierList valueNotifierList =
         context.read<ValueNotifierList>();
     if (valueNotifierList.isNotEmpty) valueNotifierList.clear();
+    _searchController.clear();
 
     final FocusScopeNode currentFocus = FocusScope.of(context);
     if (!currentFocus.hasPrimaryFocus &&

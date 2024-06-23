@@ -861,11 +861,13 @@ class CustomSearchController extends TextEditingController {
   void openView() {
     assert(isAttached);
     _anchor?._openView();
+    notifyListeners();
   }
 
   void closeView(String? selectedText) {
     assert(isAttached);
     _anchor?._closeView(selectedText);
+    notifyListeners();
   }
 
   void _attach(_CustomSearchAnchorState anchor) {
