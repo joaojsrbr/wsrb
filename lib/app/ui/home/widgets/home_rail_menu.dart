@@ -18,11 +18,9 @@ class HomeRailMenu extends StatefulWidget {
   final RailMenuController? railMenuController;
   final Widget child;
 
-  // static RailMenuController? menuControllerMaybeOf(BuildContext context) {
-  //   return context
-  //       .findAncestorStateOfType<_HomeRailMenuState>()
-  //       ?._railMenuController;
-  // }
+  static RailMenuController? menuControllerMaybeOf(BuildContext context) {
+    return _RailMenuControllerScope.maybeOf(context)?.railMenuController;
+  }
 
   static RailMenuController menuControllerOf(BuildContext context) {
     return _RailMenuControllerScope.of(context).railMenuController;
@@ -90,6 +88,11 @@ class _RailMenuControllerScope extends InheritedWidget {
   static _RailMenuControllerScope of(BuildContext context) {
     return context
         .dependOnInheritedWidgetOfExactType<_RailMenuControllerScope>()!;
+  }
+
+  static _RailMenuControllerScope? maybeOf(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<_RailMenuControllerScope>();
   }
 
   @override

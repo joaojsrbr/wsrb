@@ -27,6 +27,7 @@ dependencies:
   internet_connection_checker: ^1.0.0+1
   webview_flutter: ^4.8.0
   connectivity_plus: ^6.0.3
+  # belatuk_merge_map: ^5.2.0
 
 dev_dependencies:
   flutter_test:

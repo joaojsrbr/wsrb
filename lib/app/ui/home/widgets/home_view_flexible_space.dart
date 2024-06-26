@@ -1,14 +1,12 @@
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
 import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
+
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -51,163 +49,29 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
     }
 
     _searchDebouncer.cancel();
-    if (query.length > 4) {
+    if (query.length >= 4) {
       _searchDebouncer.call(() {
         _searchContents(query);
       });
     }
   }
 
-  @override
-  void dispose() {
-    _searchDebouncer.cancel();
-    _isLoading.dispose();
-    _searchController?.removeListener(_searchControllerListener);
-    super.dispose();
-  }
-
-  Future<void> _searchContents(String query) async {
+  Future<void> _searchContents(String query, [forceSearch = false]) async {
+    if (_contents.values.flattened.any((content) =>
+            content.title.toLowerCase().contains(query.toLowerCase())) &&
+        !forceSearch) {
+      return;
+    }
     _isLoading.value = true;
     await _contentRepository.searchContents(
       query,
       searchSources: Source.list,
       onSuccess: (value) {
         final (source, contents) = value;
-
         setStateIfMounted(() => _contents[source] = contents);
       },
     );
     _isLoading.value = false;
-  }
-
-  FutureOr<Widget> _suggestionsBuilder(
-    BuildContext context,
-    CustomSearchController controller,
-  ) async {
-    final ThemeData themeData = Theme.of(context);
-
-    final TextTheme textTheme = themeData.textTheme;
-    final borderRadius = BorderRadius.circular(12);
-    return ValueListenableBuilder(
-      valueListenable: _isLoading,
-      builder: (context, loading, child) {
-        if (!loading && _contents.isNotEmpty) {
-          return ListView.builder(
-            itemCount: _contents.entries.length,
-            itemBuilder: (context, index) {
-              final entry = _contents.entries.elementAt(index);
-              return ExpansionTile(
-                title: Text(entry.key.name),
-                initiallyExpanded: true,
-                maintainState: true,
-                controlAffinity: ListTileControlAffinity.leading,
-                children: <Widget>[
-                  SizedBox(
-                    height: 220,
-                    child: ListView.builder(
-                      itemCount: entry.value.length,
-                      scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.all(8.0),
-                      itemBuilder: (context, index) {
-                        final content = entry.value[index];
-                        return Padding(
-                          padding: EdgeInsets.only(left: index > 0 ? 6 : 0),
-                          child: SizedBox(
-                            width: 160,
-                            height: 220,
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: borderRadius,
-                                  child: ShaderMask(
-                                    blendMode: BlendMode.srcOver,
-                                    shaderCallback: (bounds) {
-                                      return LinearGradient(
-                                        begin: Alignment.center,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Colors.transparent,
-                                          Colors.black38.withOpacity(0.75),
-                                        ],
-                                        stops: const [0.0, .94],
-                                      ).createShader(bounds);
-                                    },
-                                    child: CachedNetworkImage(
-                                      fit: BoxFit.cover,
-                                      maxHeightDiskCache: 612,
-                                      maxWidthDiskCache: 480,
-                                      errorWidget: (context, url, error) {
-                                        return const Card.filled(
-                                          shape: RoundedRectangleBorder(),
-                                        );
-                                      },
-                                      imageUrl: content.imageUrl,
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  left: 0,
-                                  child: Container(
-                                    alignment: Alignment.topLeft,
-                                    padding: const EdgeInsets.only(
-                                      left: 8,
-                                      top: 12,
-                                      right: 8,
-                                    ),
-                                    child: AnimatedDefaultTextStyle(
-                                      duration:
-                                          const Duration(milliseconds: 350),
-                                      style: (textTheme.titleMedium ??
-                                              const TextStyle())
-                                          .copyWith(fontSize: 16),
-                                      child: Text(
-                                        content.title,
-                                        maxLines: 2,
-                                        textAlign: TextAlign.start,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Material(
-                                  color: Colors.transparent,
-                                  borderRadius: borderRadius,
-                                  child: InkWell(
-                                    borderRadius: borderRadius,
-                                    overlayColor: _OverlayColor(content),
-                                    onTap: () {
-                                      customLog(
-                                        'InkWell tapped title: ${content.title} - id: ${content.stringID}',
-                                      );
-                                      context.push(
-                                        RouteName.CONTENTINFO,
-                                        extra: ContentInformationArgs(
-                                          content: content,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
-        }
-
-        return const SizedBox.shrink();
-      },
-    );
   }
 
   void _unFocus(BuildContext context) {
@@ -219,10 +83,11 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
 
   @override
   Widget build(BuildContext context) {
-    final themeData = Theme.of(context);
+    final ThemeData themeData = Theme.of(context);
 
-    final searchController = HomeScope.of(context).searchController;
-    final tabController = HomeScope.of(context).tabController;
+    final CustomSearchController searchController =
+        HomeScope.of(context).searchController;
+    final TabController tabController = HomeScope.of(context).tabController;
 
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
@@ -235,39 +100,53 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
           valueNotifierList.isNotEmpty ||
           (!connectionChecker.hasConnection && tabController.index == 1),
       child: CustomSearchAnchor(
+        onSubmitted: (value) {
+          if (value.length >= 4 && !searchController.isOpen) {
+            searchController.openView();
+          }
+          if (value.length >= 4) {
+            _searchDebouncer.cancel();
+            _searchContents(value, true);
+          }
+        },
         dividerWidget: AnimatedBuilder(
           animation: _isLoading,
-          child: const LinearProgressIndicator(),
+          child: const LinearProgressIndicator(minHeight: 2),
           builder: (context, child) =>
-              _isLoading.value ? child! : const Divider(height: 1),
+              _isLoading.value ? child! : const Divider(height: 2),
         ),
         onChanged: (String value) {
           if (tabController.index != 0) return;
           if (value.trim().isEmpty && searchController.isOpen) {
             searchController.closeView(value);
-          } else {
+          } else if (value.trim().length >= 4) {
             searchController.openView();
           }
         },
         barTrailing: [
-          FadeThroughTransitionSwitcher(
-            enableSecondChild: tabController.index != 1 ||
-                searchController.text.trim().isEmpty,
-            duration: const Duration(seconds: 1),
-            child: IconButton(
-              onPressed: () {
-                searchController.clear();
-                _unFocus(context);
-              },
-              icon: Icon(MdiIcons.close),
-            ),
+          AnimatedBuilder(
+            animation: searchController,
+            builder: (context, child) {
+              return FadeThroughTransitionSwitcher(
+                enableSecondChild: tabController.index != 1 ||
+                    searchController.text.trim().isEmpty,
+                duration: const Duration(seconds: 1),
+                child: IconButton(
+                  onPressed: () {
+                    searchController.clear();
+                    _unFocus(context);
+                  },
+                  icon: Icon(MdiIcons.close),
+                ),
+              );
+            },
           )
         ],
         barLeading: FadeThroughTransitionSwitcher(
           enableSecondChild: valueNotifierList.isNotEmpty,
           duration: const Duration(milliseconds: 350),
           secondChild: IconButton(
-            onPressed: () => valueNotifierList.clear(),
+            onPressed: valueNotifierList.clear,
             icon: Icon(MdiIcons.close),
           ),
           child: Icon(MdiIcons.magnify),
@@ -284,6 +163,72 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
         suggestionsBuilder: _suggestionsBuilder,
       ),
     );
+  }
+
+  FutureOr<Widget> _suggestionsBuilder(
+    BuildContext context,
+    CustomSearchController controller,
+  ) async {
+    // final ThemeData themeData = Theme.of(context);
+
+    // final TextTheme textTheme = themeData.textTheme;
+    // final BorderRadius borderRadius = BorderRadius.circular(12);
+    return ValueListenableBuilder(
+      valueListenable: _isLoading,
+      builder: (context, loading, child) {
+        if (!loading && _contents.isEmpty) return const SizedBox.shrink();
+
+        return ListView.builder(
+          itemCount: _contents.entries.length,
+          itemBuilder: (context, index) {
+            final MapEntry<Source, List<Content>> entry =
+                _contents.entries.elementAt(index);
+            return Theme(
+              data: Theme.of(context).copyWith(),
+              child: ExpansionTile(
+                shape: Border(
+                  bottom: BorderSide(
+                    width: 1,
+                    color: DividerTheme.of(context).color ?? Colors.transparent,
+                  ),
+                ),
+                title: Text(entry.key.name),
+                initiallyExpanded: true,
+                maintainState: true,
+                controlAffinity: ListTileControlAffinity.leading,
+                children: <Widget>[
+                  SizedBox(
+                    height: 220,
+                    child: ListView.builder(
+                      itemCount: entry.value.length,
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.all(8.0),
+                      itemBuilder: (context, index) {
+                        final content = entry.value[index];
+                        return SizedBox(
+                          width: 168,
+                          height: 220,
+                          child: ItemContent(content: content, isSearch: true),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchDebouncer.cancel();
+    _isLoading.dispose();
+    _searchController?.removeListener(_searchControllerListener);
+    super.dispose();
   }
 }
 

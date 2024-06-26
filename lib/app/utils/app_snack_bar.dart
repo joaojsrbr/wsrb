@@ -9,24 +9,23 @@ class AppSnackBar {
   _SnackbarDefaultsM3 get theme => _SnackbarDefaultsM3(_context);
 
   Future<void> onError(Object object) async {
-    await Flushbar(
-      backgroundColor: theme.backgroundColor,
+    await show(
       flushbarPosition: FlushbarPosition.TOP,
-      duration: const Duration(seconds: 2),
-      flushbarStyle: FlushbarStyle.GROUNDED,
-      message: object.toString().trim(),
-    ).show(_context);
+      Text(object.toString().trim()),
+    );
   }
 
   Future<void> show(
     Widget content, {
     FlushbarPosition flushbarPosition = FlushbarPosition.BOTTOM,
+    FlushbarStyle flushbarStyle = FlushbarStyle.GROUNDED,
+    Duration duration = const Duration(seconds: 1),
   }) async {
     await Flushbar(
       backgroundColor: theme.backgroundColor,
       flushbarPosition: flushbarPosition,
-      duration: const Duration(seconds: 2),
-      flushbarStyle: FlushbarStyle.GROUNDED,
+      duration: duration,
+      flushbarStyle: flushbarStyle,
       messageText: content,
     ).show(_context);
   }

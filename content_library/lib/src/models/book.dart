@@ -4,10 +4,11 @@ import 'package:content_library/src/entities/book_entity.dart';
 import 'package:content_library/src/models/content.dart';
 
 import '../constants/source.dart';
+import '../utils/object_utils.dart';
 import '../utils/releases.dart';
 import 'genre.dart';
 
-class Book extends Content {
+class Book extends Content with MergeClass<Content> {
   final Source source;
   final String? alternativeTitle;
   final List<Genre> genres;
@@ -55,22 +56,43 @@ class Book extends Content {
   }
 
   @override
-  List<Object?> get props => [
-        stringID,
-        url,
-        title,
-        status,
-        genres,
-        authors,
-        artists,
-        type,
-        extraLarge,
-        largeImage,
-        mediumImage,
-        originalImage,
-        alternativeTitle,
-        releases,
-      ];
+  Map<String, dynamic> get map => {
+        ...super.map,
+        "stringID": stringID,
+        "source": source,
+        "originalImage": originalImage,
+        "genres": genres,
+        "alternativeTitle": alternativeTitle,
+        "extraLarge": extraLarge,
+        "type": type,
+        "authors": authors,
+        "score": score,
+        "status": status,
+        "largeImage": largeImage,
+        "mediumImage": mediumImage,
+        "artists": artists,
+      };
+
+  factory Book.fromMap(Map<String, dynamic> map) {
+    return Book(
+      title: map['title'],
+      releases: map['releases'],
+      source: map['source'],
+      originalImage: map['originalImage'],
+      url: map['url'],
+      genres: map['genres'],
+      alternativeTitle: map['alternativeTitle'],
+      sinopse: map['sinopse'],
+      extraLarge: map['extraLarge'],
+      type: map['type'],
+      authors: map['authors'],
+      score: map['score'],
+      status: map['status'],
+      largeImage: map['largeImage'],
+      mediumImage: map['mediumImage'],
+      artists: map['artists'],
+    );
+  }
 
   @override
   Book copyWith({

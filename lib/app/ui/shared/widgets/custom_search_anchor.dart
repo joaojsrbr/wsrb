@@ -12,7 +12,7 @@ typedef CustomSearchSuggestionsBuilder = FutureOr<Widget> Function(
 
 typedef CustomSearchViewBuilder = Widget Function(Widget suggestion);
 
-const int _kOpenViewMilliseconds = 600;
+const int _kOpenViewMilliseconds = 350;
 const Duration _kOpenViewDuration =
     Duration(milliseconds: _kOpenViewMilliseconds);
 const Duration _kAnchorFadeDuration = Duration(milliseconds: 150);
@@ -755,13 +755,18 @@ class _ViewContentState extends State<_ViewContent> {
                         child: viewDivider,
                       ),
                       Expanded(
-                        child: FadeTransition(
-                          opacity: CurvedAnimation(
-                            parent: widget.animation,
-                            curve: _kViewListFadeOnInterval,
-                            reverseCurve: _kViewListFadeOnInterval.flipped,
+                        child: DividerTheme(
+                          data: dividerTheme.copyWith(
+                            color: effectiveDividerColor,
                           ),
-                          child: viewBuilder(result),
+                          child: FadeTransition(
+                            opacity: CurvedAnimation(
+                              parent: widget.animation,
+                              curve: _kViewListFadeOnInterval,
+                              reverseCurve: _kViewListFadeOnInterval.flipped,
+                            ),
+                            child: viewBuilder(result),
+                          ),
                         ),
                       ),
                     ],
@@ -817,6 +822,7 @@ class _CustomSearchAnchorWithSearchBar extends CustomSearchAnchor {
             headerTextStyle: viewHeaderTextStyle,
             headerHintStyle: viewHeaderHintStyle,
             viewOnSubmitted: onSubmitted,
+
             // viewOnChanged: onChanged,
             builder: (BuildContext context, CustomSearchController controller) {
               return CustomSearchBar(

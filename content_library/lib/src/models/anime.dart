@@ -1,6 +1,11 @@
-import 'package:content_library/content_library.dart';
+import 'package:content_library/src/constants/source.dart';
+import 'package:content_library/src/entities/anime_entity.dart';
+import 'package:content_library/src/models/content.dart';
+import 'package:content_library/src/models/genre.dart';
+import 'package:content_library/src/utils/object_utils.dart';
+import 'package:content_library/src/utils/releases.dart';
 
-class Anime extends Content {
+class Anime extends Content with MergeClass<Content> {
   const Anime({
     required super.url,
     required super.title,
@@ -33,7 +38,6 @@ class Anime extends Content {
   final String? mediumImage;
   final String? slugSerie;
   final bool isDublado;
-
   final int? totalOfEpisodes;
   final int? totalOfPages;
 
@@ -105,26 +109,44 @@ class Anime extends Content {
   }
 
   @override
-  List<Object?> get props => [
-        title,
-        genres,
-        url,
-        stringID,
-        source,
-        sinopse,
-        releases,
-        slugSerie,
-        isDublado,
-        originalImage,
-        extraLarge,
-        generateID,
-        largeImage,
-        mediumImage,
-        animeID,
-        releases,
-      ];
-
-  @override
   String get imageUrl =>
       extraLarge ?? largeImage ?? mediumImage ?? originalImage;
+
+  factory Anime.fromMap(Map<String, dynamic> map) {
+    return Anime(
+      title: map['title'],
+      url: map['url'],
+      releases: map['releases'],
+      genres: map['genres'],
+      generateID: map['generateID'],
+      animeID: map['animeID'],
+      source: map['source'],
+      extraLarge: map['extraLarge'],
+      originalImage: map['originalImage'],
+      largeImage: map['largeImage'],
+      mediumImage: map['mediumImage'],
+      slugSerie: map['slugSerie'],
+      sinopse: map['sinopse'],
+      isDublado: map['isDublado'],
+      totalOfEpisodes: map['totalOfEpisodes'],
+      totalOfPages: map['totalOfPages'],
+    );
+  }
+
+  @override
+  Map<String, dynamic> get map => {
+        ...super.map,
+        "genres": genres,
+        "generateID": generateID,
+        "animeID": animeID,
+        "source": source,
+        "extraLarge": extraLarge,
+        "originalImage": originalImage,
+        "largeImage": largeImage,
+        "mediumImage": mediumImage,
+        "slugSerie": slugSerie,
+        "isDublado": isDublado,
+        "totalOfEpisodes": totalOfEpisodes,
+        "totalOfPages": totalOfPages,
+      };
 }
