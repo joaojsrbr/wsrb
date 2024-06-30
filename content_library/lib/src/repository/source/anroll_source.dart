@@ -71,14 +71,14 @@ class AnrollSource extends RSource {
       int? totalOfPages = episodesResponse.data['meta']['totalOfPages'] as int?;
 
       for (final map in episodesList) {
-        final n_episodio = map['n_episodio'];
-        final number = int.parse(n_episodio);
-        final title_episode = map['titulo_episodio'] as String;
+        final nEpisodio = map['n_episodio'];
+        final number = int.parse(nEpisodio);
+        final titleEpisode = map['titulo_episodio'] as String;
         final pageNumber = episodesResponse.data['meta']['pageNumber'] as int?;
-        final sinopse_episode = map['sinopse_episodio'] as String?;
+        final sinopseEpisode = map['sinopse_episodio'] as String?;
         final episodeGenerateID = map['generate_id'];
         final thumbnail =
-            "https://static.anroll.net/images/animes/screens/${content.slugSerie}/$n_episodio.jpg";
+            "https://static.anroll.net/images/animes/screens/${content.slugSerie}/$nEpisodio.jpg";
 
         final Episode episode = Episode(
           numberEpisode: number,
@@ -86,21 +86,15 @@ class AnrollSource extends RSource {
           url: '$BASE_URL/e/$episodeGenerateID',
           generateID: episodeGenerateID,
           pageNumber: pageNumber,
-          title: title_episode.contains('Episódio') ? 'N/A' : title_episode,
-          sinopse: sinopse_episode,
+          title: titleEpisode.contains('Episódio') ? 'N/A' : titleEpisode,
+          sinopse: sinopseEpisode,
           slugSerie: content.slugSerie,
           thumbnail: thumbnail,
         );
-        final int indexOf = content.releases.indexWhere(
-          (episode) => episode.stringID.contains(episode.stringID),
-        );
 
-        if (indexOf != -1) {
-          content.releases[indexOf] = episode;
-        } else {
-          content.releases.add(episode);
-        }
+        content.releases.addOrUpdateWhere(episode, episode.isEqualStringID);
       }
+
       return Result.success(
         content.copyWith(
           totalOfPages: totalOfPages,

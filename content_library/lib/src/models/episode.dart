@@ -23,6 +23,8 @@ class Episode extends Release {
   final bool isDublado;
   final String? slugSerie;
 
+  bool isEqualStringID(Episode episode) => episode.stringID.contains(stringID);
+
   @override
   List<Object?> get props => [
         stringID,

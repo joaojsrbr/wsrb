@@ -33,7 +33,8 @@ class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
 
   @override
   void add(T element) {
-    return _array.add(element);
+    _array.add(element);
+    sort((release1, release2) => release1.compareTo(release2));
   }
 
   @override

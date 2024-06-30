@@ -184,9 +184,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
             : null),
       ),
     );
-    _playerArgs.anime.releases.sort(
-      (release1, release2) => release1.compareTo(release2),
-    );
+    // _playerArgs.anime.releases.sort(
+    //   (release1, release2) => release1.compareTo(release2),
+    // );
   }
 
   void _onInit(Duration time) async {

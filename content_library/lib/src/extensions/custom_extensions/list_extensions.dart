@@ -18,6 +18,15 @@ extension CustomListExtensions<E, Id> on List<E> {
     if (!contains(element)) add(element);
   }
 
+  void addOrUpdateWhere(E element, bool Function(E) test) {
+    final int indexOf = indexWhere(test);
+    if (indexOf != -1) {
+      this[indexOf] = element;
+    } else {
+      add(element);
+    }
+  }
+
   bool containsOneElement(List elements) {
     return elements.any(contains);
   }
