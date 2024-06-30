@@ -57,18 +57,11 @@ class AnrollSource extends RSource {
 
   @override
   Future<Result<Content>> getReleases(Content content, int page) async {
-    bool isAnime() => content is Anime;
-    assert(
-      isAnime(),
-      "A instancia content precisa ser do tipo Anime",
-    );
+    if (content is! Anime) throw AnimeGetDataException();
+
     try {
-      final Anime anime = content as Anime;
-
-      final releases = anime.releases;
-
       final episodesResponse = await contentRepository._dio.get(
-        'https://apiv3-prd.anroll.net/animes/${anime.animeID}/episodes?order=asc${page == -1 ? '' : '&page=$page'}',
+        'https://apiv3-prd.anroll.net/animes/${content.animeID}/episodes?order=asc${page == -1 ? '' : '&page=$page'}',
       );
 
       final episodesList = episodesResponse.data['data'] as List;
@@ -85,23 +78,31 @@ class AnrollSource extends RSource {
         final sinopse_episode = map['sinopse_episodio'] as String?;
         final episodeGenerateID = map['generate_id'];
         final thumbnail =
-            "https://static.anroll.net/images/animes/screens/${anime.slugSerie}/$n_episodio.jpg";
+            "https://static.anroll.net/images/animes/screens/${content.slugSerie}/$n_episodio.jpg";
 
         final Episode episode = Episode(
           numberEpisode: number,
-          isDublado: anime.isDublado,
+          isDublado: content.isDublado,
           url: '$BASE_URL/e/$episodeGenerateID',
           generateID: episodeGenerateID,
           pageNumber: pageNumber,
           title: title_episode.contains('Episódio') ? 'N/A' : title_episode,
           sinopse: sinopse_episode,
-          slugSerie: anime.slugSerie,
+          slugSerie: content.slugSerie,
           thumbnail: thumbnail,
         );
-        if (!releases.contains(episode)) releases.add(episode);
+        final int indexOf = content.releases.indexWhere(
+          (episode) => episode.stringID.contains(episode.stringID),
+        );
+
+        if (indexOf != -1) {
+          content.releases[indexOf] = episode;
+        } else {
+          content.releases.add(episode);
+        }
       }
       return Result.success(
-        anime.copyWith(
+        content.copyWith(
           totalOfPages: totalOfPages,
           totalOfEpisodes: totalOfEpisodes,
         ),

@@ -107,19 +107,13 @@ class GoyabuSource extends RSource {
 
   @override
   Future<Result<Content>> getReleases(Content content, int page) async {
-    bool isAnime() => content is Anime;
-    assert(
-      isAnime(),
-      "A instancia content precisa ser do tipo Anime",
-    );
+    if (content is! Anime) throw AnimeGetDataException();
 
     final Releases cacheRelease = Releases();
 
     try {
-      final Anime anime = content as Anime;
-
       final Response response = await contentRepository._dio.get(
-        anime.url,
+        content.url,
         responseType: ResponseType.plain,
       );
 
@@ -150,16 +144,14 @@ class GoyabuSource extends RSource {
           url: episodeURL,
           numberEpisode: numberEpisode,
           title: 'N/A',
-          isDublado: anime.isDublado,
+          isDublado: content.isDublado,
         );
 
         if (!cacheRelease.contains(episode)) cacheRelease.add(episode);
       }
 
       return Result.success(
-        anime.copyWith(
-          releases: cacheRelease.partition(20)[page],
-        ),
+        content.copyWith(releases: cacheRelease.partition(20).elementAt(page)),
       );
     } on DioException catch (_, __) {
       return Result.failure(_);
