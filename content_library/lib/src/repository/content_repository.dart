@@ -82,8 +82,8 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   factory ContentRepository(HiveController hiveController, DioClient dio) =>
       _ContentRepositoryImp(hiveController, dio);
 
-  RSource get source => _sources.firstWhere(
-        (source) => source.source == _hiveController.source,
+  RSource source(Source source) => _sources.firstWhere(
+        (element) => source == element.source,
       );
 
   Future<Result<Content>> getData(Content content);
@@ -100,7 +100,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
 
   @override
   Future<bool> refresh([bool notifyStateChanged = false]) async {
-    index = source.initialIndex;
+    index = source(_hiveController.source).initialIndex;
     isSuccess = false;
     _hasMore = false;
     forceRefresh = notifyStateChanged;
@@ -127,19 +127,19 @@ class _ContentRepositoryImp extends ContentRepository {
 
   @override
   Future<bool> loadData([bool isLoadMoreAction = false]) async =>
-      await source.loadData();
+      await source(_hiveController.source).loadData();
 
   @override
   Future<Result<Content>> getData(Content content) async =>
-      await source.getData(content);
+      await source(_hiveController.source).getData(content);
 
   @override
   Future<Result<List<Data>>> getContent(Release release) async =>
-      await source.getContent(release);
+      await source(_hiveController.source).getContent(release);
 
   @override
   Future<Result<Content>> getReleases(Content content, int page) async =>
-      await source.getReleases(content, page);
+      await source(_hiveController.source).getReleases(content, page);
 
   @override
   Future<void> searchContents(

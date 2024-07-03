@@ -13,15 +13,15 @@ enum _BookInformationScopeAspect {
 }
 
 class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
-  const BookInformationScope({
+  BookInformationScope({
     super.key,
-    required super.child,
+    required WidgetBuilder builder,
     required this.isLoading,
     required this.index,
     required this.setListIndex,
     required this.content,
     required this.releasesIsLoading,
-  });
+  }) : super(child: Builder(builder: builder));
 
   final bool releasesIsLoading;
   final bool isLoading;

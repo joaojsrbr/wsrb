@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/rendering/sliver_persistent_header.dart'
     show OverScrollHeaderStretchConfiguration;
 
-import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
 import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
@@ -16,9 +15,14 @@ import 'package:provider/provider.dart';
 class ContentPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
   const ContentPersistentHeaderDelegate({
     required this.maxExtent,
+    required this.content,
+    required this.isLoading,
     required this.minExtent,
     this.onStretchTrigger,
   });
+
+  final Content content;
+  final bool isLoading;
 
   final Future<void> Function()? onStretchTrigger;
 
@@ -43,18 +47,17 @@ class ContentPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
   ) {
     final double opacity =
         ((maxExtent - shrinkOffset) - 100).clamp(0.0, 100) / 100;
-    final isLoading = BookInformationScope.isLoadingOf(context);
 
     Widget flexible = ClipRRect(
       clipper: _FlexibleSpaceBarClipper(radius: 18),
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 350),
         child: isLoading
-            ? ShimmerLoading(
-                isLoading: isLoading,
-                child: const Material(child: Card(child: SizedBox.expand())),
+            ? const ShimmerLoading(
+                isLoading: true,
+                child: Card(child: SizedBox.expand()),
               )
-            : _BuildContentWidget(opacity),
+            : _BuildContentWidget(opacity, content),
       ),
     );
 
@@ -68,18 +71,21 @@ class ContentPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(covariant ContentPersistentHeaderDelegate oldDelegate) {
-    return true;
+    return oldDelegate.isLoading != isLoading ||
+        oldDelegate.content != oldDelegate.content ||
+        oldDelegate.maxExtent != oldDelegate.maxExtent ||
+        oldDelegate.minExtent != oldDelegate.minExtent;
   }
 }
 
 class _BuildContentWidget extends StatelessWidget {
-  const _BuildContentWidget(this.opacity);
+  const _BuildContentWidget(this.opacity, this.content);
 
   final double opacity;
+  final Content content;
 
   @override
   Widget build(BuildContext context) {
-    final content = BookInformationScope.contentOf(context);
     final themeData = Theme.of(context);
     final LibraryController libraryController =
         context.watch<LibraryController>();
@@ -246,12 +252,12 @@ class _BuildContentWidget extends StatelessWidget {
                                       child: Padding(
                                         padding: const EdgeInsets.all(4.0),
                                         child: Text(
-                                          content.isDublado
+                                          (content as Anime).isDublado
                                               ? "Dublado"
                                               : "Legendado",
                                           style: titleSmall?.copyWith(
                                             fontSize: 10,
-                                            color: content.isDublado
+                                            color: (content as Anime).isDublado
                                                 ? Colors.blue
                                                 : Colors.red,
                                           ),

@@ -16,22 +16,17 @@ class GoyabuSource extends RSource {
 
   @override
   Future<Result<List<Data>>> getContent(Release release) async {
-    bool isEpisode() {
-      return release is Episode;
+    if (release is! Episode) {
+      return Result.failure(AnimeGetDataException(
+        message: "A instancia content precisa ser do tipo Episode",
+      ));
     }
 
-    assert(
-      isEpisode(),
-      "A instancia content precisa ser do tipo [$Episode]",
-    );
-
     try {
-      final episode = release as Episode;
-
       final List<Data> data = [];
 
       final Response response = await contentRepository._dio.get(
-        episode.url,
+        release.url,
         responseType: ResponseType.plain,
       );
       final Document document = parse(response.data);

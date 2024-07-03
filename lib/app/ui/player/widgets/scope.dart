@@ -44,8 +44,8 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
   final BoxFit activeFit;
   final PlayerArgs playerArgs;
   final VoidCallback setFits;
-  final int currentValueCircularAnimation;
-  final int maxValueCircularAnimation;
+  final double currentValueCircularAnimation;
+  final double maxValueCircularAnimation;
   final bool isLoading;
 
   static PlayerScope of(BuildContext context) {
@@ -69,7 +69,7 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
     return isLoading;
   }
 
-  static int currentValueCircularAnimationOf(BuildContext context) {
+  static double currentValueCircularAnimationOf(BuildContext context) {
     final currentValueCircularAnimation =
         _of(context, _PlayerScopeAspect.Player_CURRENTVALUECIRULARANIMATION)
             .currentValueCircularAnimation;

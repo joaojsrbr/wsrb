@@ -6,15 +6,13 @@ import 'package:quiver/iterables.dart' as quiver;
 import '../../content_library.dart';
 
 class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
-  Releases() {
-    _array = [];
-  }
+  Releases();
 
   Releases.fromList(Iterable<Release> contents) {
     _array = List.from(contents);
   }
 
-  late List<T> _array;
+  List<T> _array = [];
 
   List<Releases> partition(int size) {
     return quiver

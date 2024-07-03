@@ -1,10 +1,9 @@
-import 'package:content_library/src/utils/object_utils.dart';
 import 'package:equatable/equatable.dart';
 import '../entities/entity.dart';
 import '../extensions/custom_extensions/string_extensions.dart';
 import '../utils/releases.dart';
 
-abstract class Content extends Equatable implements MapObjectClass {
+abstract class Content extends Equatable {
   String get imageUrl;
 
   String get stringID => title.toUuID;
@@ -42,7 +41,6 @@ abstract class Content extends Equatable implements MapObjectClass {
     bool isFavorite = false,
   });
 
-  @override
   Map<String, dynamic> get map => {
         "releases": _releases,
         "url": url,

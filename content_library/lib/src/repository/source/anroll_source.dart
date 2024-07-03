@@ -16,20 +16,14 @@ class AnrollSource extends RSource {
 
   @override
   Future<Result<List<Data>>> getContent(Release release) async {
-    bool isEpisode() {
-      return release is Episode;
+    if (release is! Episode) {
+      return Result.failure(AnimeGetDataException(
+          message: "A instancia content precisa ser do tipo Episode"));
     }
-
-    assert(
-      isEpisode(),
-      "A instancia content precisa ser do tipo [$Episode]",
-    );
-
-    final episode = release as Episode;
 
     final List<Data> data = [];
 
-    final numberInt = int.parse(episode.number);
+    final numberInt = int.parse(release.number);
 
     String stringNumber;
 
@@ -42,7 +36,7 @@ class AnrollSource extends RSource {
     }
 
     final videoContent =
-        'https://cdn-zenitsu-gamabunta.b-cdn.net/cf/hls/animes/${episode.slugSerie}/$stringNumber.mp4/media-1/stream.m3u8';
+        'https://cdn-zenitsu-gamabunta.b-cdn.net/cf/hls/animes/${release.slugSerie}/$stringNumber.mp4/media-1/stream.m3u8';
 
     data.add(Data.videoData(
       videoContent: videoContent,
@@ -69,6 +63,13 @@ class AnrollSource extends RSource {
       int? totalOfEpisodes =
           episodesResponse.data['meta']['totalOfEpisodes'] as int?;
       int? totalOfPages = episodesResponse.data['meta']['totalOfPages'] as int?;
+
+      final lastEpisode = episodesList.last;
+
+      final lastENumber = int.parse(lastEpisode['n_episodio']);
+
+      content.releases.removeWhere(
+          (element) => (int.tryParse(element.number) ?? 0) > lastENumber);
 
       for (final map in episodesList) {
         final nEpisodio = map['n_episodio'];

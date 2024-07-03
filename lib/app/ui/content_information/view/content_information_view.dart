@@ -37,8 +37,8 @@ class _BookInformationStateView
   /// variable that controls page loading
   bool _releasesIsLoading = false;
 
-  /// list of [Releases] list
-  final List<Releases> _releases = [];
+  /// map of [Releases] list
+  final Map<int, Releases> _releases = {};
 
   /// [Content] instance
   Content? _content;
@@ -62,7 +62,7 @@ class _BookInformationStateView
 
     setStateIfMounted(() => _index = index);
 
-    final releases = _releases.elementAtOrNull(index);
+    final releases = _releases[index];
 
     if (releases == null) {
       setStateIfMounted(() => _releasesIsLoading = true);
@@ -101,23 +101,23 @@ class _BookInformationStateView
   }
 
   Future<void> _getReleases(Content content, [bool onRefresh = false]) async {
-    final releases = _releases.elementAtOrNull(_index);
+    final releases = _releases[_index];
 
     if (releases == null || onRefresh) {
-      final result =
-          await _repository.getReleases(content.copyWith(), _index + 1);
+      final result = await _repository.getReleases(content, _index + 1);
 
       result.fold(
         onSuccess: (data) {
           final stringID = data.releases.first.stringID;
           customLog(stringID);
-          final index = _releases.indexWhere((element) =>
-              element.any((element) => element.stringID.contains(stringID)));
-          if (index != -1) {
-            _releases[index] = data.releases;
-          } else {
-            _releases.add(data.releases);
-          }
+          _releases[_index] = data.releases;
+          // final index = _releases.indexWhere((element) =>
+          //     element.any((element) => element.stringID.contains(stringID)));
+          // if (index != -1) {
+          //   _releases[index] = data.releases;
+          // } else {
+          //   _releases.add(data.releases);
+          // }
           // setState(() {});
           setStateIfMounted(() => _content = data);
         },
@@ -135,7 +135,7 @@ class _BookInformationStateView
     if (data.releases.isEmpty) {
       await _getReleases(data, onRefresh);
     } else {
-      _releases.add(data.releases);
+      _releases[_index] = data.releases;
     }
 
     if (libraryService.contains(content: data)) {
@@ -189,7 +189,7 @@ class _BookInformationStateView
         setListIndex: _handleSetListIndex,
         content: _content ?? argument.content,
         isLoading: _isLoading,
-        child: Scaffold(
+        builder: (context) => Scaffold(
           body: RefreshIndicator(
             key: _refreshIndicatorKey,
             onRefresh: _onRefresh,
@@ -200,6 +200,8 @@ class _BookInformationStateView
                   pinned: true,
                   floating: true,
                   delegate: ContentPersistentHeaderDelegate(
+                    content: _content ?? argument.content,
+                    isLoading: _isLoading,
                     maxExtent: size.height * .55,
                     minExtent: 100,
                   ),

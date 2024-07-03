@@ -29,10 +29,6 @@ mixin MergeClass<T extends Content> on Content {
   }
 }
 
-abstract class MapObjectClass<T> {
-  Map<String, dynamic> get map;
-}
-
 dynamic _copyValues<K, V>(
     Map<K, V> from, Map<K, V?> to, bool recursive, bool acceptNull) {
   for (var key in from.keys) {

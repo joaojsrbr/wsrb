@@ -56,9 +56,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   final List<VideoData> data = [];
 
-  final int _maxValueCircularAnimation = 2;
+  final double _maxValueCircularAnimation = 1.5;
 
-  int _currentValueCircularAnimation = 0;
+  double _currentValueCircularAnimation = 0;
 
   late final LibraryController _libraryController;
 
@@ -71,6 +71,16 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   final ValueNotifier<Duration?> _seekInVideoPosition = ValueNotifier(null);
 
   late final Timer _systemUIModeTimer;
+
+  final Debouncer _removeAllListenersDebouncer = Debouncer(
+    duration: const Duration(seconds: 20),
+  );
+
+  Duration _currentPositionDuration = Duration.zero;
+
+  bool _playerDisposed = false;
+
+  final Debouncer _saveDataDebouncer = Debouncer();
 
   Timer? _setEnabledSystemUIModeTimer;
 
@@ -136,15 +146,46 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _incrementCurrentCircularAnimation() async {
-    setStateIfMounted(() => _currentValueCircularAnimation++);
-    await Future.delayed(const Duration(milliseconds: 60));
+    setStateIfMounted(() => _currentValueCircularAnimation += 0.5);
+    await Future.delayed(const Duration(milliseconds: 50));
+  }
+
+  Future<void> _removeAllListeners() async {
+    _playerDisposed = true;
+    _saveDataDebouncer.cancel();
+    _setEnabledSystemUIModeTimer?.cancel();
+    _systemUIModeTimer.cancel();
+    _removeAllListenersDebouncer.cancel();
+    _setContinueVideoTimer?.cancel();
+    playerAudioHandler.playbackState.add(playerAudioHandler.playbackState.value
+        .copyWith(processingState: AudioProcessingState.idle));
+    await setSessionActive(false);
+    await playerAudioHandler.playbackState.firstWhere(
+        (state) => state.processingState == AudioProcessingState.idle);
+    await _registerListeners(true);
+  }
+
+  Future<void> _resumePlayerAfterDisposed() async {
+    await _registerListeners(false);
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     customLog(state);
-    if ([AppLifecycleState.hidden, AppLifecycleState.paused].contains(state)) {
-      _saveVideoData();
+
+    switch (state) {
+      case AppLifecycleState.hidden:
+        _saveVideoData();
+        _removeAllListenersDebouncer.cancel();
+        _removeAllListenersDebouncer.call(_removeAllListeners);
+      case AppLifecycleState.paused:
+        _saveVideoData();
+        _removeAllListenersDebouncer.cancel();
+        _removeAllListenersDebouncer.call(_removeAllListeners);
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.resumed:
+        if (_playerDisposed) _resumePlayerAfterDisposed();
+      case AppLifecycleState.detached:
     }
 
     super.didChangeAppLifecycleState(state);
@@ -202,12 +243,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
   }
 
-  Future<void> _startPlayerController([bool onInit = false]) async {
+  Future<void> _startPlayerController(
+      [bool onInit = false, Duration? initPossition]) async {
     final playbackState = playerAudioHandler.playbackState;
     playerAudioHandler.setPlayerController = this;
-
-    playbackState.add(playbackState.value.copyWith
-        .call(processingState: AudioProcessingState.loading));
 
     if (onInit) {
       setPlayer = Player(configuration: const PlayerConfiguration());
@@ -225,6 +264,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     await Future.wait(futures);
 
     await _videoController?.waitUntilFirstFrameRendered;
+
+    if (initPossition != null) {
+      await player!.seek(initPossition);
+    }
 
     playbackState.add(playbackState.value.copyWith
         .call(processingState: AudioProcessingState.ready));
@@ -265,6 +308,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   void _positionListener(Duration position) {
+    _currentPositionDuration = position;
     playerAudioHandler.setPlaybackState(player!.state);
 
     if (_seekInVideoPosition.value != null) {
@@ -401,39 +445,42 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _saveVideoData() async {
-    if (_videoPercent < 0.20) return;
+    _saveDataDebouncer.cancel();
+    _saveDataDebouncer.call(() async {
+      if (_videoPercent < 0.20) return;
 
-    final Duration position = player!.state.position;
+      final Duration position = player!.state.position;
 
-    final Duration duration = player!.state.duration;
+      final Duration duration = player!.state.duration;
 
-    bool isComplete = _videoPercent >= 0.85;
+      bool isComplete = _videoPercent >= 0.85;
 
-    final EpisodeEntity episodeEntity = EpisodeEntity(
-      currentDuration: position.inMilliseconds,
-      animeStringID: _playerArgs.anime.stringID,
-      episodeDuration: duration.inMilliseconds,
-      stringID: _playerArgs.episode.stringID,
-      isComplete: isComplete,
-      sinopse: _playerArgs.episode.sinopse,
-      numberEpisode: int.tryParse(_playerArgs.episode.number),
-    );
+      final EpisodeEntity episodeEntity = EpisodeEntity(
+        currentDuration: position.inMilliseconds,
+        animeStringID: _playerArgs.anime.stringID,
+        episodeDuration: duration.inMilliseconds,
+        stringID: _playerArgs.episode.stringID,
+        isComplete: isComplete,
+        sinopse: _playerArgs.episode.sinopse,
+        numberEpisode: int.tryParse(_playerArgs.episode.number),
+      );
 
-    customLog('[${episodeEntity.numberEpisode}]_saveVideoData()');
+      customLog('[${episodeEntity.numberEpisode}]_saveVideoData()');
 
-    final animeEntity = _libraryController.entities.firstWhere(
-      (content) {
-        return content is AnimeEntity &&
-            content.stringID.contains(_playerArgs.anime.stringID);
-      },
-      orElse: () => _playerArgs.anime.toEntity(),
-    ) as AnimeEntity;
+      final animeEntity = _libraryController.entities.firstWhere(
+        (content) {
+          return content is AnimeEntity &&
+              content.stringID.contains(_playerArgs.anime.stringID);
+        },
+        orElse: () => _playerArgs.anime.toEntity(),
+      ) as AnimeEntity;
 
-    animeEntity.episodes.add(episodeEntity);
+      animeEntity.episodes.add(episodeEntity);
 
-    await _libraryController.add(contentEntity: animeEntity);
+      await _libraryController.add(contentEntity: animeEntity);
 
-    await _historicController.add(historyEntity: episodeEntity);
+      await _historicController.add(historyEntity: episodeEntity);
+    });
   }
 
   @override
@@ -462,20 +509,22 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   @override
   void dispose() {
-    if (_mainVideoData != null) _saveVideoData();
-    _topTitle.dispose();
     customLog('$runtimeType[dispose]');
-    _setEnabledSystemUIModeTimer?.cancel();
-    _systemUIModeTimer.cancel();
+    _topTitle.dispose();
     _seekInVideoPosition.dispose();
     _lockPlayer.dispose();
     _reversedCurrentDuration.dispose();
     _overlayBoxFit.dispose();
+    _saveDataDebouncer.cancel();
+    _setEnabledSystemUIModeTimer?.cancel();
+    _systemUIModeTimer.cancel();
+    _removeAllListenersDebouncer.cancel();
     _setContinueVideoTimer?.cancel();
     _overlayNextEpisode.dispose();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     WidgetsBinding.instance.removeObserver(this);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    if (_mainVideoData != null) _saveVideoData();
     super.dispose();
   }
 }
@@ -490,7 +539,7 @@ class _BuildScaffold extends StatelessWidget {
     final BoxFit activeFit = PlayerScope.activeFitOf(context);
     final PlayerArgs playerArgs = PlayerScope.playerArgsOf(context);
     final VideoController? videoController = scope.videoController;
-    final int currentValueCircularAnimation =
+    final double currentValueCircularAnimation =
         PlayerScope.currentValueCircularAnimationOf(context);
     List<Widget> children = [];
 

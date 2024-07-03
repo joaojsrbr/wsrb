@@ -4,7 +4,7 @@ version: 0.0.2
 homepage:
 
 environment:
-  sdk: ">=3.4.0 <4.0.0"
+  sdk: ">=3.5.0-180.3.beta <4.0.0"
 
 dependencies:
   collection: ^1.18.0
@@ -28,6 +28,7 @@ dependencies:
   webview_flutter: ^4.8.0
   connectivity_plus: ^6.0.3
   # belatuk_merge_map: ^5.2.0
+  # json: ^0.20.1
 
 dev_dependencies:
   flutter_test:
