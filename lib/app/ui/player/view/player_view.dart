@@ -165,7 +165,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     await _registerListeners(true);
   }
 
-  Future<void> _resumePlayerAfterDisposed() async {
+  Future<void> _resumePlayerAfterRemoveAllListeners() async {
     await _registerListeners(false);
   }
 
@@ -184,7 +184,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         _removeAllListenersDebouncer.call(_removeAllListeners);
       case AppLifecycleState.inactive:
       case AppLifecycleState.resumed:
-        if (_playerDisposed) _resumePlayerAfterDisposed();
+        if (_playerDisposed) _resumePlayerAfterRemoveAllListeners();
       case AppLifecycleState.detached:
     }
 
