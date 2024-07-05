@@ -69,6 +69,7 @@ dependencies:
   audio_service: ^0.18.13
   audio_session: ^0.1.19
   border_progress_indicator: ^0.0.3
+  ffmpeg_kit_flutter: ^6.0.3
 
 dev_dependencies:
   flutter_test:
