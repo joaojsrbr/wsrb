@@ -26,6 +26,7 @@ dependencies:
   dynamic_color: ^1.7.0
   internet_connection_checker: ^1.0.0+1
   webview_flutter: ^4.8.0
+  ffmpeg_kit_flutter: ^6.0.3
   connectivity_plus: ^6.0.3
   # belatuk_merge_map: ^5.2.0
   # json: ^0.20.1
