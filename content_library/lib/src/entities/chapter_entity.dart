@@ -34,4 +34,12 @@ class ChapterEntity extends HistoryEntity {
     this.updatedAt,
     this.isComplete = false,
   });
+
+  @override
+  int compareTo(HistoryEntity other) {
+    if (createdAt != null && (other as ChapterEntity).createdAt != null) {
+      return createdAt!.compareTo(other.createdAt!);
+    }
+    return -1;
+  }
 }

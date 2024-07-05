@@ -75,21 +75,25 @@ class TabBarSwitcher extends FadeThroughTransitionSwitcher
     super.key,
     super.fillColor = Colors.transparent,
     required TabBar tabBar,
-    required TabBar secondTabBar,
+    required Widget secondTabBar,
     super.duration = const Duration(milliseconds: 300),
     super.enableSecondChild = false,
   })  : _firstChild = tabBar,
-        _secondChild = secondTabBar,
+        // _secondChild = secondTabBar,
         super(child: tabBar, secondChild: secondTabBar);
 
-  final Widget _secondChild;
+  // final Widget _secondChild;
   final Widget _firstChild;
 
   @override
   Size get preferredSize {
     TabBar tabBar = _firstChild as TabBar;
+    // if (enableSecondChild) {
+    //   tabBar = _secondChild as TabBar;
+    // }
+
     if (enableSecondChild) {
-      tabBar = _secondChild as TabBar;
+      return const Size.fromHeight(0);
     }
 
     double maxHeight = _kTabHeight;
@@ -100,5 +104,12 @@ class TabBarSwitcher extends FadeThroughTransitionSwitcher
       }
     }
     return Size.fromHeight(maxHeight + tabBar.indicatorWeight);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // if (enableSecondChild) return const SizedBox.shrink();
+    // return super.build(context);
+    return enableSecondChild ? const SizedBox.shrink() : _firstChild;
   }
 }

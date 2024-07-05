@@ -15,8 +15,14 @@ class LibraryController extends ChangeNotifier {
   Future<void> start() async {
     final animeColetions =
         await _isarService.collection<AnimeEntity>().where().findAll();
+
     final bookColetions =
         await _isarService.collection<BookEntity>().where().findAll();
+
+    await Future.wait([
+      ...animeColetions.map((element) => element.episodes.load()),
+      ...bookColetions.map((element) => element.chapters.load()),
+    ]);
 
     _entities.addAll(animeColetions);
     _entities.addAll(bookColetions);

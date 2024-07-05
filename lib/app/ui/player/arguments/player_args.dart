@@ -5,19 +5,23 @@ import 'package:content_library/content_library.dart';
 class PlayerArgs {
   final Episode episode;
   final Anime anime;
+  final Duration? startPossition;
 
   const PlayerArgs({
     required this.episode,
     required this.anime,
+    this.startPossition,
   });
 
   PlayerArgs copyWith({
     Episode? episode,
     Anime? anime,
+    Duration? startPossition,
   }) {
     return PlayerArgs(
       episode: episode ?? this.episode,
       anime: anime ?? this.anime,
+      startPossition: startPossition ?? this.startPossition,
     );
   }
 
