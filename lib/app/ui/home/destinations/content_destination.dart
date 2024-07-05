@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_rail_menu.dart';
+import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:content_library/content_library.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/content_indicator_build.dart';

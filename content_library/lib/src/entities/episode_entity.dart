@@ -1,6 +1,9 @@
 import 'package:content_library/src/entities/entity.dart';
+import 'package:content_library/src/models/episode.dart';
 
 import 'package:isar/isar.dart';
+
+import '../models/anime.dart';
 
 part 'episode_entity.g.dart';
 
@@ -22,14 +25,25 @@ class EpisodeEntity extends HistoryEntity {
   DateTime? createdAt;
   DateTime? updatedAt;
 
+  String? thumbnail;
+  String? slugSerie;
+  String? generateID;
+  String url;
+  String title;
+
   EpisodeEntity({
     required this.currentDuration,
     required this.episodeDuration,
     required this.stringID,
+    required this.title,
     required this.animeStringID,
     required this.sinopse,
     required this.numberEpisode,
+    required this.url,
+    this.slugSerie,
+    this.generateID,
     this.createdAt,
+    this.thumbnail,
     this.updatedAt,
     this.isComplete = false,
   });
@@ -37,6 +51,7 @@ class EpisodeEntity extends HistoryEntity {
   @override
   List<Object?> get props => [
         episodeDuration,
+        thumbnail,
         animeStringID,
         currentDuration,
         isComplete,
@@ -45,5 +60,26 @@ class EpisodeEntity extends HistoryEntity {
         sinopse,
         createdAt,
         updatedAt,
+        title,
       ];
+
+  @override
+  int compareTo(HistoryEntity other) {
+    if (createdAt != null && (other as EpisodeEntity).createdAt != null) {
+      return createdAt!.compareTo(other.createdAt!);
+    }
+    return -1;
+  }
+
+  Episode toEpisode(Anime anime) {
+    return Episode(
+      url: url,
+      title: title,
+      generateID: generateID,
+      slugSerie: slugSerie,
+      isDublado: anime.isDublado,
+      sinopse: sinopse,
+      thumbnail: thumbnail,
+    );
+  }
 }

@@ -1,4 +1,6 @@
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_rail_menu.dart';
+import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
+import 'package:app_wsrb_jsr/app/ui/home/widgets/keep_watching.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
 import 'package:app_wsrb_jsr/app/utils/category_utils.dart';
 import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
@@ -10,7 +12,6 @@ import 'package:app_wsrb_jsr/app/ui/home/destinations/library_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/home/destinations/settings_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_view_flexible_space.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
-import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
@@ -99,6 +100,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         _searchController.text.trim().isNotEmpty) {
       currentFocus.focusedChild?.unfocus();
     }
+
+    if (_tabController.index == 0 && _scrollController.position.pixels > 140) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.fastOutSlowIn,
+      );
+    }
   }
 
   set setScroll(bool enable) {
@@ -130,8 +139,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         final TabController tabController = HomeScope.of(context).tabController;
 
         return Scaffold(
-          body: ExtendedNestedScrollView(
-            onlyOneScrollInBody: true,
+          body: NestedScrollView(
+            // onlyOneScrollInBody: true,
             controller: _scrollController,
             physics: _mainPhysics,
             headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -160,42 +169,34 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 SliverAppBar(
                   pinned: false,
                   floating: false,
-                  bottom: TabBarSwitcher(
-                    duration: const Duration(milliseconds: 650),
-                    enableSecondChild: identical(tabController.index, 1),
-                    tabBar: TabBar(
-                      controller: _tabController,
-                      tabs: List.generate(
-                        _tabController.length,
-                        (index) => Builder(
-                          builder: (context) {
-                            final tabIndex =
-                                HomeScope.of(context).tabController.index;
+                  bottom: tabController.index == 0
+                      ? TabBar(
+                          controller: _tabController,
+                          tabs: List.generate(
+                            _tabController.length,
+                            (index) => Builder(
+                              builder: (context) {
+                                final tabIndex =
+                                    HomeScope.of(context).tabController.index;
 
-                            final icons = {
-                              tabIndex == 0
-                                  ? MdiIcons.home
-                                  : MdiIcons.homeOutline,
-                              tabIndex == 1
-                                  ? MdiIcons.library
-                                  : MdiIcons.libraryOutline,
-                              tabIndex == 2
-                                  ? MdiIcons.cog
-                                  : MdiIcons.cogOutline,
-                            };
+                                final icons = {
+                                  tabIndex == 0
+                                      ? MdiIcons.home
+                                      : MdiIcons.homeOutline,
+                                  tabIndex == 1
+                                      ? MdiIcons.library
+                                      : MdiIcons.libraryOutline,
+                                  tabIndex == 2
+                                      ? MdiIcons.cog
+                                      : MdiIcons.cogOutline,
+                                };
 
-                            return Tab(icon: Icon(icons.elementAt(index)));
-                          },
-                        ),
-                      ),
-                    ),
-                    secondTabBar: TabBar(
-                      tabAlignment: TabAlignment.start,
-                      controller: _subordinateLibraryTabController,
-                      tabs: tabs,
-                      isScrollable: true,
-                    ),
-                  ),
+                                return Tab(icon: Icon(icons.elementAt(index)));
+                              },
+                            ),
+                          ),
+                        )
+                      : null,
                   actions: [
                     if (identical(tabController.index, 1))
                       IconButton(
@@ -207,13 +208,25 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   automaticallyImplyLeading: false,
                   title: const HomeViewFlexibleSpace(),
                 ),
+                const KeepWatching(),
+                if (_tabController.index == 1)
+                  SliverToBoxAdapter(
+                    child: TabBar(
+                      tabAlignment: TabAlignment.start,
+                      controller: _subordinateLibraryTabController,
+                      tabs: tabs,
+                      isScrollable: true,
+                    ),
+                  ),
                 SliverToBoxAdapter(
                   child: SizedBox(
                     width: double.infinity,
                     child: SingleChildScrollView(
                       padding: tabController.index != 0
                           ? EdgeInsets.zero
-                          : const EdgeInsets.only(right: 12, top: 8),
+                          : EdgeInsets.only(
+                              right: 12,
+                              top: _tabController.index == 0 ? 14 : 8),
                       physics: const BouncingScrollPhysics(),
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -275,39 +288,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 }
 
-class HomeScope extends InheritedNotifier<Listenable> {
-  HomeScope({
-    super.key,
-    required super.child,
-    required this.enabled,
-    required this.tabController,
-    required this.searchController,
-    required this.subordinateLibraryTabController,
-  }) : super(notifier: Listenable.merge([tabController, searchController]));
-
-  final CustomSearchController searchController;
-  final TabController tabController;
-  final SubordinateLibraryTabController subordinateLibraryTabController;
-  final bool enabled;
-
-  static HomeScope? maybeOf(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<HomeScope>();
-  }
-
-  static HomeScope of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<HomeScope>()!;
-  }
-
-  @override
-  bool updateShouldNotify(HomeScope oldWidget) {
-    return enabled != oldWidget.enabled ||
-        tabController.index != oldWidget.tabController.index ||
-        searchController.value != oldWidget.searchController.value ||
-        subordinateLibraryTabController !=
-            oldWidget.subordinateLibraryTabController;
-  }
-}
-
 class _MenuButton<T> extends StatefulWidget {
   final void Function(T data)? onTap;
   final Widget? child;
@@ -338,7 +318,7 @@ class _MenuButtonState<T> extends State<_MenuButton<T>> {
       duration: const Duration(milliseconds: 450),
       enableSecondChild: widget.enableSecondChild,
       child: Padding(
-        padding: const EdgeInsets.only(left: 20, bottom: 4, top: 6),
+        padding: const EdgeInsets.only(left: 20, bottom: 4),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 140, maxHeight: 38),
           child: FilledButton(

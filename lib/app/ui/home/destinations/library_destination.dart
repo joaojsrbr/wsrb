@@ -3,11 +3,11 @@
 import 'dart:async';
 
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_rail_menu.dart';
+import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
 import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
 

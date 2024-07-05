@@ -27,6 +27,8 @@ dependencies:
   internet_connection_checker: ^1.0.0+1
   webview_flutter: ^4.8.0
   connectivity_plus: ^6.0.3
+  progress_border: ^0.1.5
+  border_progress_indicator: ^0.0.3
   # belatuk_merge_map: ^5.2.0
   # json: ^0.20.1
 

@@ -43,6 +43,7 @@ export 'src/services/dio_client.dart';
 export 'src/services/category_controller.dart';
 export 'src/services/hive/hive_controller.dart';
 export 'src/services/hive/hive_service.dart';
+export 'src/services/history_service.dart';
 export 'src/extensions/custom_extensions/state_extensions.dart';
 export 'src/extensions/custom_extensions/object_extensions.dart';
 export 'src/extensions/custom_extensions/num_extensions.dart';

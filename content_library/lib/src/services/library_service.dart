@@ -1,4 +1,5 @@
 import 'package:content_library/content_library.dart';
+import 'package:isar/isar.dart';
 
 class LibraryService {
   final LibraryController _libraryController;
@@ -16,6 +17,32 @@ class LibraryService {
           })
       .map(_map)
       .nonNulls);
+
+  static IsarLinks<HistoryEntity>? toIsarLinks(ContentEntity element) {
+    return switch (element) {
+      AnimeEntity data => data.episodes,
+      BookEntity data => data.chapters,
+      _ => null,
+    };
+  }
+
+  UnmodifiableListView<ContentEntity> get noFavorites =>
+      UnmodifiableListView(entities
+          .where((entity) => switch (entity) {
+                AnimeEntity data => !data.isFavorite,
+                BookEntity data => !data.isFavorite,
+                _ => false,
+              })
+          .nonNulls);
+
+  UnmodifiableListView<ContentEntity> get favorites =>
+      UnmodifiableListView(entities
+          .where((entity) => switch (entity) {
+                AnimeEntity data => data.isFavorite,
+                BookEntity data => data.isFavorite,
+                _ => false,
+              })
+          .nonNulls);
 
   UnmodifiableListView<String> get noFavoritesIDS =>
       UnmodifiableListView(entities
@@ -60,6 +87,14 @@ class LibraryService {
       BookEntity data => data.stringID,
       _ => null,
     };
+  }
+
+  ContentEntity? getContentEntityByStringID(String animeStringID) {
+    return entities.firstWhereOrNull((content) => switch (content) {
+          AnimeEntity data => data.stringID.contains(animeStringID),
+          BookEntity data => data.stringID.contains(animeStringID),
+          _ => false,
+        });
   }
 
   bool contains({ContentEntity? contentEntity, Content? content}) {

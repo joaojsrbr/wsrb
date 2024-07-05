@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:another_flushbar/flushbar.dart';
-import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
+import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

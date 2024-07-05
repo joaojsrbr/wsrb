@@ -7,4 +7,5 @@ abstract class Entity with EquatableMixin {
 
 abstract class ContentEntity extends Entity {}
 
-abstract class HistoryEntity extends Entity {}
+abstract class HistoryEntity extends Entity
+    implements Comparable<HistoryEntity> {}

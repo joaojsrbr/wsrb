@@ -147,7 +147,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   Future<void> _incrementCurrentCircularAnimation() async {
     setStateIfMounted(() => _currentValueCircularAnimation += 0.5);
-    await Future.delayed(const Duration(milliseconds: 50));
   }
 
   Future<void> _removeAllListeners() async {
@@ -184,7 +183,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         _removeAllListenersDebouncer.call(_removeAllListeners);
       case AppLifecycleState.inactive:
       case AppLifecycleState.resumed:
-        if (_playerDisposed) _resumePlayerAfterRemoveAllListeners();
+      case AppLifecycleState.resumed when _playerDisposed:
+        _resumePlayerAfterRemoveAllListeners();
       case AppLifecycleState.detached:
     }
 
@@ -211,7 +211,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   Future<void> _getAllEpisodes() async {
     Anime anime = _playerArgs.anime;
-    if (_playerArgs.anime.releases.length == 1) {
+    if (_playerArgs.anime.releases.length == 1 ||
+        _playerArgs.anime.releases.isEmpty) {
       final result = await _repository
           .getData(_playerArgs.anime)
           .then((result) => result.fold(onSuccess: (data) => data as Anime));
@@ -234,11 +235,11 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     await _getAllEpisodes().whenComplete(_incrementCurrentCircularAnimation);
     await _getInitMainVideoData()
         .whenComplete(_incrementCurrentCircularAnimation);
-    await _startPlayerController(true)
+    await _startPlayerController(true, _playerArgs.startPossition)
         .whenComplete(_incrementCurrentCircularAnimation);
     setStateIfMounted(() => _isLoading = false);
 
-    if (player?.state.playing == true) {
+    if (player?.state.playing == true && _playerArgs.startPossition == null) {
       await _continueVideo();
     }
   }
@@ -366,7 +367,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     if (entity == null) return;
 
-    customLog('[${entity.numberEpisode}]_continueVideo()');
+    customLog('_continueVideo()[${entity.animeStringID}]');
 
     final videoPercent =
         ((entity.currentDuration / entity.episodeDuration)).abs();
@@ -457,8 +458,13 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
       final EpisodeEntity episodeEntity = EpisodeEntity(
         currentDuration: position.inMilliseconds,
+        title: _playerArgs.episode.title,
         animeStringID: _playerArgs.anime.stringID,
+        generateID: _playerArgs.episode.generateID,
+        slugSerie: _playerArgs.episode.slugSerie,
+        url: _playerArgs.episode.url,
         episodeDuration: duration.inMilliseconds,
+        thumbnail: _playerArgs.episode.thumbnail,
         stringID: _playerArgs.episode.stringID,
         isComplete: isComplete,
         sinopse: _playerArgs.episode.sinopse,

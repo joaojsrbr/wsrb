@@ -81,6 +81,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  border_progress_indicator:
+    dependency: "direct main"
+    description:
+      name: border_progress_indicator
+      sha256: "94ea76e435b560857b0ebb46bb73aadb7117a0de231ffa4a00affd521c1b6f76"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.3"
   cached_network_image:
     dependency: "direct main"
     description:
@@ -707,6 +715,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.2"
+  progress_border:
+    dependency: transitive
+    description:
+      name: progress_border
+      sha256: f47c2b951c29f04d7a2232d9f72210874df893ea45c7bd313076291d8c4d8a57
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.5"
   provider:
     dependency: "direct main"
     description:
