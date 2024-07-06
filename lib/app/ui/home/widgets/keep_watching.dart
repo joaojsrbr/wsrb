@@ -26,12 +26,16 @@ class KeepWatching extends StatelessWidget {
 
     final LibraryService libraryService = LibraryService(libraryController);
 
+    // final ContentRepository contentRepository =
+    //     context.read<ContentRepository>();
+
     final sortedByCreatedAt = (tabController.index == 0
             ? libraryService.entities
             : libraryService.favorites)
         .map(LibraryService.toIsarLinks)
         .nonNulls
-        .flattened;
+        .flattened
+        .sorted((historic1, historic2) => historic2.compareTo(historic1));
 
     return SliverToBoxAdapter(
       child: (sortedByCreatedAt.isEmpty ||
@@ -64,18 +68,18 @@ class KeepWatching extends StatelessWidget {
                             top: 8,
                             bottom: 8,
                           ),
-                          child: AnimatedBorderProgressIndicator(
-                            value: progressValue,
-                            color: progressValue <= 0.85
-                                ? Colors.blue
-                                : Colors.green,
-                            strokeWidth: 4,
-                            borderRadius: 12,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: SizedBox(
-                                height: 160,
-                                width: 160,
+                          child: SizedBox(
+                            height: 160,
+                            width: 160,
+                            child: AnimatedBorderProgressIndicator(
+                              value: progressValue,
+                              color: progressValue <= 0.85
+                                  ? Colors.blue
+                                  : Colors.green,
+                              strokeWidth: 4,
+                              borderRadius: 12,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
                                 child: Stack(
                                   fit: StackFit.expand,
                                   children: [
@@ -95,11 +99,12 @@ class KeepWatching extends StatelessWidget {
                                       child: CachedNetworkImage(
                                         fit: BoxFit.cover,
                                         imageUrl: data.thumbnail ?? '',
-                                        errorWidget: (context, url, error) =>
-                                            const Material(
-                                          child: Card.filled(
-                                              child: SizedBox.expand()),
-                                        ),
+                                        httpHeaders: App.HEADERS,
+                                        errorWidget: (context, url, error) {
+                                          return const Material(
+                                            child: Card.filled(),
+                                          );
+                                        },
                                       ),
                                     ),
                                     Container(

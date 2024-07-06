@@ -76,7 +76,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     duration: const Duration(seconds: 20),
   );
 
-  Duration _currentPositionDuration = Duration.zero;
+  // Duration _currentPositionDuration = Duration.zero;
 
   bool _playerDisposed = false;
 
@@ -309,7 +309,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   void _positionListener(Duration position) {
-    _currentPositionDuration = position;
+    // _currentPositionDuration = position;
     playerAudioHandler.setPlaybackState(player!.state);
 
     if (_seekInVideoPosition.value != null) {
@@ -465,6 +465,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         url: _playerArgs.episode.url,
         episodeDuration: duration.inMilliseconds,
         thumbnail: _playerArgs.episode.thumbnail,
+        updatedAt: DateTime.now(),
         stringID: _playerArgs.episode.stringID,
         isComplete: isComplete,
         sinopse: _playerArgs.episode.sinopse,

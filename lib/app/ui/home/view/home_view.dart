@@ -12,9 +12,11 @@ import 'package:app_wsrb_jsr/app/ui/home/destinations/library_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/home/destinations/settings_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_view_flexible_space.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
+import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:sliver_tools/sliver_tools.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -139,7 +141,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         final TabController tabController = HomeScope.of(context).tabController;
 
         return Scaffold(
-          body: NestedScrollView(
+          body: ExtendedNestedScrollView(
             // onlyOneScrollInBody: true,
             controller: _scrollController,
             physics: _mainPhysics,
@@ -218,20 +220,22 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       isScrollable: true,
                     ),
                   ),
-                SliverToBoxAdapter(
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: SingleChildScrollView(
-                      padding: tabController.index != 0
-                          ? EdgeInsets.zero
-                          : EdgeInsets.only(
-                              right: 12,
-                              top: _tabController.index == 0 ? 14 : 8),
-                      physics: const BouncingScrollPhysics(),
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                SliverAnimatedPaintExtent(
+                  duration: const Duration(milliseconds: 350),
+                  child: SliverToBoxAdapter(
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: _tabController.index == 0 ? 58 : 0,
+                      child: ListView(
+                        padding: tabController.index != 0
+                            ? EdgeInsets.zero
+                            : EdgeInsets.only(
+                                right: 12,
+                                top: _tabController.index == 0 ? 14 : 8),
+                        physics: const BouncingScrollPhysics(),
+                        scrollDirection: Axis.horizontal,
+                        // mainAxisSize: MainAxisSize.min,
+                        // crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _MenuButton(
                             data: Source.list,

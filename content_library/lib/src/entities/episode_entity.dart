@@ -65,8 +65,14 @@ class EpisodeEntity extends HistoryEntity {
 
   @override
   int compareTo(HistoryEntity other) {
-    if (createdAt != null && (other as EpisodeEntity).createdAt != null) {
-      return createdAt!.compareTo(other.createdAt!);
+    if (updatedAt != null && (other as EpisodeEntity).updatedAt != null) {
+      return updatedAt!.compareTo(other.updatedAt!);
+    } else if (updatedAt != null &&
+        (other as EpisodeEntity).updatedAt == null) {
+      return 1;
+    } else if (updatedAt == null &&
+        (other as EpisodeEntity).updatedAt != null) {
+      return 0;
     }
     return -1;
   }
@@ -75,6 +81,7 @@ class EpisodeEntity extends HistoryEntity {
     return Episode(
       url: url,
       title: title,
+      numberEpisode: numberEpisode,
       generateID: generateID,
       slugSerie: slugSerie,
       isDublado: anime.isDublado,

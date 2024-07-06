@@ -19,6 +19,7 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
     required this.isLoading,
     required this.index,
     required this.setListIndex,
+    required this.downloadRelease,
     required this.content,
     required this.releasesIsLoading,
   }) : super(child: Builder(builder: builder));
@@ -28,6 +29,7 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
   final Content content;
   final ValueSetter<int> setListIndex;
   final int index;
+  final ValueSetter<Release> downloadRelease;
 
   static BookInformationScope of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<BookInformationScope>()!;
@@ -61,6 +63,7 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
           case _BookInformationScopeAspect.ISLOADING
               when isLoading != oldWidget.isLoading:
             return true;
+
           case _BookInformationScopeAspect.CONTENT
               when content != oldWidget.content:
             return true;

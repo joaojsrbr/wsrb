@@ -74,6 +74,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => categoryController),
         ChangeNotifierProvider(create: (context) => historicController),
         ChangeNotifierProvider(create: (context) => valueNotifierList),
+        ChangeNotifierProvider(create: (context) => DownloadService()),
         Provider(
           create: (context) => contentRepository,
           dispose: (context, repository) => repository.dispose(),

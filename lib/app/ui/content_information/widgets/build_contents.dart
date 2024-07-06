@@ -8,6 +8,7 @@ import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
@@ -49,6 +50,9 @@ class BuildContents extends StatelessWidget {
           // .elementAt(index)
           .reverse(hiveController.reverseContents)
           .toList();
+
+      final DownloadService downloadService = context.watch<DownloadService>();
+
       container = SliverPadding(
         padding: const EdgeInsets.only(bottom: 12),
         sliver: SliverList.separated(
@@ -56,111 +60,26 @@ class BuildContents extends StatelessWidget {
           itemCount: releases.length,
           itemBuilder: (context, index) {
             final Release release = releases[index];
-            String? thumbnail;
-            String? sinopse;
 
-            if (release is Episode) {
-              sinopse = release.sinopse ?? '';
-              thumbnail = release.thumbnail;
-            }
-
-            return GestureDetector(
-              onDoubleTap: sinopse?.isNotEmpty == true
-                  ? () {
-                      showModalBottomSheet(
-                        isScrollControlled: false,
-                        isDismissible: true,
-                        showDragHandle: true,
-                        useRootNavigator: true,
-                        context: context,
-                        builder: (context) {
-                          return Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12.0,
-                                ),
-                                child: Text(
-                                  'Sinopse',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                child: Text(
-                                  sinopse!.trim(),
-                                  textAlign: TextAlign.justify,
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ),
-                              const SizedBox(height: 30),
-                            ],
-                          );
-                        },
-                      );
-                    }
-                  : null,
-              child: ListTile(
-                leading: SizedBox(
-                  width: 112,
-                  height: double.infinity,
-                  child: thumbnail != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: CachedNetworkImage(
-                            imageUrl: thumbnail,
-                            placeholder: (context, url) => const Card.filled(),
-                            fit: BoxFit.cover,
-                            maxWidthDiskCache: 300,
-                            maxHeightDiskCache: 200,
-                          ),
-                        )
-                      : const Card.filled(),
-                ),
-                titleTextStyle: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
-                onTap: () async {
-                  customLog(
-                    'tapped name: ${release.title} - id: ${release.stringID}',
-                  );
-
-                  final GoRouter goRouter = GoRouter.of(context);
-
-                  if (release is Chapter && content is Book) {
-                    await goRouter.push(
-                      RouteName.READ,
-                      extra: ReadingViewArgs(
-                        capturedThemes: InheritedTheme.capture(
-                          from: context,
-                          to: Navigator.of(context).context,
-                        ),
-                        chapter: release,
-                        releases: releases,
-                        currentIndex: index,
-                        book: content,
-                      ),
-                    );
-                  } else if (release is Episode && content is Anime) {
-                    await goRouter.push(
-                      RouteName.PLAYER,
-                      extra: PlayerArgs(anime: content, episode: release),
-                    );
-                  }
-                },
-                onLongPress: () {},
-                visualDensity: const VisualDensity(vertical: 2, horizontal: -2),
-                title: Text('${release.number}. ${release.title}'),
-              ),
+            final DownloadInfo? downloadInfo =
+                downloadService.downloadList.firstWhereOrNull(
+              (info) => info.releaseId.contains(release.stringID),
             );
+
+            if (downloadInfo != null) {
+              return AnimatedBuilder(
+                animation: downloadInfo,
+                builder: (context, child) {
+                  return _ContentWidget(
+                    content,
+                    release,
+                    index,
+                    downloadInfo,
+                  );
+                },
+              );
+            }
+            return _ContentWidget(content, release, index, null);
           },
         ),
       );
@@ -169,6 +88,235 @@ class BuildContents extends StatelessWidget {
     return SliverAnimatedSwitcher(
       duration: const Duration(milliseconds: 150),
       child: container,
+    );
+  }
+}
+
+class _ContentWidget extends StatelessWidget {
+  const _ContentWidget(
+    this.content,
+    this.release,
+    this.index,
+    this.downloadInfo,
+  );
+
+  final Release release;
+  final DownloadInfo? downloadInfo;
+  final Content content;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final DownloadService downloadService = context.watch<DownloadService>();
+    String? thumbnail;
+    String? sinopse;
+
+    final donwload = BookInformationScope.of(context).downloadRelease;
+
+    if (release is Episode) {
+      sinopse = (release as Episode).sinopse ?? '';
+      thumbnail = (release as Episode).thumbnail;
+    }
+
+    final downloaded = downloadService.existsRelease(content, release);
+    return GestureDetector(
+      onDoubleTap: sinopse?.isNotEmpty == true
+          ? () {
+              showModalBottomSheet(
+                isScrollControlled: false,
+                isDismissible: true,
+                showDragHandle: true,
+                useRootNavigator: true,
+                context: context,
+                builder: (context) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12.0,
+                        ),
+                        child: Text(
+                          'Sinopse',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                        ),
+                        child: Text(
+                          sinopse!.trim(),
+                          textAlign: TextAlign.justify,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                    ],
+                  );
+                },
+              );
+            }
+          : null,
+      child: ListTile(
+        dense: true,
+        isThreeLine: false,
+        subtitle: downloadInfo?.isDownloading == true &&
+                (downloadInfo?.speed ?? 0) > 0.0
+            ? Text('speed: ${downloadInfo?.speed.toStringAsFixed(2)}')
+            : const Text(''),
+        horizontalTitleGap: 20,
+        contentPadding: const EdgeInsets.only(left: 16.0, right: 8),
+        trailing: IconButton(
+          padding: EdgeInsets.zero,
+          onPressed: downloadInfo?.isDownloading == true && !downloaded
+              ? () async {
+                  final result = await showAdaptiveDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text(
+                            'Cancelar download do episódio ${release.number} ?'),
+                        actionsAlignment: MainAxisAlignment.spaceBetween,
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: const Text('NÃO'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: const Text(
+                              'SIM',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  if (result == true && downloadInfo?.id != null) {
+                    downloadService.cancelReleaseDownload(
+                      content: content,
+                      release: release,
+                      sessionId: downloadInfo!.id,
+                    );
+                  }
+                }
+              : downloaded
+                  ? () async {
+                      final result = await showAdaptiveDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: Text(
+                                'Deseja deletar o arquivo ${release.number} ?'),
+                            actionsAlignment: MainAxisAlignment.spaceBetween,
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                                child: const Text(
+                                  'NÃO',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                                child: const Text('SIM'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+
+                      if (result == true) {
+                        downloadService.deleteReleaseFile(
+                          content: content,
+                          release: release,
+                        );
+                      }
+                    }
+                  : () {
+                      donwload.call(release);
+                    },
+          icon: downloadInfo?.isDownloading == true
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator.adaptive(
+                    strokeAlign: -2,
+                    strokeWidth: 3,
+                  ),
+                )
+              : Icon(
+                  MdiIcons.downloadCircle,
+                  color: downloaded ? Colors.green : null,
+                ),
+        ),
+        leading: SizedBox(
+          width: 110,
+          height: double.infinity,
+          child: thumbnail != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: CachedNetworkImage(
+                    imageUrl: thumbnail,
+                    placeholder: (context, url) => const Card.filled(),
+                    fit: BoxFit.cover,
+                    maxWidthDiskCache: 300,
+                    maxHeightDiskCache: 200,
+                  ),
+                )
+              : const Card.filled(),
+        ),
+        titleTextStyle: Theme.of(context)
+            .textTheme
+            .titleMedium
+            ?.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+        onTap: () async {
+          customLog(
+            'tapped name: ${release.title} - id: ${release.stringID}',
+          );
+
+          final GoRouter goRouter = GoRouter.of(context);
+
+          if (release is Chapter && content is Book) {
+            await goRouter.push(
+              RouteName.READ,
+              extra: ReadingViewArgs(
+                capturedThemes: InheritedTheme.capture(
+                  from: context,
+                  to: Navigator.of(context).context,
+                ),
+                chapter: release as Chapter,
+                currentIndex: index,
+                book: content as Book,
+              ),
+            );
+          } else if (release is Episode && content is Anime) {
+            await goRouter.push(
+              RouteName.PLAYER,
+              extra: PlayerArgs(
+                anime: content as Anime,
+                episode: release as Episode,
+              ),
+            );
+          }
+        },
+        // onLongPress: () {},
+        minVerticalPadding: 0,
+        minTileHeight: 68,
+        visualDensity: const VisualDensity(vertical: 4, horizontal: -2),
+        title: Text(
+          '${release.number}. ${release.title}',
+          maxLines: 2,
+        ),
+      ),
     );
   }
 }
