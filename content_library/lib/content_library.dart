@@ -20,6 +20,8 @@ export 'src/utils/releases.dart';
 export 'src/utils/result.dart';
 export 'src/utils/value_notifier_list.dart';
 export 'src/utils/debouncer.dart';
+export 'src/services/download.dart';
+export 'src/utils/permission.dart';
 export 'src/exceptions/book_exception.dart';
 export 'src/exceptions/anime_exception.dart';
 export 'src/utils/subscriptions.dart';

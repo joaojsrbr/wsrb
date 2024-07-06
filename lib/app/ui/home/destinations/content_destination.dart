@@ -52,13 +52,13 @@ class _ContentDestinationState extends State<ContentDestination>
         duration: const Duration(milliseconds: 350),
         padding: EdgeInsets.only(right: railMenuController.isOpen ? 50 : 0),
         child: LoadingMoreList(
+          // key: PageStorageKey('content_distination'),
           ListConfig<Content>(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             indicatorBuilder: contentIndicatorBuilder,
             physics: const NeverScrollableScrollPhysics(),
-            // shrinkWrap: true,
+            shrinkWrap: true,
             itemBuilder: _itemBuilder,
-            // restorationId: 'home_distination',
             sourceList: _contentRepository,
           ),
         ),

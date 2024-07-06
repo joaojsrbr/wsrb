@@ -31,6 +31,8 @@ class _BookInformationStateView
   /// [ContentRepository] instance
   late final ContentRepository _repository;
 
+  late final DownloadService _downloadService;
+
   /// variable that controls page loading
   bool _isLoading = true;
 
@@ -49,16 +51,13 @@ class _BookInformationStateView
   @override
   void initState() {
     super.initState();
-
+    _downloadService = context.read<DownloadService>();
     _repository = context.read<ContentRepository>();
     Future.microtask(_onInit);
   }
 
   void _handleSetListIndex(int index) async {
     if (index == _index) return;
-    // customLog(index);
-
-    // _content?.releases.clear();
 
     setStateIfMounted(() => _index = index);
 
@@ -74,7 +73,28 @@ class _BookInformationStateView
         _content = _content!.copyWith(releases: releases);
       });
     }
-    // customLog('${_releases.length} - $index');
+  }
+
+  Future<void> _downloadRelease(Release release) async {
+    switch (release) {
+      case Episode data when mounted:
+        await _downloadService.downloadReleaseVideoByHLS(
+          data,
+          _content!,
+          _repository,
+          statisticsCallback: (statistics) {},
+          onResult: (result) {
+            customLog(result.runtimeType);
+            if ([Cancel, Failure, Success].contains(result.runtimeType)) {
+              if (result is Success) {
+                customLog('Terminou');
+              }
+            }
+          },
+        );
+
+        break;
+    }
   }
 
   void _onInit() async {
@@ -184,6 +204,7 @@ class _BookInformationStateView
     return Shimmer(
       linearGradient: _linearGradient,
       child: BookInformationScope(
+        downloadRelease: _downloadRelease,
         index: _index,
         releasesIsLoading: _releasesIsLoading,
         setListIndex: _handleSetListIndex,
@@ -202,7 +223,7 @@ class _BookInformationStateView
                   delegate: ContentPersistentHeaderDelegate(
                     content: _content ?? argument.content,
                     isLoading: _isLoading,
-                    maxExtent: size.height * .55,
+                    maxExtent: size.height * .42,
                     minExtent: 100,
                   ),
                 ),
@@ -215,5 +236,11 @@ class _BookInformationStateView
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _downloadService.clearDownloadList();
+    super.dispose();
   }
 }

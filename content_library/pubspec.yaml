@@ -28,6 +28,7 @@ dependencies:
   webview_flutter: ^4.8.0
   ffmpeg_kit_flutter: ^6.0.3
   connectivity_plus: ^6.0.3
+  permission_handler: ^11.3.1
   # belatuk_merge_map: ^5.2.0
   # json: ^0.20.1
 

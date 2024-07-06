@@ -20,4 +20,6 @@ extension StringExtensions on String {
   String get toID => trim().replaceAll(' ', '_');
 
   String get toUuID => const Uuid().v5(Uuid.NAMESPACE_URL, trim());
+
+  Uri get toUri => Uri.parse(this);
 }

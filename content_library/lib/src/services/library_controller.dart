@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:content_library/content_library.dart';
 
 import 'package:flutter/material.dart';
@@ -5,9 +7,60 @@ import 'package:isar/isar.dart';
 
 class LibraryController extends ChangeNotifier {
   final IsarServiceImpl _isarService;
+  final Subscriptions _subscriptions = Subscriptions();
   late final LibraryService _libraryService;
   LibraryController(this._isarService) {
     _libraryService = LibraryService(this);
+
+    Timer(const Duration(milliseconds: 500), () {
+      _subscriptions.addAll(
+        [
+          collectionChanged<AnimeEntity>().listen(_updateAnime),
+          collectionChanged<BookEntity>().listen(_updateBook),
+        ],
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscriptions.cancelAll();
+    super.dispose();
+  }
+
+  Stream<dynamic> collectionChanged<T>() =>
+      _isarService.collection<T>().watchLazy();
+
+  void _updateBook(data) async {
+    Timer(const Duration(milliseconds: 350), () async {
+      final bookColetions =
+          await _isarService.collection<BookEntity>().where().findAll();
+
+      await Future.wait([
+        ...bookColetions.map((element) => element.chapters.load()),
+      ]);
+
+      for (var entity in bookColetions) {
+        _addOrUpdate(entity);
+      }
+      notifyListeners();
+    });
+  }
+
+  void _updateAnime(data) async {
+    Timer(const Duration(milliseconds: 350), () async {
+      final animeColetions =
+          await _isarService.collection<AnimeEntity>().where().findAll();
+
+      await Future.wait([
+        ...animeColetions.map((element) => element.episodes.load()),
+      ]);
+
+      for (var entity in animeColetions) {
+        _addOrUpdate(entity);
+      }
+      notifyListeners();
+    });
   }
 
   final List<ContentEntity> _entities = [];
@@ -48,9 +101,9 @@ class LibraryController extends ChangeNotifier {
       if (data.$1) isSucess = data.$1;
     });
 
-    if (contentEntity != null) {
-      _addOrUpdate(contentEntity);
-    }
+    // if (contentEntity != null) {
+    //   // _addOrUpdate(contentEntity);
+    // }
 
     notifyListeners();
     return Result.success((isSucess, ids));
@@ -86,8 +139,10 @@ class LibraryController extends ChangeNotifier {
 
     if (indexOf != -1) {
       _entities[indexOf] = contentEntity;
+      customLog('update');
     } else {
       _entities.add(contentEntity);
+      customLog('add');
     }
   }
 
@@ -101,7 +156,7 @@ class LibraryController extends ChangeNotifier {
 
     void setDateTimeAndAdd(ContentEntity element) {
       _setDateTime(element);
-      _addOrUpdate(element);
+      // _addOrUpdate(element);
     }
 
     entities?.forEach(setDateTimeAndAdd);
