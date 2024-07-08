@@ -232,32 +232,32 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
   }
 }
 
-class _OverlayColor extends WidgetStateProperty<Color?> {
-  _OverlayColor(this.content) {
-    if (content is Anime) {
-      _color = ((content as Anime).isDublado ||
-              content.title.toLowerCase().contains('dublado'))
-          ? Colors.blue
-          : Colors.red;
-    }
-  }
+// class _OverlayColor extends WidgetStateProperty<Color?> {
+//   _OverlayColor(this.content) {
+//     if (content is Anime) {
+//       _color = ((content as Anime).isDublado ||
+//               content.title.toLowerCase().contains('dublado'))
+//           ? Colors.blue
+//           : Colors.red;
+//     }
+//   }
 
-  Color? _color;
+//   Color? _color;
 
-  final Content content;
+//   final Content content;
 
-  @override
-  Color? resolve(Set<WidgetState> states) {
-    if (states.contains(WidgetState.pressed)) {
-      return _color?.withOpacity(0.12);
-    } else if (states.contains(WidgetState.hovered)) {
-      return _color?.withOpacity(0.08);
-    } else if (states.contains(WidgetState.focused)) {
-      return Colors.transparent;
-    }
-    return Colors.transparent;
-  }
-}
+//   @override
+//   Color? resolve(Set<WidgetState> states) {
+//     if (states.contains(WidgetState.pressed)) {
+//       return _color?.withOpacity(0.12);
+//     } else if (states.contains(WidgetState.hovered)) {
+//       return _color?.withOpacity(0.08);
+//     } else if (states.contains(WidgetState.focused)) {
+//       return Colors.transparent;
+//     }
+//     return Colors.transparent;
+//   }
+// }
 
 class _BarShapeMaterialState
     extends WidgetStateProperty<RoundedRectangleBorder?> {
