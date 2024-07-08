@@ -2,7 +2,6 @@
 import 'dart:io';
 
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/utils/app_storage.dart';
 import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:ffmpeg_kit_flutter/statistics.dart';
@@ -65,6 +64,7 @@ class DownloadService extends ChangeNotifier {
 
             List<String> args = [
               '-i',
+              '-y',
               selected.videoContent,
               '-c',
               'copy',
@@ -143,34 +143,10 @@ class DownloadService extends ChangeNotifier {
 
   @override
   void dispose() {
-    for (final download in downloadList) {
-      download.dispose();
-    }
+    clearDownloadList();
     super.dispose();
   }
 }
-
-// class DownloadList extends ListBase<DownloadInfo> with ChangeNotifier {
-//   @override
-//   void add(DownloadInfo element) {
-//     notifyListeners();
-//     _array.add(element);
-//   }
-
-//   final List<DownloadInfo> _array = [];
-
-//   @override
-//   int get length => _array.length;
-
-//   @override
-//   DownloadInfo operator [](int index) => _array[index];
-
-//   @override
-//   void operator []=(int index, DownloadInfo value) => _array[index] = value;
-
-//   @override
-//   set length(int newLength) => _array.length = newLength;
-// }
 
 class DownloadInfo with ChangeNotifier {
   int id;
