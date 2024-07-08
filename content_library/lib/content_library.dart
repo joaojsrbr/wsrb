@@ -53,5 +53,6 @@ export 'src/extensions/custom_extensions/list_extensions.dart';
 export 'src/extensions/custom_extensions/string_extensions.dart';
 export 'package:collection/collection.dart';
 export 'package:hive/hive.dart';
+export 'src/utils/app_storage.dart';
 export 'package:workmanager/workmanager.dart';
 export 'package:dio/dio.dart';

@@ -2,6 +2,7 @@
 import 'dart:io';
 
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/utils/app_storage.dart';
 import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:ffmpeg_kit_flutter/statistics.dart';
@@ -11,8 +12,6 @@ class DownloadService extends ChangeNotifier {
   Future<void> download() async {}
 
   final List<DownloadInfo> downloadList = [];
-
-  final _downloadDir = Directory('/storage/emulated/0/Download');
 
   Future<void> cancelReleaseDownload({
     required Content content,
@@ -24,7 +23,6 @@ class DownloadService extends ChangeNotifier {
       (element) => release.stringID == element.releaseId,
     );
     notifyListeners();
-    // await deleteReleaseFile(content: content, release: release);
   }
 
   Future<bool> deleteReleaseFile({
@@ -32,51 +30,14 @@ class DownloadService extends ChangeNotifier {
     required Content content,
     required Release release,
   }) async {
-    final result = Directory(
-      path ?? '${_downloadDir.path}/wsrb/${content.title}',
-    );
-    final file = File('${result.path}/episodio_${release.number}.mp4');
+    final file = AppStorage.getReleaseFile(content, release);
 
-    if (await result.exists() && await file.exists()) {
-      await file.delete(recursive: true);
-      notifyListeners();
-      return true;
+    if (file != null) {
+      await AppStorage.deleteFile(file.path, recursive: true);
     }
+
     notifyListeners();
-    return false;
-  }
-
-  File getReleasFile(
-    Content content,
-    Release release,
-  ) {
-    return File(
-        '${_downloadDir.path}/wsrb/${content.title}/episodio_${release.number}.mp4');
-  }
-
-  bool existsRelease(
-    Content content,
-    Release release,
-  ) {
-    // final result = await Directory(
-    //   '${downloadDir.path}/wsrb/${content.title}/episodio_${release.number}.mp4',
-    // ).exists();
-
-    final file = File(
-        '${_downloadDir.path}/wsrb/${content.title}/episodio_${release.number}.mp4');
-
-    return file.existsSync();
-
-    // try {
-    //   final result = Directory(
-    //     '${_downloadDir.path}/wsrb/${content.title}',
-    //   ).listSync();
-
-    //   return result.any((releaseFile) =>
-    //       releaseFile.path.contains('episodio_${release.number}.mp4'));
-    // } on PathNotFoundException catch (_) {
-    //   return false;
-    // }
+    return file != null;
   }
 
   Future<void> downloadReleaseVideoByHLS(
@@ -95,8 +56,8 @@ class DownloadService extends ChangeNotifier {
           final selected = success.first as VideoData;
 
           if (selected.videoContent.contains('m3u8')) {
-            final releaseDir =
-                Directory('${_downloadDir.path}/wsrb/${content.title}');
+            final releaseDir = Directory(
+                '${AppStorage.DOWNLOAD_DIR.path}/wsrb/${content.title}');
 
             if (!await releaseDir.exists()) {
               await releaseDir.create(recursive: true);

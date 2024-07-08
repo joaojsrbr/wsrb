@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:uuid/uuid.dart';
 
 extension StringExtensions on String {
@@ -22,4 +24,8 @@ extension StringExtensions on String {
   String get toUuID => const Uuid().v5(Uuid.NAMESPACE_URL, trim());
 
   Uri get toUri => Uri.parse(this);
+
+  File get toFile => File(this);
+
+  Directory get toDir => Directory(this);
 }

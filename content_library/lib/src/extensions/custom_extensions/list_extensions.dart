@@ -27,6 +27,15 @@ extension CustomListExtensions<E, Id> on List<E> {
     }
   }
 
+  bool updateWhere(E element, bool Function(E) test) {
+    final int indexOf = indexWhere(test);
+    if (indexOf != -1) {
+      this[indexOf] = element;
+      return true;
+    }
+    return false;
+  }
+
   bool containsOneElement(List elements) {
     return elements.any(contains);
   }

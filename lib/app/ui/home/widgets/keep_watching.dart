@@ -37,7 +37,7 @@ class KeepWatching extends StatelessWidget {
         .flattened
         .sorted((historic1, historic2) => historic2.compareTo(historic1));
 
-    final DownloadService downloadService = context.read<DownloadService>();
+    // final DownloadService downloadService = context.read<DownloadService>();
 
     return SliverToBoxAdapter(
       child: (sortedByCreatedAt.isEmpty ||
@@ -183,21 +183,19 @@ class KeepWatching extends StatelessWidget {
                                       child: InkWell(
                                         onTap: () async {
                                           final videoFile =
-                                              downloadService.getReleasFile(
+                                              AppStorage.getReleaseFile(
                                             anime!.toAnime,
                                             data.toEpisode(anime.toAnime),
                                           );
                                           await context.push(
                                             RouteName.PLAYER,
                                             extra: PlayerArgs(
-                                              data:
-                                                  downloadService.existsRelease(
-                                                anime.toAnime,
-                                                data.toEpisode(anime.toAnime),
-                                              )
-                                                      ? FileVideoData(
-                                                          file: videoFile)
-                                                      : null,
+                                              data: (videoFile?.existsSync() ??
+                                                      false)
+                                                  ? FileVideoData(
+                                                      file: videoFile!,
+                                                    )
+                                                  : null,
                                               anime: anime.toAnime,
                                               episode: data.toEpisode(
                                                 anime.toAnime,

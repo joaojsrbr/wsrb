@@ -22,7 +22,7 @@ class LibraryController extends ChangeNotifier {
   Stream<dynamic> collectionChanged<T>() =>
       _isarService.collection<T>().watchLazy();
 
-  void _updateBook(data) async {
+  void _updateBookIsarLinks(data) async {
     Timer(const Duration(milliseconds: 350), () async {
       final bookColetions =
           await _isarService.collection<BookEntity>().where().findAll();
@@ -31,22 +31,23 @@ class LibraryController extends ChangeNotifier {
         ...bookColetions.map((element) => element.chapters.load()),
       ]);
 
-      for (var contentEntity in bookColetions) {
-        final indexOf = _entities.indexWhere((element) => switch (element) {
-              BookEntity data => data.stringID.contains(contentEntity.stringID),
-              _ => false,
-            });
+      bool update = false;
 
-        if (indexOf != -1) {
-          _entities[indexOf] = contentEntity;
-        }
+      for (var contentEntity in bookColetions) {
+        update = _entities.updateWhere(
+            contentEntity,
+            (element) => switch (element) {
+                  BookEntity data =>
+                    data.stringID.contains(contentEntity.stringID),
+                  _ => false,
+                });
       }
 
-      notifyListeners();
+      if (update) notifyListeners();
     });
   }
 
-  void _updateAnime(data) async {
+  void _updateAnimeIsarLinks(data) async {
     Timer(const Duration(milliseconds: 350), () async {
       final animeColetions =
           await _isarService.collection<AnimeEntity>().where().findAll();
@@ -55,19 +56,19 @@ class LibraryController extends ChangeNotifier {
         ...animeColetions.map((element) => element.episodes.load()),
       ]);
 
-      for (var contentEntity in animeColetions) {
-        final indexOf = _entities.indexWhere((element) => switch (element) {
-              AnimeEntity data =>
-                data.stringID.contains(contentEntity.stringID),
-              _ => false,
-            });
+      bool update = false;
 
-        if (indexOf != -1) {
-          _entities[indexOf] = contentEntity;
-        }
+      for (var contentEntity in animeColetions) {
+        update = _entities.updateWhere(
+            contentEntity,
+            (element) => switch (element) {
+                  AnimeEntity data =>
+                    data.stringID.contains(contentEntity.stringID),
+                  _ => false,
+                });
       }
 
-      notifyListeners();
+      if (update) notifyListeners();
     });
   }
 
@@ -90,8 +91,8 @@ class LibraryController extends ChangeNotifier {
 
     _subscriptions.addAll(
       [
-        collectionChanged<AnimeEntity>().listen(_updateAnime),
-        collectionChanged<BookEntity>().listen(_updateBook),
+        collectionChanged<AnimeEntity>().listen(_updateAnimeIsarLinks),
+        collectionChanged<BookEntity>().listen(_updateBookIsarLinks),
       ],
     );
   }
@@ -190,10 +191,6 @@ class LibraryController extends ChangeNotifier {
 
     final entities = contentEntities?.nonNulls.cast<ContentEntity>().toList();
 
-    // entities.forEach((entity) {
-    //   // _entities.removeWhere((remove) => remove.id == element.id);
-    // });
-
     entities?.forEach(_entities.remove);
 
     final result = await _isarService.removeAll(entities: entities);
@@ -210,15 +207,7 @@ class LibraryController extends ChangeNotifier {
   Future<Result<(bool, List<int>?)>> remove({
     ContentEntity? contentEntity,
   }) async {
-    bool isSucess = false;
-    final List<int> ids = [];
-
     final result = await _isarService.remove(entity: contentEntity);
-
-    result.fold(onSuccess: (data) {
-      if (data.$2 != null) ids.add(data.$2!);
-      if (data.$1) isSucess = data.$1;
-    });
 
     _entities.removeWhere((entity) => switch (entity) {
           AnimeEntity data when contentEntity is AnimeEntity =>
@@ -229,6 +218,11 @@ class LibraryController extends ChangeNotifier {
         });
 
     notifyListeners();
-    return Result.success((isSucess, ids));
+
+    final record = result.fold<(bool, List<int>?)>(onSuccess: (data) {
+      return (data.$1, [if (data.$2 != null) data.$2!]);
+    });
+
+    return Result.success(record!);
   }
 }

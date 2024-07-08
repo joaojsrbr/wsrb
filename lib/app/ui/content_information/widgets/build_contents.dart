@@ -206,7 +206,10 @@ class _ContentWidget extends StatelessWidget {
       thumbnail = (release as Episode).thumbnail;
     }
 
-    final downloaded = downloadService.existsRelease(content, release);
+    final releaseFile = AppStorage.getReleaseFile(content, release);
+
+    final downloaded = releaseFile?.existsSync() ?? false;
+
     return GestureDetector(
       onDoubleTap: sinopse?.isNotEmpty == true
           ? () {
@@ -387,14 +390,8 @@ class _ContentWidget extends StatelessWidget {
               ),
             );
           } else if (release is Episode && content is Anime) {
-            File? videoFile;
-
-            if (downloadService.existsRelease(content, release)) {
-              videoFile = downloadService.getReleasFile(content, release);
-            }
-
-            if (videoFile != null) {
-              final result = await _fileOrURL(videoFile, context);
+            if (releaseFile != null) {
+              final result = await _fileOrURL(releaseFile, context);
               if (result != null) {
                 await goRouter.push(
                   RouteName.PLAYER,
