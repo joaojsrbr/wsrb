@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_rail_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:content_library/content_library.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,7 +24,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
   @override
   bool get wantKeepAlive => true;
 
-  final List<Widget> _children = [];
+  List<Widget> _children = [];
   final Debouncer _debouncer = Debouncer(
     duration: const Duration(milliseconds: 200),
   );
@@ -59,12 +60,6 @@ class LibraryeDestinationState extends State<LibraryDestination>
   }
 
   void _setChildren() {
-    // addPostFrameCallback((timer) {
-    //   final SubordinateLibraryTabController subordinateLibraryTabController =
-    //       HomeScope.of(context).subordinateLibraryTabController;
-    //   subordinateLibraryTabController.setChangePage = false;
-    // });
-
     final noCategories = _libraryService
         .byCategories(_categoryController, true)
         .getContent
@@ -78,14 +73,15 @@ class LibraryeDestinationState extends State<LibraryDestination>
     _contents = [noCategories, ...yesCategories];
 
     final List<Widget> newChildrens = [
-      buildGridView(noCategories, 0),
-      ...yesCategories.mapIndexed((index, e) => buildGridView(e, index))
+      buildGridView(noCategories),
+      ...yesCategories.mapIndexed((index, e) => buildGridView(e))
     ];
 
-    _children
-      ..clear()
-      ..addAll(newChildrens);
-    setStateIfMounted(() {});
+    // customLog(noCategories.length);
+
+    setStateIfMounted(() {
+      _children = newChildrens;
+    });
   }
 
   @override
@@ -125,49 +121,51 @@ class LibraryeDestinationState extends State<LibraryDestination>
     }
   }
 
-  Widget buildGridView(List<Content> items, int index) {
+  Widget buildGridView(List<Content> items) {
     if (items.isEmpty) return const SizedBox.shrink();
 
-    return Builder(builder: (context) {
-      final RailMenuController railMenuController =
-          HomeRailMenu.menuControllerOf(context);
+    return Builder(
+        key: ValueKey(items.length),
+        builder: (context) {
+          final RailMenuController railMenuController =
+              HomeRailMenu.menuControllerOf(context);
 
-      // final RailMenuController railMenuController =
-      //     HomeRailMenu.menuControllerOf(context);
-      const gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
-        // maxCrossAxisExtent: 170,
-        crossAxisCount: 2,
-        childAspectRatio: 1,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 10,
-        // mainAxisExtent: 170,
-      );
+          const gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
+            // maxCrossAxisExtent: 170,
+            crossAxisCount: 2,
+            childAspectRatio: 1,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 10,
+            // mainAxisExtent: 170,
+          );
 
-      final searchController = HomeScope.of(context).searchController;
+          final searchController = HomeScope.of(context).searchController;
 
-      final filter = items.where((content) => content.title
-          .toLowerCase()
-          .trim()
-          .contains(searchController.text.toLowerCase().trim()));
+          final filter = searchController.text.isNotEmpty
+              ? items.where((content) => content.title
+                  .toLowerCase()
+                  .trim()
+                  .contains(searchController.text.toLowerCase().trim()))
+              : items;
 
-      return AnimatedPadding(
-        duration: const Duration(milliseconds: 350),
-        padding: EdgeInsets.only(right: railMenuController.isOpen ? 50 : 0),
-        child: GridView.builder(
-          itemCount: filter.length,
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          padding: const EdgeInsets.only(left: 8, right: 8, top: 12),
-          gridDelegate: gridDelegate,
-          itemBuilder: (context, index) {
-            return ItemContent(
-              content: filter.elementAt(index),
-              isLibrary: true,
-            );
-          },
-        ),
-      );
-    });
+          return AnimatedPadding(
+            duration: const Duration(milliseconds: 350),
+            padding: EdgeInsets.only(right: railMenuController.isOpen ? 50 : 0),
+            child: GridView.builder(
+              itemCount: filter.length,
+              physics: const NeverScrollableScrollPhysics(),
+              // shrinkWrap: true,
+              padding: const EdgeInsets.only(left: 8, right: 8, top: 12),
+              gridDelegate: gridDelegate,
+              itemBuilder: (context, index) {
+                return ItemContent(
+                  content: filter.elementAt(index),
+                  isLibrary: true,
+                );
+              },
+            ),
+          );
+        });
   }
 
   @override

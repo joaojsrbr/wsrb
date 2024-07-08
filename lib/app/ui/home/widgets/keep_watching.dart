@@ -37,6 +37,8 @@ class KeepWatching extends StatelessWidget {
         .flattened
         .sorted((historic1, historic2) => historic2.compareTo(historic1));
 
+    final DownloadService downloadService = context.read<DownloadService>();
+
     return SliverToBoxAdapter(
       child: (sortedByCreatedAt.isEmpty ||
               ![0, 1].contains(tabController.index))
@@ -87,13 +89,14 @@ class KeepWatching extends StatelessWidget {
                                       blendMode: BlendMode.srcOver,
                                       shaderCallback: (bounds) {
                                         return LinearGradient(
-                                          begin: Alignment.center,
+                                          begin: Alignment.topCenter,
                                           end: Alignment.bottomCenter,
                                           colors: [
-                                            Colors.transparent,
-                                            Colors.black38.withOpacity(0.75),
+                                            Colors.black38.withOpacity(0.28),
+                                            Colors.black38.withOpacity(0.28),
+                                            // Colors.transparent,
                                           ],
-                                          stops: const [0.0, .98],
+                                          stops: const [0.00, 1.0],
                                         ).createShader(bounds);
                                       },
                                       child: CachedNetworkImage(
@@ -179,10 +182,23 @@ class KeepWatching extends StatelessWidget {
                                       type: MaterialType.transparency,
                                       child: InkWell(
                                         onTap: () async {
+                                          final videoFile =
+                                              downloadService.getReleasFile(
+                                            anime!.toAnime,
+                                            data.toEpisode(anime.toAnime),
+                                          );
                                           await context.push(
                                             RouteName.PLAYER,
                                             extra: PlayerArgs(
-                                              anime: anime!.toAnime,
+                                              data:
+                                                  downloadService.existsRelease(
+                                                anime.toAnime,
+                                                data.toEpisode(anime.toAnime),
+                                              )
+                                                      ? FileVideoData(
+                                                          file: videoFile)
+                                                      : null,
+                                              anime: anime.toAnime,
                                               episode: data.toEpisode(
                                                 anime.toAnime,
                                               ),

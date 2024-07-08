@@ -40,7 +40,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   VideoController? _videoController;
 
-  VideoData? _mainVideoData;
+  Data? _mainVideoData;
 
   bool _isLoading = true;
 
@@ -56,7 +56,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   final List<VideoData> data = [];
 
-  final double _maxValueCircularAnimation = 1.5;
+  final double _maxValueCircularAnimation = 1.0;
 
   double _currentValueCircularAnimation = 0;
 
@@ -194,13 +194,15 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   Future<void> _getInitMainVideoData() async {
     final state = Navigator.of(context);
     final result = await _repository.getContent(_playerArgs.episode);
-    _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
+
+    // _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
+
     result.fold(
       onSuccess: (data) {
         if (data.first is! VideoData) state.pop();
 
         setStateIfMounted(() {
-          _currentValueCircularAnimation++;
+          // _currentValueCircularAnimation++;
           data.forEach(this.data.cast().addIfNoContains);
           _mainVideoData = data.first as VideoData;
         });
@@ -233,10 +235,19 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   void _onInit(Duration time) async {
     await _getAllEpisodes().whenComplete(_incrementCurrentCircularAnimation);
-    await _getInitMainVideoData()
-        .whenComplete(_incrementCurrentCircularAnimation);
+
+    if (_playerArgs.data == null) {
+      await _getInitMainVideoData()
+          .whenComplete(_incrementCurrentCircularAnimation);
+    } else {
+      _mainVideoData = _playerArgs.data;
+      _incrementCurrentCircularAnimation();
+    }
+
     await _startPlayerController(true, _playerArgs.startPossition)
         .whenComplete(_incrementCurrentCircularAnimation);
+    _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
+
     setStateIfMounted(() => _isLoading = false);
 
     if (player?.state.playing == true && _playerArgs.startPossition == null) {
@@ -244,8 +255,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
   }
 
-  Future<void> _startPlayerController(
-      [bool onInit = false, Duration? initPossition]) async {
+  Future<void> _startPlayerController([
+    bool onInit = false,
+    Duration? initPossition,
+  ]) async {
     final playbackState = playerAudioHandler.playbackState;
     playerAudioHandler.setPlayerController = this;
 
@@ -255,12 +268,25 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
 
     List<Future> futures = [
-      player!.open(Media(_mainVideoData!.videoContent,
-          httpHeaders: _mainVideoData?.httpHeaders)),
       player!.setAudioDevice(AudioDevice.auto()),
       _registerListeners(false),
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive)
     ];
+
+    switch (_mainVideoData) {
+      case VideoData data:
+        futures.add(player!.open(
+          Media(
+            data.videoContent,
+            httpHeaders: data.httpHeaders,
+          ),
+        ));
+      case FileVideoData data:
+        futures.add(player!.open(
+          Media(data.file.path),
+        ));
+      default:
+    }
 
     await Future.wait(futures);
 

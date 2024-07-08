@@ -171,24 +171,21 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 SliverAppBar(
                   pinned: false,
                   floating: false,
-                  bottom: tabController.index == 0
+                  bottom: [0, 2].contains(tabController.index)
                       ? TabBar(
                           controller: _tabController,
                           tabs: List.generate(
                             _tabController.length,
                             (index) => Builder(
                               builder: (context) {
-                                final tabIndex =
-                                    HomeScope.of(context).tabController.index;
-
                                 final icons = {
-                                  tabIndex == 0
+                                  _tabController.index == 0
                                       ? MdiIcons.home
                                       : MdiIcons.homeOutline,
-                                  tabIndex == 1
+                                  _tabController.index == 1
                                       ? MdiIcons.library
                                       : MdiIcons.libraryOutline,
-                                  tabIndex == 2
+                                  _tabController.index == 2
                                       ? MdiIcons.cog
                                       : MdiIcons.cogOutline,
                                 };

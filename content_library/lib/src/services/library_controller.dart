@@ -11,15 +11,6 @@ class LibraryController extends ChangeNotifier {
   late final LibraryService _libraryService;
   LibraryController(this._isarService) {
     _libraryService = LibraryService(this);
-
-    Timer(const Duration(milliseconds: 500), () {
-      _subscriptions.addAll(
-        [
-          collectionChanged<AnimeEntity>().listen(_updateAnime),
-          collectionChanged<BookEntity>().listen(_updateBook),
-        ],
-      );
-    });
   }
 
   @override
@@ -40,9 +31,17 @@ class LibraryController extends ChangeNotifier {
         ...bookColetions.map((element) => element.chapters.load()),
       ]);
 
-      for (var entity in bookColetions) {
-        _addOrUpdate(entity);
+      for (var contentEntity in bookColetions) {
+        final indexOf = _entities.indexWhere((element) => switch (element) {
+              BookEntity data => data.stringID.contains(contentEntity.stringID),
+              _ => false,
+            });
+
+        if (indexOf != -1) {
+          _entities[indexOf] = contentEntity;
+        }
       }
+
       notifyListeners();
     });
   }
@@ -56,9 +55,18 @@ class LibraryController extends ChangeNotifier {
         ...animeColetions.map((element) => element.episodes.load()),
       ]);
 
-      for (var entity in animeColetions) {
-        _addOrUpdate(entity);
+      for (var contentEntity in animeColetions) {
+        final indexOf = _entities.indexWhere((element) => switch (element) {
+              AnimeEntity data =>
+                data.stringID.contains(contentEntity.stringID),
+              _ => false,
+            });
+
+        if (indexOf != -1) {
+          _entities[indexOf] = contentEntity;
+        }
       }
+
       notifyListeners();
     });
   }
@@ -79,6 +87,13 @@ class LibraryController extends ChangeNotifier {
 
     _entities.addAll(animeColetions);
     _entities.addAll(bookColetions);
+
+    _subscriptions.addAll(
+      [
+        collectionChanged<AnimeEntity>().listen(_updateAnime),
+        collectionChanged<BookEntity>().listen(_updateBook),
+      ],
+    );
   }
 
   UnmodifiableListView<ContentEntity> get entities =>
@@ -101,9 +116,9 @@ class LibraryController extends ChangeNotifier {
       if (data.$1) isSucess = data.$1;
     });
 
-    // if (contentEntity != null) {
-    //   // _addOrUpdate(contentEntity);
-    // }
+    if (contentEntity != null) {
+      _addOrUpdate(contentEntity);
+    }
 
     notifyListeners();
     return Result.success((isSucess, ids));
@@ -129,21 +144,16 @@ class LibraryController extends ChangeNotifier {
   }
 
   void _addOrUpdate(ContentEntity contentEntity) {
-    final indexOf = _entities.indexWhere((element) => switch (element) {
-          AnimeEntity data when contentEntity is AnimeEntity =>
-            data.stringID.contains(contentEntity.stringID),
-          BookEntity data when contentEntity is BookEntity =>
-            data.stringID.contains(contentEntity.stringID),
-          _ => false,
-        });
-
-    if (indexOf != -1) {
-      _entities[indexOf] = contentEntity;
-      customLog('update');
-    } else {
-      _entities.add(contentEntity);
-      customLog('add');
-    }
+    _entities.addOrUpdateWhere(
+      contentEntity,
+      (element) => switch (element) {
+        AnimeEntity data when contentEntity is AnimeEntity =>
+          data.stringID.contains(contentEntity.stringID),
+        BookEntity data when contentEntity is BookEntity =>
+          data.stringID.contains(contentEntity.stringID),
+        _ => false,
+      },
+    );
   }
 
   Future<Result<(bool, List<int>?)>> addAll({
@@ -156,7 +166,7 @@ class LibraryController extends ChangeNotifier {
 
     void setDateTimeAndAdd(ContentEntity element) {
       _setDateTime(element);
-      // _addOrUpdate(element);
+      _addOrUpdate(element);
     }
 
     entities?.forEach(setDateTimeAndAdd);

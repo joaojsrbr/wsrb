@@ -6,19 +6,23 @@ class PlayerArgs {
   final Episode episode;
   final Anime anime;
   final Duration? startPossition;
+  final Data? data;
 
   const PlayerArgs({
+    this.data,
     required this.episode,
     required this.anime,
     this.startPossition,
   });
 
   PlayerArgs copyWith({
+    Data? data,
     Episode? episode,
     Anime? anime,
     Duration? startPossition,
   }) {
     return PlayerArgs(
+      data: data ?? this.data,
       episode: episode ?? this.episode,
       anime: anime ?? this.anime,
       startPossition: startPossition ?? this.startPossition,

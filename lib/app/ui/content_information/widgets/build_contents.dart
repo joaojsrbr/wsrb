@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
@@ -104,6 +106,92 @@ class _ContentWidget extends StatelessWidget {
   final DownloadInfo? downloadInfo;
   final Content content;
   final int index;
+
+  Future<Data?> _fileOrURL(File file, BuildContext context) async {
+    final repository = context.read<ContentRepository>();
+
+    final data = (await repository.getContent(release))
+        .fold(onSuccess: (success) => success)
+        ?.nonNulls
+        .toList();
+
+    if (!context.mounted || data == null) return null;
+
+    data.insert(0, FileVideoData(file: file));
+
+    return await showModalBottomSheet<Data?>(
+      isScrollControlled: true,
+      context: context,
+      builder: (context) {
+        final textTheme = Theme.of(context).textTheme;
+        return StatefulBuilder(builder: (context, s) {
+          return Column(
+            // crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 20,
+                ),
+                child: Text(
+                  'Selecione uma fonte',
+                  style: textTheme.titleLarge,
+                ),
+              ),
+              SizedBox(
+                width: double.infinity,
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(top: 16, bottom: 16),
+                    physics: const BouncingScrollPhysics(),
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(data.length, (index) {
+                        final video = data[index];
+                        return Container(
+                          height: 70,
+                          width: 120,
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: video is VideoData
+                                      ? Colors.blue
+                                      : Colors.green,
+                                ),
+                              ),
+                              Center(
+                                child: Text(
+                                  video is VideoData ? 'Online' : 'Local',
+                                  style: textTheme.labelMedium,
+                                ),
+                              ),
+                              Material(
+                                type: MaterialType.transparency,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: () => Navigator.of(context).pop(video),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        });
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -299,6 +387,27 @@ class _ContentWidget extends StatelessWidget {
               ),
             );
           } else if (release is Episode && content is Anime) {
+            File? videoFile;
+
+            if (downloadService.existsRelease(content, release)) {
+              videoFile = downloadService.getReleasFile(content, release);
+            }
+
+            if (videoFile != null) {
+              final result = await _fileOrURL(videoFile, context);
+              if (result != null) {
+                await goRouter.push(
+                  RouteName.PLAYER,
+                  extra: PlayerArgs(
+                    data: result,
+                    anime: content as Anime,
+                    episode: release as Episode,
+                  ),
+                );
+              }
+              return;
+            }
+
             await goRouter.push(
               RouteName.PLAYER,
               extra: PlayerArgs(

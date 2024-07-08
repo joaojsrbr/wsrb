@@ -1,3 +1,6 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 
 sealed class Data extends Equatable {
@@ -31,6 +34,14 @@ class VideoData extends Data {
 
   @override
   List<Object?> get props => [videoContent];
+}
+
+class FileVideoData extends Data {
+  final File file;
+  const FileVideoData({required this.file});
+
+  @override
+  List<Object?> get props => [file];
 }
 
 class TextData extends Data {
