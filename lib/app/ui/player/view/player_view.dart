@@ -1,22 +1,26 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_session.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
-import 'package:app_wsrb_jsr/app/ui/player/widgets/material_video_controls.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
-import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
-import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
+import 'package:simple_pip_mode/pip_widget.dart';
+
+import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_session.dart';
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_pip.dart';
+import 'package:app_wsrb_jsr/app/ui/player/widgets/material_video_controls.dart';
+import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
+import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 
 class PlayerView extends StatefulWidget {
   const PlayerView({super.key});
@@ -32,53 +36,42 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         WidgetsBindingObserver,
         SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs>,
         PlayerControllerMixin,
+        PlayerSimplePip,
         PlayerAudioHandlerMixin,
         PlayerAudioSessionMixin {
-  late PlayerArgs _playerArgs = argument();
-
-  late final ContentRepository _repository;
-
   VideoController? _videoController;
-
   Data? _mainVideoData;
-
   bool _isLoading = true;
-
   BoxFit _activeFit = BoxFit.contain;
 
   final ValueNotifier<String?> _overlayBoxFit = ValueNotifier(null);
-
   final ValueNotifier<String?> _overlayNextEpisode = ValueNotifier(null);
-
-  late final ValueNotifier<String> _topTitle = ValueNotifier('');
-
-  final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
-
-  final List<VideoData> data = [];
-
-  final double _maxValueCircularAnimation = 1.0;
-
-  double _currentValueCircularAnimation = 0;
-
-  late final LibraryController _libraryController;
-
-  late final HistoricController _historicController;
-
+  final ValueNotifier<String> _topTitle = ValueNotifier('');
   final ValueNotifier<bool> _lockPlayer = ValueNotifier(false);
-
   final ValueNotifier<bool> _reversedCurrentDuration = ValueNotifier(false);
-
   final ValueNotifier<Duration?> _seekInVideoPosition = ValueNotifier(null);
 
-  late final Timer _systemUIModeTimer;
+  late PlayerArgs _playerArgs = argument();
 
+  final _PlayerStatus _status = _PlayerStatus();
+
+  final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
+  final List<VideoData> data = [];
+
+  final double _maxValueCircularAnimation = 1.5;
+  double _currentValueCircularAnimation = 0;
+
+  late final ContentRepository _repository;
+  late final LibraryController _libraryController;
+  late final HistoricController _historicController;
+  late final Timer _systemUIModeTimer;
   final Debouncer _removeAllListenersDebouncer = Debouncer(
     duration: const Duration(seconds: 20),
   );
 
   // Duration _currentPositionDuration = Duration.zero;
 
-  bool _playerDisposed = false;
+  bool _playerRemoveListener = false;
 
   final Debouncer _saveDataDebouncer = Debouncer();
 
@@ -150,7 +143,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _removeAllListeners() async {
-    _playerDisposed = true;
+    _playerRemoveListener = true;
     _saveDataDebouncer.cancel();
     _setEnabledSystemUIModeTimer?.cancel();
     _systemUIModeTimer.cancel();
@@ -164,27 +157,23 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     await _registerListeners(true);
   }
 
-  Future<void> _resumePlayerAfterRemoveAllListeners() async {
-    await _registerListeners(false);
-  }
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    customLog(state);
+    customLog('[$runtimeType][didChangeAppLifecycleState()][$state]');
 
     switch (state) {
       case AppLifecycleState.hidden:
-        _saveVideoData();
+        _saveVideoPosition();
         _removeAllListenersDebouncer.cancel();
         _removeAllListenersDebouncer.call(_removeAllListeners);
       case AppLifecycleState.paused:
-        _saveVideoData();
+        _saveVideoPosition();
         _removeAllListenersDebouncer.cancel();
         _removeAllListenersDebouncer.call(_removeAllListeners);
       case AppLifecycleState.inactive:
       case AppLifecycleState.resumed:
-      case AppLifecycleState.resumed when _playerDisposed:
-        _resumePlayerAfterRemoveAllListeners();
+      case AppLifecycleState.resumed when _playerRemoveListener:
+        _registerListeners(false);
       case AppLifecycleState.detached:
     }
 
@@ -234,6 +223,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   void _onInit(Duration time) async {
+    await pipStart().whenComplete(_incrementCurrentCircularAnimation);
+
     await _getAllEpisodes().whenComplete(_incrementCurrentCircularAnimation);
 
     if (_playerArgs.data == null) {
@@ -251,7 +242,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     setStateIfMounted(() => _isLoading = false);
 
     if (player?.state.playing == true && _playerArgs.startPossition == null) {
-      await _continueVideo();
+      await _continueVideoByHistoricPosition();
     }
   }
 
@@ -301,8 +292,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   void _completedListener(bool completed) {
+    _status.setValue(completed: completed);
     if (completed) {
-      _saveVideoData();
+      _saveVideoPosition();
       final playbackState = playerAudioHandler.playbackState;
 
       playbackState.add(playbackState.value.copyWith
@@ -324,17 +316,23 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
   }
 
-  void _bufferListener(Duration buffer) {}
+  void _bufferListener(Duration buffer) {
+    _status.setValue(buffer: buffer);
+  }
 
   void _playingListener(bool playing) async {
     setSessionActive(playing);
+    _status.setValue(playing: playing);
+    await simplePip.setIsPlaying(playing);
   }
 
   void _durationListener(Duration duration) {
+    _status.setValue(duration: duration);
     if (duration != Duration.zero) setPlayerMedia(_playerArgs);
   }
 
   void _positionListener(Duration position) {
+    _status.setValue(position: position);
     // _currentPositionDuration = position;
     playerAudioHandler.setPlaybackState(player!.state);
 
@@ -355,7 +353,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     _overlayBoxFit.value = nextBoxFit.name;
 
-    customLog("[$_queueBoxFits]_handleSetFits()");
+    customLog("[$runtimeType][_handleSetFits()][$_queueBoxFits]");
 
     setStateIfMounted(() {
       _activeFit = nextBoxFit;
@@ -382,7 +380,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
   }
 
-  Future<void> _continueVideo() async {
+  Future<void> _continueVideoByHistoricPosition() async {
     final entity = _historicController.entities
         .firstWhereOrNull((entity) => switch (entity) {
               EpisodeEntity data =>
@@ -393,7 +391,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     if (entity == null) return;
 
-    customLog('_continueVideo()[${entity.animeStringID}]');
+    customLog(
+        '[$runtimeType][_continueVideoByHistoricPosition()][${entity.animeStringID}]');
 
     final videoPercent =
         ((entity.currentDuration / entity.episodeDuration)).abs();
@@ -458,20 +457,29 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     await playerAudioHandler.stop();
     _seekInVideoPosition.value = null;
     _overlayNextEpisode.value = null;
-    customLog('[${episode.title}]_handleOnTapEpisode()');
+    customLog('[$runtimeType][_handleOnTapEpisode()][${episode.title}]');
 
-    await _saveVideoData();
+    await _saveVideoPosition();
+
+    final file = AppStorage.getReleaseFile(_playerArgs.anime, episode);
+
+    Data? data;
+
+    if (file != null) data = FileVideoData(file: file);
 
     ifMounted(() async {
-      setState(() => _playerArgs = _playerArgs.copyWith(episode: episode));
+      setState(() => _playerArgs = _playerArgs.copyWith(
+            episode: episode,
+            data: data,
+          ));
 
       await _getInitMainVideoData();
       await _startPlayerController();
-      await _continueVideo();
+      await _continueVideoByHistoricPosition();
     });
   }
 
-  Future<void> _saveVideoData() async {
+  Future<void> _saveVideoPosition() async {
     _saveDataDebouncer.cancel();
     _saveDataDebouncer.call(() async {
       if (_videoPercent < 0.20) return;
@@ -498,7 +506,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         numberEpisode: int.tryParse(_playerArgs.episode.number),
       );
 
-      customLog('[${episodeEntity.numberEpisode}]_saveVideoData()');
+      customLog(
+          '[$runtimeType][_saveVideoPosition()][${episodeEntity.numberEpisode}]');
 
       final animeEntity = _libraryController.entities.firstWhere(
         (content) {
@@ -542,7 +551,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   @override
   void dispose() {
-    customLog('$runtimeType[dispose]');
+    customLog('[$runtimeType][dispose]');
     _topTitle.dispose();
     _seekInVideoPosition.dispose();
     _lockPlayer.dispose();
@@ -557,7 +566,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     WidgetsBinding.instance.removeObserver(this);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    if (_mainVideoData != null) _saveVideoData();
+    if (_mainVideoData != null) _saveVideoPosition();
     super.dispose();
   }
 }
@@ -643,26 +652,49 @@ class _BuildScaffold extends StatelessWidget {
                 children: [
                   Flexible(
                     flex: 1,
-                    child: Video(
-                      aspectRatio: 16 / 9,
-                      onEnterFullscreen: () async {
-                        await SystemChrome.setPreferredOrientations([
-                          DeviceOrientation.landscapeLeft,
-                          DeviceOrientation.landscapeRight,
-                        ]);
-                        SystemChrome.setEnabledSystemUIMode(
-                          SystemUiMode.immersive,
-                        );
-                      },
-                      onExitFullscreen: () async {
-                        await SystemChrome.setPreferredOrientations(
-                          [DeviceOrientation.portraitUp],
-                        );
-                      },
-                      fit: activeFit,
-                      controls: CustomMaterialControls.new,
-                      key: PlayerView.videoStateKey,
-                      controller: videoController,
+                    child: PipWidget(
+                      pipChild: Video(
+                        aspectRatio: 16 / 9,
+                        // onEnterFullscreen: () async {
+                        //   await SystemChrome.setPreferredOrientations([
+                        //     DeviceOrientation.landscapeLeft,
+                        //     DeviceOrientation.landscapeRight,
+                        //   ]);
+                        //   SystemChrome.setEnabledSystemUIMode(
+                        //     SystemUiMode.immersive,
+                        //   );
+                        // },
+                        // onExitFullscreen: () async {
+                        //   await SystemChrome.setPreferredOrientations(
+                        //     [DeviceOrientation.portraitUp],
+                        //   );
+                        // },
+                        fit: activeFit,
+                        controls: CustomMaterialControls.new,
+                        key: PlayerView.videoStateKey,
+                        controller: videoController,
+                      ),
+                      child: Video(
+                        aspectRatio: 16 / 9,
+                        onEnterFullscreen: () async {
+                          await SystemChrome.setPreferredOrientations([
+                            DeviceOrientation.landscapeLeft,
+                            DeviceOrientation.landscapeRight,
+                          ]);
+                          SystemChrome.setEnabledSystemUIMode(
+                            SystemUiMode.immersive,
+                          );
+                        },
+                        onExitFullscreen: () async {
+                          await SystemChrome.setPreferredOrientations(
+                            [DeviceOrientation.portraitUp],
+                          );
+                        },
+                        fit: activeFit,
+                        controls: CustomMaterialControls.new,
+                        key: PlayerView.videoStateKey,
+                        controller: videoController,
+                      ),
                     ),
                   ),
                   Expanded(
@@ -791,5 +823,71 @@ class _BuildScaffold extends StatelessWidget {
         children: children,
       ),
     );
+  }
+}
+
+class _PlayerStatus {
+  bool _playing = false;
+  Duration _position = Duration.zero;
+  Duration _duration = Duration.zero;
+  Duration _buffer = Duration.zero;
+  bool _completed = false;
+
+  void setValue({
+    bool? playing,
+    Duration? position,
+    Duration? duration,
+    Duration? buffer,
+    bool? completed,
+  }) {
+    _playing = playing ?? _playing;
+    _position = position ?? _position;
+    _duration = duration ?? _duration;
+    _buffer = buffer ?? _buffer;
+    _completed = completed ?? _completed;
+
+    if (toHashCode(playing, position, duration, buffer, completed) !=
+        hashCode) {
+      customLog(toString());
+    }
+  }
+
+  @override
+  String toString() {
+    return '_PlayerStatus(playing: $_playing, position: $_position, duration: $_duration, buffer: $_buffer, completed: $_completed)';
+  }
+
+  @override
+  bool operator ==(covariant _PlayerStatus other) {
+    if (identical(this, other)) return true;
+
+    return other._playing == _playing &&
+        other._position == _position &&
+        other._duration == _duration &&
+        other._buffer == _buffer &&
+        other._completed == _completed;
+  }
+
+  int toHashCode(
+    bool? playing,
+    Duration? position,
+    Duration? duration,
+    Duration? buffer,
+    bool? completed,
+  ) {
+    return playing.hashCode ^
+        position.hashCode ^
+        duration.hashCode ^
+        buffer.hashCode ^
+        completed.hashCode;
+  }
+
+  @override
+  int get hashCode {
+    return _playing.hashCode ^
+        _position.hashCode ^
+        _duration.hashCode ^
+        _buffer.hashCode ^
+        _completed.hashCode;
   }
 }
