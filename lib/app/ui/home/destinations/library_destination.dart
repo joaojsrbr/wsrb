@@ -5,7 +5,6 @@ import 'dart:async';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_rail_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:content_library/content_library.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

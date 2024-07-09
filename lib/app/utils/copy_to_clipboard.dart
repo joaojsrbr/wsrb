@@ -11,7 +11,9 @@ Future<void> copyToClipboard(
 }) async {
   final ClipboardData data = ClipboardData(text: messageCopy);
   await Clipboard.setData(data).whenComplete(() {
-    if (snackBar) _snackBar(context, messageCopy, messageSnackBar);
+    if (snackBar && context.mounted) {
+      _snackBar(context, messageCopy, messageSnackBar);
+    }
   });
 }
 
