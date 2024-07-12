@@ -11,9 +11,9 @@ mixin PlayerControllerMixin on State<PlayerView> {
     _player = player;
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    _player?.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _player?.dispose();
+  //   super.dispose();
+  // }
 }

@@ -107,88 +107,93 @@ class _ContentWidget extends StatelessWidget {
   final Content content;
   final int index;
 
-  Future<Data?> _fileOrURL(File file, BuildContext context) async {
+  Future<Data?> _fileOrURL(File? file, BuildContext context) async {
     final repository = context.read<ContentRepository>();
 
     final data = (await repository.getContent(release))
         .fold(onSuccess: (success) => success)
         ?.nonNulls
+        .cast<Data?>()
         .toList();
 
     if (!context.mounted || data == null) return null;
 
-    data.insert(0, FileVideoData(file: file));
+    data.insert(0, null);
+
+    if (file != null) data[0] = FileVideoData(file: file);
 
     return await showModalBottomSheet<Data?>(
       isScrollControlled: true,
       context: context,
       builder: (context) {
         final textTheme = Theme.of(context).textTheme;
-        return StatefulBuilder(builder: (context, s) {
-          return Column(
-            // crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 20,
-                ),
-                child: Text(
-                  'Selecione uma fonte',
-                  style: textTheme.titleLarge,
-                ),
+        return Column(
+          // crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 20,
               ),
-              SizedBox(
-                width: double.infinity,
-                child: Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(top: 16, bottom: 16),
-                    physics: const BouncingScrollPhysics(),
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(data.length, (index) {
-                        final video = data[index];
-                        return Container(
-                          height: 70,
-                          width: 120,
-                          margin: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              DecoratedBox(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  color: video is VideoData
-                                      ? Colors.blue
-                                      : Colors.green,
-                                ),
+              child: Text(
+                'Selecione uma fonte',
+                style: textTheme.titleLarge,
+              ),
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(top: 16, bottom: 16),
+                  physics: const BouncingScrollPhysics(),
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(data.length, (index) {
+                      final video = data[index];
+                      return Container(
+                        height: 70,
+                        width: 120,
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            DecoratedBox(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                color: video == null
+                                    ? Colors.grey
+                                    : video is VideoData
+                                        ? Colors.blue
+                                        : Colors.green,
                               ),
-                              Center(
-                                child: Text(
-                                  video is VideoData ? 'Online' : 'Local',
-                                  style: textTheme.labelMedium,
-                                ),
+                            ),
+                            Center(
+                              child: Text(
+                                video is VideoData ? 'Online' : 'Local',
+                                style: textTheme.labelMedium,
                               ),
-                              Material(
-                                type: MaterialType.transparency,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(8),
-                                  onTap: () => Navigator.of(context).pop(video),
-                                ),
+                            ),
+                            Material(
+                              type: MaterialType.transparency,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(8),
+                                onTap: video == null
+                                    ? null
+                                    : () => Navigator.of(context).pop(video),
                               ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
                   ),
                 ),
               ),
-            ],
-          );
-        });
+            ),
+          ],
+        );
       },
     );
   }
@@ -390,31 +395,19 @@ class _ContentWidget extends StatelessWidget {
               ),
             );
           } else if (release is Episode && content is Anime) {
-            if (releaseFile != null) {
-              final result = await _fileOrURL(releaseFile, context);
-              if (result != null) {
-                await goRouter.push(
-                  RouteName.PLAYER,
-                  extra: PlayerArgs(
-                    data: result,
-                    anime: content as Anime,
-                    episode: release as Episode,
-                  ),
-                );
-              }
-              return;
+            final result = await _fileOrURL(releaseFile, context);
+            if (result != null) {
+              await goRouter.push(
+                RouteName.PLAYER,
+                extra: PlayerArgs(
+                  data: result,
+                  anime: content as Anime,
+                  episode: release as Episode,
+                ),
+              );
             }
-
-            await goRouter.push(
-              RouteName.PLAYER,
-              extra: PlayerArgs(
-                anime: content as Anime,
-                episode: release as Episode,
-              ),
-            );
           }
         },
-        // onLongPress: () {},
         minVerticalPadding: 0,
         minTileHeight: 68,
         visualDensity: const VisualDensity(vertical: 4, horizontal: -2),

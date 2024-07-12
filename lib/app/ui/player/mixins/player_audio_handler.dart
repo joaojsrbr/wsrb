@@ -14,7 +14,7 @@ mixin PlayerAudioHandlerMixin
     on
         PlayerControllerMixin,
         SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs>,
-        PlayerSimplePip {
+        PlayerSimplePipMixin {
   static late final PlayerAudioHandler _playerAudioHandler;
 
   PlayerAudioHandler get playerAudioHandler => _playerAudioHandler;
@@ -22,11 +22,7 @@ mixin PlayerAudioHandlerMixin
   static Future<void> startPlayerAudio() async {
     _playerAudioHandler = await AudioService.init(
       builder: () => _AudioPlayerHandler(),
-      config: const AudioServiceConfig(
-        androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
-        androidNotificationChannelName: 'Audio playback',
-        androidNotificationOngoing: true,
-      ),
+      config: const AudioServiceConfig(),
     );
   }
 
@@ -63,8 +59,13 @@ mixin PlayerAudioHandlerMixin
     }
   }
 
+  void handleEnterInPip() {
+    simplePip.enterPipMode(seamlessResize: true);
+  }
+
   @override
   void onPipState(PipState pipState) {
+    this.pipState = pipState;
     switch (pipState) {
       case PipState.pipEntered:
       case PipState.pipExited:

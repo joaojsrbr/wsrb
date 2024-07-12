@@ -1085,6 +1085,16 @@ class _BottomButtons extends StatelessWidget {
               ),
             ),
             const Spacer(),
+            if (scope.isPipAvailable)
+              _LockWidget(
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  visualDensity: const VisualDensity(vertical: -4),
+                  onPressed: scope.enterInPip,
+                  iconSize: 22,
+                  icon: Icon(MdiIcons.pictureInPictureBottomRight),
+                ),
+              ),
             // OverflowBox(),
             // SizedBox.expand(),
             _LockWidget(
