@@ -68,9 +68,8 @@ class EpisodeEntity extends HistoryEntity {
 
   @override
   int compareTo(HistoryEntity other) {
-    if (isComplete) return 0;
     if (updatedAt != null && (other as EpisodeEntity).updatedAt != null) {
-      return updatedAt!.compareTo(other.updatedAt!);
+      return other.updatedAt!.compareTo(updatedAt!);
     } else if (updatedAt != null &&
         (other as EpisodeEntity).updatedAt == null) {
       return 1;

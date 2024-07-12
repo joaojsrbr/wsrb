@@ -38,7 +38,9 @@ class KeepWatching extends StatelessWidget {
         .map(LibraryService.toIsarLinks)
         .nonNulls
         .flattened
-        .sorted((historic1, historic2) => historic2.compareTo(historic1));
+        .sorted((historic1, historic2) => historic1.compareTo(historic2));
+
+    // .sorted((historic1, historic2) => historic2.compareTo(historic1));
 
     // final DownloadService downloadService = context.read<DownloadService>();
 
@@ -52,6 +54,7 @@ class KeepWatching extends StatelessWidget {
               child: ListView.builder(
                 padding: const EdgeInsets.only(left: 12, top: 12),
                 scrollDirection: Axis.horizontal,
+                shrinkWrap: true,
                 physics: const BouncingScrollPhysics(),
                 itemCount: sortedByCreatedAt.length,
                 itemBuilder: (context, index) {
@@ -60,6 +63,7 @@ class KeepWatching extends StatelessWidget {
 
                   return switch (historyEntity) {
                     EpisodeEntity data => Builder(builder: (context) {
+                        // customLog(data.isComplete);
                         final anime = libraryService.getContentEntityByStringID(
                             data.animeStringID) as AnimeEntity?;
                         // customLog(anime);
