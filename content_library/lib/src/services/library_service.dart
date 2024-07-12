@@ -1,5 +1,4 @@
 import 'package:content_library/content_library.dart';
-import 'package:isar/isar.dart';
 
 class LibraryService {
   final LibraryController _libraryController;
@@ -18,11 +17,11 @@ class LibraryService {
       .map(_map)
       .nonNulls);
 
-  static IsarLinks<HistoryEntity>? toIsarLinks(ContentEntity element) {
+  static Iterable<HistoryEntity>? getIsarLinks(ContentEntity element) {
     return switch (element) {
-      AnimeEntity data => data.episodes,
-      BookEntity data => data.chapters,
-      _ => null,
+      AnimeEntity data => data.episodes.where((episode) => !episode.isComplete),
+      BookEntity data => data.chapters.where((episode) => !episode.isComplete),
+      _ => null
     };
   }
 

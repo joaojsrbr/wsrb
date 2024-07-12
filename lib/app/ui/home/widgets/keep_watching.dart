@@ -35,7 +35,7 @@ class KeepWatching extends StatelessWidget {
     final sortedByCreatedAt = (tabController.index == 0
             ? libraryService.entities
             : libraryService.favorites)
-        .map(LibraryService.toIsarLinks)
+        .map(LibraryService.getIsarLinks)
         .nonNulls
         .flattened
         .sorted((historic1, historic2) => historic1.compareTo(historic2));
@@ -50,7 +50,7 @@ class KeepWatching extends StatelessWidget {
           ? const SizedBox.shrink()
           : SizedBox(
               height: 180,
-              width: MediaQuery.sizeOf(context).width,
+              width: double.infinity,
               child: ListView.builder(
                 padding: const EdgeInsets.only(left: 12, top: 12),
                 scrollDirection: Axis.horizontal,
@@ -115,22 +115,27 @@ class KeepWatching extends StatelessWidget {
                                           ? Image.memory(
                                               currentPositionUint8List,
                                               fit: BoxFit.cover,
+                                              key: ObjectKey(
+                                                index,
+                                              ),
                                               cacheWidth: 480,
-                                              cacheHeight: 250,
+                                              cacheHeight: 280,
                                             )
-                                          : CachedNetworkImage(
-                                              fit: BoxFit.cover,
-                                              maxWidthDiskCache: 480,
-                                              maxHeightDiskCache: 450,
-                                              imageUrl: data.thumbnail ?? '',
-                                              httpHeaders: App.HEADERS,
-                                              errorWidget:
-                                                  (context, url, error) {
-                                                return const Material(
-                                                  child: Card.filled(),
-                                                );
-                                              },
-                                            ),
+                                          : data.thumbnail != null
+                                              ? CachedNetworkImage(
+                                                  fit: BoxFit.cover,
+                                                  maxWidthDiskCache: 480,
+                                                  maxHeightDiskCache: 280,
+                                                  imageUrl: data.thumbnail!,
+                                                  httpHeaders: App.HEADERS,
+                                                  errorWidget:
+                                                      (context, url, error) {
+                                                    return const Material(
+                                                      child: Card.filled(),
+                                                    );
+                                                  },
+                                                )
+                                              : const SizedBox.shrink(),
                                     ),
                                     Container(
                                       alignment: Alignment.topRight,

@@ -1,6 +1,6 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:content_library/src/entities/entity.dart';
 import 'package:content_library/src/models/episode.dart';
-
 import 'package:isar/isar.dart';
 
 import '../models/anime.dart';
@@ -10,21 +10,15 @@ part 'episode_entity.g.dart';
 @Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode'})
 class EpisodeEntity extends HistoryEntity {
   int episodeDuration;
-
   int currentDuration;
-
   bool isComplete;
-
   String? sinopse;
   int? numberEpisode;
-
   @Index(replace: true, unique: true)
   String stringID;
   String animeStringID;
-
   DateTime? createdAt;
   DateTime? updatedAt;
-
   String? thumbnail;
   String? slugSerie;
   String? generateID;
@@ -91,5 +85,10 @@ class EpisodeEntity extends HistoryEntity {
       sinopse: sinopse,
       thumbnail: thumbnail,
     );
+  }
+
+  @override
+  String toString() {
+    return 'EpisodeEntity(episodeDuration: $episodeDuration, currentDuration: $currentDuration, isComplete: $isComplete, sinopse: $sinopse, numberEpisode: $numberEpisode, stringID: $stringID, animeStringID: $animeStringID, createdAt: $createdAt, updatedAt: $updatedAt, thumbnail: $thumbnail, slugSerie: $slugSerie, generateID: $generateID, url: $url, title: $title)';
   }
 }

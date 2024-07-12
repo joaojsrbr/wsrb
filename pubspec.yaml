@@ -70,6 +70,7 @@ dependencies:
   audio_session: ^0.1.19
   simple_pip_mode:
     path: ../simple_pip_mode_flutter
+  flutter_image_converter: ^0.3.3
   border_progress_indicator: ^0.0.3
   # screenshot: ^3.0.0
 

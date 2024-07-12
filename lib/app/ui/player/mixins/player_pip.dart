@@ -14,9 +14,9 @@ mixin PlayerSimplePipMixin
   bool isAutoPipAvailable = false;
 
   Future<void> pipStart() async {
-    isPipAvailable = await SimplePip.isPipAvailable;
-    isAutoPipAvailable = await SimplePip.isAutoPipAvailable;
-    isPipActivated = await SimplePip.isPipActivated;
+    // isPipAvailable = await SimplePip.isPipAvailable;
+    // isAutoPipAvailable = await SimplePip.isAutoPipAvailable;
+    // isPipActivated = await SimplePip.isPipActivated;
     if (isPipAvailable) {
       subscriptions.addAll(
         [
