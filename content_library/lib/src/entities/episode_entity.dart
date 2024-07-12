@@ -29,6 +29,7 @@ class EpisodeEntity extends HistoryEntity {
   String? slugSerie;
   String? generateID;
   String url;
+  String? currentPositionBase64;
   String title;
 
   EpisodeEntity({
@@ -41,6 +42,7 @@ class EpisodeEntity extends HistoryEntity {
     required this.numberEpisode,
     required this.url,
     this.slugSerie,
+    this.currentPositionBase64,
     this.generateID,
     this.createdAt,
     this.thumbnail,
@@ -53,6 +55,7 @@ class EpisodeEntity extends HistoryEntity {
         episodeDuration,
         thumbnail,
         animeStringID,
+        currentPositionBase64,
         currentDuration,
         isComplete,
         stringID,
@@ -65,6 +68,7 @@ class EpisodeEntity extends HistoryEntity {
 
   @override
   int compareTo(HistoryEntity other) {
+    if (isComplete) return 0;
     if (updatedAt != null && (other as EpisodeEntity).updatedAt != null) {
       return updatedAt!.compareTo(other.updatedAt!);
     } else if (updatedAt != null &&

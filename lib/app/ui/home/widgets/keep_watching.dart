@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:border_progress_indicator/border_progress_indicator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions/duration.dart';
@@ -60,6 +63,11 @@ class KeepWatching extends StatelessWidget {
                         final anime = libraryService.getContentEntityByStringID(
                             data.animeStringID) as AnimeEntity?;
                         // customLog(anime);
+                        Uint8List? currentPositionUint8List;
+                        if (data.currentPositionBase64 != null) {
+                          currentPositionUint8List =
+                              base64.decode(data.currentPositionBase64!);
+                        }
 
                         final progressValue =
                             data.currentDuration / data.episodeDuration;
@@ -72,7 +80,7 @@ class KeepWatching extends StatelessWidget {
                           ),
                           child: SizedBox(
                             height: 160,
-                            width: 160,
+                            width: 200,
                             child: AnimatedBorderProgressIndicator(
                               value: progressValue,
                               color: progressValue <= 0.85
@@ -99,16 +107,26 @@ class KeepWatching extends StatelessWidget {
                                           stops: const [0.00, 1.0],
                                         ).createShader(bounds);
                                       },
-                                      child: CachedNetworkImage(
-                                        fit: BoxFit.cover,
-                                        imageUrl: data.thumbnail ?? '',
-                                        httpHeaders: App.HEADERS,
-                                        errorWidget: (context, url, error) {
-                                          return const Material(
-                                            child: Card.filled(),
-                                          );
-                                        },
-                                      ),
+                                      child: currentPositionUint8List != null
+                                          ? Image.memory(
+                                              currentPositionUint8List,
+                                              fit: BoxFit.cover,
+                                              cacheWidth: 480,
+                                              cacheHeight: 250,
+                                            )
+                                          : CachedNetworkImage(
+                                              fit: BoxFit.cover,
+                                              maxWidthDiskCache: 480,
+                                              maxHeightDiskCache: 450,
+                                              imageUrl: data.thumbnail ?? '',
+                                              httpHeaders: App.HEADERS,
+                                              errorWidget:
+                                                  (context, url, error) {
+                                                return const Material(
+                                                  child: Card.filled(),
+                                                );
+                                              },
+                                            ),
                                     ),
                                     Container(
                                       alignment: Alignment.topRight,

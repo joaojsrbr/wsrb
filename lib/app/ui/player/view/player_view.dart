@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_screenshot_.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
+import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
 import 'package:simple_pip_mode/pip_widget.dart';
 
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
@@ -21,6 +23,7 @@ import 'package:app_wsrb_jsr/app/ui/player/widgets/material_video_controls.dart'
 import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
+import 'package:simple_pip_mode/simple_pip.dart';
 
 class PlayerView extends StatefulWidget {
   const PlayerView({super.key});
@@ -36,9 +39,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         WidgetsBindingObserver,
         SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs>,
         PlayerControllerMixin,
-        PlayerSimplePip,
+        PlayerSimplePipMixin,
         PlayerAudioHandlerMixin,
-        PlayerAudioSessionMixin {
+        PlayerAudioSessionMixin,
+        PlayerScreenShotMixin {
   VideoController? _videoController;
   Data? _mainVideoData;
   bool _isLoading = true;
@@ -58,9 +62,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
   final List<VideoData> data = [];
 
-  final double _maxValueCircularAnimation = 1.5;
+  final double _maxValueCircularAnimation = 1.0;
   double _currentValueCircularAnimation = 0;
-
   late final ContentRepository _repository;
   late final LibraryController _libraryController;
   late final HistoricController _historicController;
@@ -73,7 +76,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   bool _playerRemoveListener = false;
 
-  final Debouncer _saveDataDebouncer = Debouncer();
+  final Debouncer _saveDataDebouncer =
+      Debouncer(duration: const Duration(milliseconds: 200));
 
   Timer? _setEnabledSystemUIModeTimer;
 
@@ -172,7 +176,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         _removeAllListenersDebouncer.call(_removeAllListeners);
       case AppLifecycleState.inactive:
       case AppLifecycleState.resumed:
-      case AppLifecycleState.resumed when _playerRemoveListener:
+      case AppLifecycleState.resumed
+          when _playerRemoveListener &&
+              [PipState.none, PipState.pipExited].contains(pipState):
         _registerListeners(false);
       case AppLifecycleState.detached:
     }
@@ -223,7 +229,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   void _onInit(Duration time) async {
-    await pipStart().whenComplete(_incrementCurrentCircularAnimation);
+    await pipStart();
 
     await _getAllEpisodes().whenComplete(_incrementCurrentCircularAnimation);
 
@@ -468,19 +474,24 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     if (file != null) data = FileVideoData(file: file);
 
     ifMounted(() async {
-      setState(() => _playerArgs = _playerArgs.copyWith(
-            episode: episode,
-            data: data,
-          ));
+      setState(() {
+        _mainVideoData = data;
+        _playerArgs = _playerArgs.copyWith(
+          episode: episode,
+          data: _mainVideoData,
+        );
+      });
 
-      await _getInitMainVideoData();
+      if (data == null) await _getInitMainVideoData();
       await _startPlayerController();
       await _continueVideoByHistoricPosition();
     });
   }
 
-  Future<void> _saveVideoPosition() async {
+  Future<void> _saveVideoPosition([void Function()? onSave]) async {
     _saveDataDebouncer.cancel();
+    final currentPositionBase64 = await videoScreenshotBase64();
+    onSave?.call();
     _saveDataDebouncer.call(() async {
       if (_videoPercent < 0.20) return;
 
@@ -492,6 +503,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
       final EpisodeEntity episodeEntity = EpisodeEntity(
         currentDuration: position.inMilliseconds,
+        currentPositionBase64: currentPositionBase64,
         title: _playerArgs.episode.title,
         animeStringID: _playerArgs.anime.stringID,
         generateID: _playerArgs.episode.generateID,
@@ -531,6 +543,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     PlayerArgs argument,
   ) {
     return PlayerScope(
+      simplePip: simplePip,
+      isPipActivated: isPipActivated,
+      isPipAvailable: isPipAvailable,
+      enterInPip: handleEnterInPip,
       lockPlayer: _lockPlayer,
       reversedCurrentDuration: _reversedCurrentDuration,
       topTitle: _topTitle,
@@ -552,6 +568,15 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   @override
   void dispose() {
     customLog('[$runtimeType][dispose]');
+    if (_mainVideoData != null) {
+      player?.pause();
+      _saveVideoPosition(() async {
+        player?.dispose();
+      });
+    } else {
+      player?.dispose();
+    }
+
     _topTitle.dispose();
     _seekInVideoPosition.dispose();
     _lockPlayer.dispose();
@@ -566,7 +591,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     WidgetsBinding.instance.removeObserver(this);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    if (_mainVideoData != null) _saveVideoPosition();
+
     super.dispose();
   }
 }
@@ -653,6 +678,7 @@ class _BuildScaffold extends StatelessWidget {
                   Flexible(
                     flex: 1,
                     child: PipWidget(
+                      pipLayout: PipActionsLayout.media_only_pause,
                       pipChild: Video(
                         aspectRatio: 16 / 9,
                         // onEnterFullscreen: () async {
@@ -669,135 +695,145 @@ class _BuildScaffold extends StatelessWidget {
                         //     [DeviceOrientation.portraitUp],
                         //   );
                         // },
-                        fit: activeFit,
-                        controls: CustomMaterialControls.new,
-                        key: PlayerView.videoStateKey,
+
+                        controls: (state) => const SizedBox.shrink(),
+                        // key: PlayerView.videoStateKey,
                         controller: videoController,
                       ),
                       child: Video(
                         aspectRatio: 16 / 9,
-                        onEnterFullscreen: () async {
-                          await SystemChrome.setPreferredOrientations([
-                            DeviceOrientation.landscapeLeft,
-                            DeviceOrientation.landscapeRight,
-                          ]);
-                          SystemChrome.setEnabledSystemUIMode(
-                            SystemUiMode.immersive,
-                          );
-                        },
-                        onExitFullscreen: () async {
-                          await SystemChrome.setPreferredOrientations(
-                            [DeviceOrientation.portraitUp],
-                          );
-                        },
+                        onEnterFullscreen: scope.isPipActivated
+                            ? () async {}
+                            : () async {
+                                await SystemChrome.setPreferredOrientations([
+                                  DeviceOrientation.landscapeLeft,
+                                  DeviceOrientation.landscapeRight,
+                                ]);
+                                SystemChrome.setEnabledSystemUIMode(
+                                  SystemUiMode.immersive,
+                                );
+                              },
+                        onExitFullscreen: scope.isPipActivated
+                            ? () async {}
+                            : () async {
+                                await SystemChrome.setPreferredOrientations(
+                                  [DeviceOrientation.portraitUp],
+                                );
+                              },
                         fit: activeFit,
-                        controls: CustomMaterialControls.new,
+                        controls: (state) => !scope.isPipActivated
+                            ? CustomMaterialControls(state)
+                            : const SizedBox.shrink(),
                         key: PlayerView.videoStateKey,
                         controller: videoController,
                       ),
                     ),
                   ),
-                  Expanded(
-                    flex: 2,
-                    child: ListView.separated(
-                      controller: scrollController,
-                      shrinkWrap: true,
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.only(top: 18, bottom: 18),
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 10),
-                      itemCount: playerArgs.anime.releases.length,
-                      itemBuilder: (context, index) {
-                        final Episode episode =
-                            playerArgs.anime.releases.reversed.elementAt(index);
-                        final String? thumbnail = episode.thumbnail;
+                  if (!scope.isPipActivated)
+                    Expanded(
+                      flex: 2,
+                      child: ListView.separated(
+                        controller: scrollController,
+                        shrinkWrap: true,
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.only(top: 18, bottom: 18),
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 10),
+                        itemCount: playerArgs.anime.releases.length,
+                        itemBuilder: (context, index) {
+                          final Episode episode = playerArgs
+                              .anime.releases.reversed
+                              .elementAt(index);
+                          final String? thumbnail = episode.thumbnail;
 
-                        return ListTile(
-                          selected: episode.stringID
-                              .contains(playerArgs.episode.stringID),
-                          leading: SizedBox(
-                            width: 112,
-                            height: double.infinity,
-                            child: thumbnail != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: CachedNetworkImage(
-                                      imageUrl: thumbnail,
-                                      placeholder: (context, url) =>
-                                          const Card.filled(),
-                                      fit: BoxFit.cover,
-                                      maxWidthDiskCache: 300,
-                                      maxHeightDiskCache: 200,
-                                    ),
-                                  )
-                                : const Card.filled(),
-                          ),
-                          titleTextStyle: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                  fontSize: 13, fontWeight: FontWeight.bold),
-                          onTap: () async {
-                            customLog(
-                              'tapped name: ${episode.title} - id: ${episode.stringID}',
-                            );
-                            scope.onTapEpisode(episode);
-                          },
-                          onLongPress: episode.sinopse?.isNotEmpty == true
-                              ? () {
-                                  showModalBottomSheet(
-                                    isScrollControlled: false,
-                                    isDismissible: true,
-                                    showDragHandle: true,
-                                    useRootNavigator: true,
-                                    context: context,
-                                    builder: (context) {
-                                      return Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 12.0),
-                                            child: Text(
-                                              'Sinopse',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleLarge
-                                                  ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                          return ListTile(
+                            selected: episode.stringID
+                                .contains(playerArgs.episode.stringID),
+                            leading: SizedBox(
+                              width: 112,
+                              height: double.infinity,
+                              child: thumbnail != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: CachedNetworkImage(
+                                        imageUrl: thumbnail,
+                                        placeholder: (context, url) =>
+                                            const Card.filled(),
+                                        fit: BoxFit.cover,
+                                        maxWidthDiskCache: 300,
+                                        maxHeightDiskCache: 200,
+                                      ),
+                                    )
+                                  : const Card.filled(),
+                            ),
+                            titleTextStyle: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                    fontSize: 13, fontWeight: FontWeight.bold),
+                            onTap: () async {
+                              customLog(
+                                'tapped name: ${episode.title} - id: ${episode.stringID}',
+                              );
+                              scope.onTapEpisode(episode);
+                            },
+                            onLongPress: episode.sinopse?.isNotEmpty == true
+                                ? () {
+                                    showModalBottomSheet(
+                                      isScrollControlled: false,
+                                      isDismissible: true,
+                                      showDragHandle: true,
+                                      useRootNavigator: true,
+                                      context: context,
+                                      builder: (context) {
+                                        return Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 12.0),
+                                              child: Text(
+                                                'Sinopse',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleLarge
+                                                    ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                              ),
                                             ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 16,
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                              ),
+                                              child: Text(
+                                                episode.sinopse!.trim(),
+                                                textAlign: TextAlign.justify,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium,
+                                              ),
                                             ),
-                                            child: Text(
-                                              episode.sinopse!.trim(),
-                                              textAlign: TextAlign.justify,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 30),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                }
-                              : null,
-                          visualDensity:
-                              const VisualDensity(vertical: 2, horizontal: -2),
-                          title: Text(
-                            '${episode.number}. ${episode.title}',
-                          ),
-                        );
-                      },
+                                            const SizedBox(height: 30),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  }
+                                : null,
+                            visualDensity: const VisualDensity(
+                                vertical: 2, horizontal: -2),
+                            title: Text(
+                              '${episode.number}. ${episode.title}',
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                  ),
                 ],
               );
             },

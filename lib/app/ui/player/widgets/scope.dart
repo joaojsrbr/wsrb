@@ -5,11 +5,13 @@ import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:simple_pip_mode/simple_pip.dart';
 
 enum _PlayerScopeAspect {
   Player_PLAYERARGS,
   Player_ISLOADING,
   Player_ACTIVEFIT,
+  Player_PIP,
   Player_CURRENTVALUECIRULARANIMATION,
   // Player_FOOTERWIDGET,
 }
@@ -30,9 +32,17 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
     required this.overlayNextEpisode,
     required this.overlayBoxFit,
     required this.topTitle,
+    required this.enterInPip,
     required this.lockPlayer,
     required this.reversedCurrentDuration,
+    required this.isPipAvailable,
+    required this.isPipActivated,
+    required this.simplePip,
   });
+  final SimplePip simplePip;
+  final bool isPipAvailable;
+  final bool isPipActivated;
+  final VoidCallback enterInPip;
   final ValueNotifier<bool> lockPlayer;
   final ValueNotifier<bool> reversedCurrentDuration;
   final ValueNotifier<String> topTitle;
@@ -69,6 +79,18 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
     return isLoading;
   }
 
+  static bool isPipActivatedOf(BuildContext context) {
+    final isPipActivated =
+        _of(context, _PlayerScopeAspect.Player_PIP).isPipActivated;
+    return isPipActivated;
+  }
+
+  static bool isPipAvailableOf(BuildContext context) {
+    final isPipAvailable =
+        _of(context, _PlayerScopeAspect.Player_PIP).isPipAvailable;
+    return isPipAvailable;
+  }
+
   static double currentValueCircularAnimationOf(BuildContext context) {
     final currentValueCircularAnimation =
         _of(context, _PlayerScopeAspect.Player_CURRENTVALUECIRULARANIMATION)
@@ -100,6 +122,10 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
           case _PlayerScopeAspect.Player_ISLOADING
               when isLoading != oldWidget.isLoading:
             return true;
+          case _PlayerScopeAspect.Player_PIP
+              when isPipAvailable != oldWidget.isPipAvailable ||
+                  isPipActivated != oldWidget.isPipActivated:
+            return true;
           case _PlayerScopeAspect.Player_ACTIVEFIT
               when activeFit != oldWidget.activeFit:
             return true;
@@ -120,6 +146,8 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
   bool updateShouldNotify(covariant PlayerScope oldWidget) {
     return playerArgs != oldWidget.playerArgs ||
         isLoading != oldWidget.isLoading ||
+        isPipActivated != oldWidget.isPipActivated ||
+        isPipAvailable != oldWidget.isPipAvailable ||
         currentValueCircularAnimation !=
             oldWidget.currentValueCircularAnimation ||
         activeFit != oldWidget.activeFit;

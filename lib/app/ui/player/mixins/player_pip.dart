@@ -4,30 +4,32 @@ import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:simple_pip_mode/actions/pip_action.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 
-mixin PlayerSimplePip
+mixin PlayerSimplePipMixin
     on SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs> {
   late final SimplePip simplePip;
 
   bool isPipAvailable = false;
   bool isPipActivated = false;
+  PipState pipState = PipState.none;
   bool isAutoPipAvailable = false;
 
   Future<void> pipStart() async {
     isPipAvailable = await SimplePip.isPipAvailable;
     isAutoPipAvailable = await SimplePip.isAutoPipAvailable;
     isPipActivated = await SimplePip.isPipActivated;
+    if (isPipAvailable) {
+      subscriptions.addAll(
+        [
+          simplePip.onPipAction.listen(onPipAction),
+          simplePip.onPipChange.listen(onPipState),
+        ],
+      );
+    }
   }
 
   @override
   void initState() {
     simplePip = SimplePip.instance;
-    subscriptions.addAll(
-      [
-        simplePip.onPipAction.listen(onPipAction),
-        simplePip.onPipChange.listen(onPipState),
-      ],
-    );
-
     super.initState();
   }
 

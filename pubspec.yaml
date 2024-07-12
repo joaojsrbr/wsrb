@@ -71,8 +71,7 @@ dependencies:
   simple_pip_mode:
     path: ../simple_pip_mode_flutter
   border_progress_indicator: ^0.0.3
-  simple_pip_mode:
-    path: ../simple_pip_mode_flutter
+  # screenshot: ^3.0.0
 
 dev_dependencies:
   flutter_test:

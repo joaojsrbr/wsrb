@@ -63,21 +63,20 @@ class DownloadService extends ChangeNotifier {
             }
 
             List<String> args = [
+              '-headers "referer:${repository.source(content.source).BASE_URL}/"',
               '-i',
-              '-y',
               selected.videoContent,
               '-c',
               'copy',
-              '-v trace',
               '"${releaseDir.path}/episodio_${release.number}.mp4"',
             ];
 
-            selected.httpHeaders?.keys.toList().reversed.forEach(
-              (key) {
-                final value = selected.httpHeaders![key];
-                args.insert(0, '-headers "$key:$value"');
-              },
-            );
+            // selected.httpHeaders?.keys.toList().reversed.forEach(
+            //   (key) {
+            //     final value = selected.httpHeaders![key];
+            //     args.insert(0, '-headers "$key:$value"');
+            //   },
+            // );
 
             customLog(args.join(' '));
 
@@ -105,6 +104,7 @@ class DownloadService extends ChangeNotifier {
                   onResult?.call(Result.failure(Exception(returnCode)));
                 }
               },
+              // (test) => customLog(test.getMessage()),
               null,
               (status) async {
                 (downloadList.firstWhere(
