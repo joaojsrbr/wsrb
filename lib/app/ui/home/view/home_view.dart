@@ -92,24 +92,16 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   void _tabControllerListener() {
-    final ValueNotifierList valueNotifierList =
-        context.read<ValueNotifierList>();
-    if (valueNotifierList.isNotEmpty) valueNotifierList.clear();
+    if (_valueNotifierList.isNotEmpty) _valueNotifierList.clear();
     _searchController.clear();
 
-    final FocusScopeNode currentFocus = FocusScope.of(context);
-    if (!currentFocus.hasPrimaryFocus &&
-        _searchController.text.trim().isNotEmpty) {
-      currentFocus.focusedChild?.unfocus();
-    }
+    if (mounted) context.unFocusKeyBoard();
 
-    if (_tabController.index == 0 && _scrollController.position.pixels > 140) {
-      _scrollController.animateTo(
-        0,
-        duration: const Duration(milliseconds: 450),
-        curve: Curves.fastOutSlowIn,
-      );
-    }
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.ease,
+    );
   }
 
   set setScroll(bool enable) {
@@ -130,9 +122,28 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final CategoryController categoryController =
+        context.watch<CategoryController>();
+
     final HiveController hiveController = context.watch<HiveController>();
 
+    List<Widget> tabs = categoryController.categories.map<Widget>(
+      (CategoryEntity entity) {
+        return GestureDetector(
+          onLongPress: () {
+            CategoryUtils().createCategory(context, entity);
+          },
+          child: Tab(
+            text: entity.title,
+            key: ValueKey(entity.title),
+          ),
+        );
+      },
+    ).toList()
+      ..insert(0, const Tab(text: 'Padrão', key: ValueKey('Padrão')));
+
     return HomeScope(
+      homeController: _scrollController,
       subordinateLibraryTabController: _subordinateLibraryTabController,
       searchController: _searchController,
       enabled: TickerMode.of(context),
@@ -146,27 +157,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             controller: _scrollController,
             physics: _mainPhysics,
             headerSliverBuilder: (context, innerBoxIsScrolled) {
-              final CategoryController categoryController =
-                  context.watch<CategoryController>();
-
-              List<Widget> tabs = [
-                const Tab(text: 'Padrão', key: ValueKey('Padrão'))
-              ];
-
-              void add(CategoryEntity entity) {
-                final tab = GestureDetector(
-                  onLongPress: () {
-                    CategoryUtils().createCategory(context, entity);
-                  },
-                  child: Tab(
-                    text: entity.title,
-                    key: ValueKey(entity.title),
-                  ),
-                );
-                tabs.addIfNoContains(tab);
-              }
-
-              categoryController.categories.forEach(add);
               return [
                 SliverAppBar(
                   pinned: false,
@@ -231,8 +221,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                 top: _tabController.index == 0 ? 14 : 8),
                         physics: const BouncingScrollPhysics(),
                         scrollDirection: Axis.horizontal,
-                        // mainAxisSize: MainAxisSize.min,
-                        // crossAxisAlignment: CrossAxisAlignment.start,
+                        cacheExtent: 300,
                         children: [
                           _MenuButton(
                             data: Source.list,

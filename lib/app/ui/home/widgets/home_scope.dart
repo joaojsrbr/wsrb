@@ -4,21 +4,30 @@ import 'package:flutter/material.dart';
 
 class HomeScope extends InheritedNotifier<Listenable> {
   HomeScope({
-    super.key,
     required super.child,
     required this.enabled,
     required this.tabController,
+    required this.homeController,
     required this.searchController,
     required this.subordinateLibraryTabController,
-  }) : super(notifier: Listenable.merge([tabController, searchController]));
+  }) : super(
+            notifier: Listenable.merge([tabController, searchController]),
+            key: _homeScopeKey);
+
+  static final GlobalKey _homeScopeKey = GlobalKey();
 
   final CustomSearchController searchController;
   final TabController tabController;
+  final ScrollController homeController;
   final SubordinateLibraryTabController subordinateLibraryTabController;
   final bool enabled;
 
   static HomeScope? maybeOf(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<HomeScope>();
+  }
+
+  static HomeScope? byKeyMaybeOf() {
+    return (_homeScopeKey.currentWidget as HomeScope);
   }
 
   static HomeScope of(BuildContext context) {

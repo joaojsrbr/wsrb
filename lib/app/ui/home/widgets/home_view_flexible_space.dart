@@ -44,7 +44,8 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
     final query = _searchController!.text.trim();
 
     if (!_searchController!.isOpen) {
-      if (query.isEmpty) _unFocus(context);
+      if (query.isEmpty) context.unFocusKeyBoard();
+
       setStateIfMounted(_contents.clear);
     }
 
@@ -72,13 +73,6 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
       },
     );
     _isLoading.value = false;
-  }
-
-  void _unFocus(BuildContext context) {
-    final FocusScopeNode currentFocus = FocusScope.of(context);
-    if (!currentFocus.hasPrimaryFocus) {
-      currentFocus.focusedChild?.unfocus();
-    }
   }
 
   @override
@@ -134,7 +128,7 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
                 child: IconButton(
                   onPressed: () {
                     searchController.clear();
-                    _unFocus(context);
+                    context.unFocusKeyBoard();
                   },
                   icon: Icon(MdiIcons.close),
                 ),
@@ -209,7 +203,10 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
                         return SizedBox(
                           width: 168,
                           height: 220,
-                          child: ItemContent(content: content, isSearch: true),
+                          child: ItemContent(
+                            content: content,
+                            isSearch: true,
+                          ),
                         );
                       },
                     ),

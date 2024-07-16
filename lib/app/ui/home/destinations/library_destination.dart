@@ -123,48 +123,46 @@ class LibraryeDestinationState extends State<LibraryDestination>
   Widget buildGridView(List<Content> items) {
     if (items.isEmpty) return const SizedBox.shrink();
 
-    return Builder(
-        key: ValueKey(items.length),
-        builder: (context) {
-          final RailMenuController railMenuController =
-              HomeRailMenu.menuControllerOf(context);
+    return Builder(builder: (context) {
+      final RailMenuController railMenuController =
+          HomeRailMenu.menuControllerOf(context);
 
-          const gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
-            // maxCrossAxisExtent: 170,
-            crossAxisCount: 2,
-            childAspectRatio: 1,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 10,
-            // mainAxisExtent: 170,
-          );
+      const gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
+        // maxCrossAxisExtent: 170,
+        crossAxisCount: 2,
+        childAspectRatio: 1,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 10,
+        // mainAxisExtent: 170,
+      );
 
-          final searchController = HomeScope.of(context).searchController;
+      final searchController = HomeScope.of(context).searchController;
 
-          final filter = searchController.text.isNotEmpty
-              ? items.where((content) => content.title
-                  .toLowerCase()
-                  .trim()
-                  .contains(searchController.text.toLowerCase().trim()))
-              : items;
+      final filter = searchController.text.isNotEmpty
+          ? items.where((content) => content.title
+              .toLowerCase()
+              .trim()
+              .contains(searchController.text.toLowerCase().trim()))
+          : items;
 
-          return AnimatedPadding(
-            duration: const Duration(milliseconds: 350),
-            padding: EdgeInsets.only(right: railMenuController.isOpen ? 50 : 0),
-            child: GridView.builder(
-              itemCount: filter.length,
-              physics: const NeverScrollableScrollPhysics(),
-              // shrinkWrap: true,
-              padding: const EdgeInsets.only(left: 8, right: 8, top: 12),
-              gridDelegate: gridDelegate,
-              itemBuilder: (context, index) {
-                return ItemContent(
-                  content: filter.elementAt(index),
-                  isLibrary: true,
-                );
-              },
-            ),
-          );
-        });
+      return AnimatedPadding(
+        duration: const Duration(milliseconds: 350),
+        padding: EdgeInsets.only(right: railMenuController.isOpen ? 50 : 0),
+        child: GridView.builder(
+          itemCount: filter.length,
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          padding: const EdgeInsets.only(left: 8, right: 8, top: 12),
+          gridDelegate: gridDelegate,
+          itemBuilder: (context, index) {
+            return ItemContent(
+              content: filter.elementAt(index),
+              isLibrary: true,
+            );
+          },
+        ),
+      );
+    });
   }
 
   @override

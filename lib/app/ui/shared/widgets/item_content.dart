@@ -1,4 +1,6 @@
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_rail_menu.dart';
+import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/image_filter.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:content_library/content_library.dart';
@@ -262,6 +264,14 @@ class ItemContent extends StatelessWidget {
                           // HomeRailMenu.menuControllerMaybeOf(context)?.open();
                         },
                   onTap: () async {
+                    final searchController =
+                        HomeScope.byKeyMaybeOf()?.searchController;
+
+                    if (searchController?.isOpen == true) {
+                      searchController?.closeView("");
+                      context.unFocusKeyBoard();
+                      // searchController?.clear();
+                    }
                     if (valueNotifierList.isNotEmpty) {
                       valueNotifierList.toggle(content.stringID);
                       customLog(

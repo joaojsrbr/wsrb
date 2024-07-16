@@ -19,8 +19,12 @@ class LibraryService {
 
   static Iterable<HistoryEntity>? getIsarLinks(ContentEntity element) {
     return switch (element) {
-      AnimeEntity data => data.episodes.where((episode) => !episode.isComplete),
-      BookEntity data => data.chapters.where((episode) => !episode.isComplete),
+      AnimeEntity data => data.episodes
+          .where((episode) =>
+              !episode.isComplete && !(episode.videoPercent < 0.20))
+          .toList(),
+      BookEntity data =>
+        data.chapters.where((episode) => !episode.isComplete).toList(),
       _ => null
     };
   }

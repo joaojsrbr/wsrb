@@ -187,10 +187,16 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _getInitMainVideoData() async {
+    if (_playerArgs.data != null) {
+      _mainVideoData = _playerArgs.data;
+      _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
+      return;
+    }
+
+    _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
+
     final state = Navigator.of(context);
     final result = await _repository.getContent(_playerArgs.episode);
-
-    // _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
 
     result.fold(
       onSuccess: (data) {
@@ -233,13 +239,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     await _getAllEpisodes().whenComplete(_incrementCurrentCircularAnimation);
 
-    if (_playerArgs.data == null) {
-      await _getInitMainVideoData()
-          .whenComplete(_incrementCurrentCircularAnimation);
-    } else {
-      _mainVideoData = _playerArgs.data;
-      _incrementCurrentCircularAnimation();
-    }
+    await _getInitMainVideoData()
+        .whenComplete(_incrementCurrentCircularAnimation);
 
     await _startPlayerController(true, _playerArgs.startPossition)
         .whenComplete(_incrementCurrentCircularAnimation);
@@ -475,14 +476,13 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     ifMounted(() async {
       setState(() {
-        _mainVideoData = data;
         _playerArgs = _playerArgs.copyWith(
           episode: episode,
-          data: _mainVideoData,
+          data: data,
         );
       });
 
-      if (data == null) await _getInitMainVideoData();
+      await _getInitMainVideoData();
       await _startPlayerController();
       await _continueVideoByHistoricPosition();
     });

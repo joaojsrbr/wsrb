@@ -49,6 +49,7 @@ export 'src/services/history_service.dart';
 export 'src/extensions/custom_extensions/state_extensions.dart';
 export 'src/extensions/custom_extensions/object_extensions.dart';
 export 'src/extensions/custom_extensions/num_extensions.dart';
+export 'src/extensions/custom_extensions/context_extensions.dart';
 export 'src/extensions/custom_extensions/list_extensions.dart';
 export 'src/extensions/custom_extensions/string_extensions.dart';
 export 'package:collection/collection.dart';

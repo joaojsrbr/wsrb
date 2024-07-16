@@ -24,13 +24,9 @@ class KeepWatching extends StatelessWidget {
 
     final TextTheme textTheme = themeData.textTheme;
 
-    // final HistoryService historyService = HistoryService(historicController);
     final TabController tabController = HomeScope.of(context).tabController;
 
     final LibraryService libraryService = LibraryService(libraryController);
-
-    // final ContentRepository contentRepository =
-    //     context.read<ContentRepository>();
 
     final sortedByCreatedAt = (tabController.index == 0
             ? libraryService.entities
@@ -39,10 +35,6 @@ class KeepWatching extends StatelessWidget {
         .nonNulls
         .flattened
         .sorted((historic1, historic2) => historic1.compareTo(historic2));
-
-    // .sorted((historic1, historic2) => historic2.compareTo(historic1));
-
-    // final DownloadService downloadService = context.read<DownloadService>();
 
     return SliverToBoxAdapter(
       child: (sortedByCreatedAt.isEmpty ||
@@ -63,18 +55,13 @@ class KeepWatching extends StatelessWidget {
 
                   return switch (historyEntity) {
                     EpisodeEntity data => Builder(builder: (context) {
-                        // customLog(data.isComplete);
                         final anime = libraryService.getContentEntityByStringID(
                             data.animeStringID) as AnimeEntity?;
-                        // customLog(anime);
                         Uint8List? currentPositionUint8List;
                         if (data.currentPositionBase64 != null) {
                           currentPositionUint8List =
                               base64.decode(data.currentPositionBase64!);
                         }
-
-                        final progressValue =
-                            data.currentDuration / data.episodeDuration;
 
                         return Padding(
                           padding: const EdgeInsets.only(
@@ -86,8 +73,10 @@ class KeepWatching extends StatelessWidget {
                             height: 160,
                             width: 200,
                             child: AnimatedBorderProgressIndicator(
-                              value: progressValue,
-                              color: progressValue <= 0.85
+                              value: data.videoPercent.isNaN
+                                  ? 0.0
+                                  : data.videoPercent,
+                              color: data.videoPercent <= 0.85
                                   ? Colors.blue
                                   : Colors.green,
                               strokeWidth: 4,
@@ -179,7 +168,7 @@ class KeepWatching extends StatelessWidget {
                                                       const TextStyle())
                                                   .copyWith(fontSize: 14),
                                               child: Text(
-                                                data.title,
+                                                'Episódio ${data.numberEpisode}',
                                                 maxLines: 1,
                                                 textAlign: TextAlign.start,
                                                 overflow: TextOverflow.ellipsis,

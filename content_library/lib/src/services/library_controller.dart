@@ -13,8 +13,12 @@ class LibraryController extends ChangeNotifier {
     _libraryService = LibraryService(this);
   }
 
+  final Debouncer _updateDebouncer =
+      Debouncer(duration: const Duration(milliseconds: 200));
+
   @override
   void dispose() {
+    _updateDebouncer.cancel();
     _subscriptions.cancelAll();
     super.dispose();
   }
@@ -43,7 +47,10 @@ class LibraryController extends ChangeNotifier {
                 });
       }
 
-      if (update) notifyListeners();
+      if (update) {
+        _updateDebouncer.cancel();
+        _updateDebouncer.call(notifyListeners);
+      }
     });
   }
 
@@ -68,7 +75,10 @@ class LibraryController extends ChangeNotifier {
                 });
       }
 
-      if (update) notifyListeners();
+      if (update) {
+        _updateDebouncer.cancel();
+        _updateDebouncer.call(notifyListeners);
+      }
     });
   }
 

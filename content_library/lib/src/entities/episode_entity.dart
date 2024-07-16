@@ -7,7 +7,8 @@ import '../models/anime.dart';
 
 part 'episode_entity.g.dart';
 
-@Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode'})
+@Collection(
+    ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'videoPercent'})
 class EpisodeEntity extends HistoryEntity {
   int episodeDuration;
   int currentDuration;
@@ -25,6 +26,8 @@ class EpisodeEntity extends HistoryEntity {
   String url;
   String? currentPositionBase64;
   String title;
+
+  double get videoPercent => (currentDuration / episodeDuration).abs();
 
   EpisodeEntity({
     required this.currentDuration,
