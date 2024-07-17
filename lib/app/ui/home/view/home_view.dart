@@ -12,7 +12,6 @@ import 'package:app_wsrb_jsr/app/ui/home/destinations/library_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/home/destinations/settings_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_view_flexible_space.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
-import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
@@ -96,7 +95,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   void _scrollControllerListener() {
-    if (_scrollController.offset <= 10.0) {
+    if (_scrollController.position.pixels <= 10.0 &&
+        _keepWatchingScrollController.hasClients) {
       _keepWatchingScrollController.animateTo(
         0,
         duration: const Duration(milliseconds: 450),
@@ -167,7 +167,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         final TabController tabController = HomeScope.of(context).tabController;
 
         return Scaffold(
-          body: ExtendedNestedScrollView(
+          body: NestedScrollView(
             // onlyOneScrollInBody: true,
             controller: _scrollController,
             physics: _mainPhysics,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
@@ -241,12 +242,15 @@ class _Image extends StatefulWidget {
   final String currentPositionBase64;
 
   @override
-  State<_Image> createState() => __ImageState();
+  State<_Image> createState() => _ImageState();
 }
 
-class __ImageState extends State<_Image> {
+class _ImageState extends State<_Image> {
   late Uint8List _currentPositionUint8List;
   late ResizeImage _memoryImage;
+
+  late final ImageProvider _placeHolder;
+
   @override
   void initState() {
     _currentPositionUint8List = base64.decode(widget.currentPositionBase64);
@@ -255,13 +259,18 @@ class __ImageState extends State<_Image> {
       width: 480,
       height: 280,
     );
+    _placeHolder = const ResizeImage(
+      App.IMAGE_BLACK,
+      width: 480,
+      height: 280,
+    );
+    scheduleMicrotask(_precacheImage);
     super.initState();
   }
 
-  @override
-  void didChangeDependencies() {
+  void _precacheImage() {
     precacheImage(_memoryImage, context);
-    super.didChangeDependencies();
+    precacheImage(_placeHolder, context);
   }
 
   @override
@@ -279,9 +288,11 @@ class __ImageState extends State<_Image> {
 
   @override
   Widget build(BuildContext context) {
-    return Image(
+    return FadeInImage(
+      placeholder: _placeHolder,
       image: _memoryImage,
       fit: BoxFit.cover,
+      placeholderFit: BoxFit.cover,
     );
   }
 }

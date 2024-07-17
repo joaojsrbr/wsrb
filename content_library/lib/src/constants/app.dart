@@ -32,6 +32,9 @@ class App {
   static const ImageProvider DEFAULT_IMAGE_PLACEHOLDER =
       AssetImage('assets/default-placeholder.png');
 
+  static const ImageProvider IMAGE_GRAY = AssetImage('assets/gray_color.png');
+  static const ImageProvider IMAGE_BLACK = AssetImage('assets/black_color.jpg');
+
   static const String APP_MAIN_BOX_NAME = 'WSRB_HIVE';
   static const String APP_CACHE_BOX_NAME = 'WSRB_HIVE_CACHE';
   // static const String APP_CACHE_TASK_DELETE_BY_ID = 'TASK_CLEAR_CACHE_BY_ID';
