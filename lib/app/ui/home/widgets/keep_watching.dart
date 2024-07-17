@@ -20,11 +20,13 @@ class KeepWatching extends StatelessWidget {
     final LibraryController libraryController =
         context.watch<LibraryController>();
 
+    final HomeScope scope = HomeScope.of(context);
+
     final ThemeData themeData = Theme.of(context);
 
     final TextTheme textTheme = themeData.textTheme;
 
-    final TabController tabController = HomeScope.of(context).tabController;
+    final TabController tabController = scope.tabController;
 
     final LibraryService libraryService = LibraryService(libraryController);
 
@@ -44,9 +46,10 @@ class KeepWatching extends StatelessWidget {
               height: 180,
               width: double.infinity,
               child: ListView.builder(
+                controller: scope.keepWatchingScrollController,
                 padding: const EdgeInsets.only(left: 12, top: 12),
                 scrollDirection: Axis.horizontal,
-                shrinkWrap: true,
+                // shrinkWrap: true,
                 physics: const BouncingScrollPhysics(),
                 itemCount: sortedByCreatedAt.length,
                 itemBuilder: (context, index) {
@@ -57,11 +60,6 @@ class KeepWatching extends StatelessWidget {
                     EpisodeEntity data => Builder(builder: (context) {
                         final anime = libraryService.getContentEntityByStringID(
                             data.animeStringID) as AnimeEntity?;
-                        Uint8List? currentPositionUint8List;
-                        if (data.currentPositionBase64 != null) {
-                          currentPositionUint8List =
-                              base64.decode(data.currentPositionBase64!);
-                        }
 
                         return Padding(
                           padding: const EdgeInsets.only(
@@ -100,16 +98,10 @@ class KeepWatching extends StatelessWidget {
                                           stops: const [0.00, 1.0],
                                         ).createShader(bounds);
                                       },
-                                      child: currentPositionUint8List != null
-                                          ? Image.memory(
-                                              currentPositionUint8List,
-                                              fit: BoxFit.cover,
-                                              key: ObjectKey(
-                                                index,
-                                              ),
-                                              cacheWidth: 480,
-                                              cacheHeight: 280,
-                                            )
+                                      child: data.currentPositionBase64 != null
+                                          ? _Image(
+                                              currentPositionBase64:
+                                                  data.currentPositionBase64!)
                                           : data.thumbnail != null
                                               ? CachedNetworkImage(
                                                   fit: BoxFit.cover,
@@ -237,6 +229,59 @@ class KeepWatching extends StatelessWidget {
                 },
               ),
             ),
+    );
+  }
+}
+
+class _Image extends StatefulWidget {
+  const _Image({
+    required this.currentPositionBase64,
+  });
+
+  final String currentPositionBase64;
+
+  @override
+  State<_Image> createState() => __ImageState();
+}
+
+class __ImageState extends State<_Image> {
+  late Uint8List _currentPositionUint8List;
+  late ResizeImage _memoryImage;
+  @override
+  void initState() {
+    _currentPositionUint8List = base64.decode(widget.currentPositionBase64);
+    _memoryImage = ResizeImage(
+      MemoryImage(_currentPositionUint8List),
+      width: 480,
+      height: 280,
+    );
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    precacheImage(_memoryImage, context);
+    super.didChangeDependencies();
+  }
+
+  @override
+  void didUpdateWidget(covariant _Image oldWidget) {
+    if (widget.currentPositionBase64 != oldWidget.currentPositionBase64) {
+      _currentPositionUint8List = base64.decode(widget.currentPositionBase64);
+      _memoryImage = ResizeImage(
+        MemoryImage(_currentPositionUint8List),
+        width: 480,
+        height: 280,
+      );
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Image(
+      image: _memoryImage,
+      fit: BoxFit.cover,
     );
   }
 }

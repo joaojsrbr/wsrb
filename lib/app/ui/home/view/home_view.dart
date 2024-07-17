@@ -30,6 +30,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   late final CustomSearchController _searchController;
   late final ScrollController _scrollController;
   late SubordinateLibraryTabController _subordinateLibraryTabController;
+  late final ScrollController _keepWatchingScrollController;
   late final CategoryController _categoryController;
   late final ValueNotifierList _valueNotifierList;
   late final RailMenuController _railMenuController;
@@ -42,7 +43,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     _tabController = TabController(vsync: this, length: 3)
       ..addListener(_tabControllerListener);
 
-    _scrollController = ScrollController();
+    _scrollController = ScrollController()
+      ..addListener(_scrollControllerListener);
+
+    _keepWatchingScrollController = ScrollController();
 
     _searchController = CustomSearchController();
 
@@ -88,6 +92,16 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         length: length,
       );
       _subordinateLibraryTabController = newTabController;
+    }
+  }
+
+  void _scrollControllerListener() {
+    if (_scrollController.offset <= 10.0) {
+      _keepWatchingScrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.ease,
+      );
     }
   }
 
@@ -143,6 +157,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       ..insert(0, const Tab(text: 'Padrão', key: ValueKey('Padrão')));
 
     return HomeScope(
+      keepWatchingScrollController: _keepWatchingScrollController,
       homeController: _scrollController,
       subordinateLibraryTabController: _subordinateLibraryTabController,
       searchController: _searchController,
@@ -269,10 +284,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     _tabController
       ..removeListener(_tabControllerListener)
       ..dispose();
-    _railMenuController.dispose();
     _searchController.dispose();
+    _keepWatchingScrollController.dispose();
     _categoryController.removeListener(_startTabController);
-    _scrollController.dispose();
+    _scrollController
+      ..removeListener(_scrollControllerListener)
+      ..dispose();
     _valueNotifierList.removeListener(_valueNotifierListListener);
     super.dispose();
   }

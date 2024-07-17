@@ -55,7 +55,6 @@ class _ContentDestinationState extends State<ContentDestination>
         child: LoadingMoreList(
           ListConfig<Content>(
             physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             indicatorBuilder: contentIndicatorBuilder,
             itemBuilder: _itemBuilder,

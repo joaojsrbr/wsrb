@@ -71,7 +71,9 @@ class _HomeRailMenuState extends State<HomeRailMenu> {
 
   @override
   void dispose() {
-    _railMenuController.removeListener(_listener);
+    _railMenuController
+      ..removeListener(_listener)
+      ..dispose();
 
     super.dispose();
   }
@@ -97,7 +99,9 @@ class _RailMenuControllerScope extends InheritedWidget {
 
   @override
   bool updateShouldNotify(_RailMenuControllerScope oldWidget) {
-    return true;
+    return railMenuController._openMenu !=
+            oldWidget.railMenuController._openMenu ||
+        railMenuController._menuSize != oldWidget.railMenuController.menuSize;
   }
 }
 

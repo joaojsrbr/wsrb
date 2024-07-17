@@ -9,6 +9,7 @@ class HomeScope extends InheritedNotifier<Listenable> {
     required this.tabController,
     required this.homeController,
     required this.searchController,
+    required this.keepWatchingScrollController,
     required this.subordinateLibraryTabController,
   }) : super(
             notifier: Listenable.merge([tabController, searchController]),
@@ -21,6 +22,7 @@ class HomeScope extends InheritedNotifier<Listenable> {
   final ScrollController homeController;
   final SubordinateLibraryTabController subordinateLibraryTabController;
   final bool enabled;
+  final ScrollController keepWatchingScrollController;
 
   static HomeScope? maybeOf(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<HomeScope>();

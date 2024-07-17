@@ -1,6 +1,5 @@
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_rail_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/image_filter.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:content_library/content_library.dart';

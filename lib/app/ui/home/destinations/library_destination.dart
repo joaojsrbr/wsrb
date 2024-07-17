@@ -151,7 +151,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
         child: GridView.builder(
           itemCount: filter.length,
           physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
+          // shrinkWrap: true,
           padding: const EdgeInsets.only(left: 8, right: 8, top: 12),
           gridDelegate: gridDelegate,
           itemBuilder: (context, index) {
