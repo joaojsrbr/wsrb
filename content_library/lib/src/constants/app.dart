@@ -5,19 +5,14 @@ import 'package:flutter/material.dart';
 class App {
   const App._();
 
-  /// [URL] do site da NeoxScan [SCAN].
   static const String NEOX_URL = 'https://nexoscans.com';
 
-  /// [URL] do site da Demonsect [SCAN].
   static const String DEMON_SECT_URL = 'https://demonsect.com.br';
 
-  /// [URL] do site da Goyabu [SCAN].
   static const String GOYABU_URL = 'https://goyabu.to';
 
-  /// [URL] do site da Anroll [ANIME].
   static const String ANROLL_URL = 'https://www.anroll.net';
 
-  /// [URL] da api da Anroll [ANIME].
   static const String ANROLL_USER_URL = 'https://api-user.anroll.net';
 
   static Map<String, String> HEADERS = {
@@ -25,10 +20,8 @@ class App {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
   };
 
-  /// [URL] da api da AniList.
   static const String ANI_LIST = 'https://graphql.anilist.co';
 
-  /// default [Image] placehold
   static const ImageProvider DEFAULT_IMAGE_PLACEHOLDER =
       AssetImage('assets/default-placeholder.png');
 

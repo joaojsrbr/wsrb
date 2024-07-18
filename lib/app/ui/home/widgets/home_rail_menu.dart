@@ -19,11 +19,11 @@ class HomeRailMenu extends StatefulWidget {
   final Widget child;
 
   static RailMenuController? menuControllerMaybeOf(BuildContext context) {
-    return _RailMenuControllerScope.maybeOf(context)?.railMenuController;
+    return _RailMenuControllerScope.maybeOf(context)?.notifier;
   }
 
   static RailMenuController menuControllerOf(BuildContext context) {
-    return _RailMenuControllerScope.of(context).railMenuController;
+    return _RailMenuControllerScope.of(context).notifier!;
   }
 
   @override
@@ -35,57 +35,46 @@ class _HomeRailMenuState extends State<HomeRailMenu> {
 
   @override
   void initState() {
-    _railMenuController = (widget.railMenuController ?? RailMenuController())
-      ..addListener(_listener);
+    _railMenuController = (widget.railMenuController ?? RailMenuController());
     super.initState();
   }
 
   @override
-  void setState(VoidCallback fn) {
-    if (mounted) super.setState(fn);
-  }
-
-  void _listener() {
-    setState(() {});
-  }
-
-  @override
   Widget build(BuildContext context) {
-    // final sizeOf = MediaQuery.sizeOf(context);
-
     return _RailMenuControllerScope(
-      railMenuController: _railMenuController,
-      child: Stack(
-        children: [
-          Positioned.fill(child: widget.child),
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 350),
-            right: 0,
-            width: _railMenuController.isOpen ? 50 : 0,
-            child: const _LibraryButtons(),
-          )
-        ],
-      ),
+      notifier: _railMenuController,
+      child: Builder(builder: (context) {
+        final railMenuController = HomeRailMenu.menuControllerOf(context);
+        return Stack(
+          children: [
+            Positioned.fill(child: widget.child),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 350),
+              right: 0,
+              width: railMenuController.isOpen
+                  ? railMenuController.menuSize.width
+                  : 0,
+              child: const _LibraryButtons(),
+            )
+          ],
+        );
+      }),
     );
   }
 
   @override
   void dispose() {
-    _railMenuController
-      ..removeListener(_listener)
-      ..dispose();
+    _railMenuController.dispose();
 
     super.dispose();
   }
 }
 
-class _RailMenuControllerScope extends InheritedWidget {
+class _RailMenuControllerScope extends InheritedNotifier<RailMenuController> {
   const _RailMenuControllerScope({
     required super.child,
-    required this.railMenuController,
+    required super.notifier,
   });
-
-  final RailMenuController railMenuController;
 
   static _RailMenuControllerScope of(BuildContext context) {
     return context
@@ -99,42 +88,33 @@ class _RailMenuControllerScope extends InheritedWidget {
 
   @override
   bool updateShouldNotify(_RailMenuControllerScope oldWidget) {
-    return railMenuController._openMenu !=
-            oldWidget.railMenuController._openMenu ||
-        railMenuController._menuSize != oldWidget.railMenuController.menuSize;
+    return notifier?.isOpen != oldWidget.notifier?.isOpen ||
+        notifier?.menuSize != oldWidget.notifier?.menuSize;
   }
 }
 
 class RailMenuController extends ChangeNotifier {
-  RailMenuController({bool? opened}) {
+  RailMenuController({bool? opened, double minWidth = 50}) {
     _openMenu = opened ?? false;
+    _menuSize = Size.fromWidth(minWidth);
   }
 
-  Size? _menuSize;
+  late Size _menuSize;
 
-  Size get menuSize => _menuSize ?? Size.zero;
-
-  void _setMenuSize([double? width]) {
-    _menuSize = Size.fromWidth(width ?? 50);
-  }
-
-  // final GlobalKey _container = GlobalKey();
+  Size get menuSize => _menuSize;
 
   void open() {
     _openMenu = true;
-    _setMenuSize();
     notifyListeners();
   }
 
   void close() {
     _openMenu = false;
-    _setMenuSize();
     notifyListeners();
   }
 
   void toogle() {
     _openMenu = !_openMenu;
-    _setMenuSize();
     notifyListeners();
   }
 
@@ -162,11 +142,10 @@ class _LibraryButtons extends StatelessWidget {
       animation: scrollable.position,
       builder: (context, child) {
         final paddingPercent =
-            ((scrollable.position.pixels).clamp(0.0, 100) / 100);
+            ((scrollable.position.pixels - 330).clamp(0.0, 100) / 100);
 
         final padding = (100 * paddingPercent).clamp(10.0, 50.0);
-        // ((tabController.index == 1 ? 100 : 100) * paddingPercent)
-        //     .clamp(10.0, tabController.index == 1 ? 100.0 : 100.0);
+
         return Padding(
           padding: EdgeInsets.only(top: padding),
           child: Card.filled(
@@ -207,8 +186,8 @@ class _LibraryButtons extends StatelessWidget {
                       valueNotifierList.clear();
                     },
                     icon: FadeThroughTransitionSwitcher(
-                      enableSecondChild: valueNotifierList.length != 1,
-                      duration: const Duration(milliseconds: 450),
+                      enableSecondChild: valueNotifierList.length > 1,
+                      duration: const Duration(milliseconds: 250),
                       secondChild: Icon(MdiIcons.plusBoxMultiple),
                       child: Icon(MdiIcons.plusBox),
                     ),
@@ -255,8 +234,8 @@ class _LibraryButtons extends StatelessWidget {
                       valueNotifierList.clear();
                     },
                     icon: FadeThroughTransitionSwitcher(
-                      enableSecondChild: valueNotifierList.length != 1,
-                      duration: const Duration(milliseconds: 450),
+                      enableSecondChild: valueNotifierList.length > 1,
+                      duration: const Duration(milliseconds: 250),
                       secondChild: Icon(MdiIcons.minusBoxMultiple),
                       child: Icon(MdiIcons.minusBox),
                     ),
@@ -270,8 +249,8 @@ class _LibraryButtons extends StatelessWidget {
                           }
                         : null,
                     icon: FadeThroughTransitionSwitcher(
-                      enableSecondChild: valueNotifierList.length != 1,
-                      duration: const Duration(milliseconds: 450),
+                      enableSecondChild: valueNotifierList.length > 1,
+                      duration: const Duration(milliseconds: 250),
                       secondChild: Icon(MdiIcons.tagMultiple),
                       child: Icon(MdiIcons.tag),
                     ),
