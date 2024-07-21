@@ -145,7 +145,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       (CategoryEntity entity) {
         return GestureDetector(
           onLongPress: () {
-            CategoryUtils().createCategory(context, entity);
+            CategoryUtils.createCategory(context, entity);
           },
           child: Tab(
             text: entity.title,
@@ -204,8 +204,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   actions: [
                     if (identical(tabController.index, 1))
                       IconButton(
-                        onPressed: () =>
-                            CategoryUtils().createCategory(context),
+                        onPressed: () => CategoryUtils.createCategory(context),
                         icon: Icon(MdiIcons.tag),
                       ),
                   ],

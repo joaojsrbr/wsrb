@@ -123,8 +123,7 @@ class HomeBottomOverlay extends StatelessWidget {
                 onPressed: libraryService.favoritesIDS
                         .any((id) => valueNotifierList.contains(id))
                     ? () {
-                        final CategoryUtils utils = CategoryUtils();
-                        utils.selectCategory(context);
+                        CategoryUtils.selectCategory(context);
                       }
                     : null,
                 icon: FadeThroughTransitionSwitcher(

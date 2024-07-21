@@ -6,7 +6,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:provider/provider.dart';
 
 class CategoryUtils {
-  Future<void> selectCategory(BuildContext context) async {
+  static Future<void> selectCategory(BuildContext context) async {
     final ValueNotifierList valueNotifierList =
         context.read<ValueNotifierList>();
 
@@ -137,14 +137,7 @@ class CategoryUtils {
     }
   }
 
-  void _unFocus(BuildContext context) {
-    final FocusScopeNode currentFocus = FocusScope.of(context);
-    if (!currentFocus.hasPrimaryFocus) {
-      currentFocus.focusedChild?.unfocus();
-    }
-  }
-
-  Future<void> createCategory(BuildContext context,
+  static Future<void> createCategory(BuildContext context,
       [CategoryEntity? category]) async {
     final WidgetStatesController statesController = WidgetStatesController();
     final TextEditingController controller = TextEditingController();
@@ -286,11 +279,11 @@ class CategoryUtils {
                                         category.add(entity);
                                         controller.clear();
                                         editEntity.value = null;
-                                        _unFocus(context);
+                                        context.unFocusKeyBoard();
                                         return;
                                       }
                                       saveForm();
-                                      _unFocus(context);
+                                      context.unFocusKeyBoard();
                                     },
                                     controller: controller,
                                     focusNode: focusNode,
@@ -332,7 +325,7 @@ class CategoryUtils {
                                             category.add(entity);
                                             controller.clear();
                                             editEntity.value = null;
-                                            _unFocus(context);
+                                            context.unFocusKeyBoard();
                                             return;
                                           }
                                           saveForm();
