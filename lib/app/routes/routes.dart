@@ -1,5 +1,6 @@
 // ignore_for_file: constant_identifier_names, non_constant_identifier_names
 
+import 'package:app_wsrb_jsr/app/ui/download/view/download_view.dart';
 import 'package:content_library/content_library.dart';
 
 import 'package:app_wsrb_jsr/app/routes/shared_axis_transition_page_wrapper.dart';
@@ -16,7 +17,7 @@ class RouteName {
   static const String CONTENTINFO = '/contentInfo';
   static const String READ = '/read';
   static const String PLAYER = '/player';
-  // static const WEBVIEW = '/web_view';
+  static const String DOWNLOAD = '/downloadView';
   // static const CATEGORY = '/category';
   // static const TEST = '/test';
 }
@@ -40,6 +41,16 @@ final appRoutes = GoRouter(
               arguments: state.extra,
               transitionKey: state.pageKey,
               screen: const BookInformationView(),
+            );
+          },
+        ),
+        GoRoute(
+          path: RouteName.DOWNLOAD.subRouter,
+          pageBuilder: (context, state) {
+            return SharedAxisTransitionPageWrapper(
+              arguments: state.extra,
+              transitionKey: state.pageKey,
+              screen: const DownloadView(),
             );
           },
         ),

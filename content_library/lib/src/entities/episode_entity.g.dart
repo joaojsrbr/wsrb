@@ -196,9 +196,9 @@ EpisodeEntity _episodeEntityDeserialize(
   final object = EpisodeEntity(
     animeStringID: reader.readString(offsets[0]),
     createdAt: reader.readDateTimeOrNull(offsets[1]),
-    currentDuration: reader.readLong(offsets[2]),
+    currentDuration: reader.readLongOrNull(offsets[2]) ?? 0,
     currentPositionBase64: reader.readStringOrNull(offsets[3]),
-    episodeDuration: reader.readLong(offsets[4]),
+    episodeDuration: reader.readLongOrNull(offsets[4]) ?? 0,
     generateID: reader.readStringOrNull(offsets[5]),
     isComplete: reader.readBoolOrNull(offsets[6]) ?? false,
     numberEpisode: reader.readLongOrNull(offsets[7]),
@@ -226,11 +226,11 @@ P _episodeEntityDeserializeProp<P>(
     case 1:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
+      return (reader.readLongOrNull(offset) ?? 0) as P;
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readLong(offset)) as P;
+      return (reader.readLongOrNull(offset) ?? 0) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:

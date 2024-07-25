@@ -2,8 +2,8 @@ import 'package:content_library/content_library.dart';
 
 class LibraryService {
   final LibraryController _libraryController;
-
-  const LibraryService(this._libraryController);
+  final HiveController _hiveController;
+  const LibraryService(this._libraryController, this._hiveController);
 
   UnmodifiableListView<ContentEntity> get entities =>
       _libraryController.entities;
@@ -17,11 +17,12 @@ class LibraryService {
       .map(_map)
       .nonNulls);
 
-  static Iterable<HistoryEntity>? getIsarLinks(ContentEntity element) {
+  Iterable<HistoryEntity>? getIsarLinks(ContentEntity element) {
     return switch (element) {
       AnimeEntity data => data.episodes
           .where((episode) =>
-              !episode.isComplete && !(episode.videoPercent < 0.20))
+              !episode.isComplete &&
+              (episode.videoPercent > _hiveController.historicSavePercent))
           .toList(),
       BookEntity data =>
         data.chapters.where((episode) => !episode.isComplete).toList(),
@@ -94,7 +95,8 @@ class LibraryService {
 
   ContentEntity? getContentEntityByStringID(String animeStringID) {
     return entities.firstWhereOrNull((content) => switch (content) {
-          AnimeEntity data => data.stringID.contains(animeStringID),
+          AnimeEntity data => data.stringID.contains(animeStringID) ||
+              data.animeID?.contains(animeStringID) == true,
           BookEntity data => data.stringID.contains(animeStringID),
           _ => false,
         });

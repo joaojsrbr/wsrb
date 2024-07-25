@@ -1,14 +1,15 @@
 import 'dart:async';
 
+import 'package:android_pip/actions/pip_action.dart';
+import 'package:android_pip/android_pip.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_pip.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
-import 'package:simple_pip_mode/actions/pip_action.dart';
-import 'package:simple_pip_mode/simple_pip.dart';
 
 mixin PlayerAudioHandlerMixin
     on
@@ -55,22 +56,34 @@ mixin PlayerAudioHandlerMixin
       case PipAction.previous:
       case PipAction.next:
       case PipAction.live:
-      case PipAction.none:
+      case PipAction.rewind:
+      case PipAction.forward:
     }
   }
 
-  void handleEnterInPip() {
-    simplePip.enterPipMode(seamlessResize: true);
+  void handleEnterInPip() async {
+    await draggableScrollableController.animateTo(
+      1.0,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.ease,
+    );
+    setState(() => isPipActivated = true);
+    WidgetsBinding.instance.addPostFrameCallback((timer) {
+      AndroidPIP().enterPipMode(seamlessResize: true);
+    });
   }
 
   @override
-  void onPipState(PipState pipState) {
-    this.pipState = pipState;
-    switch (pipState) {
-      case PipState.pipEntered:
-      case PipState.pipExited:
-      case PipState.none:
-    }
+  void onPipChange() async {
+    isPipActivated = await AndroidPIP.isPipActivated;
+    setState(() {});
+    // customLog("PipState[$pipState]");
+    // this.pipState = pipState;
+    // switch (pipState) {
+    //   case PipState.pipEntered:
+    //   case PipState.pipExited:
+    //   case PipState.none:
+    // }
   }
 
   @override

@@ -56,7 +56,7 @@ class DownloadService extends ChangeNotifier {
 
           if (selected.videoContent.contains('m3u8')) {
             final releaseDir = Directory(
-                '${AppStorage.DOWNLOAD_DIR.path}/wsrb/${content.title}');
+                '${AppStorage.DOWNLOAD_DIR.path}/wsrb/${content.title.toID}');
 
             if (!await releaseDir.exists()) {
               await releaseDir.create(recursive: true);
@@ -104,13 +104,13 @@ class DownloadService extends ChangeNotifier {
                   onResult?.call(Result.failure(Exception(returnCode)));
                 }
               },
-              // (test) => customLog(test.getMessage()),
-              null,
+              (test) => customLog(test.getMessage()),
               (status) async {
                 (downloadList.firstWhere(
                   (info) => info.releaseId == release.stringID,
                   orElse: () {
                     final info = DownloadInfo(
+                      path: '${releaseDir.path}/episodio_${release.number}.mp4',
                       id: status.getSessionId(),
                       releaseId: release.stringID,
                       isDownloading: true,
@@ -154,10 +154,12 @@ class DownloadInfo with ChangeNotifier {
   String releaseId;
   double speed;
   double bitrate;
+  String path;
 
   DownloadInfo({
     required this.id,
     required this.releaseId,
+    required this.path,
     this.bitrate = 0.0,
     this.speed = 0.0,
     this.isDownloading = false,

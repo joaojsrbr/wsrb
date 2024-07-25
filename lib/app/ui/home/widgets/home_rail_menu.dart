@@ -134,7 +134,8 @@ class _LibraryButtons extends StatelessWidget {
     final ContentRepository repository = context.read<ContentRepository>();
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
-    final LibraryService libraryService = LibraryService(libraryController);
+    final LibraryService libraryService =
+        LibraryService(libraryController, context.watch());
 
     final ScrollableState scrollable = Scrollable.of(context);
     final TabController tabController = HomeScope.of(context).tabController;

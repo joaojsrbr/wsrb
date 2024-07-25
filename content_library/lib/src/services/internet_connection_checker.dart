@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -14,9 +13,11 @@ class ConnectionChecker extends ChangeNotifier {
       _internetConnectionChecker.onStatusChange.listen((status) {
         switch (status) {
           case InternetConnectionStatus.connected:
+            _connectivityResult = [ConnectivityResult.wifi];
             _hasConnection = true;
             break;
           case InternetConnectionStatus.disconnected:
+            _connectivityResult = [ConnectivityResult.none];
             _hasConnection = false;
             break;
         }
@@ -25,6 +26,7 @@ class ConnectionChecker extends ChangeNotifier {
       Connectivity()
           .onConnectivityChanged
           .listen((List<ConnectivityResult> result) async {
+        _connectivityResult = result;
         if (result.contains(ConnectivityResult.vpn) &&
             !result.contains(ConnectivityResult.wifi)) {
           _hasConnection = !(await InternetConnectionChecker().hasConnection);
@@ -38,13 +40,16 @@ class ConnectionChecker extends ChangeNotifier {
   }
 
   bool _hasConnection = false;
+  List<ConnectivityResult> _connectivityResult = [ConnectivityResult.none];
 
   bool get hasConnection => _hasConnection;
+  List<ConnectivityResult> get connectivityResult => _connectivityResult;
 
   final Subscriptions _subscriptions = Subscriptions();
 
   Future<void> start() async {
     final result = await Connectivity().checkConnectivity();
+    _connectivityResult = result;
     if (result.contains(ConnectivityResult.vpn) &&
         !result.contains(ConnectivityResult.wifi)) {
       _hasConnection = !(await InternetConnectionChecker().hasConnection);

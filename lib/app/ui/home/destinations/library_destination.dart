@@ -42,7 +42,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
     _libraryController = context.read<LibraryController>()
       ..addListener(_setChildren);
 
-    _libraryService = LibraryService(_libraryController);
+    _libraryService = LibraryService(_libraryController, context.read());
 
     _categoryController = context.read<CategoryController>()
       ..addListener(_setChildren);

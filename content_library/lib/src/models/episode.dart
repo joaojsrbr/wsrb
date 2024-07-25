@@ -1,7 +1,5 @@
 import 'package:content_library/content_library.dart';
 
-import 'release.dart';
-
 class Episode extends Release {
   const Episode({
     required super.url,
@@ -44,4 +42,23 @@ class Episode extends Release {
     return numberEpisode?.toString() ??
         title.replaceAll(RegExp(r'[^0-9]'), '').trim();
   }
+
+  EpisodeEntity toEntity({
+    required Anime anime,
+    DateTime? updatedAt,
+    DateTime? createdAt,
+  }) =>
+      EpisodeEntity(
+        title: title,
+        animeStringID: anime.stringID,
+        generateID: generateID,
+        slugSerie: slugSerie,
+        url: url,
+        thumbnail: thumbnail,
+        createdAt: createdAt ?? DateTime.now(),
+        updatedAt: updatedAt ?? DateTime.now(),
+        stringID: stringID,
+        sinopse: sinopse,
+        numberEpisode: int.tryParse(number),
+      );
 }

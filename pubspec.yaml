@@ -68,11 +68,12 @@ dependencies:
   webview_flutter: ^4.8.0
   audio_service: ^0.18.13
   audio_session: ^0.1.19
-  simple_pip_mode:
-    path: ../simple_pip_mode_flutter
+  android_pip: ^1.1.0
   flutter_image_converter: ^0.3.3
   border_progress_indicator: ^0.0.3
   # screenshot: ^3.0.0
+  video_thumbnail: ^0.5.3
+  # fl_pip: ^2.0.0
 
 dev_dependencies:
   flutter_test:

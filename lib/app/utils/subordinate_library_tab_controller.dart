@@ -12,7 +12,7 @@ class SubordinateLibraryTabController extends TabController {
   // int get _currentIndex => 1;
 
   final Debouncer _changePageDebouncer = Debouncer(
-    duration: const Duration(milliseconds: 200),
+    duration: const Duration(milliseconds: 100),
   );
 
   PageController? _parent;
@@ -58,21 +58,23 @@ class SubordinateLibraryTabController extends TabController {
 
   Future<void> parentNextPage() async {
     if (_parent?.page == null) return;
-    await _parent?.animateToPage(
-      _parent!.page!.toInt() + 1,
-      duration: kTabScrollDuration,
-      curve: Curves.ease,
-    );
+    _parent?.position.context.setIgnorePointer(true);
+    // await _parent?.animateToPage(
+    //   _parent!.page!.toInt() + 1,
+    //   duration: kTabScrollDuration,
+    //   curve: Curves.ease,
+    // );
     _changePage = false;
   }
 
   Future<void> parentPreviousPage() async {
     if (_parent?.page == null) return;
-    await _parent?.animateToPage(
-      _parent!.page!.toInt() - 1,
-      duration: kTabScrollDuration,
-      curve: Curves.ease,
-    );
+    _parent?.position.context.setIgnorePointer(true);
+    // await _parent?.animateToPage(
+    //   _parent!.page!.toInt() - 1,
+    //   duration: kTabScrollDuration,
+    //   curve: Curves.ease,
+    // );
     _changePage = false;
   }
 

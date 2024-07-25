@@ -2,17 +2,19 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:android_pip/actions/pip_actions_layout.dart';
+import 'package:android_pip/android_pip.dart';
+import 'package:android_pip/pip_widget.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_screenshot_.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
-import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
-import 'package:simple_pip_mode/pip_widget.dart';
 
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
@@ -23,7 +25,6 @@ import 'package:app_wsrb_jsr/app/ui/player/widgets/material_video_controls.dart'
 import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
-import 'package:simple_pip_mode/simple_pip.dart';
 
 class PlayerView extends StatefulWidget {
   const PlayerView({super.key});
@@ -65,6 +66,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   final double _maxValueCircularAnimation = 1.0;
   double _currentValueCircularAnimation = 0;
   late final ContentRepository _repository;
+  late final HiveController _hiveController;
   late final LibraryController _libraryController;
   late final HistoricController _historicController;
   late final Timer _systemUIModeTimer;
@@ -84,6 +86,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   Timer? _setContinueVideoTimer;
 
   bool get _hasNextEpisode {
+    if (!_playerArgs.getAnimeData || _playerArgs.anime.releases.isEmpty) {
+      return false;
+    }
     return !(_playerArgs.anime.releases.last.stringID
         .contains(_playerArgs.episode.stringID));
   }
@@ -99,7 +104,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
       final Duration duration = player!.state.duration;
 
-      return ((position.inMilliseconds / duration.inMilliseconds)).abs();
+      return ((position.inMicroseconds / duration.inMicroseconds)).abs();
     }
     return 0.0;
   }
@@ -108,6 +113,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _hiveController = context.read<HiveController>();
     _repository = context.read<ContentRepository>();
     BoxFit.values
         .where((fit) => !(fit == BoxFit.none || fit == _activeFit))
@@ -177,8 +183,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       case AppLifecycleState.inactive:
       case AppLifecycleState.resumed:
       case AppLifecycleState.resumed
-          when _playerRemoveListener &&
-              [PipState.none, PipState.pipExited].contains(pipState):
+          when _playerRemoveListener && !isPipActivated:
         _registerListeners(false);
       case AppLifecycleState.detached:
     }
@@ -187,7 +192,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _getInitMainVideoData() async {
-    if (_playerArgs.data != null) {
+    if (_playerArgs.data != null || !_playerArgs.getAnimeData) {
       _mainVideoData = _playerArgs.data;
       _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
       return;
@@ -213,6 +218,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _getAllEpisodes() async {
+    if (!_playerArgs.getAnimeData) return;
     Anime anime = _playerArgs.anime;
     if (_playerArgs.anime.releases.length == 1 ||
         _playerArgs.anime.releases.isEmpty) {
@@ -294,6 +300,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       await player!.seek(initPossition);
     }
 
+    if (!_playerArgs.getAnimeData) {
+      addPostFrameCallback((time) {
+        PlayerView.videoStateKey.currentState?.enterFullscreen();
+      });
+    }
+
     playbackState.add(playbackState.value.copyWith
         .call(processingState: AudioProcessingState.ready));
   }
@@ -330,7 +342,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   void _playingListener(bool playing) async {
     setSessionActive(playing);
     _status.setValue(playing: playing);
-    await simplePip.setIsPlaying(playing);
+    await AndroidPIP().setIsPlaying(playing);
   }
 
   void _durationListener(Duration duration) {
@@ -401,10 +413,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     customLog(
         '[$runtimeType][_continueVideoByHistoricPosition()][${entity.animeStringID}]');
 
-    final videoPercent =
-        ((entity.currentDuration / entity.episodeDuration)).abs();
+    // final videoPercent =
+    //     ((entity.currentDuration / entity.episodeDuration)).abs();
 
-    if (videoPercent < 0.20) return;
+    if (entity.currentDuration == 0) return;
+
+    // if (videoPercent < _hiveController.historicSavePercent) return;
 
     final GlobalKey anchor = GlobalKey();
 
@@ -442,8 +456,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     if (result == true && mounted) {
       _setContinueVideoTimer = null;
-      _seekInVideoPosition.value =
-          Duration(milliseconds: entity.currentDuration);
+      _seekInVideoPosition.value = entity.cdToDuration;
     }
   }
 
@@ -493,24 +506,34 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     final currentPositionBase64 = await videoScreenshotBase64();
     onSave?.call();
     _saveDataDebouncer.call(() async {
-      if (_videoPercent < 0.20) return;
+      if (_videoPercent < _hiveController.historicSavePercent) return;
 
       final Duration position = player!.state.position;
 
       final Duration duration = player!.state.duration;
 
+      final HistoryService historyService = HistoryService(_historicController);
+
+      final entity = historyService.entities
+          .firstWhereOrNull((episode) => switch (episode) {
+                EpisodeEntity data =>
+                  data.animeStringID.contains(_playerArgs.anime.stringID),
+                _ => false,
+              }) as EpisodeEntity?;
+
       bool isComplete = _videoPercent >= 0.85;
 
       final EpisodeEntity episodeEntity = EpisodeEntity(
-        currentDuration: position.inMilliseconds,
+        currentDuration: position.inMicroseconds,
         currentPositionBase64: currentPositionBase64,
         title: _playerArgs.episode.title,
         animeStringID: _playerArgs.anime.stringID,
         generateID: _playerArgs.episode.generateID,
         slugSerie: _playerArgs.episode.slugSerie,
         url: _playerArgs.episode.url,
-        episodeDuration: duration.inMilliseconds,
+        episodeDuration: duration.inMicroseconds,
         thumbnail: _playerArgs.episode.thumbnail,
+        createdAt: entity?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
         stringID: _playerArgs.episode.stringID,
         isComplete: isComplete,
@@ -542,8 +565,14 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     BuildContext context,
     PlayerArgs argument,
   ) {
+    //  if (!scope.playerArgs.getAnimeData && context.mounted) {
+    //   context.pop();
+    //   // Navigator.of(context).pop();
+    // }
     return PlayerScope(
-      simplePip: simplePip,
+      draggableScrollableController: draggableScrollableController,
+      onPipAction: onPipAction,
+      onPipChange: onPipChange,
       isPipActivated: isPipActivated,
       isPipAvailable: isPipAvailable,
       enterInPip: handleEnterInPip,
@@ -568,14 +597,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   @override
   void dispose() {
     customLog('[$runtimeType][dispose]');
-    if (_mainVideoData != null) {
-      player?.pause();
-      _saveVideoPosition(() async {
-        player?.dispose();
-      });
-    } else {
-      player?.dispose();
-    }
 
     _topTitle.dispose();
     _seekInVideoPosition.dispose();
@@ -592,6 +613,15 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     WidgetsBinding.instance.removeObserver(this);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
+    if (_mainVideoData != null) {
+      player?.pause();
+      _saveVideoPosition(() async {
+        setSessionActive(false);
+        player?.dispose();
+      });
+    } else {
+      player?.dispose();
+    }
     super.dispose();
   }
 }
@@ -671,6 +701,7 @@ class _BuildScaffold extends StatelessWidget {
           flex: 2,
           child: DraggableScrollableSheet(
             minChildSize: 0.8,
+            controller: scope.draggableScrollableController,
             initialChildSize: 1.0,
             builder: (context, scrollController) {
               return Column(
@@ -678,6 +709,13 @@ class _BuildScaffold extends StatelessWidget {
                   Flexible(
                     flex: 1,
                     child: PipWidget(
+                      onPipAction: scope.onPipAction,
+                      onPipEntered: scope.onPipChange,
+                      onPipExited: () {
+                        WidgetsBinding.instance.addPostFrameCallback((timer) {
+                          scope.onPipChange();
+                        });
+                      },
                       pipLayout: PipActionsLayout.media_only_pause,
                       pipChild: Video(
                         aspectRatio: 16 / 9,
@@ -721,9 +759,14 @@ class _BuildScaffold extends StatelessWidget {
                                 );
                               },
                         fit: activeFit,
-                        controls: (state) => !scope.isPipActivated
-                            ? CustomMaterialControls(state)
-                            : const SizedBox.shrink(),
+                        controls: (state) {
+                          final PlayerScope scopeFullScreen = PlayerScope.of(
+                              PlayerView.videoStateKey.currentContext!);
+                          if (!scopeFullScreen.isPipActivated) {
+                            return CustomMaterialControls(state);
+                          }
+                          return const SizedBox.shrink();
+                        },
                         key: PlayerView.videoStateKey,
                         controller: videoController,
                       ),
@@ -839,10 +882,6 @@ class _BuildScaffold extends StatelessWidget {
             },
           ),
         ),
-        // Expanded(
-        //   flex: 2,
-
-        // ),
       ]);
     }
 
@@ -862,7 +901,7 @@ class _BuildScaffold extends StatelessWidget {
   }
 }
 
-class _PlayerStatus {
+class _PlayerStatus with EquatableMixin {
   bool _playing = false;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
@@ -894,15 +933,13 @@ class _PlayerStatus {
   }
 
   @override
-  bool operator ==(covariant _PlayerStatus other) {
-    if (identical(this, other)) return true;
-
-    return other._playing == _playing &&
-        other._position == _position &&
-        other._duration == _duration &&
-        other._buffer == _buffer &&
-        other._completed == _completed;
-  }
+  List<Object?> get props => [
+        _playing,
+        _position,
+        _duration,
+        _buffer,
+        _completed,
+      ];
 
   int toHashCode(
     bool? playing,
@@ -916,14 +953,5 @@ class _PlayerStatus {
         duration.hashCode ^
         buffer.hashCode ^
         completed.hashCode;
-  }
-
-  @override
-  int get hashCode {
-    return _playing.hashCode ^
-        _position.hashCode ^
-        _duration.hashCode ^
-        _buffer.hashCode ^
-        _completed.hashCode;
   }
 }

@@ -28,24 +28,12 @@ class _BookInformationStateView
     with SubscriptionsMixin {
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = GlobalKey();
 
-  /// [ContentRepository] instance
   late final ContentRepository _repository;
-
   late final DownloadService _downloadService;
-
-  /// variable that controls page loading
   bool _isLoading = true;
-
-  /// variable that controls page loading
   bool _releasesIsLoading = false;
-
-  /// map of [Releases] list
   final Map<int, Releases> _releases = {};
-
-  /// [Content] instance
   Content? _content;
-
-  /// index relating to [_chapters]
   int _index = 0;
 
   @override
@@ -76,15 +64,35 @@ class _BookInformationStateView
   }
 
   Future<void> _downloadRelease(Release release) async {
+    final LibraryController libraryController =
+        context.read<LibraryController>();
+    final HistoricController historicController =
+        context.read<HistoricController>();
+
     switch (release) {
-      case Episode data when mounted:
+      case Episode data when mounted && _content is Anime:
         await _downloadService.downloadReleaseVideoByHLS(
           data,
           _content!,
           _repository,
-          statisticsCallback: (statistics) {},
-          onResult: (result) {
+          statisticsCallback: (statistics) async {},
+          onResult: (result) async {
             customLog(result.runtimeType);
+
+            if (result is Success) {
+              final animeEntity =
+                  _content!.toEntity(isFavorite: false) as AnimeEntity;
+
+              animeEntity.episodes.add(data.toEntity(anime: _content as Anime));
+
+              await libraryController.add(
+                contentEntity: _content!.toEntity(isFavorite: false),
+              );
+              await historicController.add(
+                historyEntity: data.toEntity(anime: _content as Anime),
+              );
+            }
+
             if ([Cancel, Failure, Success].contains(result.runtimeType)) {
               if (result is Success) {
                 customLog('Terminou');
@@ -150,7 +158,9 @@ class _BookInformationStateView
   Future<void> _onSucess(Content data, [bool onRefresh = false]) async {
     if (!mounted) return;
     final libraryController = context.read<LibraryController>();
-    final LibraryService libraryService = LibraryService(libraryController);
+
+    final LibraryService libraryService =
+        LibraryService(libraryController, context.read());
 
     if (data.releases.isEmpty) {
       await _getReleases(data, onRefresh);

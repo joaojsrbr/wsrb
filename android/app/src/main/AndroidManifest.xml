@@ -23,6 +23,7 @@
             android:configChanges="orientation|keyboardHidden|locale|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:exported="true"
             android:hardwareAccelerated="true"
+            android:enableOnBackInvokedCallback="true"
             android:launchMode="singleTop"
             android:requestLegacyExternalStorage="true"
             android:usesCleartextTraffic="true"

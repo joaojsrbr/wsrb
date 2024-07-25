@@ -1,3 +1,4 @@
+import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_rail_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/keep_watching.dart';
@@ -13,6 +14,7 @@ import 'package:app_wsrb_jsr/app/ui/home/destinations/settings_destination.dart'
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_view_flexible_space.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
@@ -202,10 +204,29 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         )
                       : null,
                   actions: [
+                    if ([0, 1].contains(tabController.index))
+                      Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: IconButton(
+                          visualDensity: const VisualDensity(horizontal: -4),
+                          onPressed: () async {
+                            if (await PermissionUtils.manageExternalStorage() &&
+                                context.mounted) {
+                              context.push(RouteName.DOWNLOAD);
+                            }
+                          },
+                          icon: Icon(MdiIcons.downloadBox),
+                        ),
+                      ),
                     if (identical(tabController.index, 1))
-                      IconButton(
-                        onPressed: () => CategoryUtils.createCategory(context),
-                        icon: Icon(MdiIcons.tag),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: IconButton(
+                          visualDensity: const VisualDensity(horizontal: -4),
+                          onPressed: () =>
+                              CategoryUtils.createCategory(context),
+                          icon: Icon(MdiIcons.tag),
+                        ),
                       ),
                   ],
                   automaticallyImplyLeading: false,

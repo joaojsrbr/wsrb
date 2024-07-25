@@ -64,22 +64,22 @@ class ThemeController extends ChangeNotifier {
     await _getSystemColorScheme();
   }
 
-  MaterialScheme get _lightScheme => MaterialTheme.lightScheme();
+  ColorScheme get _lightScheme => MaterialTheme.lightScheme();
 
-  MaterialScheme get _darkScheme => MaterialTheme.darkScheme();
+  ColorScheme get _darkScheme => MaterialTheme.darkScheme();
 
   ColorScheme get _lightColorScheme {
     if (_systemThemeMode && _lightSystemColorScheme != null) {
       return _lightSystemColorScheme!.harmonized();
     }
-    return _lightScheme.toColorScheme().harmonized();
+    return _lightScheme.harmonized();
   }
 
   ColorScheme get _darkColorScheme {
     if (_systemThemeMode && _darkSystemColorScheme != null) {
       return _darkSystemColorScheme!.harmonized();
     }
-    return _darkScheme.toColorScheme().harmonized();
+    return _darkScheme.harmonized();
   }
 
   Future<void> _getSystemColorScheme() async {

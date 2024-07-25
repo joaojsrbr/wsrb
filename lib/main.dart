@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 
 import 'package:media_kit/media_kit.dart';
 
+@pragma('vm:entry-point')
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
@@ -29,11 +30,14 @@ void main() async {
   final IsarServiceImpl isarServiceImpl = IsarServiceImpl();
   final ConnectionChecker connectionChecker = ConnectionChecker();
   final ValueNotifierList valueNotifierList = ValueNotifierList();
+
   final HiveService hiveServiceImpl = HiveServiceImpl(start: start);
+  await hiveServiceImpl.init();
+
   final HiveCacheServiceImpl hiveCacheServiceImpl = HiveCacheServiceImpl();
 
   final LibraryController libraryController =
-      LibraryController(isarServiceImpl);
+      LibraryController(isarServiceImpl, hiveController);
 
   final HistoricController historicController =
       HistoricController(isarServiceImpl);
@@ -55,7 +59,6 @@ void main() async {
     isarServiceImpl.startDatabase(onStart: libraryStart),
     hiveCacheServiceImpl.init(),
     PlayerAudioHandlerMixin.startPlayerAudio(),
-    hiveServiceImpl.init(),
     connectionChecker.start(),
   ]);
 

@@ -19,7 +19,11 @@ class _SettingsDestinationState extends State<SettingsDestination>
   @override
   bool get wantKeepAlive => true;
 
+  final GlobalKey _containerKey = GlobalKey();
+
   late final ThemeController _themeController;
+
+  double _sliderValue = 0.0;
 
   late final Queue<ThemeMode> _themeModeQueue;
 
@@ -28,6 +32,7 @@ class _SettingsDestinationState extends State<SettingsDestination>
     super.initState();
     _themeController = context.read<ThemeController>();
     _themeModeQueue = Queue.from(ThemeMode.values.where(test));
+    _sliderValue = context.read<HiveController>().historicSavePercent;
   }
 
   bool test(ThemeMode element) {
@@ -45,9 +50,11 @@ class _SettingsDestinationState extends State<SettingsDestination>
     super.build(context);
 
     final themeData = Theme.of(context);
+    final HiveController hiveController = context.watch<HiveController>();
     final textTheme = themeData.textTheme;
 
     return SettingsList(
+      contentPadding: const EdgeInsets.only(top: 8),
       brightness: themeData.brightness,
       shrinkWrap: false,
       physics: const NeverScrollableScrollPhysics(),
@@ -62,6 +69,66 @@ class _SettingsDestinationState extends State<SettingsDestination>
       sections: [
         _CustomSettingsSection(
           title: Text(
+            'Geral',
+            style: textTheme.titleLarge?.copyWith(
+              color: themeData.colorScheme.primary,
+            ),
+          ),
+          tiles: [
+            _PersonCustomSettingsTile(
+              key: _containerKey,
+              child: LayoutBuilder(builder: (context, boxConstraints) {
+                final connectivityResult =
+                    hiveController.connectivityResult == ConnectivityResult.none
+                        ? 'Todos'
+                        : hiveController.connectivityResult.name.capitalize;
+
+                return PopupMenuButton(
+                  padding: EdgeInsets.zero,
+                  initialValue: hiveController.connectivityResult,
+                  tooltip: connectivityResult,
+                  onSelected: hiveController.setConnectivityResult,
+                  constraints: boxConstraints,
+                  offset: const Offset(0, 65),
+                  child: IgnorePointer(
+                    child: SettingsTile(
+                      leading: Icon(MdiIcons.download),
+                      title: const Text('Download'),
+                      trailing: Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Text(
+                          connectivityResult,
+                          style: textTheme.titleSmall?.copyWith(),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // position:  RelativeRect.fromLTRB(left, top + 5, right, 0.0),
+                  itemBuilder: (context) {
+                    return [
+                      ConnectivityResult.none,
+                      ConnectivityResult.wifi,
+                      ConnectivityResult.mobile,
+                      ConnectivityResult.bluetooth,
+                    ].map((e) {
+                      return PopupMenuItem(
+                        value: e,
+                        enabled: hiveController.connectivityResult != e,
+                        child: ListTile(
+                          title: Text(e == ConnectivityResult.none
+                              ? 'Todos'
+                              : e.name.capitalize),
+                        ),
+                      );
+                    }).toList();
+                  },
+                );
+              }),
+            ),
+          ],
+        ),
+        _CustomSettingsSection(
+          title: Text(
             'Aparência',
             style: textTheme.titleLarge?.copyWith(
               color: themeData.colorScheme.primary,
@@ -69,7 +136,7 @@ class _SettingsDestinationState extends State<SettingsDestination>
           ),
           tiles: <SettingsTile>[
             SettingsTile.navigation(
-              onPressed: (context) async => await _setThemeMode(),
+              onPressed: (context) async => _setThemeMode(),
               leading: Builder(
                 builder: (context) {
                   bool enableSecondChild;
@@ -90,6 +157,7 @@ class _SettingsDestinationState extends State<SettingsDestination>
                       );
                   }
                   return FadeThroughTransitionSwitcher(
+                    duration: const Duration(milliseconds: 200),
                     enableSecondChild: enableSecondChild,
                     secondChild: icon,
                     child: icon,
@@ -118,6 +186,41 @@ class _SettingsDestinationState extends State<SettingsDestination>
             ),
           ],
         ),
+        _CustomSettingsSection(
+          title: Text(
+            'Player',
+            style: textTheme.titleLarge?.copyWith(
+              color: themeData.colorScheme.primary,
+            ),
+          ),
+          tiles: [
+            SettingsTile(
+              onPressed: null,
+              leading: Icon(MdiIcons.contentSaveCog),
+              title: const Text('Salvar histórico quando'),
+              value: SliderTheme(
+                data: const SliderThemeData(
+                  thumbShape: RoundSliderThumbShape(),
+                ),
+                child: Slider.adaptive(
+                  label: "${(_sliderValue * 100).toString()}%",
+                  value: _sliderValue,
+                  divisions: 8,
+                  onChangeEnd: hiveController.setHistoricSavePercent,
+                  onChanged: (value) {
+                    setStateIfMounted(() => _sliderValue = value);
+                  },
+                ),
+              ),
+            ),
+            SettingsTile.switchTile(
+              onToggle: (value) {},
+              initialValue: false,
+              leading: Icon(MdiIcons.brightness7),
+              title: const Text('Salvar Brilho'),
+            ),
+          ],
+        )
       ],
     );
   }
@@ -134,9 +237,27 @@ class _CustomSettingsSection extends SettingsSection {
     final widget = super.build(context);
     return Card(
       semanticContainer: true,
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      margin: const EdgeInsets.only(right: 8, left: 8, bottom: 10),
       child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
+        child: widget,
+      ),
+    );
+  }
+}
+
+class _PersonCustomSettingsTile extends CustomSettingsTile {
+  const _PersonCustomSettingsTile({
+    required super.child,
+    super.key,
+  });
+  @override
+  Widget build(BuildContext context) {
+    final widget = super.build(context);
+    return Card(
+      semanticContainer: true,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
         child: widget,
       ),
     );

@@ -90,7 +90,8 @@ class _BuildContentWidget extends StatelessWidget {
     final LibraryController libraryController =
         context.watch<LibraryController>();
 
-    final LibraryService libraryService = LibraryService(libraryController);
+    final LibraryService libraryService =
+        LibraryService(libraryController, context.watch());
 
     // customLog(opacity);
     // final size = MediaQuery.sizeOf(context);
@@ -230,7 +231,7 @@ class _BuildContentWidget extends StatelessWidget {
                             : null,
                       ),
                       overflow: TextOverflow.ellipsis,
-                      maxLines: opacity < 1.0 ? 1 : 3,
+                      maxLines: opacity < 1.0 ? 1 : 2,
                     ),
                   ),
                   const SizedBox(height: 2),

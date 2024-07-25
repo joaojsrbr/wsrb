@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:content_library/src/extensions/custom_extensions/string_extensions.dart';
 import 'package:content_library/src/models/content.dart';
 import 'package:content_library/src/models/release.dart';
 
@@ -16,6 +17,17 @@ class AppStorage {
     return Directory(path).existsSync();
   }
 
+  static List<FileSystemEntity>? getAllReleaseDir() {
+    final dirPath = '${AppStorage.DOWNLOAD_DIR.path}/wsrb/';
+
+    final dir = Directory(dirPath);
+
+    return switch (dir.existsSync()) {
+      true => dir.listSync(),
+      false => null,
+    };
+  }
+
   static Future<FileSystemEntity> deleteFile(String path,
       {bool recursive = false}) async {
     return await Directory(path).delete(recursive: recursive);
@@ -24,7 +36,8 @@ class AppStorage {
   static final DOWNLOAD_DIR = Directory('/storage/emulated/0/Download');
 
   static File? getReleaseFile(Content content, Release release) {
-    final dirPath = '${AppStorage.DOWNLOAD_DIR.path}/wsrb/${content.title}';
+    final dirPath =
+        '${AppStorage.DOWNLOAD_DIR.path}/wsrb/${content.title.toID}';
     final filePath = '$dirPath/episodio_${release.number}.mp4';
     final file = File(filePath);
     return switch (file.existsSync()) {

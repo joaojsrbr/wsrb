@@ -1,11 +1,11 @@
 // ignore_for_file: constant_identifier_names, library_private_types_in_public_api
 
+import 'package:android_pip/actions/pip_action.dart';
 import 'package:content_library/content_library.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:simple_pip_mode/simple_pip.dart';
 
 enum _PlayerScopeAspect {
   Player_PLAYERARGS,
@@ -37,9 +37,13 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
     required this.reversedCurrentDuration,
     required this.isPipAvailable,
     required this.isPipActivated,
-    required this.simplePip,
+    required this.onPipAction,
+    required this.onPipChange,
+    required this.draggableScrollableController,
   });
-  final SimplePip simplePip;
+  final DraggableScrollableController draggableScrollableController;
+  final void Function(PipAction) onPipAction;
+  final void Function() onPipChange;
   final bool isPipAvailable;
   final bool isPipActivated;
   final VoidCallback enterInPip;

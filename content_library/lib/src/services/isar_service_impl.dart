@@ -1,7 +1,6 @@
 import 'package:content_library/content_library.dart';
 import 'package:content_library/src/services/isar_service.dart';
 import 'package:isar/isar.dart';
-import 'package:path_provider/path_provider.dart';
 
 class IsarServiceImpl implements IsarService {
   late final Isar _isar;

@@ -19,7 +19,7 @@ extension StringExtensions on String {
     return list.reduce((value, element) => '$value$element');
   }
 
-  String get toID => trim().replaceAll(' ', '_');
+  String get toID => trim().toLowerCase().replaceAll(' ', '_');
 
   String get toUuID => const Uuid().v5(Uuid.NAMESPACE_URL, trim());
 
@@ -28,4 +28,8 @@ extension StringExtensions on String {
   File get toFile => File(this);
 
   Directory get toDir => Directory(this);
+
+  String get capitalize {
+    return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
+  }
 }

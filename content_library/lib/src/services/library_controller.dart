@@ -9,8 +9,8 @@ class LibraryController extends ChangeNotifier {
   final IsarServiceImpl _isarService;
   final Subscriptions _subscriptions = Subscriptions();
   late final LibraryService _libraryService;
-  LibraryController(this._isarService) {
-    _libraryService = LibraryService(this);
+  LibraryController(this._isarService, HiveController hiveController) {
+    _libraryService = LibraryService(this, hiveController);
   }
 
   final Debouncer _updateDebouncer =
@@ -102,6 +102,7 @@ class LibraryController extends ChangeNotifier {
     _subscriptions.addAll(
       [
         collectionChanged<AnimeEntity>().listen(_updateAnimeIsarLinks),
+        collectionChanged<EpisodeEntity>().listen(_updateAnimeIsarLinks),
         collectionChanged<BookEntity>().listen(_updateBookIsarLinks),
       ],
     );

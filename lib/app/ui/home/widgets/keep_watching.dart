@@ -29,15 +29,16 @@ class KeepWatching extends StatelessWidget {
 
     final TabController tabController = scope.tabController;
 
-    final LibraryService libraryService = LibraryService(libraryController);
+    final LibraryService libraryService =
+        LibraryService(libraryController, context.watch());
 
     final sortedByCreatedAt = (tabController.index == 0
             ? libraryService.entities
             : libraryService.favorites)
-        .map(LibraryService.getIsarLinks)
+        .map(libraryService.getIsarLinks)
         .nonNulls
         .flattened
-        .sorted((historic1, historic2) => historic1.compareTo(historic2));
+        .sorted();
 
     return SliverToBoxAdapter(
       child: (sortedByCreatedAt.isEmpty ||
@@ -133,9 +134,7 @@ class KeepWatching extends StatelessWidget {
                                                 const TextStyle())
                                             .copyWith(fontSize: 14),
                                         child: Text(
-                                          Duration(
-                                            milliseconds: data.currentDuration,
-                                          ).label(),
+                                          data.cdToDuration.label(),
                                           maxLines: 1,
                                           textAlign: TextAlign.start,
                                           overflow: TextOverflow.ellipsis,
@@ -196,23 +195,22 @@ class KeepWatching extends StatelessWidget {
                                             anime!.toAnime,
                                             data.toEpisode(anime.toAnime),
                                           );
+
                                           await context.push(
                                             RouteName.PLAYER,
                                             extra: PlayerArgs(
-                                              data: (videoFile?.existsSync() ??
-                                                      false)
+                                              forceEnterFullScreen: true,
+                                              data: videoFile != null
                                                   ? FileVideoData(
-                                                      file: videoFile!,
-                                                    )
+                                                      file: videoFile)
                                                   : null,
+                                              getAnimeData:
+                                                  !(videoFile != null),
                                               anime: anime.toAnime,
                                               episode: data.toEpisode(
                                                 anime.toAnime,
                                               ),
-                                              startPossition: Duration(
-                                                milliseconds:
-                                                    data.currentDuration,
-                                              ),
+                                              startPossition: data.cdToDuration,
                                             ),
                                           );
                                         },

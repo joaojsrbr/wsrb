@@ -30,8 +30,8 @@ class EpisodeEntity extends HistoryEntity {
   double get videoPercent => (currentDuration / episodeDuration).abs();
 
   EpisodeEntity({
-    required this.currentDuration,
-    required this.episodeDuration,
+    this.currentDuration = 0,
+    this.episodeDuration = 0,
     required this.stringID,
     required this.title,
     required this.animeStringID,

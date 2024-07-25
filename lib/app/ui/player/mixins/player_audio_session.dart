@@ -62,16 +62,10 @@ mixin PlayerAudioSessionMixin
   }
 
   Future<void> _configureAudioSession() async {
-    await _session.configure(const AudioSessionConfiguration.speech());
+    await _session.configure(const AudioSessionConfiguration.music());
   }
 
   Future<bool> setSessionActive(bool active) async {
     return _session.setActive(active);
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    setSessionActive(false);
   }
 }
