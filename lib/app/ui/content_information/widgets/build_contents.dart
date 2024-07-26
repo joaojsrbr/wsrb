@@ -22,8 +22,7 @@ class BuildContents extends StatelessWidget {
     final bool releasesIsLoading =
         BookInformationScope.releasesIsLoadingOf(context);
     final bool isLoadingOf = BookInformationScope.isLoadingOf(context);
-    // final int index = BookInformationScope.indexOf(context);
-    // final ThemeData themeData = Theme.of(context);
+
     final HiveController hiveController = context.watch<HiveController>();
     final Content content = BookInformationScope.contentOf(context);
 
