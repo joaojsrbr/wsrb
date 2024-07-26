@@ -10,17 +10,16 @@ class ConnectionChecker extends ChangeNotifier {
   ConnectionChecker() {
     _internetConnectionChecker = InternetConnectionChecker.createInstance();
     _subscriptions.addAll([
-      _internetConnectionChecker.onStatusChange.listen((status) {
+      _internetConnectionChecker.onStatusChange.listen((status) async {
         switch (status) {
           case InternetConnectionStatus.connected:
             _connectivityResult = [ConnectivityResult.wifi];
-            _hasConnection = true;
             break;
           case InternetConnectionStatus.disconnected:
             _connectivityResult = [ConnectivityResult.none];
-            _hasConnection = false;
             break;
         }
+        _hasConnection = await InternetConnectionChecker().hasConnection;
         notifyListeners();
       }),
       Connectivity()

@@ -42,7 +42,7 @@ Widget contentIndicatorBuilder(BuildContext context, IndicatorStatus status) {
       widget = const _ErrorWidget();
       break;
     case IndicatorStatus.fullScreenError:
-      widget = const _FullScreenErrorWidget();
+      widget = const FullScreenErrorWidget();
       break;
     case IndicatorStatus.noMoreLoad:
       widget = const _NoMoreLoadWidget();
@@ -57,11 +57,6 @@ Widget contentIndicatorBuilder(BuildContext context, IndicatorStatus status) {
   return _StatusNotifier(
     status: status,
     child: Builder(builder: (context) {
-      // final ConnectionChecker connectionChecker =
-      //     context.watch<ConnectionChecker>();
-      // if (!connectionChecker.hasConnection) {
-      //   return const _FullScreenErrorWidget();
-      // }
       return widget;
     }),
   );
@@ -148,39 +143,29 @@ class _NoMoreLoadWidget extends StatelessWidget {
   }
 }
 
-class _FullScreenErrorWidget extends StatefulWidget {
-  const _FullScreenErrorWidget();
+class FullScreenErrorWidget extends StatefulWidget {
+  const FullScreenErrorWidget({
+    super.key,
+    this.btnAtualizar = true,
+  });
+
+  final bool btnAtualizar;
 
   @override
-  State<_FullScreenErrorWidget> createState() => _FullScreenErrorWidgetState();
+  State<FullScreenErrorWidget> createState() => FullScreenErrorWidgetState();
 }
 
-class _FullScreenErrorWidgetState extends State<_FullScreenErrorWidget> {
+class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
   late final ContentRepository _contentRepository;
-
+  late final ConnectionChecker _connectionChecker;
   @override
   void initState() {
     _contentRepository = context.read<ContentRepository>();
+    _connectionChecker = context.read<ConnectionChecker>();
+    _contentRepository.clear();
     scheduleMicrotask(_showSnackBar);
 
     super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    final ConnectionChecker connectionChecker =
-        context.watch<ConnectionChecker>();
-
-    if (!connectionChecker.hasConnection) {
-      // scheduleMicrotask(() => _contentRepository.refresh(true));
-      scheduleMicrotask(_showSnackBar);
-    }
-    super.didChangeDependencies();
-  }
-
-  @override
-  void didUpdateWidget(covariant _FullScreenErrorWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
   }
 
   Future<void> _showSnackBar([BuildContext? context]) async {
@@ -199,6 +184,20 @@ class _FullScreenErrorWidgetState extends State<_FullScreenErrorWidget> {
         );
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (!_connectionChecker.connectivityResult
+        .contains(ConnectivityResult.none)) {
+      // scheduleMicrotask(() => _contentRepository.refresh(true));
+      final refreshIndicatorState =
+          context.findAncestorWidgetOfExactType<RefreshIndicator>();
+      if (refreshIndicatorState != null) {
+        refreshIndicatorState.onRefresh();
+      }
+    }
+    super.didChangeDependencies();
   }
 
   @override
@@ -233,25 +232,32 @@ class _FullScreenErrorWidgetState extends State<_FullScreenErrorWidget> {
                 textAlign: TextAlign.center,
               ),
             ),
-          _ => const SizedBox.shrink()
+          _ => const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+              child: Text(
+                "Parece que você está offline. Verifique sua conexão com a internet e tente novamente.",
+                textAlign: TextAlign.center,
+              ),
+            )
         },
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            FilledButton(
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            if (widget.btnAtualizar)
+              FilledButton(
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
+                onPressed: () {
+                  _contentRepository.refresh(true);
+                },
+                child: const Text('Atualizar'),
               ),
-              onPressed: () {
-                _contentRepository.refresh(true);
-              },
-              child: const Text('Atualizar'),
-            ),
             if (!connectionChecker.hasConnection) ...[
-              const SizedBox(width: 8),
+              if (widget.btnAtualizar) const SizedBox(width: 8),
               FilledButton(
                 style: OutlinedButton.styleFrom(
                   shape: RoundedRectangleBorder(
@@ -261,16 +267,16 @@ class _FullScreenErrorWidgetState extends State<_FullScreenErrorWidget> {
                 onPressed: () async {
                   switch (OpenSettingsPlus.shared) {
                     case OpenSettingsPlusAndroid settings:
-                      // await settings.wifi();
+                      await settings.wifi();
 
-                      settings.sendCustomMessage('message');
                       break;
                     case OpenSettingsPlusIOS settings:
                       await settings.wifi();
                       break;
                   }
 
-                  await _contentRepository.refresh(true);
+                  Timer(const Duration(seconds: 1),
+                      () => _contentRepository.refresh(true));
                 },
                 child: const Text('configurações de wi-fi'),
               ),

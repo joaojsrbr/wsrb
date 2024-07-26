@@ -30,6 +30,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   late final TabController _tabController;
   late final CustomSearchController _searchController;
   late final ScrollController _scrollController;
+  late final ConnectionChecker _connectionChecker;
   late SubordinateLibraryTabController _subordinateLibraryTabController;
   late final ScrollController _keepWatchingScrollController;
   late final CategoryController _categoryController;
@@ -58,6 +59,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       ..addListener(_valueNotifierListListener);
 
     _railMenuController = RailMenuController();
+
+    _connectionChecker = context.read<ConnectionChecker>();
 
     _startTabController(false);
   }
@@ -126,7 +129,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   ScrollPhysics get _mainPhysics {
-    if (_disableScroll) return const NeverScrollableScrollPhysics();
+    if (_disableScroll ||
+        (_connectionChecker.connectivityResult
+                .contains(ConnectivityResult.none) &&
+            _tabController.index == 0)) {
+      return const NeverScrollableScrollPhysics();
+    }
     if (_tabController.index == 1) return const ClampingScrollPhysics();
     return const AlwaysScrollableScrollPhysics();
   }
