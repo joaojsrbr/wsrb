@@ -128,7 +128,6 @@ class _ContentWidget extends StatelessWidget {
       builder: (context) {
         final textTheme = Theme.of(context).textTheme;
         return Column(
-          // crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
