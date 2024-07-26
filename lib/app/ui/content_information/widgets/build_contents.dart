@@ -115,7 +115,6 @@ class _ContentWidget extends StatelessWidget {
         ?.nonNulls
         .cast<Data?>()
         .toList();
-        
 
     if (!context.mounted || data == null) return null;
 
