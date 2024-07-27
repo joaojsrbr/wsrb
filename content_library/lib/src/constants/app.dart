@@ -30,6 +30,8 @@ class App {
 
   static const String APP_MAIN_BOX_NAME = 'WSRB_HIVE';
   static const String APP_CACHE_BOX_NAME = 'WSRB_HIVE_CACHE';
+
+  static const String APP_DIRECTORY = "/storage/emulated/0/Wsrb";
   // static const String APP_CACHE_TASK_DELETE_BY_ID = 'TASK_CLEAR_CACHE_BY_ID';
   // static const String APP_CACHE_TASK_DELETE_ALL = 'TASK_CLEAR_CACHE_ALL';
 }

@@ -56,7 +56,7 @@ class DownloadService extends ChangeNotifier {
 
           if (selected.videoContent.contains('m3u8')) {
             final releaseDir = Directory(
-                '${AppStorage.DOWNLOAD_DIR.path}/wsrb/${content.title.toID}');
+                '${AppStorage.DOWNLOAD_DIR.path}/${content.title.toID}');
 
             if (!await releaseDir.exists()) {
               await releaseDir.create(recursive: true);
@@ -68,15 +68,8 @@ class DownloadService extends ChangeNotifier {
               selected.videoContent,
               '-c',
               'copy',
-              '"${releaseDir.path}/episodio_${release.number}.mp4"',
+              '${releaseDir.path}/episodio_${release.number}.mp4',
             ];
-
-            // selected.httpHeaders?.keys.toList().reversed.forEach(
-            //   (key) {
-            //     final value = selected.httpHeaders![key];
-            //     args.insert(0, '-headers "$key:$value"');
-            //   },
-            // );
 
             customLog(args.join(' '));
 

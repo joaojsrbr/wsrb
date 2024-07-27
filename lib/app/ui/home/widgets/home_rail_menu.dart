@@ -12,10 +12,12 @@ class HomeRailMenu extends StatefulWidget {
   const HomeRailMenu({
     super.key,
     required this.child,
+    this.buttons,
     this.railMenuController,
   });
 
   final RailMenuController? railMenuController;
+  final WidgetBuilder? buttons;
   final Widget child;
 
   static RailMenuController? menuControllerMaybeOf(BuildContext context) {
@@ -54,7 +56,7 @@ class _HomeRailMenuState extends State<HomeRailMenu> {
               width: railMenuController.isOpen
                   ? railMenuController.menuSize.width
                   : 0,
-              child: const _LibraryButtons(),
+              child: widget.buttons?.call(context) ?? const _LibraryButtons(),
             )
           ],
         );

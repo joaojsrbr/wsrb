@@ -154,12 +154,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     List<Widget> tabs = categoryController.categories.map<Widget>(
       (CategoryEntity entity) {
         return GestureDetector(
+          key: ValueKey(entity.title),
           onLongPress: () {
             CategoryUtils.createCategory(context, entity);
           },
           child: Tab(
             text: entity.title,
-            key: ValueKey(entity.title),
           ),
         );
       },

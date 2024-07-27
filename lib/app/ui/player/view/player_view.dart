@@ -192,7 +192,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _getInitMainVideoData() async {
-    if (_playerArgs.data != null || !_playerArgs.getAnimeData) {
+    if ((_playerArgs.data != null || !_playerArgs.getAnimeData) &&
+        _playerArgs.data != null) {
       _mainVideoData = _playerArgs.data;
       _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
       return;
@@ -597,6 +598,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   @override
   void dispose() {
     customLog('[$runtimeType][dispose]');
+    super.dispose();
 
     _topTitle.dispose();
     _seekInVideoPosition.dispose();
@@ -616,13 +618,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     if (_mainVideoData != null) {
       player?.pause();
       _saveVideoPosition(() async {
-        setSessionActive(false);
-        player?.dispose();
+        await setSessionActive(false);
+        await player?.dispose();
       });
     } else {
       player?.dispose();
     }
-    super.dispose();
   }
 }
 
@@ -733,7 +734,6 @@ class _BuildScaffold extends StatelessWidget {
                         //     [DeviceOrientation.portraitUp],
                         //   );
                         // },
-
                         controls: (state) => const SizedBox.shrink(),
                         // key: PlayerView.videoStateKey,
                         controller: videoController,

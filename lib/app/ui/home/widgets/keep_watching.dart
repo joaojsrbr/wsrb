@@ -32,7 +32,7 @@ class KeepWatching extends StatelessWidget {
     final LibraryService libraryService =
         LibraryService(libraryController, context.watch());
 
-    final sortedByCreatedAt = (tabController.index == 0
+    final sortedByUpdateAt = (tabController.index == 0
             ? libraryService.entities
             : libraryService.favorites)
         .map(libraryService.getIsarLinks)
@@ -41,8 +41,7 @@ class KeepWatching extends StatelessWidget {
         .sorted();
 
     return SliverToBoxAdapter(
-      child: (sortedByCreatedAt.isEmpty ||
-              ![0, 1].contains(tabController.index))
+      child: (sortedByUpdateAt.isEmpty || ![0, 1].contains(tabController.index))
           ? const SizedBox.shrink()
           : SizedBox(
               height: 180,
@@ -53,10 +52,10 @@ class KeepWatching extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 // shrinkWrap: true,
                 physics: const BouncingScrollPhysics(),
-                itemCount: sortedByCreatedAt.length,
+                itemCount: sortedByUpdateAt.length,
                 itemBuilder: (context, index) {
                   final HistoryEntity historyEntity =
-                      sortedByCreatedAt.elementAt(index);
+                      sortedByUpdateAt.elementAt(index);
 
                   return switch (historyEntity) {
                     EpisodeEntity data => Builder(builder: (context) {
@@ -204,8 +203,7 @@ class KeepWatching extends StatelessWidget {
                                                   ? FileVideoData(
                                                       file: videoFile)
                                                   : null,
-                                              getAnimeData:
-                                                  !(videoFile != null),
+                                              getAnimeData: false,
                                               anime: anime.toAnime,
                                               episode: data.toEpisode(
                                                 anime.toAnime,

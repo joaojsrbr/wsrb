@@ -1,14 +1,14 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
+
+import 'package:content_library/content_library.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:provider/provider.dart';
 
 import 'package:app_wsrb_jsr/app/my_app.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
-import 'package:content_library/content_library.dart';
-
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter/services.dart';
-
-import 'package:media_kit/media_kit.dart';
 
 @pragma('vm:entry-point')
 void main() async {
