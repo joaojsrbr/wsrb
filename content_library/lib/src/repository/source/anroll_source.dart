@@ -50,7 +50,7 @@ class AnrollSource extends RSource {
   }
 
   @override
-  Future<Result<Content>> getReleases(Content content, int page) async {
+  Future<Result<Anime>> getReleases(Content content, int page) async {
     if (content is! Anime) throw AnimeGetDataException();
 
     try {
@@ -108,7 +108,7 @@ class AnrollSource extends RSource {
   }
 
   @override
-  Future<Result<Content>> getData(Content content) async {
+  Future<Result<Anime>> getData(Content content) async {
     try {
       if (content is! Anime) throw AnimeGetDataException();
 
@@ -118,32 +118,30 @@ class AnrollSource extends RSource {
       final String buildId = await getBuildId();
 
       if (content.animeID == null) {
-        final animeUrl = await contentRepository._dio
-            .get(
-              "https://www.anroll.net/e/$generateID",
-            )
-            .then((response) => parse(response.data)
-                .querySelector('#anime_title a')
-                ?.attributes['href']);
-        content = content.copyWith(animeID: animeUrl?.split('/').last);
+        final animeID = await contentRepository._dio
+            .get("https://www.anroll.net/e/$generateID")
+            .then(
+              (response) => parse(response.data)
+                  .querySelector('#anime_title a')
+                  ?.attributes['href']
+                  ?.split('/')
+                  .last,
+            );
+        content = content.copyWith(animeID: animeID);
       }
 
       final animeApiUrl =
           'https://apiv3-prd.anroll.net/animes/${content.animeID}';
 
       final Response responseAnimeData = await contentRepository._dio
-          .get(
-        animeApiUrl,
-        responseType: ResponseType.json,
-      )
+          .get(animeApiUrl, responseType: ResponseType.json)
           .catchError(
-        (error) {
-          return contentRepository._dio.get(
-            '$BASE_URL/_next/data/$buildId/e/$generateID.json?episode=$generateID',
-            responseType: ResponseType.json,
+            (error) => contentRepository._dio.get(
+              '$BASE_URL/_next/data/$buildId/e/$generateID.json?episode=$generateID',
+              responseType: ResponseType.json,
+            ),
           );
-        },
-      );
+
       final animeData = responseAnimeData.data['data'] ??
           responseAnimeData.data['pageProps']['data'] as Map;
 
@@ -177,23 +175,10 @@ class AnrollSource extends RSource {
         sinopse: sinopse,
       );
 
-      // if (anime.totalOfEpisodes == null) {
-      //   // bool hasNextPage = false;
+      final result = await getReleases(newAnime, -1).then(
+          (result) => result.fold(onSuccess: (data) => newAnime.merge(data)));
 
-      //   // int page = 1;
-
-      //   // do {
-      //   //   final result = await getReleases(newAnime, page);
-      //   //   result.fold(onSuccess: (data) => newAnime = data as Anime);
-      //   //   hasNextPage = (anime.totalOfEpisodes == anime.releases.length);
-      //   //   if (hasNextPage) page++;
-      //   // } while (hasNextPage);
-      // }
-
-      final result = await getReleases(newAnime, -1);
-      result.fold(onSuccess: (data) => newAnime = data as Anime);
-
-      return Result.success(content.merge(newAnime));
+      return Result.success(result!);
     } on DioException catch (_, __) {
       return Result.failure(_);
     } on AnrollGetIdException catch (_, __) {
@@ -297,7 +282,7 @@ class AnrollSource extends RSource {
   }
 
   @override
-  Future<Result<List<Content>>> search(String query) async {
+  Future<Result<List<Anime>>> search(String query) async {
     try {
       final Response response = await contentRepository._dio.get(
         'https://apiv3-prd.anroll.net/animes/search/data?q=$query',

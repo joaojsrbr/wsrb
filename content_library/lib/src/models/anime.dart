@@ -5,7 +5,7 @@ import 'package:content_library/src/models/genre.dart';
 import 'package:content_library/src/utils/object_utils.dart';
 import 'package:content_library/src/utils/releases.dart';
 
-class Anime extends Content with MergeClass<Content> {
+class Anime extends Content with MergeClass<Anime> {
   const Anime({
     required super.url,
     required super.title,

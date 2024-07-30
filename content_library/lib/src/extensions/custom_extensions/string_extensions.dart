@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:slugify/slugify.dart';
 import 'package:uuid/uuid.dart';
 
 extension StringExtensions on String {
@@ -19,7 +20,7 @@ extension StringExtensions on String {
     return list.reduce((value, element) => '$value$element');
   }
 
-  String get toID => trim().toLowerCase().replaceAll(' ', '_');
+  String get toID => slugify(trim(), delimiter: '_');
 
   String get toUuID => const Uuid().v5(Uuid.NAMESPACE_URL, trim());
 
