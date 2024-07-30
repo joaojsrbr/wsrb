@@ -115,23 +115,37 @@ class AnrollSource extends RSource {
       final String generateID =
           content.releases.firstOrNull?.generateID ?? content.generateID!;
 
-      // final EpisodeReleases episodeReleases = EpisodeReleases();
-
       final String buildId = await getBuildId();
+
+      if (content.animeID == null) {
+        final animeUrl = await contentRepository._dio
+            .get(
+              "https://www.anroll.net/e/$generateID",
+            )
+            .then((response) => parse(response.data)
+                .querySelector('#anime_title a')
+                ?.attributes['href']);
+        content = content.copyWith(animeID: animeUrl?.split('/').last);
+      }
+
+      final animeApiUrl =
+          'https://apiv3-prd.anroll.net/animes/${content.animeID}';
 
       final Response responseAnimeData = await contentRepository._dio
           .get(
-            '$BASE_URL/_next/data/$buildId/a/$generateID.json?anime=$generateID',
-            responseType: ResponseType.json,
-          )
+        animeApiUrl,
+        responseType: ResponseType.json,
+      )
           .catchError(
-            (error) => contentRepository._dio.get(
-              '$BASE_URL/_next/data/$buildId/e/$generateID.json?episode=$generateID',
-              responseType: ResponseType.json,
-            ),
+        (error) {
+          return contentRepository._dio.get(
+            '$BASE_URL/_next/data/$buildId/e/$generateID.json?episode=$generateID',
+            responseType: ResponseType.json,
           );
-
-      final animeData = responseAnimeData.data['pageProps']['data'] as Map;
+        },
+      );
+      final animeData = responseAnimeData.data['data'] ??
+          responseAnimeData.data['pageProps']['data'] as Map;
 
       final String url =
           '$BASE_URL/a/${animeData.containsKey('anime') ? animeData['anime']['generate_id'] : animeData['generate_id']}';
@@ -141,16 +155,22 @@ class AnrollSource extends RSource {
 
       final String animeID = (animeData['id_serie']).toString();
 
-      String? sinopse = animeData['sinopse_episodio'];
+      String? sinopse = animeData['sinopse_episodio'] ?? animeData['sinopse'];
 
-      int? totalOfEpisodes;
+      List<Genre>? generos = animeData['generos']
+          ?.toString()
+          .split(',')
+          .map((gen) => Genre(gen.capitalize))
+          .toList();
+
+      int? totalOfEpisodes = animeData['episodes'];
 
       int? totalOfPages;
 
       Anime newAnime = content.copyWith(
         url: url,
-        // releases: episodeReleases,
         animeID: animeID,
+        genres: generos,
         totalOfEpisodes: totalOfEpisodes,
         totalOfPages: totalOfPages,
         originalImage: originalImage,

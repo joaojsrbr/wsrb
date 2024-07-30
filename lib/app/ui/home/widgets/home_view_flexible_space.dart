@@ -187,7 +187,7 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
                   ),
                 ),
                 title: Text(entry.key.name),
-                initiallyExpanded: true,
+                initiallyExpanded: entry.value.isNotEmpty,
                 maintainState: true,
                 controlAffinity: ListTileControlAffinity.leading,
                 children: <Widget>[

@@ -72,7 +72,7 @@ class ContentPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(covariant ContentPersistentHeaderDelegate oldDelegate) {
     return oldDelegate.isLoading != isLoading ||
-        oldDelegate.content != oldDelegate.content ||
+        oldDelegate.content != content ||
         oldDelegate.maxExtent != oldDelegate.maxExtent ||
         oldDelegate.minExtent != oldDelegate.minExtent;
   }
@@ -160,7 +160,7 @@ class _BuildContentWidget extends StatelessWidget {
             child: SafeArea(
               child: FadeThroughTransitionSwitcher(
                 enableSecondChild: opacity < 0.7,
-                duration: const Duration(milliseconds: 600),
+                duration: const Duration(milliseconds: 250),
                 child: const BackButton(),
               ),
             ),
@@ -171,7 +171,7 @@ class _BuildContentWidget extends StatelessWidget {
             child: SafeArea(
               child: FadeThroughTransitionSwitcher(
                 enableSecondChild: opacity < 0.7,
-                duration: const Duration(milliseconds: 600),
+                duration: const Duration(milliseconds: 250),
                 child: IconButton(
                   onPressed: () {
                     customLog(
@@ -216,7 +216,7 @@ class _BuildContentWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AnimatedSize(
-                    duration: const Duration(milliseconds: 150),
+                    duration: const Duration(milliseconds: 100),
                     child: Text(
                       content.title,
                       style: titleLarge?.copyWith(
@@ -236,7 +236,7 @@ class _BuildContentWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   AnimatedOpacity(
-                    duration: const Duration(milliseconds: 250),
+                    duration: const Duration(milliseconds: 100),
                     opacity: opacity <= 0.40 ? 0 : 1,
                     child: opacity <= 0.40
                         ? const SizedBox.shrink()
@@ -271,7 +271,7 @@ class _BuildContentWidget extends StatelessWidget {
                               if ((genres?.length ?? 0) > 0)
                                 Wrap(
                                   spacing: 3.0,
-                                  runSpacing: 0.0,
+                                  runSpacing: 3.0,
                                   children: genres!
                                       .map((genre) => genre.label)
                                       .map(

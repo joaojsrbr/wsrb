@@ -178,8 +178,13 @@ class _BookInformationStateView
     }
 
     setStateIfMounted(() {
-      if (!onRefresh) {
+      if (data is Anime && _content != null) {
+        _content = (_content as Anime).merge(data);
+      } else {
         _content = data;
+      }
+
+      if (!onRefresh) {
         _releasesIsLoading = false;
         _isLoading = false;
       }

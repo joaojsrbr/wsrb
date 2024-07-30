@@ -10,11 +10,8 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:provider/provider.dart';
 import 'package:open_settings_plus/open_settings_plus.dart';
 
-final Debouncer _debouncer = Debouncer();
-
 Widget contentIndicatorBuilder(BuildContext context, IndicatorStatus status) {
   Widget widget;
-
   switch (status) {
     case IndicatorStatus.none:
       widget = const _NoneWidget();
@@ -158,12 +155,19 @@ class FullScreenErrorWidget extends StatefulWidget {
 class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
   late final ContentRepository _contentRepository;
   late final ConnectionChecker _connectionChecker;
+  final Debouncer _debouncer = Debouncer();
+  final Debouncer _connectionDebouncer =
+      Debouncer(duration: const Duration(milliseconds: 200));
+
   @override
   void initState() {
     _contentRepository = context.read<ContentRepository>();
     _connectionChecker = context.read<ConnectionChecker>();
     _contentRepository.clear();
-    scheduleMicrotask(_showSnackBar);
+    if (_contentRepository.indicatorStatus ==
+        IndicatorStatus.fullScreenBusying) {
+      scheduleMicrotask(_showSnackBar);
+    }
 
     super.initState();
   }
@@ -188,15 +192,21 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
 
   @override
   void didChangeDependencies() {
-    if (!_connectionChecker.connectivityResult
-        .contains(ConnectivityResult.none)) {
-      // scheduleMicrotask(() => _contentRepository.refresh(true));
-      final refreshIndicatorState =
-          context.findAncestorWidgetOfExactType<RefreshIndicator>();
-      if (refreshIndicatorState != null) {
-        refreshIndicatorState.onRefresh();
+    _connectionDebouncer.call(() {
+      if (_connectionChecker.connectivityResult.isNotEmpty &&
+          _contentRepository.indicatorStatus !=
+              IndicatorStatus.fullScreenBusying) {
+        final refreshIndicatorState =
+            context.findAncestorWidgetOfExactType<RefreshIndicator>();
+
+        if (refreshIndicatorState != null) {
+          Timer(
+            const Duration(milliseconds: 400),
+            refreshIndicatorState.onRefresh,
+          );
+        }
       }
-    }
+    });
     super.didChangeDependencies();
   }
 

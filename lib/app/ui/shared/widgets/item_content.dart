@@ -1,4 +1,4 @@
-import 'package:app_wsrb_jsr/app/ui/home/widgets/home_rail_menu.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/image_filter.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
@@ -42,7 +42,7 @@ class ItemContent extends StatelessWidget {
         context.watch<ValueNotifierList>();
 
     final RailMenuController? railMenuController =
-        HomeRailMenu.menuControllerMaybeOf(context);
+        RailMenu.menuControllerMaybeOf(context);
 
     final bool isOpen = railMenuController?.isOpen ?? false;
 

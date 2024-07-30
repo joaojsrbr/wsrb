@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/ui/home/widgets/home_rail_menu.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:content_library/content_library.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
@@ -43,7 +43,7 @@ class _ContentDestinationState extends State<ContentDestination>
     }
 
     final RailMenuController railMenuController =
-        HomeRailMenu.menuControllerOf(context);
+        RailMenu.menuControllerOf(context);
 
     final ConnectionChecker connectionChecker =
         context.watch<ConnectionChecker>();
@@ -58,8 +58,7 @@ class _ContentDestinationState extends State<ContentDestination>
         child: Builder(builder: (context) {
           return AnimatedSwitcher(
             duration: const Duration(milliseconds: 250),
-            child: connectionChecker.connectivityResult
-                    .contains(ConnectivityResult.none)
+            child: connectionChecker.connectivityResult.isEmpty
                 ? const FullScreenErrorWidget(btnAtualizar: false)
                 : LoadingMoreList(
                     ListConfig<Content>(

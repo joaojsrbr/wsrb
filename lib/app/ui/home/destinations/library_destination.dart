@@ -2,7 +2,7 @@
 
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/ui/home/widgets/home_rail_menu.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
@@ -125,7 +125,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
 
     return Builder(builder: (context) {
       final RailMenuController railMenuController =
-          HomeRailMenu.menuControllerOf(context);
+          RailMenu.menuControllerOf(context);
 
       const gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
         // maxCrossAxisExtent: 170,

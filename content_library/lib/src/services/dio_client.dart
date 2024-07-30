@@ -57,13 +57,23 @@ class DioClient
     addInterceptor(_DioStatus());
   }
 
+  void disableDioStatus() {
+    interceptors.removeWhere((element) => element is _DioStatus);
+    removeInterceptor(_DioStatus());
+  }
+
+  void enableDioStatus() {
+    addInterceptor(_DioStatus());
+  }
+
   void close() {
     _dio.close();
   }
 
   @override
   bool removeInterceptor(dio.Interceptor element) {
-    return interceptors.remove(element);
+    interceptors.removeWhere((element) => element is _DioStatus);
+    return true;
   }
 
   @override

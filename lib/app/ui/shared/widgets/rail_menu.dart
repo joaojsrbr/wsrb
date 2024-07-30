@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
-class HomeRailMenu extends StatefulWidget {
-  const HomeRailMenu({
+class RailMenu extends StatefulWidget {
+  const RailMenu({
     super.key,
     required this.child,
     this.buttons,
@@ -29,10 +29,10 @@ class HomeRailMenu extends StatefulWidget {
   }
 
   @override
-  State<HomeRailMenu> createState() => _HomeRailMenuState();
+  State<RailMenu> createState() => _RailMenuState();
 }
 
-class _HomeRailMenuState extends State<HomeRailMenu> {
+class _RailMenuState extends State<RailMenu> {
   late final RailMenuController _railMenuController;
 
   @override
@@ -46,7 +46,7 @@ class _HomeRailMenuState extends State<HomeRailMenu> {
     return _RailMenuControllerScope(
       notifier: _railMenuController,
       child: Builder(builder: (context) {
-        final railMenuController = HomeRailMenu.menuControllerOf(context);
+        final railMenuController = RailMenu.menuControllerOf(context);
         return Stack(
           children: [
             Positioned.fill(child: widget.child),
@@ -141,11 +141,17 @@ class _LibraryButtons extends StatelessWidget {
 
     final ScrollableState scrollable = Scrollable.of(context);
     final TabController tabController = HomeScope.of(context).tabController;
+
     return AnimatedBuilder(
       animation: scrollable.position,
       builder: (context, child) {
-        final paddingPercent =
-            ((scrollable.position.pixels - 330).clamp(0.0, 100) / 100);
+        final paddingPercent = ((scrollable.position.pixels -
+                    ((libraryService.favorites.isEmpty ||
+                            libraryService.favorites.isEmpty)
+                        ? 150
+                        : 330))
+                .clamp(0.0, 100) /
+            100);
 
         final padding = (100 * paddingPercent).clamp(10.0, 50.0);
 

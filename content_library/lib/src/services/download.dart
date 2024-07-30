@@ -54,7 +54,8 @@ class DownloadService extends ChangeNotifier {
         onSuccess: (success) async {
           final selected = success.first as VideoData;
 
-          if (selected.videoContent.contains('m3u8')) {
+          if (selected.videoContent.contains('m3u8') ||
+              content.source == Source.GOYABU) {
             final releaseDir = Directory(
                 '${AppStorage.DOWNLOAD_DIR.path}/${content.title.toID}');
 
@@ -63,15 +64,18 @@ class DownloadService extends ChangeNotifier {
             }
 
             List<String> args = [
-              '-headers "referer:${repository.source(content.source).BASE_URL}/"',
+              for (final header
+                  in (selected.httpHeaders ?? <String, String>{}).entries)
+                '-headers "${header.key.capitalize}: ${header.value}"',
               '-i',
-              selected.videoContent,
+              '"${selected.videoContent}"',
               '-c',
               'copy',
               '${releaseDir.path}/episodio_${release.number}.mp4',
             ];
 
             customLog(args.join(' '));
+            // return;
 
             await FFmpegKit.executeAsync(
               args.join(' '),

@@ -1,5 +1,5 @@
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/home/widgets/home_rail_menu.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/keep_watching.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
@@ -130,8 +130,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
   ScrollPhysics get _mainPhysics {
     if (_disableScroll ||
-        (_connectionChecker.connectivityResult
-                .contains(ConnectivityResult.none) &&
+        (_connectionChecker.connectivityResult.isEmpty &&
             _tabController.index == 0)) {
       return const NeverScrollableScrollPhysics();
     }
@@ -289,7 +288,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 ),
               ];
             },
-            body: HomeRailMenu(
+            body: RailMenu(
               railMenuController: _railMenuController,
               child: TabBarView(
                 physics: _tabPhysics,

@@ -11,35 +11,34 @@ class ConnectionChecker extends ChangeNotifier {
     _internetConnectionChecker = InternetConnectionChecker.createInstance();
     _subscriptions.addAll([
       _internetConnectionChecker.onStatusChange.listen((status) async {
-        switch (status) {
-          case InternetConnectionStatus.connected:
-            _connectivityResult = [ConnectivityResult.wifi];
-            break;
-          case InternetConnectionStatus.disconnected:
-            _connectivityResult = [ConnectivityResult.none];
-            break;
-        }
+        final result = await Connectivity().checkConnectivity();
+        _connectivityResult = result
+            .where((connectivity) => connectivity != ConnectivityResult.vpn)
+            .toList();
         _hasConnection = await InternetConnectionChecker().hasConnection;
         notifyListeners();
       }),
       Connectivity()
           .onConnectivityChanged
           .listen((List<ConnectivityResult> result) async {
-        _connectivityResult = result;
-        if (result.contains(ConnectivityResult.vpn) &&
-            !result.contains(ConnectivityResult.wifi)) {
-          _hasConnection = !(await InternetConnectionChecker().hasConnection);
-        } else {
-          _hasConnection = await InternetConnectionChecker().hasConnection;
-        }
+        _connectivityResult = result
+            .where((connectivity) => connectivity != ConnectivityResult.vpn)
+            .toList();
 
+        if (_connectivityResult.contains(ConnectivityResult.wifi) ||
+            _connectivityResult.contains(ConnectivityResult.mobile)) {
+          _hasConnection = await InternetConnectionChecker().hasConnection;
+        } else {
+          _hasConnection = false;
+        }
+        customLog(_connectivityResult);
         notifyListeners();
       }),
     ]);
   }
 
   bool _hasConnection = false;
-  List<ConnectivityResult> _connectivityResult = [ConnectivityResult.none];
+  List<ConnectivityResult> _connectivityResult = [];
 
   bool get hasConnection => _hasConnection;
   List<ConnectivityResult> get connectivityResult => _connectivityResult;
@@ -48,12 +47,14 @@ class ConnectionChecker extends ChangeNotifier {
 
   Future<void> start() async {
     final result = await Connectivity().checkConnectivity();
-    _connectivityResult = result;
-    if (result.contains(ConnectivityResult.vpn) &&
-        !result.contains(ConnectivityResult.wifi)) {
-      _hasConnection = !(await InternetConnectionChecker().hasConnection);
-    } else {
+    _connectivityResult = result
+        .where((connectivity) => connectivity != ConnectivityResult.vpn)
+        .toList();
+    if (_connectivityResult.contains(ConnectivityResult.wifi) ||
+        _connectivityResult.contains(ConnectivityResult.mobile)) {
       _hasConnection = await InternetConnectionChecker().hasConnection;
+    } else {
+      _hasConnection = false;
     }
   }
 

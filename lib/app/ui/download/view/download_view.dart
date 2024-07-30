@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:app_wsrb_jsr/app/ui/home/widgets/home_rail_menu.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
 import 'package:content_library/content_library.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -200,7 +200,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
           await subscriptions.cancelAll();
           _onInit();
         },
-        child: HomeRailMenu(
+        child: RailMenu(
           railMenuController: _railMenuController,
           buttons: (context) {
             return Padding(
@@ -253,7 +253,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                 ),
               if (_files.isNotEmpty)
                 Builder(builder: (context) {
-                  final menuController = HomeRailMenu.menuControllerOf(context);
+                  final menuController = RailMenu.menuControllerOf(context);
                   return AnimatedPadding(
                     duration: const Duration(milliseconds: 250),
                     padding: EdgeInsets.only(

@@ -12,7 +12,7 @@ typedef CustomSearchSuggestionsBuilder = FutureOr<Widget> Function(
 
 typedef CustomSearchViewBuilder = Widget Function(Widget suggestion);
 
-const int _kOpenViewMilliseconds = 350;
+const int _kOpenViewMilliseconds = 600;
 const Duration _kOpenViewDuration =
     Duration(milliseconds: _kOpenViewMilliseconds);
 const Duration _kAnchorFadeDuration = Duration(milliseconds: 150);
@@ -21,6 +21,7 @@ const Curve _kViewIconsFadeOnInterval = Interval(1 / 6, 2 / 6);
 const Curve _kViewDividerFadeOnInterval = Interval(0.0, 1 / 6);
 const Curve _kViewListFadeOnInterval =
     Interval(133 / _kOpenViewMilliseconds, 233 / _kOpenViewMilliseconds);
+// const double _kDisableSearchBarOpacity = 0.38;
 
 class CustomSearchAnchor extends StatefulWidget {
   const CustomSearchAnchor._({
@@ -867,13 +868,11 @@ class CustomSearchController extends TextEditingController {
   void openView() {
     assert(isAttached);
     _anchor?._openView();
-    notifyListeners();
   }
 
   void closeView(String? selectedText) {
     assert(isAttached);
     _anchor?._closeView(selectedText);
-    notifyListeners();
   }
 
   void _attach(_CustomSearchAnchorState anchor) {
