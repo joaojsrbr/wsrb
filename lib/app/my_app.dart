@@ -1,9 +1,9 @@
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

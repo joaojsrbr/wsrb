@@ -2,19 +2,17 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:app_wsrb_jsr/app/routes/routes.dart';
+import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
 import 'package:content_library/content_library.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-
 import 'package:provider/provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
-
-import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 
 class _FileData with EquatableMixin implements Comparable<_FileData> {
   final FileSystemEntity file;
@@ -38,9 +36,7 @@ class _FileData with EquatableMixin implements Comparable<_FileData> {
         .capitalize;
   }
 
-  bool get isVideo {
-    return file.path.contains("mp4");
-  }
+  bool get isVideo => file.path.contains("mp4");
 
   @override
   List<Object?> get props => [file.path, imageThumbnail];
@@ -120,18 +116,18 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
     _setDirs();
     final tempPath = (await getTemporaryDirectory()).path;
 
+    if (_dirs.isEmpty) {
+      _files.clear();
+      _isLoading = false;
+      setStateIfMounted(() {});
+      return;
+    }
+
     subscriptions.addAll(
       _dirs.map((dir) => dir
           .watch(events: FileSystemEvent.all)
           .listen((data) => _debouncer.call(_onInit))),
     );
-
-    if (_dirs.isEmpty) {
-      _files.clear();
-      if (_isLoading) _isLoading = false;
-      setStateIfMounted(() {});
-      return;
-    }
 
     _files.clear();
 
@@ -380,7 +376,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                                                                 .cdToDuration
                                                             : null,
                                                     episode: episode.toEpisode(
-                                                        animeEntity.toAnime),
+                                                        animeEntity.isDublado),
                                                     anime: animeEntity.toAnime,
                                                     data: FileVideoData(
                                                       file:

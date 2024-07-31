@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:another_flushbar/flushbar.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
+import 'package:content_library/content_library.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:content_library/content_library.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:provider/provider.dart';
 import 'package:open_settings_plus/open_settings_plus.dart';
+import 'package:provider/provider.dart';
 
 Widget contentIndicatorBuilder(BuildContext context, IndicatorStatus status) {
   Widget widget;
@@ -266,7 +266,8 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
                 },
                 child: const Text('Atualizar'),
               ),
-            if (!connectionChecker.hasConnection) ...[
+            if (!connectionChecker.hasConnection ||
+                connectionChecker.connectivityResult.isEmpty) ...[
               if (widget.btnAtualizar) const SizedBox(width: 8),
               FilledButton(
                 style: OutlinedButton.styleFrom(

@@ -3,8 +3,6 @@ import 'package:content_library/src/entities/entity.dart';
 import 'package:content_library/src/models/episode.dart';
 import 'package:isar/isar.dart';
 
-import '../models/anime.dart';
-
 part 'episode_entity.g.dart';
 
 @Collection(
@@ -77,14 +75,14 @@ class EpisodeEntity extends HistoryEntity {
     return -1;
   }
 
-  Episode toEpisode(Anime anime) {
+  Episode toEpisode(bool isDublado) {
     return Episode(
       url: url,
       title: title,
       numberEpisode: numberEpisode,
       generateID: generateID,
       slugSerie: slugSerie,
-      isDublado: anime.isDublado,
+      isDublado: isDublado,
       sinopse: sinopse,
       thumbnail: thumbnail,
     );

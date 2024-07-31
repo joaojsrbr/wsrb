@@ -1,6 +1,4 @@
-import '../models/anime.dart';
-import '../models/book.dart';
-import '../models/content.dart';
+import 'package:content_library/content_library.dart';
 
 mixin MergeClass<T extends Content> on Content {
   T merge(T other) {
@@ -19,6 +17,77 @@ mixin MergeClass<T extends Content> on Content {
           final Map<String, dynamic> map2 = other.map;
 
           final merged = mergeMap([map1, map2], acceptNull: true);
+
+          return Book.fromMap(merged) as T;
+        default:
+          throw Exception('Precisar ser do mesmo tipo');
+      }
+    }
+    return this as T;
+  }
+}
+mixin MergeClassEntity<T extends Entity> on Entity {
+  Map<String, dynamic> get map;
+
+  T merge(T other) {
+    if (identical(runtimeType, other.runtimeType)) {
+      switch (this) {
+        case AnimeEntity data when other is AnimeEntity:
+          final Map<String, dynamic> map1 = data.map;
+          final Map<String, dynamic> map2 = other.map;
+
+          final merged = mergeMap([map1, map2], acceptNull: true);
+
+          final obj = AnimeEntity(
+            stringID: merged['stringID'],
+            url: merged['url'],
+            title: merged['title'],
+            source: merged['source'],
+            animeID: merged['animeID'],
+            isDublado: merged['isDublado'],
+            slugSerie: merged['slugSerie'],
+            sinopse: merged['sinopse'],
+            generateID: merged['generateID'],
+            isFavorite: merged['isFavorite'],
+            originalImage: merged['originalImage'],
+            extraLarge: merged['extraLarge'],
+            largeImage: merged['largeImage'],
+            mediumImage: merged['mediumImage'],
+            createdAt: DateTime.tryParse(merged['createdAt'] ?? ''),
+            updatedAt: DateTime.tryParse(merged['updatedAt'] ?? ''),
+          );
+
+          if (merged['episodes'] != null) {
+            obj.episodes = merged['episodes'];
+          }
+
+          return obj as T;
+
+        case BookEntity data when other is BookEntity:
+          final Map<String, dynamic> map1 = data.map;
+          final Map<String, dynamic> map2 = other.map;
+
+          final merged = mergeMap([map1, map2], acceptNull: true);
+
+          final obj = BookEntity(
+            stringID: merged['stringID'],
+            url: merged['url'],
+            title: merged['title'],
+            source: merged['source'],
+            sinopse: merged['sinopse'],
+            isFavorite: merged['isFavorite'],
+            originalImage: merged['originalImage'],
+            extraLarge: merged['extraLarge'],
+            largeImage: merged['largeImage'],
+            alternativeTitle: merged['alternativeTitle'],
+            mediumImage: merged['mediumImage'],
+            createdAt: DateTime.parse(merged['createdAt']),
+            updatedAt: DateTime.parse(merged['updatedAt']),
+          );
+
+          if (merged['chapters'] != null) {
+            obj.chapters = merged['chapters'];
+          }
 
           return Book.fromMap(merged) as T;
         default:

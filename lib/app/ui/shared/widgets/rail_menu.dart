@@ -66,7 +66,9 @@ class _RailMenuState extends State<RailMenu> {
 
   @override
   void dispose() {
-    _railMenuController.dispose();
+    _railMenuController
+      ..close()
+      ..dispose();
 
     super.dispose();
   }
@@ -139,7 +141,10 @@ class _LibraryButtons extends StatelessWidget {
     final LibraryService libraryService =
         LibraryService(libraryController, context.watch());
 
-    final ScrollableState scrollable = Scrollable.of(context);
+    final ScrollableState scrollable = Scrollable.of(
+      context,
+      axis: Axis.vertical,
+    );
     final TabController tabController = HomeScope.of(context).tabController;
 
     return AnimatedBuilder(

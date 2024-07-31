@@ -545,13 +545,16 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       customLog(
           '[$runtimeType][_saveVideoPosition()][${episodeEntity.numberEpisode}]');
 
-      final animeEntity = _libraryController.entities.firstWhere(
+      AnimeEntity animeEntity = _playerArgs.anime.toEntity();
+
+      final bAnimeEntity = _libraryController.entities.firstWhereOrNull(
         (content) {
           return content is AnimeEntity &&
               content.stringID.contains(_playerArgs.anime.stringID);
         },
-        orElse: () => _playerArgs.anime.toEntity(),
-      ) as AnimeEntity;
+      ) as AnimeEntity?;
+
+      if (bAnimeEntity != null) animeEntity = animeEntity.merge(bAnimeEntity);
 
       animeEntity.episodes.add(episodeEntity);
 

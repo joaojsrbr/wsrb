@@ -2,13 +2,14 @@ import 'package:content_library/src/constants/source.dart';
 import 'package:content_library/src/entities/chapter_entity.dart';
 import 'package:content_library/src/entities/entity.dart';
 import 'package:content_library/src/models/book.dart';
-
+import 'package:content_library/src/utils/object_utils.dart';
 import 'package:content_library/src/utils/releases.dart';
 import 'package:isar/isar.dart';
+
 part 'book_entity.g.dart';
 
 @Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toBook'})
-class BookEntity extends ContentEntity {
+class BookEntity extends ContentEntity with MergeClassEntity<BookEntity> {
   @Index(replace: true, unique: true)
   String stringID;
   String title;
@@ -26,7 +27,25 @@ class BookEntity extends ContentEntity {
   String? largeImage;
   String? mediumImage;
 
-  final IsarLinks<ChapterEntity> chapters = IsarLinks<ChapterEntity>();
+  @override
+  Map<String, dynamic> get map => {
+        "stringID": stringID,
+        "alternativeTitle": alternativeTitle,
+        "chapters": chapters,
+        "createdAt": createdAt.toString(),
+        "updatedAt": updatedAt.toString(),
+        "sinopse": sinopse,
+        "source": source,
+        "isFavorite": isFavorite,
+        "url": url,
+        "title": title,
+        "originalImage": originalImage,
+        "extraLarge": extraLarge,
+        "largeImage": largeImage,
+        "mediumImage": mediumImage,
+      };
+
+  IsarLinks<ChapterEntity> chapters = IsarLinks<ChapterEntity>();
 
   BookEntity({
     required this.stringID,
@@ -72,6 +91,9 @@ class BookEntity extends ContentEntity {
       url: url,
       title: title,
       releases: ChapterReleases(),
+      // releases: ChapterReleases.from(
+      //   chapters.map((entity) => entity (isDublado)).toList(),
+      // ),
       extraLarge: extraLarge,
       largeImage: largeImage,
       mediumImage: mediumImage,

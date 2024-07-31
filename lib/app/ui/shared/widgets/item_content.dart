@@ -1,13 +1,12 @@
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
-import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/image_filter.dart';
-import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
-import 'package:content_library/content_library.dart';
-
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
+import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/image_filter.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
+import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -398,10 +397,10 @@ class _ImageWidget extends StatelessWidget {
       errorWidget: (context, url, error) {
         return const Card.filled(shape: RoundedRectangleBorder());
       },
-      fadeOutDuration: const Duration(milliseconds: 600),
+      fadeOutDuration: const Duration(milliseconds: 500),
       fadeInDuration: const Duration(milliseconds: 300),
-      maxHeightDiskCache: params.isLibrary ? 300 : 500,
-      maxWidthDiskCache: params.isLibrary ? 300 : 500,
+      maxHeightDiskCache: params.isLibrary ? 200 : 250,
+      maxWidthDiskCache: params.isLibrary ? 200 : 350,
       httpHeaders: App.HEADERS,
       // memCacheHeight: !isLibrary ? memCacheHeight : 350,
       // memCacheWidth: !isLibrary ? memCacheWidth : 390,

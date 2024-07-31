@@ -1,6 +1,8 @@
 {
   "cmake.configureOnOpen": false,
   "java.configuration.updateBuildConfiguration": "interactive",
-    "dart.flutterSdkPath": "C:\\Users\\joaov\\.puro\\envs\\wsrb\\flutter",
-    "dart.sdkPath": "C:\\Users\\joaov\\.puro\\envs\\wsrb\\flutter\\bin\\cache\\dart-sdk"
+  "dart.flutterSdkPath": "C:\\Users\\joaov\\.puro\\envs\\wsrb\\flutter",
+  "dart.sdkPath": "C:\\Users\\joaov\\.puro\\envs\\wsrb\\flutter\\bin\\cache\\dart-sdk",
+  // "editor.defaultFormatter": "Dart-Code.dart-code",
+  // "editor.formatOnSave": true,
 }

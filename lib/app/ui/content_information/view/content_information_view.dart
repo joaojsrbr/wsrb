@@ -77,16 +77,26 @@ class _BookInformationStateView
           _repository,
           statisticsCallback: (statistics) async {},
           onResult: (result) async {
-            customLog(result.runtimeType);
+            customLog(result);
 
             if (result is Success) {
-              final animeEntity =
-                  _content!.toEntity(isFavorite: false) as AnimeEntity;
+              final LibraryService libraryService =
+                  LibraryService(libraryController, context.read());
+
+              AnimeEntity animeEntity = _content!.toEntity() as AnimeEntity;
+
+              final bAnimeEntity =
+                  libraryService.getContentEntityByStringID(_content!.stringID)
+                      as AnimeEntity?;
+
+              if (bAnimeEntity != null) {
+                animeEntity = animeEntity.merge(bAnimeEntity);
+              }
 
               animeEntity.episodes.add(data.toEntity(anime: _content as Anime));
 
               await libraryController.add(
-                contentEntity: _content!.toEntity(isFavorite: false),
+                contentEntity: animeEntity,
               );
               await historicController.add(
                 historyEntity: data.toEntity(anime: _content as Anime),

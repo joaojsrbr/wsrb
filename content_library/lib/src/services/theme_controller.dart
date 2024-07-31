@@ -1,5 +1,4 @@
 import 'package:content_library/content_library.dart';
-
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

@@ -1,14 +1,13 @@
 // ignore_for_file: constant_identifier_names, non_constant_identifier_names
 
-import 'package:app_wsrb_jsr/app/ui/download/view/download_view.dart';
-import 'package:content_library/content_library.dart';
-
 import 'package:app_wsrb_jsr/app/routes/shared_axis_transition_page_wrapper.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/view/content_information_view.dart';
+import 'package:app_wsrb_jsr/app/ui/download/view/download_view.dart';
 import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/view/reading_view.dart';
+import 'package:content_library/content_library.dart';
 import 'package:go_router/go_router.dart';
 
 class RouteName {

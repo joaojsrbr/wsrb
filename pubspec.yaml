@@ -73,6 +73,7 @@ dependencies:
   border_progress_indicator: ^0.0.3
   # screenshot: ^3.0.0
   video_thumbnail: ^0.5.3
+  # adaptive_pop_scope: ^1.0.1
   # fl_pip: ^2.0.0
 
 dev_dependencies:
