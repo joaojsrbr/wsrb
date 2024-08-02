@@ -2,14 +2,13 @@ import 'package:content_library/src/constants/source.dart';
 import 'package:content_library/src/entities/chapter_entity.dart';
 import 'package:content_library/src/entities/entity.dart';
 import 'package:content_library/src/models/book.dart';
-import 'package:content_library/src/utils/object_utils.dart';
 import 'package:content_library/src/utils/releases.dart';
 import 'package:isar/isar.dart';
 
 part 'book_entity.g.dart';
 
 @Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toBook'})
-class BookEntity extends ContentEntity with MergeClassEntity<BookEntity> {
+class BookEntity extends ContentEntity {
   @Index(replace: true, unique: true)
   String stringID;
   String title;

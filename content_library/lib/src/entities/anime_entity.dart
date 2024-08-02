@@ -2,14 +2,13 @@ import 'package:content_library/src/constants/source.dart';
 import 'package:content_library/src/entities/entity.dart';
 import 'package:content_library/src/entities/episode_entity.dart';
 import 'package:content_library/src/models/anime.dart';
-import 'package:content_library/src/utils/object_utils.dart';
 import 'package:content_library/src/utils/releases.dart';
 import 'package:isar/isar.dart';
 
 part 'anime_entity.g.dart';
 
 @Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toAnime'})
-class AnimeEntity extends ContentEntity with MergeClassEntity<AnimeEntity> {
+class AnimeEntity extends ContentEntity {
   @Index(replace: true, unique: true)
   String stringID;
 

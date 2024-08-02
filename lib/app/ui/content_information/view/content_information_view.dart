@@ -1,20 +1,18 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/ui/content_information/widgets/content_persistent_header_delegate.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
-import 'package:content_library/content_library.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
 import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/build_contents.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/chip_content_controller.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/widgets/content_persistent_header_delegate.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/sinopse.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
+import 'package:content_library/content_library.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class BookInformationView extends StatefulWidget {
   const BookInformationView({super.key});
@@ -90,14 +88,12 @@ class _BookInformationStateView
                       as AnimeEntity?;
 
               if (bAnimeEntity != null) {
-                animeEntity = animeEntity.merge(bAnimeEntity);
+                animeEntity = animeEntity.merge(bAnimeEntity) as AnimeEntity;
               }
 
               animeEntity.episodes.add(data.toEntity(anime: _content as Anime));
 
-              await libraryController.add(
-                contentEntity: animeEntity,
-              );
+              await libraryController.add(contentEntity: animeEntity);
               await historicController.add(
                 historyEntity: data.toEntity(anime: _content as Anime),
               );
@@ -179,6 +175,14 @@ class _BookInformationStateView
     }
 
     if (libraryService.contains(content: data)) {
+      ContentEntity contentEntity = data.toEntity();
+      final entity =
+          libraryService.getContentEntityByStringID(_content!.stringID);
+
+      if (entity != null) {
+        contentEntity = contentEntity.merge(entity);
+      }
+
       libraryController.add(
         contentEntity: data.toEntity(
           updatedAt: DateTime.now(),
@@ -206,19 +210,6 @@ class _BookInformationStateView
     return const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
   }
 
-  static const _linearGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.centerRight,
-    colors: <Color>[
-      Color.fromARGB(90, 176, 190, 197),
-      Color.fromARGB(90, 176, 190, 197),
-      Color(0xffE6E8EB),
-      Color.fromARGB(90, 176, 190, 197),
-      Color.fromARGB(90, 176, 190, 197),
-    ],
-    stops: <double>[0.0, 0.35, 0.5, 0.65, 1.0],
-  );
-
   @override
   Widget buildByArgument(
     BuildContext context,
@@ -226,37 +217,34 @@ class _BookInformationStateView
   ) {
     final size = MediaQuery.sizeOf(context);
 
-    return Shimmer(
-      linearGradient: _linearGradient,
-      child: BookInformationScope(
-        downloadRelease: _downloadRelease,
-        index: _index,
-        releasesIsLoading: _releasesIsLoading,
-        setListIndex: _handleSetListIndex,
-        content: _content ?? argument.content,
-        isLoading: _isLoading,
-        builder: (context) => Scaffold(
-          body: RefreshIndicator(
-            key: _refreshIndicatorKey,
-            onRefresh: _onRefresh,
-            child: CustomScrollView(
-              physics: _physics,
-              slivers: [
-                SliverPersistentHeader(
-                  pinned: true,
-                  floating: true,
-                  delegate: ContentPersistentHeaderDelegate(
-                    content: _content ?? argument.content,
-                    isLoading: _isLoading,
-                    maxExtent: size.height * .42,
-                    minExtent: 100,
-                  ),
+    return BookInformationScope(
+      downloadRelease: _downloadRelease,
+      index: _index,
+      releasesIsLoading: _releasesIsLoading,
+      setListIndex: _handleSetListIndex,
+      content: _content ?? argument.content,
+      isLoading: _isLoading,
+      builder: (context) => Scaffold(
+        body: RefreshIndicator(
+          key: _refreshIndicatorKey,
+          onRefresh: _onRefresh,
+          child: CustomScrollView(
+            physics: _physics,
+            slivers: [
+              SliverPersistentHeader(
+                pinned: true,
+                floating: true,
+                delegate: ContentPersistentHeaderDelegate(
+                  content: _content ?? argument.content,
+                  isLoading: _isLoading,
+                  maxExtent: size.height * .42,
+                  minExtent: 100,
                 ),
-                const SinopseWidget(),
-                const ChipContentController(),
-                const BuildContents(),
-              ],
-            ),
+              ),
+              const SinopseWidget(),
+              const ChipContentController(),
+              const BuildContents(),
+            ],
           ),
         ),
       ),

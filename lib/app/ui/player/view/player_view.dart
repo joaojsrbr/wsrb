@@ -5,7 +5,16 @@ import 'dart:collection';
 import 'package:android_pip/actions/pip_actions_layout.dart';
 import 'package:android_pip/android_pip.dart';
 import 'package:android_pip/pip_widget.dart';
+import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_session.dart';
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_pip.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_screenshot_.dart';
+import 'package:app_wsrb_jsr/app/ui/player/widgets/material_video_controls.dart';
+import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
+import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
@@ -15,16 +24,6 @@ import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
-
-import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_session.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_pip.dart';
-import 'package:app_wsrb_jsr/app/ui/player/widgets/material_video_controls.dart';
-import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
-import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 
 class PlayerView extends StatefulWidget {
   const PlayerView({super.key});
@@ -545,16 +544,18 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       customLog(
           '[$runtimeType][_saveVideoPosition()][${episodeEntity.numberEpisode}]');
 
+      final LibraryService libraryService =
+          LibraryService(_libraryController, _hiveController);
+
       AnimeEntity animeEntity = _playerArgs.anime.toEntity();
 
-      final bAnimeEntity = _libraryController.entities.firstWhereOrNull(
-        (content) {
-          return content is AnimeEntity &&
-              content.stringID.contains(_playerArgs.anime.stringID);
-        },
-      ) as AnimeEntity?;
+      final bAnimeEntity =
+          libraryService.getContentEntityByStringID(_playerArgs.anime.stringID)
+              as AnimeEntity?;
 
-      if (bAnimeEntity != null) animeEntity = animeEntity.merge(bAnimeEntity);
+      if (bAnimeEntity != null) {
+        animeEntity = animeEntity.merge(bAnimeEntity) as AnimeEntity;
+      }
 
       animeEntity.episodes.add(episodeEntity);
 

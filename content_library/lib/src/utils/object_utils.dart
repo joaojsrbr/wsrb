@@ -26,7 +26,7 @@ mixin MergeClass<T extends Content> on Content {
     return this as T;
   }
 }
-mixin MergeClassEntity<T extends Entity> on Entity {
+mixin MergeClassEntity<T extends ContentEntity> on Entity {
   Map<String, dynamic> get map;
 
   T merge(T other) {

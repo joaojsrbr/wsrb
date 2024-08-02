@@ -1,14 +1,13 @@
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/image_filter.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
+import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 // ignore: implementation_imports
 import 'package:flutter/src/rendering/sliver_persistent_header.dart'
     show OverScrollHeaderStretchConfiguration;
-
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
-import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -48,16 +47,15 @@ class ContentPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
     final double opacity =
         ((maxExtent - shrinkOffset) - 100).clamp(0.0, 100) / 100;
 
+    if (isLoading) {
+      return ShimmerWidget(clipper: _FlexibleSpaceBarClipper(radius: 18));
+    }
+
     Widget flexible = ClipRRect(
       clipper: _FlexibleSpaceBarClipper(radius: 18),
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 350),
-        child: isLoading
-            ? const ShimmerLoading(
-                isLoading: true,
-                child: Card(child: SizedBox.expand()),
-              )
-            : _BuildContentWidget(opacity, content),
+        child: _BuildContentWidget(opacity, content),
       ),
     );
 

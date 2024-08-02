@@ -1,13 +1,12 @@
 import 'dart:io';
 
+import 'package:app_wsrb_jsr/app/routes/routes.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
+import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
+import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
-
-import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
-import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
-import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -33,17 +32,7 @@ class BuildContents extends StatelessWidget {
         // child: Center(child: CircularProgressIndicator()),
         child: releasesIsLoading && !isLoadingOf
             ? const Center(child: CircularProgressIndicator())
-            : ShimmerLoading(
-                isLoading: isLoadingOf,
-                child: const Material(
-                  child: Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(),
-                    margin: EdgeInsets.zero,
-                    child: SizedBox.expand(),
-                  ),
-                ),
-              ),
+            : const ShimmerWidget(),
       );
     } else if (content.releases.isNotEmpty && !releasesIsLoading) {
       final List<Release> releases = content.releases
