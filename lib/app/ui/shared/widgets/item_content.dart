@@ -381,8 +381,7 @@ class _ImageWidget extends StatelessWidget {
         ![params.isLibrary, params.isSearch].contains(true)) {
       return const SizedBox(
         width: width,
-        height: double.infinity,
-        child: Card.filled(shape: RoundedRectangleBorder()),
+        child: Card.filled(),
       );
     }
 
@@ -393,17 +392,14 @@ class _ImageWidget extends StatelessWidget {
       alignment: FractionalOffset.center,
       imageUrl: imageUrl,
       width: width,
-      height: double.infinity,
-      errorWidget: (context, url, error) {
-        return const Card.filled(shape: RoundedRectangleBorder());
-      },
+      // errorWidget: (context, url, error) {
+      //   return const Card.filled(shape: RoundedRectangleBorder());
+      // },
       fadeOutDuration: const Duration(milliseconds: 500),
       fadeInDuration: const Duration(milliseconds: 300),
       maxHeightDiskCache: params.isLibrary ? 200 : 250,
       maxWidthDiskCache: params.isLibrary ? 200 : 350,
       httpHeaders: App.HEADERS,
-      // memCacheHeight: !isLibrary ? memCacheHeight : 350,
-      // memCacheWidth: !isLibrary ? memCacheWidth : 390,
     );
 
     if (![params.isLibrary, params.isSearch].contains(true)) {

@@ -244,8 +244,6 @@ class IsarServiceImpl implements IsarService {
     List<CollectionSchema<dynamic>>? schemas,
     bool inspector = true,
   }) async {
-    await PermissionUtils.manageExternalStorage();
-
     String isarPath = "${App.APP_DIRECTORY}/biblioteca";
 
     if (kDebugMode) isarPath = "$isarPath/debug";
