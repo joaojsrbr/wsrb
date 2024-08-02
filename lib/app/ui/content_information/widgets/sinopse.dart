@@ -38,15 +38,9 @@ class _SinopseWidgetState extends State<SinopseWidget> {
       container = SliverToBoxAdapter(
         child: Padding(
           padding: const EdgeInsets.only(top: 12, right: 8, left: 8),
-          child: SizedBox(
+          child: ShimmerWidget(
             height: 60,
-            child: ShimmerLoading(
-              isLoading: isLoading,
-              child: Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: borderRadius),
-              ),
-            ),
+            borderRadius: borderRadius,
           ),
         ),
       );

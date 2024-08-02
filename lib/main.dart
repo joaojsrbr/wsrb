@@ -11,80 +11,91 @@ import 'package:provider/provider.dart';
 
 @pragma('vm:entry-point')
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  MediaKit.ensureInitialized();
-  late final HiveController hiveController;
-  late final AnrollLoginService anrollLoginService;
-  late final ThemeController themeController;
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
 
-  final DioClient dioClient = DioClient();
+      MediaKit.ensureInitialized();
+      late final HiveController hiveController;
+      late final AnrollLoginService anrollLoginService;
+      late final ThemeController themeController;
 
-  Future<void> start(HiveService service) async {
-    hiveController = HiveController(service);
-    anrollLoginService = AnrollLoginService(dioClient, service);
-    themeController = ThemeController(service);
-    await Future.wait([hiveController.loadAll(), themeController.loadAll()]);
-  }
+      final DioClient dioClient = DioClient();
 
-  final IsarServiceImpl isarServiceImpl = IsarServiceImpl();
-  final ConnectionChecker connectionChecker = ConnectionChecker();
-  final ValueNotifierList valueNotifierList = ValueNotifierList();
+      Future<void> start(HiveService service) async {
+        hiveController = HiveController(service);
+        anrollLoginService = AnrollLoginService(dioClient, service);
+        themeController = ThemeController(service);
+        await Future.wait(
+            [hiveController.loadAll(), themeController.loadAll()]);
+      }
 
-  final HiveService hiveServiceImpl = HiveServiceImpl(start: start);
-  await hiveServiceImpl.init();
+      final IsarServiceImpl isarServiceImpl = IsarServiceImpl();
+      final ConnectionChecker connectionChecker = ConnectionChecker();
+      final ValueNotifierList valueNotifierList = ValueNotifierList();
 
-  final HiveCacheServiceImpl hiveCacheServiceImpl = HiveCacheServiceImpl();
+      final HiveService hiveServiceImpl = HiveServiceImpl(start: start);
+      await hiveServiceImpl.init();
 
-  final LibraryController libraryController =
-      LibraryController(isarServiceImpl, hiveController);
+      final HiveCacheServiceImpl hiveCacheServiceImpl = HiveCacheServiceImpl();
 
-  final HistoricController historicController =
-      HistoricController(isarServiceImpl);
+      final LibraryController libraryController =
+          LibraryController(isarServiceImpl, hiveController);
 
-  final CategoryController categoryController =
-      CategoryController(isarServiceImpl);
+      final HistoricController historicController =
+          HistoricController(isarServiceImpl);
 
-  Future<void> libraryStart() async {
-    await Future.wait([
-      historicController.start(),
-      categoryController.start(),
-      libraryController.start(),
-    ]);
-  }
+      final CategoryController categoryController =
+          CategoryController(isarServiceImpl);
 
-  await PermissionUtils.manageExternalStorage();
+      Future<void> libraryStart() async {
+        await Future.wait([
+          historicController.start(),
+          categoryController.start(),
+          libraryController.start(),
+        ]);
+      }
 
-  await Future.wait([
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
-    Workmanager().initialize(callbackDispatcher, isInDebugMode: true),
-    isarServiceImpl.startDatabase(onStart: libraryStart),
-    hiveCacheServiceImpl.init(),
-    PlayerAudioHandlerMixin.startPlayerAudio(),
-    connectionChecker.start(),
-  ]);
+      await PermissionUtils.manageExternalStorage();
 
-  final ContentRepository contentRepository =
-      ContentRepository(hiveController, dioClient);
+      await Future.wait([
+        SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
+        Workmanager().initialize(callbackDispatcher, isInDebugMode: true),
+        isarServiceImpl.startDatabase(onStart: libraryStart),
+        hiveCacheServiceImpl.init(),
+        PlayerAudioHandlerMixin.startPlayerAudio(),
+        connectionChecker.start(),
+      ]);
 
-  runApp(
-    MultiProvider(
-      providers: [
-        Provider(create: (context) => anrollLoginService),
-        Provider(create: (context) => dioClient),
-        ChangeNotifierProvider(create: (context) => connectionChecker),
-        ChangeNotifierProvider(create: (context) => themeController),
-        ChangeNotifierProvider(create: (context) => hiveController),
-        ChangeNotifierProvider(create: (context) => libraryController),
-        ChangeNotifierProvider(create: (context) => categoryController),
-        ChangeNotifierProvider(create: (context) => historicController),
-        ChangeNotifierProvider(create: (context) => valueNotifierList),
-        ChangeNotifierProvider(create: (context) => DownloadService()),
-        Provider(
-          create: (context) => contentRepository,
-          dispose: (context, repository) => repository.dispose(),
+      final ContentRepository contentRepository =
+          ContentRepository(hiveController, dioClient);
+
+      runApp(
+        MultiProvider(
+          providers: [
+            Provider(create: (context) => anrollLoginService),
+            Provider(create: (context) => dioClient),
+            ChangeNotifierProvider(create: (context) => connectionChecker),
+            ChangeNotifierProvider(create: (context) => themeController),
+            ChangeNotifierProvider(create: (context) => hiveController),
+            ChangeNotifierProvider(create: (context) => libraryController),
+            ChangeNotifierProvider(create: (context) => categoryController),
+            ChangeNotifierProvider(create: (context) => historicController),
+            ChangeNotifierProvider(create: (context) => valueNotifierList),
+            ChangeNotifierProvider(create: (context) => DownloadService()),
+            Provider(
+              create: (context) => contentRepository,
+              dispose: (context, repository) => repository.dispose(),
+            ),
+          ],
+          child: const MyApp(),
         ),
-      ],
-      child: const MyApp(),
+      );
+    },
+    (error, stackTrace) => customLog(
+      error,
+      error: error,
+      stackTrace: stackTrace,
     ),
   );
 }
