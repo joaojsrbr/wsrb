@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:content_library/content_library.dart';
+import 'package:flex_color_picker/flex_color_picker.dart' as flex;
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
@@ -23,14 +24,26 @@ class _SettingsDestinationState extends State<SettingsDestination>
 
   late final ThemeController _themeController;
 
+  final Debouncer _debouncerColor =
+      Debouncer(duration: const Duration(milliseconds: 200));
+
+  List<Color> _recentColors = [];
+
   double _sliderValue = 0.0;
 
   late final Queue<ThemeMode> _themeModeQueue;
 
   @override
+  void dispose() {
+    _debouncerColor.cancel();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     _themeController = context.read<ThemeController>();
+    _recentColors.add(_themeController.appColor);
     _themeModeQueue = Queue.from(ThemeMode.values.where(test));
     _sliderValue = context.read<HiveController>().historicSavePercent;
   }
@@ -51,6 +64,7 @@ class _SettingsDestinationState extends State<SettingsDestination>
 
     final themeData = Theme.of(context);
     final HiveController hiveController = context.watch<HiveController>();
+    final ThemeController themeController = context.watch<ThemeController>();
     final textTheme = themeData.textTheme;
 
     return SettingsList(
@@ -78,10 +92,11 @@ class _SettingsDestinationState extends State<SettingsDestination>
             _PersonCustomSettingsTile(
               key: _containerKey,
               child: LayoutBuilder(builder: (context, boxConstraints) {
-                final connectivityResult =
-                    hiveController.connectivityResult == ConnectivityResult.none
-                        ? 'Todos'
-                        : hiveController.connectivityResult.name.capitalize;
+                final connectivityResult = hiveController.connectivityResult ==
+                        ConnectivityResult.none
+                    ? 'Todos'
+                    : StringExtensions(hiveController.connectivityResult.name)
+                        .capitalize;
 
                 return PopupMenuButton(
                   padding: EdgeInsets.zero,
@@ -117,7 +132,7 @@ class _SettingsDestinationState extends State<SettingsDestination>
                         child: ListTile(
                           title: Text(e == ConnectivityResult.none
                               ? 'Todos'
-                              : e.name.capitalize),
+                              : StringExtensions(e.name).capitalize),
                         ),
                       );
                     }).toList();
@@ -183,6 +198,87 @@ class _SettingsDestinationState extends State<SettingsDestination>
               initialValue: _themeController.systemThemeMode,
               leading: Icon(MdiIcons.formatPaint),
               title: const Text('Tema do Sistema'),
+            ),
+            SettingsTile.navigation(
+              onPressed: null,
+              enabled: !themeController.systemThemeMode,
+              title: IconTheme(
+                data: Theme.of(context).iconTheme.copyWith(
+                      color: themeController.systemThemeMode
+                          ? const Color.fromARGB(255, 118, 117, 122)
+                          : null,
+                    ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        if (themeController.appColor !=
+                            ThemeController.defaultValueAppColor.defaultValue)
+                          GestureDetector(
+                            onTap: () async {
+                              await themeController.setAppColor(
+                                ThemeController
+                                    .defaultValueAppColor.defaultValue,
+                              );
+                              setStateIfMounted(() {
+                                _recentColors
+                                  ..clear()
+                                  ..add(ThemeController
+                                      .defaultValueAppColor.defaultValue);
+                              });
+                            },
+                            child: Icon(MdiIcons.restore),
+                          )
+                        else ...[
+                          Icon(MdiIcons.formatPaint),
+                        ],
+                        const SizedBox(width: 24),
+                        const Text(
+                          'Cor do Aplicativo',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    flex.ColorPicker(
+                      pickersEnabled: const <flex.ColorPickerType, bool>{
+                        flex.ColorPickerType.both: true,
+                        flex.ColorPickerType.primary: false,
+                        flex.ColorPickerType.accent: false,
+                        flex.ColorPickerType.bw: false,
+                        flex.ColorPickerType.custom: false,
+                        flex.ColorPickerType.customSecondary: false,
+                        flex.ColorPickerType.wheel: true,
+                      },
+                      recentColors: _recentColors,
+                      pickerTypeLabels: const <flex.ColorPickerType, String>{
+                        flex.ColorPickerType.primary: "Cor Primário",
+                      },
+                      enableTooltips: true,
+                      enableTonalPalette: true,
+                      showColorName: true,
+                      showRecentColors: true,
+                      color: themeController.appColor,
+                      onColorChanged: (value) {
+                        _debouncerColor.call(() {
+                          themeController.setAppColor(value);
+                        });
+                      },
+                      onRecentColorsChanged: (value) {
+                        setStateIfMounted(() {
+                          _recentColors = value;
+                        });
+                      },
+                      onColorChangeEnd: (value) {
+                        themeController.setAppColor(value);
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

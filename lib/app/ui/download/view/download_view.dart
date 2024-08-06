@@ -53,7 +53,7 @@ class _FileData with EquatableMixin implements Comparable<_FileData> {
 
   @override
   int compareTo(_FileData other) {
-    return title.compareTo(other.title);
+    return other.file.statSync().modified.compareTo(file.statSync().modified);
   }
 }
 
@@ -225,7 +225,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
 
                         _railMenuController.close();
 
-                        setStateIfMounted(() => _fileSelected.clear());
+                        setStateIfMounted(_fileSelected.clear);
                       },
                       icon: Icon(MdiIcons.delete),
                     ),

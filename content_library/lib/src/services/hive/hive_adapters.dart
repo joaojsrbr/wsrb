@@ -6,6 +6,7 @@ void _hiveAdapters() {
   Hive.registerAdapter(_ThemeModeAdapter());
   Hive.registerAdapter(_AnrollDataAdapter());
   Hive.registerAdapter(_ConnectivityResultAdapter());
+  Hive.registerAdapter(_ColorResultAdapter());
 }
 
 class _OrderByAdapter extends TypeAdapter<OrderBy> {
@@ -111,5 +112,21 @@ class _ConnectivityResultAdapter extends TypeAdapter<ConnectivityResult> {
   @override
   void write(BinaryWriter writer, ConnectivityResult obj) {
     writer.writeInt(obj.index);
+  }
+}
+
+class _ColorResultAdapter extends TypeAdapter<Color> {
+  @override
+  Color read(BinaryReader reader) {
+    final int colorInt = reader.readInt();
+    return Color(colorInt);
+  }
+
+  @override
+  int get typeId => 7;
+
+  @override
+  void write(BinaryWriter writer, Color obj) {
+    writer.writeInt(obj.value);
   }
 }

@@ -15,6 +15,7 @@ class ThemeController extends ChangeNotifier {
   ColorScheme? _darkSystemColorScheme;
 
   late ThemeMode _themeMode;
+  late Color _appColor;
   late bool _systemThemeMode;
 
   static const _defaultValueThemeMode = HiveDefaultValue(
@@ -27,8 +28,21 @@ class ThemeController extends ChangeNotifier {
     false,
   );
 
+  static const defaultValueAppColor = HiveDefaultValue(
+    'theme_service_app_color',
+    Color(0xff110218),
+  );
+
   ThemeMode get themeMode => _themeMode;
+  Color get appColor => _appColor;
   bool get systemThemeMode => _systemThemeMode;
+
+  Future<void> setAppColor(Color? value, [bool notify = true]) async {
+    if (value == null || value == _appColor) return;
+    _appColor = value;
+    if (notify) notifyListeners();
+    await _hiveService.save(defaultValueAppColor.key, value);
+  }
 
   Future<void> setThemeMode(ThemeMode? value, [bool notify = true]) async {
     if (value == null || value == _themeMode) return;
@@ -56,29 +70,61 @@ class ThemeController extends ChangeNotifier {
         _defaultValueSystemThemeMode.key,
         _defaultValueSystemThemeMode.defaultValue,
       ),
+      _hiveService.load(
+        defaultValueAppColor.key,
+        defaultValueAppColor.defaultValue,
+      ),
     ]);
 
     _themeMode = result.elementAt(0) as ThemeMode;
     _systemThemeMode = result.elementAt(1) as bool;
+    _appColor = result.elementAt(2) as Color;
     await _getSystemColorScheme();
   }
 
-  ColorScheme get _lightScheme => MaterialTheme.lightScheme();
+  // ColorScheme get _lightScheme => MaterialTheme.lightScheme();
 
-  ColorScheme get _darkScheme => MaterialTheme.darkScheme();
+  // ColorScheme get _darkScheme => MaterialTheme.darkScheme();
 
   ColorScheme get _lightColorScheme {
     if (_systemThemeMode && _lightSystemColorScheme != null) {
-      return _lightSystemColorScheme!.harmonized();
+      return ColorScheme.fromSeed(
+        dynamicSchemeVariant: DynamicSchemeVariant.vibrant,
+        seedColor: _lightSystemColorScheme!.primary,
+        primary: _lightSystemColorScheme!.primary,
+        secondary: _lightSystemColorScheme!.secondary,
+        brightness: Brightness.light,
+      ).harmonized();
     }
-    return _lightScheme.harmonized();
+    return ColorScheme.fromSeed(
+      seedColor: _appColor,
+      brightness: Brightness.light,
+    ).harmonized();
+    // if (_systemThemeMode && _lightSystemColorScheme != null) {
+    //   return _lightSystemColorScheme!.harmonized();
+    // }
+    // return _lightScheme.harmonized();
   }
 
   ColorScheme get _darkColorScheme {
     if (_systemThemeMode && _darkSystemColorScheme != null) {
-      return _darkSystemColorScheme!.harmonized();
+      return ColorScheme.fromSeed(
+        dynamicSchemeVariant: DynamicSchemeVariant.vibrant,
+        seedColor: _darkSystemColorScheme!.primary,
+        primary: _darkSystemColorScheme!.primary,
+        secondary: _darkSystemColorScheme!.secondary,
+        brightness: Brightness.dark,
+      ).harmonized();
     }
-    return _darkScheme.harmonized();
+    return ColorScheme.fromSeed(
+      dynamicSchemeVariant: DynamicSchemeVariant.vibrant,
+      seedColor: _appColor,
+      brightness: Brightness.dark,
+    ).harmonized();
+    // if (_systemThemeMode && _darkSystemColorScheme != null) {
+    //   return _darkSystemColorScheme!.harmonized();
+    // }
+    // return _darkScheme.harmonized();
   }
 
   Future<void> _getSystemColorScheme() async {
@@ -139,10 +185,11 @@ class ThemeController extends ChangeNotifier {
           margin: EdgeInsets.zero,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
+        colorScheme: _lightColorScheme,
         buttonTheme: _buttonTheme(_lightColorScheme),
         splashFactory: InkRipple.splashFactory,
         textTheme: _textTheme(_lightColorScheme),
-        // scaffoldBackgroundColor: _lightColorScheme.surface,
+        scaffoldBackgroundColor: _lightColorScheme.surface,
         canvasColor: _lightColorScheme.surface,
         applyElevationOverlayColor: true,
         brightness: Brightness.light,
@@ -153,6 +200,7 @@ class ThemeController extends ChangeNotifier {
         ),
       );
   ThemeData get darkTheme => const MaterialTheme().dark().copyWith(
+        colorScheme: _darkColorScheme,
         cardTheme: CardTheme(
           margin: EdgeInsets.zero,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -161,9 +209,9 @@ class ThemeController extends ChangeNotifier {
         splashFactory: InkRipple.splashFactory,
         textTheme: _textTheme(_darkColorScheme),
         canvasColor: _darkColorScheme.surface,
+        scaffoldBackgroundColor: _darkColorScheme.surface,
         applyElevationOverlayColor: true,
         brightness: Brightness.dark,
-        // useMaterial3: true,
         textButtonTheme: _textButtonTheme(_darkColorScheme),
         scrollbarTheme: ScrollbarThemeData(
           radius: const Radius.circular(8),

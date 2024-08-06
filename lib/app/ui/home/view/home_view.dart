@@ -279,6 +279,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                     data: Source.list,
                                     onTap: hiveController.setSource,
                                     enableSecondChild: tabController.index != 0,
+                                    enableMenuItem: (data) =>
+                                        !(hiveController.source == data),
                                     child:
                                         Text(hiveController.source.toString()),
                                   ),
@@ -337,7 +339,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 }
 
-class _MenuButton<T> extends StatefulWidget {
+class _MenuButton<T> extends StatelessWidget {
   final void Function(T data)? onTap;
   final Widget? child;
   final bool enableSecondChild;
@@ -355,72 +357,66 @@ class _MenuButton<T> extends StatefulWidget {
   });
 
   @override
-  State<_MenuButton<T>> createState() => _MenuButtonState<T>();
-}
-
-class _MenuButtonState<T> extends State<_MenuButton<T>> {
-  final GlobalKey _buttonKey = GlobalKey();
-
-  @override
   Widget build(BuildContext context) {
     return FadeThroughTransitionSwitcher(
-      duration: const Duration(milliseconds: 450),
-      enableSecondChild: widget.enableSecondChild,
+      duration: const Duration(milliseconds: 350),
+      enableSecondChild: enableSecondChild,
       child: Padding(
         padding: const EdgeInsets.only(left: 20, bottom: 4),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 140, maxHeight: 38),
-          child: FilledButton(
-            key: _buttonKey,
-            style: FilledButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          child: Builder(builder: (context) {
+            return FilledButton(
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-            ),
-            onPressed: (widget.data.length == 1)
-                ? null
-                : () async {
-                    final RenderBox? button = _buttonKey.currentContext
-                        ?.findRenderObject() as RenderBox?;
+              onPressed: (data.length == 1)
+                  ? null
+                  : () async {
+                      final RenderBox? button =
+                          context.findRenderObject() as RenderBox?;
 
-                    final RenderBox? overlay = Navigator.of(context)
-                        .overlay
-                        ?.context
-                        .findRenderObject() as RenderBox?;
-                    if (overlay != null && button != null) {
-                      final size = button.size;
+                      final RenderBox? overlay = Navigator.of(context)
+                          .overlay
+                          ?.context
+                          .findRenderObject() as RenderBox?;
+                      if (overlay != null && button != null) {
+                        final size = button.size;
 
-                      final RelativeRect position = RelativeRect.fromRect(
-                        Rect.fromPoints(
-                          button.localToGlobal(size.bottomLeft(Offset.zero)),
-                          button.localToGlobal(size.bottomLeft(Offset.zero)),
-                        ),
-                        Offset(size.width > 100 ? -5 : size.width, -5) &
-                            overlay.size,
-                      );
+                        final RelativeRect position = RelativeRect.fromRect(
+                          Rect.fromPoints(
+                            button.localToGlobal(size.bottomLeft(Offset.zero)),
+                            button.localToGlobal(size.bottomLeft(Offset.zero)),
+                          ),
+                          Offset(size.width > 100 ? -5 : size.width, -5) &
+                              overlay.size,
+                        );
 
-                      final result = await showMenu(
-                        context: context,
-                        position: position,
-                        items: widget.data
-                            .map((e) => PopupMenuItem(
-                                  value: e,
-                                  enabled:
-                                      widget.enableMenuItem?.call(e) ?? true,
-                                  child: ListTile(
-                                      leading: widget.leadingMenuItem?.call(e),
-                                      title: Text(e.toString())),
-                                ))
-                            .toList(),
-                      );
+                        final result = await showMenu(
+                          context: context,
+                          position: position,
+                          clipBehavior: Clip.hardEdge,
+                          items: data
+                              .map((e) => PopupMenuItem(
+                                    value: e,
+                                    enabled: enableMenuItem?.call(e) ?? true,
+                                    child: ListTile(
+                                        leading: leadingMenuItem?.call(e),
+                                        title: Text(e.toString())),
+                                  ))
+                              .toList(),
+                        );
 
-                      if (result == null) return;
+                        if (result == null) return;
 
-                      widget.onTap?.call(result);
-                    }
-                  },
-            child: widget.child,
-          ),
+                        onTap?.call(result);
+                      }
+                    },
+              child: child,
+            );
+          }),
         ),
       ),
     );

@@ -81,9 +81,7 @@ class KeepWatching extends StatelessWidget {
                                 value: data.videoPercent.isNaN
                                     ? 0.0
                                     : data.videoPercent,
-                                color: data.videoPercent <= 0.85
-                                    ? Colors.blue
-                                    : Colors.green,
+                                color: Theme.of(context).colorScheme.primary,
                                 strokeWidth: 4,
                                 borderRadius: 12,
                                 child: ClipRRect(

@@ -12,6 +12,7 @@ import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class BookInformationView extends StatefulWidget {
@@ -62,10 +63,15 @@ class _BookInformationStateView
   }
 
   Future<void> _downloadRelease(Release release) async {
+    final localContext =
+        GoRouter.of(context).routerDelegate.navigatorKey.currentContext;
     final LibraryController libraryController =
         context.read<LibraryController>();
     final HistoricController historicController =
         context.read<HistoricController>();
+
+    final LibraryService libraryService =
+        LibraryService(libraryController, context.read());
 
     switch (release) {
       case Episode data when mounted && _content is Anime:
@@ -75,12 +81,7 @@ class _BookInformationStateView
           _repository,
           statisticsCallback: (statistics) async {},
           onResult: (result) async {
-            customLog(result);
-
             if (result is Success) {
-              final LibraryService libraryService =
-                  LibraryService(libraryController, context.read());
-
               AnimeEntity animeEntity = _content!.toEntity() as AnimeEntity;
 
               final bAnimeEntity =
@@ -99,10 +100,19 @@ class _BookInformationStateView
               );
             }
 
-            if ([Cancel, Failure, Success].contains(result.runtimeType)) {
-              if (result is Success) {
+            switch (result) {
+              case Cancel _:
+                break;
+              case Failure error when localContext?.mounted == true:
+                localContext?.appSnackBar.onError(error);
+                break;
+              case Failure _:
+                break;
+              case Success _:
                 customLog('Terminou');
-              }
+                break;
+              case Empty _:
+                break;
             }
           },
         );

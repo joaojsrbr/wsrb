@@ -150,13 +150,30 @@ class _LibraryButtons extends StatelessWidget {
     return AnimatedBuilder(
       animation: scrollable.position,
       builder: (context, child) {
-        final paddingPercent = ((scrollable.position.pixels -
-                    ((libraryService.favorites.isEmpty ||
-                            libraryService.favorites.isEmpty)
-                        ? 150
-                        : 330))
-                .clamp(0.0, 100) /
-            100);
+        double paddingPercent = 0.0;
+
+        switch (tabController.index) {
+          case 0:
+            paddingPercent = ((scrollable.position.pixels -
+                        ((libraryService.favorites.isEmpty ||
+                                libraryService.favorites.isEmpty)
+                            ? 150
+                            : 330))
+                    .clamp(0.0, 100) /
+                100);
+            break;
+          case 1:
+            paddingPercent = ((scrollable.position.pixels -
+                        ((libraryService.favorites.isEmpty ||
+                                libraryService.favorites.isEmpty)
+                            ? 150
+                            : 200))
+                    .clamp(0.0, 100) /
+                100);
+            break;
+        }
+
+        if (tabController.index == 0) {}
 
         final padding = (100 * paddingPercent).clamp(10.0, 50.0);
 
