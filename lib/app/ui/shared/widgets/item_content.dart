@@ -392,13 +392,10 @@ class _ImageWidget extends StatelessWidget {
       alignment: FractionalOffset.center,
       imageUrl: imageUrl,
       width: width,
-      // errorWidget: (context, url, error) {
-      //   return const Card.filled(shape: RoundedRectangleBorder());
-      // },
       fadeOutDuration: const Duration(milliseconds: 500),
       fadeInDuration: const Duration(milliseconds: 300),
-      maxHeightDiskCache: params.isLibrary ? 200 : 250,
-      maxWidthDiskCache: params.isLibrary ? 200 : 350,
+      maxHeightDiskCache: params.isLibrary ? 500 : 500,
+      maxWidthDiskCache: params.isLibrary ? 500 : 500,
       httpHeaders: App.HEADERS,
     );
 

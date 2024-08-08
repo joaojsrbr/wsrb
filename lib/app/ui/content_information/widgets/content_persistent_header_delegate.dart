@@ -312,8 +312,6 @@ class _ImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final Size sizeOf = MediaQuery.sizeOf(context);
-    // customLog(sizeOf.height);
     final imageWidget = SizedBox(
       child: CachedNetworkImage(
         key: const ValueKey('flexible_space_bar_image'),
@@ -322,7 +320,7 @@ class _ImageWidget extends StatelessWidget {
         width: 1080,
         fit: BoxFit.cover,
         alignment: Alignment.topCenter,
-        maxHeightDiskCache: 2000,
+        maxHeightDiskCache: 1000,
         maxWidthDiskCache: 1080,
       ),
     );

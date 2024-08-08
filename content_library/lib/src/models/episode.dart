@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:content_library/content_library.dart';
 
 class Episode extends Release {
@@ -61,4 +62,34 @@ class Episode extends Release {
         sinopse: sinopse,
         numberEpisode: int.tryParse(number),
       );
+
+  Map<String, dynamic> get toMap {
+    return <String, dynamic>{
+      'title': title,
+      'url': url,
+      'sinopse': sinopse,
+      'pageNumber': pageNumber,
+      'numberEpisode': numberEpisode,
+      'generateID': generateID,
+      'thumbnail': thumbnail,
+      'isDublado': isDublado,
+      'slugSerie': slugSerie,
+    };
+  }
+
+  factory Episode.fromMap(Map<String, dynamic> map) {
+    return Episode(
+      title: map['title'],
+      url: map['url'],
+      sinopse: map['sinopse'] != null ? map['sinopse'] as String : null,
+      pageNumber: map['pageNumber'] != null ? map['pageNumber'] as int : null,
+      numberEpisode:
+          map['numberEpisode'] != null ? map['numberEpisode'] as int : null,
+      generateID:
+          map['generateID'] != null ? map['generateID'] as String : null,
+      thumbnail: map['thumbnail'] != null ? map['thumbnail'] as String : null,
+      isDublado: map['isDublado'] as bool,
+      slugSerie: map['slugSerie'] != null ? map['slugSerie'] as String : null,
+    );
+  }
 }

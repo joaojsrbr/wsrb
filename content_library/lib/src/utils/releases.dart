@@ -12,6 +12,14 @@ class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
     _array = List.from(contents);
   }
 
+  List<Map<String, dynamic>> get toMap {
+    return map<Map<String, dynamic>>((e) => switch (e) {
+          Chapter data => data.toMap,
+          Episode data => data.toMap,
+          _ => {},
+        }).toList();
+  }
+
   List<T> _array = [];
 
   List<Releases> partition(int size) {

@@ -1,7 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api, constant_identifier_names, unused_field
 
 import 'package:content_library/content_library.dart';
-
 import 'package:flutter/widgets.dart';
 
 enum _BookInformationScopeAspect {
@@ -85,7 +84,8 @@ class BookInformationScope extends InheritedModel<_BookInformationScopeAspect> {
   @override
   bool updateShouldNotify(BookInformationScope oldWidget) {
     return isLoading != oldWidget.isLoading ||
-        content != oldWidget.content ||
+        (content != oldWidget.content ||
+            content.releases.length != oldWidget.content.releases.length) ||
         releasesIsLoading != oldWidget.releasesIsLoading ||
         index != oldWidget.index;
   }

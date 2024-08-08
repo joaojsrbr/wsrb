@@ -73,6 +73,7 @@ dependencies:
   video_thumbnail: ^0.5.3
   shimmer: ^3.0.0
   flex_color_picker: ^3.5.1
+  flutter_auto_cache: ^0.0.4
 
 dev_dependencies:
   flutter_test:
