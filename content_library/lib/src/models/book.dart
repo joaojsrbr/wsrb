@@ -1,12 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
-import 'package:content_library/src/entities/book_entity.dart';
-import 'package:content_library/src/models/content.dart';
+import 'package:content_library/content_library.dart';
 
-import '../constants/source.dart';
 import '../utils/object_utils.dart';
-import '../utils/releases.dart';
-import 'genre.dart';
 
 class Book extends Content with MergeClass<Content> {
   final Source source;
@@ -76,11 +72,17 @@ class Book extends Content with MergeClass<Content> {
   factory Book.fromMap(Map<String, dynamic> map) {
     return Book(
       title: map['title'],
-      releases: map['releases'],
+      releases: map['releases'] is ChapterReleases
+          ? map['releases']
+          : ChapterReleases.from(
+              (map['releases'] as List).map((e) => Chapter.fromMap(e)),
+            ),
       source: map['source'],
       originalImage: map['originalImage'],
       url: map['url'],
-      genres: map['genres'],
+      genres: map['genres'] != null
+          ? (map['genres'] as List).map((e) => Genre(e)).toList()
+          : [],
       alternativeTitle: map['alternativeTitle'],
       sinopse: map['sinopse'],
       extraLarge: map['extraLarge'],

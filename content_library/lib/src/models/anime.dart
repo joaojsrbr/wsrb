@@ -1,9 +1,5 @@
-import 'package:content_library/src/constants/source.dart';
-import 'package:content_library/src/entities/anime_entity.dart';
-import 'package:content_library/src/models/content.dart';
-import 'package:content_library/src/models/genre.dart';
+import 'package:content_library/content_library.dart';
 import 'package:content_library/src/utils/object_utils.dart';
-import 'package:content_library/src/utils/releases.dart';
 
 class Anime extends Content with MergeClass<Anime> {
   const Anime({
@@ -13,7 +9,7 @@ class Anime extends Content with MergeClass<Anime> {
     required this.source,
     required this.originalImage,
     this.slugSerie,
-    this.genres,
+    this.genres = const [],
     this.extraLarge,
     this.mediumImage,
     this.animeID,
@@ -28,7 +24,7 @@ class Anime extends Content with MergeClass<Anime> {
   @override
   EpisodeReleases get releases => super.releases as EpisodeReleases;
 
-  final List<Genre>? genres;
+  final List<Genre> genres;
   final String? generateID;
   final String? animeID;
   final Source source;
@@ -116,11 +112,17 @@ class Anime extends Content with MergeClass<Anime> {
     return Anime(
       title: map['title'],
       url: map['url'],
-      releases: map['releases'],
-      genres: map['genres'],
+      releases: map['releases'] is EpisodeReleases
+          ? map['releases']
+          : EpisodeReleases.from(
+              (map['releases'] as List).map((e) => Episode.fromMap(e)),
+            ),
+      genres: map['genres'] != null
+          ? (map['genres'] as List).map((e) => Genre(e)).toList()
+          : [],
       generateID: map['generateID'],
       animeID: map['animeID'],
-      source: map['source'],
+      source: Source.values.elementAt(map['source'] as int),
       extraLarge: map['extraLarge'],
       originalImage: map['originalImage'],
       largeImage: map['largeImage'],
@@ -136,10 +138,10 @@ class Anime extends Content with MergeClass<Anime> {
   @override
   Map<String, dynamic> get map => {
         ...super.map,
-        "genres": genres,
+        "genres": genres.map((e) => e.label).toList(),
         "generateID": generateID,
         "animeID": animeID,
-        "source": source,
+        "source": source.index,
         "extraLarge": extraLarge,
         "originalImage": originalImage,
         "largeImage": largeImage,

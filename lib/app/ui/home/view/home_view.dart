@@ -159,16 +159,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           final TabController tabController =
               HomeScope.of(context).tabController;
 
-          final connectionChecker = context.watch<ConnectionChecker>();
-
           return Scaffold(
             extendBody: true,
             body: ExtendedNestedScrollView(
               onlyOneScrollInBody: true,
               controller: _scrollController,
-              physics: connectionChecker.connectivityResult.isEmpty
-                  ? const NeverScrollableScrollPhysics()
-                  : _mainPhysics,
+              physics: _mainPhysics,
               headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return [
                   SliverAppBar(

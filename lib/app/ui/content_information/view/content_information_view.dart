@@ -12,6 +12,7 @@ import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_auto_cache/flutter_auto_cache.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -28,6 +29,7 @@ class _BookInformationStateView
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = GlobalKey();
 
   late final ContentRepository _repository;
+  late final ConnectionChecker _connectionChecker;
   late final DownloadService _downloadService;
   bool _isLoading = true;
   bool _releasesIsLoading = false;
@@ -38,6 +40,7 @@ class _BookInformationStateView
   @override
   void initState() {
     super.initState();
+    _connectionChecker = context.read<ConnectionChecker>();
     _downloadService = context.read<DownloadService>();
     _repository = context.read<ContentRepository>();
     Future.microtask(_onInit);
@@ -124,17 +127,44 @@ class _BookInformationStateView
   void _onInit() async {
     final args = argument();
     final navigationState = Navigator.of(context);
-    final content = args.content;
 
-    final resultCotent = await _repository.getData(content);
+    final cache = await AutoCache.data.getJson(
+      key: args.content.stringID,
+    );
+
+    final contentCache = switch (args.content) {
+      Anime _ when cache.data != null =>
+        Result.success(Anime.fromMap(cache.data!)),
+      Book _ when cache.data != null =>
+        Result.success(Book.fromMap(cache.data!)),
+      _ => const Result<Content>.cancel(),
+    };
+
+    final resultCotent = (contentCache is Success)
+        ? contentCache
+        : await _repository.getData(args.content).timeout(
+              const Duration(seconds: 5),
+              onTimeout: () => Result.failure(
+                TimeoutException("Tempo excedido"),
+              ),
+            );
 
     resultCotent.fold(
       onError: navigationState.pop,
       onSuccess: _onSucess,
     );
+
+    if (contentCache is Success &&
+        _connectionChecker.connectivityResult.isNotEmpty) {
+      setStateIfMounted(() => _releasesIsLoading = true);
+      await _repository.getReleases(_content!, -1).whenComplete(() {
+        setStateIfMounted(() => _releasesIsLoading = false);
+      });
+    }
   }
 
   Future<void> _onRefresh() async {
+    setStateIfMounted(() => _releasesIsLoading = true);
     final appSnackBar = context.appSnackBar;
     final resultBook = await _repository.getData(_content!);
 
@@ -152,17 +182,10 @@ class _BookInformationStateView
 
       result.fold(
         onSuccess: (data) {
-          final stringID = data.releases.first.stringID;
-          customLog(stringID);
+          // final stringID = data.releases.first.stringID;
+
           _releases[_index] = data.releases;
-          // final index = _releases.indexWhere((element) =>
-          //     element.any((element) => element.stringID.contains(stringID)));
-          // if (index != -1) {
-          //   _releases[index] = data.releases;
-          // } else {
-          //   _releases.add(data.releases);
-          // }
-          // setState(() {});
+
           setStateIfMounted(() => _content = data);
         },
       );
@@ -208,11 +231,10 @@ class _BookInformationStateView
         _content = data;
       }
 
-      if (!onRefresh) {
-        _releasesIsLoading = false;
-        _isLoading = false;
-      }
+      _releasesIsLoading = false;
+      _isLoading = false;
     });
+    AutoCache.data.saveJson(key: data.stringID, data: data.map);
   }
 
   ScrollPhysics get _physics {

@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
-import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
-import 'package:content_library/content_library.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/content_indicator_build.dart';
+import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
+import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -63,6 +63,7 @@ class _ContentDestinationState extends State<ContentDestination>
                 : LoadingMoreList(
                     ListConfig<Content>(
                       physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 6),
                       indicatorBuilder: contentIndicatorBuilder,

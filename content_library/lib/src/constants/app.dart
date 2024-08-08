@@ -1,6 +1,7 @@
 // ignore_for_file: constant_identifier_names, non_constant_identifier_names
 
 import 'package:flutter/material.dart';
+import 'package:flutter_auto_cache/flutter_auto_cache.dart';
 
 class App {
   const App._();
@@ -19,6 +20,16 @@ class App {
     "user-agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
   };
+
+  static const APP_CACHE_CONFIG = CacheConfiguration(
+    sizeOptions: CacheSizeOptions(maxMb: 20),
+    dataCacheOptions: DataCacheOptions(
+      substitutionPolicy: SubstitutionPolicies.lru,
+      invalidationMethod: TTLInvalidationMethod(
+        maxDuration: Duration(hours: 4),
+      ),
+    ),
+  );
 
   static const String ANI_LIST = 'https://graphql.anilist.co';
 

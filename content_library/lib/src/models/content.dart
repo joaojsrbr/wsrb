@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 import '../entities/entity.dart';
 import '../extensions/custom_extensions/string_extensions.dart';
 import '../utils/releases.dart';
@@ -42,12 +43,16 @@ abstract class Content extends Equatable {
   });
 
   Map<String, dynamic> get map => {
-        "releases": _releases,
+        "releases": _releases.toMap,
         "url": url,
         "title": title,
         "sinopse": sinopse,
       };
 
   @override
-  List<Object?> get props => map.values.toList();
+  List<Object?> get props {
+    final cache = map..remove("releases");
+    final values = cache.values.toList()..addAll(_releases);
+    return values;
+  }
 }
