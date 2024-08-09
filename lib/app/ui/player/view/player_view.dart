@@ -43,11 +43,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         PlayerAudioHandlerMixin,
         PlayerAudioSessionMixin,
         PlayerScreenShotMixin {
-  VideoController? _videoController;
-  Data? _mainVideoData;
-  bool _isLoading = true;
-  BoxFit _activeFit = BoxFit.contain;
-
   final ValueNotifier<String?> _overlayBoxFit = ValueNotifier(null);
   final ValueNotifier<String?> _overlayNextEpisode = ValueNotifier(null);
   final ValueNotifier<String> _topTitle = ValueNotifier('');
@@ -55,41 +50,36 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   final ValueNotifier<bool> _reversedCurrentDuration = ValueNotifier(false);
   final ValueNotifier<Duration?> _seekInVideoPosition = ValueNotifier(null);
 
+  Data? _mainVideoData;
+  VideoController? _videoController;
+  bool _isLoading = true;
+  BoxFit _activeFit = BoxFit.contain;
+  double _currentValueCircularAnimation = 0;
+
+  final List<VideoData> data = [];
+  final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
+  final _PlayerStatus _status = _PlayerStatus();
+  final double _maxValueCircularAnimation = 1.0;
+
   late PlayerArgs _playerArgs = argument();
 
-  final _PlayerStatus _status = _PlayerStatus();
-
-  final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
-  final List<VideoData> data = [];
-
-  final double _maxValueCircularAnimation = 1.0;
-  double _currentValueCircularAnimation = 0;
   late final ContentRepository _repository;
   late final HiveController _hiveController;
   late final LibraryController _libraryController;
   late final HistoricController _historicController;
   late final Timer _systemUIModeTimer;
-  final Debouncer _removeAllListenersDebouncer = Debouncer(
-    duration: const Duration(seconds: 20),
+
+  final Debouncer _saveDataDebouncer = Debouncer(
+    duration: const Duration(milliseconds: 200),
   );
-
-  // Duration _currentPositionDuration = Duration.zero;
-
-  bool _playerRemoveListener = false;
-
-  final Debouncer _saveDataDebouncer =
-      Debouncer(duration: const Duration(milliseconds: 200));
-
-  Timer? _setEnabledSystemUIModeTimer;
-
   Timer? _setContinueVideoTimer;
 
   bool get _hasNextEpisode {
     if (!_playerArgs.getAnimeData || _playerArgs.anime.releases.isEmpty) {
       return false;
     }
-    return !(_playerArgs.anime.releases.last.stringID
-        .contains(_playerArgs.episode.stringID));
+    return _playerArgs.anime.releases.last.stringID !=
+        _playerArgs.episode.stringID;
   }
 
   bool get _playing => player?.state.playing ?? false;
@@ -100,10 +90,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   double get _videoPercent {
     if (player != null) {
       final Duration position = player!.state.position;
-
       final Duration duration = player!.state.duration;
 
-      return ((position.inMicroseconds / duration.inMicroseconds)).abs();
+      if (duration.inMicroseconds > 0) {
+        return (position.inMicroseconds / duration.inMicroseconds)
+            .clamp(0.0, 1.0);
+      }
     }
     return 0.0;
   }
@@ -132,38 +124,15 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   void _setEnabledSystemUIMode(Timer timer) {
     if (player == null) return;
 
-    _setEnabledSystemUIModeTimer?.cancel();
-
     if (_playing && !player!.state.completed) {
-      _setEnabledSystemUIModeTimer =
-          Timer(const Duration(milliseconds: 200), () {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-      });
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     } else {
-      _setEnabledSystemUIModeTimer =
-          Timer(const Duration(milliseconds: 200), () {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      });
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     }
   }
 
   Future<void> _incrementCurrentCircularAnimation() async {
     setStateIfMounted(() => _currentValueCircularAnimation += 0.5);
-  }
-
-  Future<void> _removeAllListeners() async {
-    _playerRemoveListener = true;
-    _saveDataDebouncer.cancel();
-    _setEnabledSystemUIModeTimer?.cancel();
-    _systemUIModeTimer.cancel();
-    _removeAllListenersDebouncer.cancel();
-    _setContinueVideoTimer?.cancel();
-    playerAudioHandler.playbackState.add(playerAudioHandler.playbackState.value
-        .copyWith(processingState: AudioProcessingState.idle));
-    await setSessionActive(false);
-    await playerAudioHandler.playbackState.firstWhere(
-        (state) => state.processingState == AudioProcessingState.idle);
-    await _registerListeners(true);
   }
 
   @override
@@ -173,17 +142,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     switch (state) {
       case AppLifecycleState.hidden:
         _saveVideoPosition();
-        _removeAllListenersDebouncer.cancel();
-        _removeAllListenersDebouncer.call(_removeAllListeners);
       case AppLifecycleState.paused:
         _saveVideoPosition();
-        _removeAllListenersDebouncer.cancel();
-        _removeAllListenersDebouncer.call(_removeAllListeners);
       case AppLifecycleState.inactive:
       case AppLifecycleState.resumed:
-      case AppLifecycleState.resumed
-          when _playerRemoveListener && !isPipActivated:
-        _registerListeners(false);
       case AppLifecycleState.detached:
     }
 
@@ -208,7 +170,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         if (data.first is! VideoData) state.pop();
 
         setStateIfMounted(() {
-          // _currentValueCircularAnimation++;
           data.forEach(this.data.cast().addIfNoContains);
           _mainVideoData = data.first as VideoData;
         });
@@ -218,26 +179,17 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _getAllEpisodes() async {
-    if (!_playerArgs.getAnimeData) return;
-    Anime anime = _playerArgs.anime;
-    if (_playerArgs.anime.releases.length == 1 ||
-        _playerArgs.anime.releases.isEmpty) {
-      final result = await _repository
-          .getData(_playerArgs.anime)
-          .then((result) => result.fold(onSuccess: (data) => data as Anime));
-      if (result != null) anime = result;
+    if (_playerArgs.anime.releases.length <= 1 && _playerArgs.getAnimeData) {
+      await _repository.getReleases(_playerArgs.anime, -1).then(
+            (result) => result.fold(
+              onSuccess: (data) {
+                _playerArgs = _playerArgs.copyWith(
+                  anime: _playerArgs.anime.merge(data as Anime),
+                );
+              },
+            ),
+          );
     }
-
-    _playerArgs = _playerArgs.copyWith(
-      anime: anime.copyWith(
-        releases: (_playerArgs.anime.releases.length > anime.releases.length
-            ? _playerArgs.anime.releases
-            : null),
-      ),
-    );
-    // _playerArgs.anime.releases.sort(
-    //   (release1, release2) => release1.compareTo(release2),
-    // );
   }
 
   void _onInit(Duration time) async {
@@ -279,22 +231,26 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     switch (_mainVideoData) {
       case VideoData data:
-        futures.add(player!.open(
-          Media(
-            data.videoContent,
-            httpHeaders: data.httpHeaders,
+        futures.add(
+          player!.open(
+            Media(
+              data.videoContent,
+              httpHeaders: data.httpHeaders,
+            ),
           ),
-        ));
+        );
       case FileVideoData data:
-        futures.add(player!.open(
-          Media(data.file.path),
-        ));
+        futures.add(
+          player!.open(
+            Media(data.file.path),
+          ),
+        );
       default:
     }
 
     await Future.wait(futures);
 
-    await _videoController?.waitUntilFirstFrameRendered;
+    // await _videoController?.waitUntilFirstFrameRendered;
 
     if (initPossition != null) {
       await player!.seek(initPossition);
@@ -352,7 +308,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   void _positionListener(Duration position) {
     _status.setValue(position: position);
-    // _currentPositionDuration = position;
     playerAudioHandler.setPlaybackState(player!.state);
 
     if (_seekInVideoPosition.value != null) {
@@ -413,12 +368,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     customLog(
         '[$runtimeType][_continueVideoByHistoricPosition()][${entity.animeStringID}]');
 
-    // final videoPercent =
-    //     ((entity.currentDuration / entity.episodeDuration)).abs();
-
     if (entity.currentDuration == 0) return;
-
-    // if (videoPercent < _hiveController.historicSavePercent) return;
 
     final GlobalKey anchor = GlobalKey();
 
@@ -514,12 +464,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
       final HistoryService historyService = HistoryService(_historicController);
 
-      final entity = historyService.entities
-          .firstWhereOrNull((episode) => switch (episode) {
-                EpisodeEntity data =>
-                  data.animeStringID.contains(_playerArgs.anime.stringID),
-                _ => false,
-              }) as EpisodeEntity?;
+      final entity = historyService.entities.firstWhereOrNull((episode) =>
+              episode is EpisodeEntity &&
+              episode.animeStringID.contains(_playerArgs.anime.stringID))
+          as EpisodeEntity?;
 
       bool isComplete = _videoPercent >= 0.85;
 
@@ -570,32 +518,32 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     BuildContext context,
     PlayerArgs argument,
   ) {
-    //  if (!scope.playerArgs.getAnimeData && context.mounted) {
-    //   context.pop();
-    //   // Navigator.of(context).pop();
-    // }
-    return PlayerScope(
-      draggableScrollableController: draggableScrollableController,
-      onPipAction: onPipAction,
-      onPipChange: onPipChange,
-      isPipActivated: isPipActivated,
-      isPipAvailable: isPipAvailable,
-      enterInPip: handleEnterInPip,
-      lockPlayer: _lockPlayer,
-      reversedCurrentDuration: _reversedCurrentDuration,
-      topTitle: _topTitle,
-      overlayBoxFit: _overlayBoxFit,
-      overlayNextEpisode: _overlayNextEpisode,
-      onTapEpisodeInOverlay: _handleOnTapEpisodeInOverlay,
-      onTapEpisode: _handleOnTapEpisode,
-      activeFit: _activeFit,
-      videoController: _videoController,
-      currentValueCircularAnimation: _currentValueCircularAnimation,
-      maxValueCircularAnimation: _maxValueCircularAnimation,
-      isLoading: _isLoading,
-      playerArgs: mounted ? _playerArgs : argument,
-      setFits: _handleSetFits,
-      child: const _BuildScaffold(),
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      extendBody: true,
+      body: PlayerScope(
+        draggableScrollableController: draggableScrollableController,
+        onPipAction: onPipAction,
+        onPipChange: onPipChange,
+        isPipActivated: isPipActivated,
+        isPipAvailable: isPipAvailable,
+        enterInPip: handleEnterInPip,
+        lockPlayer: _lockPlayer,
+        reversedCurrentDuration: _reversedCurrentDuration,
+        topTitle: _topTitle,
+        overlayBoxFit: _overlayBoxFit,
+        overlayNextEpisode: _overlayNextEpisode,
+        onTapEpisodeInOverlay: _handleOnTapEpisodeInOverlay,
+        onTapEpisode: _handleOnTapEpisode,
+        activeFit: _activeFit,
+        videoController: _videoController,
+        currentValueCircularAnimation: _currentValueCircularAnimation,
+        maxValueCircularAnimation: _maxValueCircularAnimation,
+        isLoading: _isLoading,
+        playerArgs: mounted ? _playerArgs : argument,
+        setFits: _handleSetFits,
+        child: const _Content(),
+      ),
     );
   }
 
@@ -610,9 +558,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     _reversedCurrentDuration.dispose();
     _overlayBoxFit.dispose();
     _saveDataDebouncer.cancel();
-    _setEnabledSystemUIModeTimer?.cancel();
     _systemUIModeTimer.cancel();
-    _removeAllListenersDebouncer.cancel();
     _setContinueVideoTimer?.cancel();
     _overlayNextEpisode.dispose();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -631,8 +577,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 }
 
-class _BuildScaffold extends StatelessWidget {
-  const _BuildScaffold();
+class _Content extends StatelessWidget {
+  const _Content();
 
   @override
   Widget build(BuildContext context) {
@@ -652,8 +598,8 @@ class _BuildScaffold extends StatelessWidget {
             duration: const Duration(milliseconds: 300),
             tween: Tween(
               begin: 0.0,
-              end: (currentValueCircularAnimation /
-                  scope.maxValueCircularAnimation),
+              end: currentValueCircularAnimation /
+                  scope.maxValueCircularAnimation,
             ),
             builder: (_, value, __) =>
                 CircularProgressIndicator.adaptive(value: value),
@@ -666,42 +612,39 @@ class _BuildScaffold extends StatelessWidget {
         ),
       ]);
     } else if (videoController != null) {
+      final videoWidget = Video(
+        aspectRatio: 16 / 9,
+        onEnterFullscreen: scope.isPipActivated
+            ? () async {}
+            : () async {
+                await SystemChrome.setPreferredOrientations([
+                  DeviceOrientation.landscapeLeft,
+                  DeviceOrientation.landscapeRight,
+                ]);
+                SystemChrome.setEnabledSystemUIMode(
+                  SystemUiMode.immersive,
+                );
+              },
+        onExitFullscreen: scope.isPipActivated
+            ? () async {}
+            : () async {
+                await SystemChrome.setPreferredOrientations(
+                  [DeviceOrientation.portraitUp],
+                );
+              },
+        fit: activeFit,
+        controls: (state) {
+          final PlayerScope scopeFullScreen =
+              PlayerScope.of(PlayerView.videoStateKey.currentContext!);
+          if (!scopeFullScreen.isPipActivated) {
+            return CustomMaterialControls(state);
+          }
+          return const SizedBox.shrink();
+        },
+        key: PlayerView.videoStateKey,
+        controller: videoController,
+      );
       children.addAll([
-        // Flexible(
-        //   flex: 1,
-        //   child: Video(
-        //     aspectRatio: 16 / 9,
-        //     onEnterFullscreen: () async {
-        //       await SystemChrome.setPreferredOrientations([
-        //         DeviceOrientation.landscapeLeft,
-        //         DeviceOrientation.landscapeRight,
-        //       ]);
-        //       SystemChrome.setEnabledSystemUIMode(
-        //         SystemUiMode.immersive,
-        //       );
-        //     },
-        //     onExitFullscreen: () async {
-        //       await SystemChrome.setPreferredOrientations(
-        //         [DeviceOrientation.portraitUp],
-        //       );
-        //     },
-        //     fit: activeFit,
-        //     controls: CustomMaterialControls.new,
-        //     key: PlayerView.videoStateKey,
-        //     controller: videoController,
-        //   ),
-        // ),
-        // Expanded(
-        //   flex: 2,
-        //   child: ListDismissible<Episode>(
-        //     titleTextStyle: Theme.of(context).textTheme.labelLarge,
-        //     releases: playerArgs.anime.releases,
-        //     padding: const EdgeInsets.symmetric(vertical: 8),
-        //     selected: (content) => content == playerArgs.episode,
-        //     physics: const BouncingScrollPhysics(),
-        //     onTap: scope.onTapEpisode,
-        //   ),
-        // ),
         Expanded(
           flex: 2,
           child: DraggableScrollableSheet(
@@ -716,64 +659,10 @@ class _BuildScaffold extends StatelessWidget {
                     child: PipWidget(
                       onPipAction: scope.onPipAction,
                       onPipEntered: scope.onPipChange,
-                      onPipExited: () {
-                        WidgetsBinding.instance.addPostFrameCallback((timer) {
-                          scope.onPipChange();
-                        });
-                      },
+                      onPipExited: scope.onPipChange,
                       pipLayout: PipActionsLayout.media_only_pause,
-                      pipChild: Video(
-                        aspectRatio: 16 / 9,
-                        // onEnterFullscreen: () async {
-                        //   await SystemChrome.setPreferredOrientations([
-                        //     DeviceOrientation.landscapeLeft,
-                        //     DeviceOrientation.landscapeRight,
-                        //   ]);
-                        //   SystemChrome.setEnabledSystemUIMode(
-                        //     SystemUiMode.immersive,
-                        //   );
-                        // },
-                        // onExitFullscreen: () async {
-                        //   await SystemChrome.setPreferredOrientations(
-                        //     [DeviceOrientation.portraitUp],
-                        //   );
-                        // },
-                        controls: (state) => const SizedBox.shrink(),
-                        // key: PlayerView.videoStateKey,
-                        controller: videoController,
-                      ),
-                      child: Video(
-                        aspectRatio: 16 / 9,
-                        onEnterFullscreen: scope.isPipActivated
-                            ? () async {}
-                            : () async {
-                                await SystemChrome.setPreferredOrientations([
-                                  DeviceOrientation.landscapeLeft,
-                                  DeviceOrientation.landscapeRight,
-                                ]);
-                                SystemChrome.setEnabledSystemUIMode(
-                                  SystemUiMode.immersive,
-                                );
-                              },
-                        onExitFullscreen: scope.isPipActivated
-                            ? () async {}
-                            : () async {
-                                await SystemChrome.setPreferredOrientations(
-                                  [DeviceOrientation.portraitUp],
-                                );
-                              },
-                        fit: activeFit,
-                        controls: (state) {
-                          final PlayerScope scopeFullScreen = PlayerScope.of(
-                              PlayerView.videoStateKey.currentContext!);
-                          if (!scopeFullScreen.isPipActivated) {
-                            return CustomMaterialControls(state);
-                          }
-                          return const SizedBox.shrink();
-                        },
-                        key: PlayerView.videoStateKey,
-                        controller: videoController,
-                      ),
+                      pipChild: videoWidget,
+                      child: videoWidget,
                     ),
                   ),
                   if (!scope.isPipActivated)
@@ -893,14 +782,10 @@ class _BuildScaffold extends StatelessWidget {
 
     if (!isLoading) mainAxisAlignment = MainAxisAlignment.start;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      extendBody: true,
-      body: Column(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: mainAxisAlignment,
-        children: children,
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: mainAxisAlignment,
+      children: children,
     );
   }
 }
