@@ -60,7 +60,6 @@ dependencies:
   content_library:
     path: ./content_library
   quiver: ^3.2.1
-  flutter_sticky_header: ^0.6.5
   super_sliver_list: ^0.4.1
   extended_nested_scroll_view: ^6.2.1
   open_settings_plus: ^0.3.3
@@ -68,7 +67,6 @@ dependencies:
   audio_service: ^0.18.13
   audio_session: ^0.1.19
   android_pip: ^1.1.0
-  flutter_image_converter: ^0.3.3
   border_progress_indicator: ^0.0.3
   video_thumbnail: ^0.5.3
   shimmer: ^3.0.0
