@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:anilist_dart/anilist.dart';
 import 'package:collection/collection.dart';
 import 'package:content_library/src/exceptions/anime_exception.dart';
 import 'package:content_library/src/exceptions/book_exception.dart';
@@ -12,7 +13,6 @@ import 'package:flutter/material.dart' as ui;
 import 'package:hive/hive.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
-
 import 'package:loading_more_list/loading_more_list.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -35,10 +35,10 @@ import '../utils/scraping.util.dart';
 import '../utils/subscriptions.dart';
 import 'source/source.dart';
 
-part 'source/neox_source.dart';
-part 'source/goyabu_source.dart';
-part 'source/demon_sect_source.dart';
 part 'source/anroll_source.dart';
+part 'source/demon_sect_source.dart';
+part 'source/goyabu_source.dart';
+part 'source/neox_source.dart';
 
 abstract class ContentRepository extends LoadingMoreBase<Content> {
   int index = 0;
@@ -97,6 +97,64 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
     required List<Source> searchSources,
     required ui.ValueChanged<(Source, List<Content>)> onSuccess,
   });
+
+  Future<AnilistMedia?> getAnilistMedia(Content content) async {
+    final charSelect = AnilistCharacterSelect()
+      ..withName()
+      ..withImage();
+
+    final staffSelect = AnilistStaffSelect()
+      ..withName()
+      ..withImage();
+
+    final request = AnilistMediaRequest()
+      ..withIdMal()
+      ..withTitle()
+      ..withType()
+      ..withEpisodes()
+      ..withFormat()
+      ..withIdMal()
+      ..withStatus()
+      ..withDescription()
+      ..withStartDate()
+      ..withEndDate()
+      ..withSeason()
+      ..withCountryOfOrigin()
+      ..withIsLicensed()
+      ..withSource()
+      ..withHashtag()
+      ..withTrailer()
+      ..withUpdatedAt()
+      ..withCoverImage()
+      ..withBannerImage()
+      ..withGenres()
+      ..withSynonyms()
+      ..withMeanScore()
+      ..withAverageScore()
+      ..withPopularity()
+      ..withIsLocked()
+      ..withFavourites()
+      ..withTrending()
+      ..withTagsId()
+      ..withTagsName()
+      ..withCharcters(AnilistSubquery(page: 1, perPage: 5, charSelect))
+      ..withStaff(AnilistSubquery(page: 1, perPage: 5, staffSelect))
+      ..querySearch(content.title.trim());
+
+    try {
+      final animeMedia = (await request.list(2, 1)).results?.firstWhereOrNull(
+            (media) =>
+                media.type ==
+                (content is Anime
+                    ? AnilistMediaType.ANIME
+                    : AnilistMediaType.MANGA),
+          );
+      return animeMedia;
+    } on Exception catch (e) {
+      customLog(e.toString());
+      return null;
+    }
+  }
 
   @override
   Future<bool> refresh([bool notifyStateChanged = false]) async {

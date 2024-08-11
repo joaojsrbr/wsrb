@@ -612,38 +612,6 @@ class _Content extends StatelessWidget {
         ),
       ]);
     } else if (videoController != null) {
-      final videoWidget = Video(
-        aspectRatio: 16 / 9,
-        onEnterFullscreen: scope.isPipActivated
-            ? () async {}
-            : () async {
-                await SystemChrome.setPreferredOrientations([
-                  DeviceOrientation.landscapeLeft,
-                  DeviceOrientation.landscapeRight,
-                ]);
-                SystemChrome.setEnabledSystemUIMode(
-                  SystemUiMode.immersive,
-                );
-              },
-        onExitFullscreen: scope.isPipActivated
-            ? () async {}
-            : () async {
-                await SystemChrome.setPreferredOrientations(
-                  [DeviceOrientation.portraitUp],
-                );
-              },
-        fit: activeFit,
-        controls: (state) {
-          final PlayerScope scopeFullScreen =
-              PlayerScope.of(PlayerView.videoStateKey.currentContext!);
-          if (!scopeFullScreen.isPipActivated) {
-            return CustomMaterialControls(state);
-          }
-          return const SizedBox.shrink();
-        },
-        key: PlayerView.videoStateKey,
-        controller: videoController,
-      );
       children.addAll([
         Expanded(
           flex: 2,
@@ -661,8 +629,44 @@ class _Content extends StatelessWidget {
                       onPipEntered: scope.onPipChange,
                       onPipExited: scope.onPipChange,
                       pipLayout: PipActionsLayout.media_only_pause,
-                      pipChild: videoWidget,
-                      child: videoWidget,
+                      pipChild: Video(
+                        aspectRatio: 16 / 9,
+                        fit: activeFit,
+                        controls: (state) => const SizedBox.shrink(),
+                        controller: videoController,
+                      ),
+                      child: Video(
+                        aspectRatio: 16 / 9,
+                        onEnterFullscreen: scope.isPipActivated
+                            ? () async {}
+                            : () async {
+                                await SystemChrome.setPreferredOrientations([
+                                  DeviceOrientation.landscapeLeft,
+                                  DeviceOrientation.landscapeRight,
+                                ]);
+                                SystemChrome.setEnabledSystemUIMode(
+                                  SystemUiMode.immersive,
+                                );
+                              },
+                        onExitFullscreen: scope.isPipActivated
+                            ? () async {}
+                            : () async {
+                                await SystemChrome.setPreferredOrientations(
+                                  [DeviceOrientation.portraitUp],
+                                );
+                              },
+                        fit: activeFit,
+                        controls: (state) {
+                          final PlayerScope scopeFullScreen = PlayerScope.of(
+                              PlayerView.videoStateKey.currentContext!);
+                          if (!scopeFullScreen.isPipActivated) {
+                            return CustomMaterialControls(state);
+                          }
+                          return const SizedBox.shrink();
+                        },
+                        key: PlayerView.videoStateKey,
+                        controller: videoController,
+                      ),
                     ),
                   ),
                   if (!scope.isPipActivated)

@@ -64,8 +64,6 @@ dependencies:
   shimmer: ^3.0.0
   flex_color_picker: ^3.5.1
   flutter_auto_cache: ^0.0.4
-  anilist_dart:
-    git: https://github.com/felixalguzman/anilist_dart
 
 dev_dependencies:
   flutter_test:

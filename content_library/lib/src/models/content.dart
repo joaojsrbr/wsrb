@@ -1,3 +1,4 @@
+import 'package:anilist_dart/anilist.dart';
 import 'package:equatable/equatable.dart';
 
 import '../entities/entity.dart';
@@ -17,6 +18,8 @@ abstract class Content extends Equatable {
 
   Releases get releases => _releases;
 
+  final AnilistMedia? animeMedia;
+
   final String title;
 
   const Content(
@@ -24,11 +27,13 @@ abstract class Content extends Equatable {
     required this.url,
     required this.title,
     this.sinopse,
+    this.animeMedia,
   });
 
   Content copyWith({
     String? title,
     String? sinopse,
+    AnilistMedia? animeMedia,
     String? url,
     Releases? releases,
   });
@@ -43,6 +48,8 @@ abstract class Content extends Equatable {
   });
 
   Map<String, dynamic> get map => {
+        "animeMedia":
+            animeMedia != null ? AnilistMedia.toJson(animeMedia!) : null,
         "releases": _releases.toMap,
         "url": url,
         "title": title,
@@ -50,9 +57,5 @@ abstract class Content extends Equatable {
       };
 
   @override
-  List<Object?> get props {
-    final cache = map..remove("releases");
-    final values = cache.values.toList()..addAll(_releases);
-    return values;
-  }
+  List<Object?> get props => map.values.toList();
 }

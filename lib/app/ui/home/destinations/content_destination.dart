@@ -62,10 +62,16 @@ class _ContentDestinationState extends State<ContentDestination>
                 ? const FullScreenErrorWidget(btnAtualizar: false)
                 : LoadingMoreList(
                     ListConfig<Content>(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                      ),
                       physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 6),
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
                       indicatorBuilder: contentIndicatorBuilder,
                       itemBuilder: _itemBuilder,
                       sourceList: _contentRepository,

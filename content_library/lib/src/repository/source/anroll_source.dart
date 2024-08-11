@@ -54,8 +54,21 @@ class AnrollSource extends RSource {
     if (content is! Anime) throw AnimeGetDataException();
 
     try {
+      final animeID = content.animeID ??
+          await contentRepository._dio
+              .get("https://www.anroll.net/e/${content.generateID}")
+              .then(
+            (response) {
+              return parse(response.data)
+                  .querySelector('#anime_title a')
+                  ?.attributes['href']
+                  ?.split('/')
+                  .last;
+            },
+          );
+
       final episodesResponse = await contentRepository._dio.get(
-        'https://apiv3-prd.anroll.net/animes/${content.animeID}/episodes?order=asc${page == -1 ? '' : '&page=$page'}',
+        'https://apiv3-prd.anroll.net/animes/$animeID/episodes?order=asc${page == -1 ? '' : '&page=$page'}',
       );
 
       final episodesList = episodesResponse.data['data'] as List;
@@ -72,14 +85,13 @@ class AnrollSource extends RSource {
           (element) => (int.tryParse(element.number) ?? 0) > lastENumber);
 
       for (final map in episodesList) {
-        final nEpisodio = map['n_episodio'];
-        final number = int.parse(nEpisodio);
+        final number = int.parse(map['n_episodio']);
         final titleEpisode = map['titulo_episodio'] as String;
         final pageNumber = episodesResponse.data['meta']['pageNumber'] as int?;
         final sinopseEpisode = map['sinopse_episodio'] as String?;
         final episodeGenerateID = map['generate_id'];
         final thumbnail =
-            "https://static.anroll.net/images/animes/screens/${content.slugSerie}/$nEpisodio.jpg";
+            "https://static.anroll.net/images/animes/screens/${content.slugSerie}/${map['n_episodio']}.jpg";
 
         final Episode episode = Episode(
           numberEpisode: number,
@@ -112,73 +124,93 @@ class AnrollSource extends RSource {
     try {
       if (content is! Anime) throw AnimeGetDataException();
 
+      Anime newAnime = content;
+
       final String generateID =
           content.releases.firstOrNull?.generateID ?? content.generateID!;
 
       final String buildId = await getBuildId();
 
       if (content.animeID == null) {
-        final animeID = await contentRepository._dio
+        await contentRepository._dio
             .get("https://www.anroll.net/e/$generateID")
             .then(
-              (response) => parse(response.data)
+          (response) {
+            newAnime = newAnime.copyWith(
+              animeID: parse(response.data)
                   .querySelector('#anime_title a')
                   ?.attributes['href']
                   ?.split('/')
                   .last,
             );
-        content = content.copyWith(animeID: animeID);
+          },
+        );
       }
 
-      final animeApiUrl =
-          'https://apiv3-prd.anroll.net/animes/${content.animeID}';
+      Future<void> getData() async {
+        final animeApiUrl =
+            'https://apiv3-prd.anroll.net/animes/${newAnime.animeID}';
 
-      final Response responseAnimeData = await contentRepository._dio
-          .get(animeApiUrl, responseType: ResponseType.json)
-          .catchError(
-            (error) => contentRepository._dio.get(
-              '$BASE_URL/_next/data/$buildId/e/$generateID.json?episode=$generateID',
-              responseType: ResponseType.json,
-            ),
+        final Response responseAnimeData = await contentRepository._dio
+            .get(animeApiUrl, responseType: ResponseType.json)
+            .catchError(
+              (error) => contentRepository._dio.get(
+                '$BASE_URL/_next/data/$buildId/e/$generateID.json?episode=$generateID',
+                responseType: ResponseType.json,
+              ),
+            );
+
+        final animeData = responseAnimeData.data['data'] ??
+            responseAnimeData.data['pageProps']['data'] as Map;
+
+        final String url =
+            '$BASE_URL/a/${animeData.containsKey('anime') ? animeData['anime']['generate_id'] : animeData['generate_id']}';
+
+        final String originalImage =
+            'https://static.anroll.net/images/animes/capas/${newAnime.slugSerie}.jpg';
+
+        final String animeID = (animeData['id_serie']).toString();
+
+        String? sinopse = animeData['sinopse_episodio'] ?? animeData['sinopse'];
+
+        List<Genre>? generos = animeData['generos']
+            ?.toString()
+            .split(',')
+            .map((gen) => Genre(gen.capitalize))
+            .toList();
+
+        int? totalOfEpisodes = animeData['episodes'];
+
+        newAnime = newAnime.copyWith(
+          url: url,
+          animeID: animeID,
+          genres: generos,
+          totalOfEpisodes: totalOfEpisodes,
+          originalImage: originalImage,
+          sinopse: sinopse,
+        );
+      }
+
+      Future<void> getEpisodes() async {
+        await getReleases(newAnime, -1).then((result) =>
+            result.fold(onSuccess: (data) => newAnime = newAnime.merge(data)));
+      }
+
+      Future<void> getAniListData() async {
+        final animeMedia = await contentRepository.getAnilistMedia(content);
+
+        if (animeMedia != null) {
+          newAnime = newAnime.copyWith(
+            animeMedia: animeMedia,
+            largeImage: animeMedia.coverImage?.large,
+            mediumImage: animeMedia.coverImage?.medium,
           );
+        }
+      }
 
-      final animeData = responseAnimeData.data['data'] ??
-          responseAnimeData.data['pageProps']['data'] as Map;
+      await Future.wait([getData(), getEpisodes(), getAniListData()]);
 
-      final String url =
-          '$BASE_URL/a/${animeData.containsKey('anime') ? animeData['anime']['generate_id'] : animeData['generate_id']}';
-
-      final String originalImage =
-          'https://static.anroll.net/images/animes/capas/${content.slugSerie}.jpg';
-
-      final String animeID = (animeData['id_serie']).toString();
-
-      String? sinopse = animeData['sinopse_episodio'] ?? animeData['sinopse'];
-
-      List<Genre>? generos = animeData['generos']
-          ?.toString()
-          .split(',')
-          .map((gen) => Genre(gen.capitalize))
-          .toList();
-
-      int? totalOfEpisodes = animeData['episodes'];
-
-      int? totalOfPages;
-
-      Anime newAnime = content.copyWith(
-        url: url,
-        animeID: animeID,
-        genres: generos,
-        totalOfEpisodes: totalOfEpisodes,
-        totalOfPages: totalOfPages,
-        originalImage: originalImage,
-        sinopse: sinopse,
-      );
-
-      final result = await getReleases(newAnime, -1).then(
-          (result) => result.fold(onSuccess: (data) => newAnime.merge(data)));
-
-      return Result.success(result!);
+      return Result.success(newAnime);
     } on DioException catch (_, __) {
       return Result.failure(_);
     } on AnrollGetIdException catch (_, __) {

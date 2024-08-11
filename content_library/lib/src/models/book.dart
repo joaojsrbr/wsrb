@@ -19,6 +19,7 @@ class Book extends Content with MergeClass<Content> {
   final String? mediumImage;
 
   const Book({
+    super.animeMedia,
     required ChapterReleases releases,
     required super.title,
     required this.source,
@@ -71,6 +72,9 @@ class Book extends Content with MergeClass<Content> {
 
   factory Book.fromMap(Map<String, dynamic> map) {
     return Book(
+      animeMedia: map['animeMedia'] != null
+          ? AnilistMedia.fromJson(map['animeMedia'])
+          : null,
       title: map['title'],
       releases: map['releases'] is ChapterReleases
           ? map['releases']
@@ -98,6 +102,7 @@ class Book extends Content with MergeClass<Content> {
 
   @override
   Book copyWith({
+    AnilistMedia? animeMedia,
     Releases? releases,
     String? title,
     String? url,
@@ -118,6 +123,7 @@ class Book extends Content with MergeClass<Content> {
     return Book(
       releases: ChapterReleases.from(releases ?? this.releases),
       type: type ?? this.type,
+      animeMedia: animeMedia ?? this.animeMedia,
       extraLarge: extraLarge ?? this.extraLarge,
       title: title ?? this.title,
       url: url ?? this.url,
