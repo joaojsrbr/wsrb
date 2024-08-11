@@ -12,9 +12,11 @@ packages:
   anilist_dart:
     dependency: transitive
     description:
-      path: "../anilist_dart"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "6870707e05b741b686123ada5e18e4f523ab0f0f"
+      url: "https://github.com/joaojsrbr/anilist_dart"
+    source: git
     version: "1.0.0"
   animations:
     dependency: "direct main"
