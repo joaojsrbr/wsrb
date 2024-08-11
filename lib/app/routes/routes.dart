@@ -1,7 +1,7 @@
 // ignore_for_file: constant_identifier_names, non_constant_identifier_names
 
 import 'package:app_wsrb_jsr/app/routes/shared_axis_transition_page_wrapper.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/view/content_information_view.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/view/refactory_content_information.dart';
 import 'package:app_wsrb_jsr/app/ui/download/view/download_view.dart';
 import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
@@ -37,9 +37,11 @@ final appRoutes = GoRouter(
           path: RouteName.CONTENTINFO.subRouter,
           pageBuilder: (context, state) {
             return SharedAxisTransitionPageWrapper(
+              reverseTransitionDuration: const Duration(milliseconds: 850),
+              transitionDuratio: const Duration(milliseconds: 850),
               arguments: state.extra,
               transitionKey: state.pageKey,
-              screen: const BookInformationView(),
+              screen: const RefContentInformationView(),
             );
           },
         ),

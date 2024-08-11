@@ -5,19 +5,26 @@ class SharedAxisTransitionPageWrapper extends Page {
   const SharedAxisTransitionPageWrapper({
     this.screen,
     this.screenBuilder,
+    this.transitionDuratio,
+    this.reverseTransitionDuration,
     required ValueKey transitionKey,
     super.arguments,
   }) : super(key: transitionKey);
 
   final Widget? screen;
 
+  final Duration? transitionDuratio;
+  final Duration? reverseTransitionDuration;
+
   final WidgetBuilder? screenBuilder;
 
   @override
   Route createRoute(BuildContext context) {
     return PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 650),
-      reverseTransitionDuration: const Duration(milliseconds: 650),
+      transitionDuration:
+          transitionDuratio ?? const Duration(milliseconds: 650),
+      reverseTransitionDuration:
+          reverseTransitionDuration ?? const Duration(milliseconds: 650),
       settings: this,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return SharedAxisTransition(

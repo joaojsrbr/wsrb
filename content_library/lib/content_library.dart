@@ -1,5 +1,6 @@
 library content_library;
 
+export 'package:anilist_dart/anilist.dart';
 export 'package:collection/collection.dart';
 export 'package:connectivity_plus/connectivity_plus.dart';
 export 'package:dio/dio.dart';

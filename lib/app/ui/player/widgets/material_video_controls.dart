@@ -360,7 +360,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
     // customLog(mount);
 
     Widget container = PopScope(
-      onPopInvokedWithResult: (didPop, result) {
+      onPopInvoked: (result) {
         if (scope.playerArgs.forceEnterFullScreen && isFullscreen(context)) {
           addPostFrameCallback((timer) =>
               Navigator.of(PlayerView.videoStateKey.currentContext!).pop());

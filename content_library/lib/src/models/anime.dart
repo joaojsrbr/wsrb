@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:content_library/content_library.dart';
 import 'package:content_library/src/utils/object_utils.dart';
 
@@ -5,6 +6,7 @@ class Anime extends Content with MergeClass<Anime> {
   const Anime({
     required super.url,
     required super.title,
+    super.animeMedia,
     required EpisodeReleases releases,
     required this.source,
     required this.originalImage,
@@ -52,11 +54,13 @@ class Anime extends Content with MergeClass<Anime> {
     bool? isDublado,
     Source? source,
     int? totalOfEpisodes,
+    AnilistMedia? animeMedia,
     int? totalOfPages,
     String? sinopse,
     List<Genre>? genres,
   }) {
     return Anime(
+      animeMedia: animeMedia ?? this.animeMedia,
       source: source ?? this.source,
       genres: genres ?? this.genres,
       totalOfPages: totalOfPages ?? this.totalOfPages,
@@ -105,11 +109,18 @@ class Anime extends Content with MergeClass<Anime> {
   }
 
   @override
-  String get imageUrl =>
-      extraLarge ?? largeImage ?? mediumImage ?? originalImage;
+  String get imageUrl {
+    if (originalImage.isEmpty && releases.isEmpty) {
+      return releases.first.thumbnail ?? '';
+    }
+    return extraLarge ?? largeImage ?? mediumImage ?? originalImage;
+  }
 
   factory Anime.fromMap(Map<String, dynamic> map) {
     return Anime(
+      animeMedia: map['animeMedia'] != null
+          ? AnilistMedia.fromJson(map['animeMedia'])
+          : null,
       title: map['title'],
       url: map['url'],
       releases: map['releases'] is EpisodeReleases
