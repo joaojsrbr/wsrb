@@ -14,9 +14,11 @@ class HomeScope extends InheritedNotifier<Listenable> {
     required this.keepWatchingScrollController,
     required this.subordinateLibraryTabController,
   }) : super(
-            notifier: Listenable.merge(
-                [tabController, searchController, railMenuController]),
-            key: _homeScopeKey);
+          notifier: Listenable.merge(
+            [tabController, searchController, railMenuController],
+          ),
+          key: _homeScopeKey,
+        );
 
   static final GlobalKey _homeScopeKey = GlobalKey();
   final RailMenuController railMenuController;
@@ -32,7 +34,7 @@ class HomeScope extends InheritedNotifier<Listenable> {
   }
 
   static HomeScope? byKeyMaybeOf() {
-    return (_homeScopeKey.currentWidget as HomeScope);
+    return _homeScopeKey.currentWidget as HomeScope?;
   }
 
   static HomeScope of(BuildContext context) {

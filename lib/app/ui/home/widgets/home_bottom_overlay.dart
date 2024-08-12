@@ -12,13 +12,16 @@ class HomeBottomOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final LibraryController libraryController =
         context.read<LibraryController>();
+
     final ContentRepository repository = context.read<ContentRepository>();
+
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
-    final LibraryService libraryService =
-        LibraryService(libraryController, context.watch());
 
     if (valueNotifierList.isEmpty) return const SizedBox.shrink();
+
+    final LibraryService libraryService =
+        LibraryService(libraryController, context.watch());
 
     return SafeArea(
       top: false,
@@ -38,7 +41,7 @@ class HomeBottomOverlay extends StatelessWidget {
             children: [
               IconButton(
                 onPressed: libraryService.favoritesIDS
-                        .any((id) => valueNotifierList.contains(id))
+                        .containsOneElement(valueNotifierList)
                     ? null
                     : () async {
                         final allSelected = repository
@@ -64,14 +67,14 @@ class HomeBottomOverlay extends StatelessWidget {
                       },
                 icon: FadeThroughTransitionSwitcher(
                   enableSecondChild: valueNotifierList.length != 1,
-                  duration: const Duration(seconds: 1),
+                  duration: const Duration(milliseconds: 350),
                   secondChild: Icon(MdiIcons.plusBoxMultiple),
                   child: Icon(MdiIcons.plusBox),
                 ),
               ),
               IconButton(
                 onPressed: libraryService.favoritesIDS
-                        .any((element) => valueNotifierList.contains(element))
+                        .containsOneElement(valueNotifierList)
                     ? () async {
                         final CategoryController categoryController =
                             context.read<CategoryController>();
@@ -115,21 +118,21 @@ class HomeBottomOverlay extends StatelessWidget {
                     : null,
                 icon: FadeThroughTransitionSwitcher(
                   enableSecondChild: valueNotifierList.length != 1,
-                  duration: const Duration(seconds: 1),
+                  duration: const Duration(milliseconds: 350),
                   secondChild: Icon(MdiIcons.minusBoxMultiple),
                   child: Icon(MdiIcons.minusBox),
                 ),
               ),
               IconButton(
                 onPressed: libraryService.favoritesIDS
-                        .any((id) => valueNotifierList.contains(id))
+                        .containsOneElement(valueNotifierList)
                     ? () {
                         CategoryUtils.selectCategory(context);
                       }
                     : null,
                 icon: FadeThroughTransitionSwitcher(
                   enableSecondChild: valueNotifierList.length != 1,
-                  duration: const Duration(seconds: 1),
+                  duration: const Duration(milliseconds: 350),
                   secondChild: Icon(MdiIcons.tagMultiple),
                   child: Icon(MdiIcons.tag),
                 ),
