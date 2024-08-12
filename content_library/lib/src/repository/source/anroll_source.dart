@@ -197,7 +197,7 @@ class AnrollSource extends RSource {
       }
 
       Future<void> getAniListData() async {
-        final animeMedia = await contentRepository.getAnilistMedia(content);
+        final animeMedia = await contentRepository.getAnilistMedia(newAnime);
 
         if (animeMedia != null) {
           newAnime = newAnime.copyWith(
@@ -339,7 +339,7 @@ class AnrollSource extends RSource {
         final bool isDublado = title.toLowerCase().contains('dublado');
         final String animeID = (map['id']).toString();
 
-        final Anime anime = Anime(
+        Anime anime = Anime(
           animeID: animeID,
           isDublado: isDublado,
           totalOfEpisodes: totalOfEpisodes,

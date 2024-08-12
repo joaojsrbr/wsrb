@@ -102,6 +102,14 @@ class _RefContentkInformationViewState
       onError: navigationState.pop,
       onSuccess: _onSuccess,
     );
+
+    if (contentCache is Success) {
+      addPostFrameCallback((timer) {
+        _repository.getData(_informationArgs.content).then((result) {
+          result.fold(onSuccess: _onSuccess);
+        });
+      });
+    }
   }
 
   void _onSuccess(Content data) {

@@ -26,23 +26,28 @@ class ContentHeader extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Hero(
-                  tag: content.getHeroTag(),
-                  child: Material(
-                    borderRadius: BorderRadius.circular(8),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: CachedNetworkImage(
-                        height: 200,
-                        fit: BoxFit.cover,
-                        width: 140,
-                        maxHeightDiskCache: 500,
-                        maxWidthDiskCache: 400,
-                        imageUrl: content.imageUrl,
-                        httpHeaders: App.HEADERS,
+                CachedNetworkImage(
+                  imageBuilder: (context, imageProvider) {
+                    return Hero(
+                      tag: content.getHeroTag(),
+                      child: Material(
+                        borderRadius: BorderRadius.circular(8),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image(
+                            height: 200,
+                            width: 140,
+                            fit: BoxFit.cover,
+                            image: imageProvider,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
+                  maxHeightDiskCache: 500,
+                  maxWidthDiskCache: 400,
+                  imageUrl: content.imageUrl,
+                  httpHeaders: App.HEADERS,
                 ),
                 Expanded(
                   child: Padding(
