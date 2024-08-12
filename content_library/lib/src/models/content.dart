@@ -10,6 +10,10 @@ abstract class Content extends Equatable {
 
   String get stringID => title.toUuID;
 
+  String getHeroTag() {
+    return imageUrl;
+  }
+
   final String url;
 
   final String? sinopse;

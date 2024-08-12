@@ -13,14 +13,68 @@ import 'package:go_router/go_router.dart';
 import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions/duration.dart';
 import 'package:provider/provider.dart';
 
-class KeepWatching extends StatelessWidget {
+class KeepWatching extends StatefulWidget {
   const KeepWatching({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final LibraryController libraryController =
-        context.watch<LibraryController>();
+  State<KeepWatching> createState() => _KeepWatchingState();
+}
 
+class _KeepWatchingState extends State<KeepWatching> {
+  List<HistoryEntity> _sortedByUpdateAt = [];
+
+  late final LibraryService _libraryService;
+
+  late final LibraryController _libraryController;
+
+  @override
+  void initState() {
+    _libraryController = context.read<LibraryController>()
+      ..addListener(_libraryListener);
+    _libraryService = LibraryService(
+      _libraryController,
+      context.read(),
+    );
+    super.initState();
+  }
+
+  void _libraryListener() {
+    final TabController tabController = HomeScope.of(context).tabController;
+    setStateIfMounted(() {
+      _sortedByUpdateAt = (tabController.index == 0
+              ? _libraryService.entities
+              : _libraryService.favorites)
+          .map(_libraryService.getIsarLinks)
+          .nonNulls
+          .flattened
+          .sorted();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (_sortedByUpdateAt.isEmpty) {
+      final TabController tabController = HomeScope.of(context).tabController;
+
+      _sortedByUpdateAt = (tabController.index == 0
+              ? _libraryService.entities
+              : _libraryService.favorites)
+          .map(_libraryService.getIsarLinks)
+          .nonNulls
+          .flattened
+          .sorted();
+    }
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    _libraryController.removeListener(_libraryListener);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final HomeScope scope = HomeScope.of(context);
 
     final ThemeData themeData = Theme.of(context);
@@ -29,133 +83,108 @@ class KeepWatching extends StatelessWidget {
 
     final TabController tabController = scope.tabController;
 
-    final LibraryService libraryService =
-        LibraryService(libraryController, context.watch());
-
-    final sortedByUpdateAt = (tabController.index == 0
-            ? libraryService.entities
-            : libraryService.favorites)
-        .map(libraryService.getIsarLinks)
-        .nonNulls
-        .flattened
-        .sorted();
-
     return SliverToBoxAdapter(
-      child: AnimatedSize(
-        duration: const Duration(milliseconds: 250),
-        child: (sortedByUpdateAt.isEmpty ||
-                ![0, 1].contains(tabController.index))
-            ? const SizedBox.shrink()
-            : SizedBox(
-                height: 180,
-                width: double.infinity,
-                child: ListView.builder(
-                  key: PageStorageKey(
-                    'home_and_library_watching_${tabController.index}',
-                  ),
-                  controller: scope.keepWatchingScrollController,
-                  padding: const EdgeInsets.only(left: 12, top: 12),
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: sortedByUpdateAt.length,
-                  itemBuilder: (context, index) {
-                    final HistoryEntity historyEntity =
-                        sortedByUpdateAt.elementAt(index);
+      child: _sortedByUpdateAt.isEmpty
+          ? null
+          : AnimatedSize(
+              duration: const Duration(milliseconds: 250),
+              child: ![0, 1].contains(tabController.index)
+                  ? const SizedBox.shrink()
+                  : SizedBox(
+                      height: 180,
+                      width: double.infinity,
+                      child: ListView.builder(
+                        key: PageStorageKey(
+                          'home_and_library_watching_${tabController.index}',
+                        ),
+                        controller: scope.keepWatchingScrollController,
+                        padding: const EdgeInsets.only(left: 12, top: 12),
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: _sortedByUpdateAt.length,
+                        itemBuilder: (context, index) {
+                          final HistoryEntity historyEntity =
+                              _sortedByUpdateAt.elementAt(index);
 
-                    return switch (historyEntity) {
-                      EpisodeEntity data => Builder(builder: (context) {
-                          final anime =
-                              libraryService.getContentEntityByStringID(
-                                  data.animeStringID) as AnimeEntity?;
+                          return switch (historyEntity) {
+                            EpisodeEntity data => Builder(builder: (context) {
+                                final anime =
+                                    _libraryService.getContentEntityByStringID(
+                                        data.animeStringID) as AnimeEntity?;
 
-                          return Padding(
-                            padding: const EdgeInsets.only(
-                              right: 12,
-                              top: 8,
-                              bottom: 8,
-                            ),
-                            child: SizedBox(
-                              height: 160,
-                              width: 200,
-                              child: AnimatedBorderProgressIndicator(
-                                value: data.videoPercent.isNaN
-                                    ? 0.0
-                                    : data.videoPercent,
-                                color: Theme.of(context).colorScheme.primary,
-                                strokeWidth: 4,
-                                borderRadius: 12,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Stack(
-                                    fit: StackFit.expand,
-                                    children: [
-                                      ShaderMask(
-                                        blendMode: BlendMode.srcOver,
-                                        shaderCallback: (bounds) {
-                                          return LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Colors.black38.withOpacity(0.28),
-                                              Colors.black38.withOpacity(0.28),
-                                              // Colors.transparent,
-                                            ],
-                                            stops: const [0.00, 1.0],
-                                          ).createShader(bounds);
-                                        },
-                                        child: data.currentPositionBase64 !=
-                                                null
-                                            ? _Image(
-                                                currentPositionBase64:
-                                                    data.currentPositionBase64!,
-                                              )
-                                            : data.thumbnail != null
-                                                ? CachedNetworkImage(
-                                                    fit: BoxFit.cover,
-                                                    maxWidthDiskCache: 480,
-                                                    maxHeightDiskCache: 280,
-                                                    imageUrl: data.thumbnail!,
-                                                    httpHeaders: App.HEADERS,
-                                                    errorWidget:
-                                                        (context, url, error) {
-                                                      return const Material(
-                                                        child: Card.filled(),
-                                                      );
-                                                    },
-                                                  )
-                                                : const SizedBox.shrink(),
-                                      ),
-                                      Container(
-                                        alignment: Alignment.topRight,
-                                        padding: const EdgeInsets.only(
-                                          left: 10,
-                                          top: 8,
-                                          right: 14,
-                                        ),
-                                        child: AnimatedDefaultTextStyle(
-                                          duration:
-                                              const Duration(milliseconds: 350),
-                                          style: (textTheme.titleMedium ??
-                                                  const TextStyle())
-                                              .copyWith(fontSize: 14),
-                                          child: Text(
-                                            data.cdToDuration.label(),
-                                            maxLines: 1,
-                                            textAlign: TextAlign.start,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ),
-                                      if (anime != null)
-                                        Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          mainAxisSize: MainAxisSize.max,
+                                return Padding(
+                                  padding: const EdgeInsets.only(
+                                    right: 12,
+                                    top: 8,
+                                    bottom: 8,
+                                  ),
+                                  child: SizedBox(
+                                    height: 160,
+                                    width: 200,
+                                    child: AnimatedBorderProgressIndicator(
+                                      value: data.videoPercent.isNaN
+                                          ? 0.0
+                                          : data.videoPercent,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      strokeWidth: 4,
+                                      borderRadius: 12,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Stack(
+                                          fit: StackFit.expand,
                                           children: [
+                                            ShaderMask(
+                                              blendMode: BlendMode.srcOver,
+                                              shaderCallback: (bounds) {
+                                                return LinearGradient(
+                                                  begin: Alignment.topCenter,
+                                                  end: Alignment.bottomCenter,
+                                                  colors: [
+                                                    Colors.black38
+                                                        .withOpacity(0.28),
+                                                    Colors.black38
+                                                        .withOpacity(0.28),
+                                                    // Colors.transparent,
+                                                  ],
+                                                  stops: const [0.00, 1.0],
+                                                ).createShader(bounds);
+                                              },
+                                              child:
+                                                  data.currentPositionBase64 !=
+                                                          null
+                                                      ? _Image(
+                                                          currentPositionBase64:
+                                                              data.currentPositionBase64!,
+                                                        )
+                                                      : data.thumbnail != null
+                                                          ? CachedNetworkImage(
+                                                              fit: BoxFit.cover,
+                                                              maxWidthDiskCache:
+                                                                  480,
+                                                              maxHeightDiskCache:
+                                                                  280,
+                                                              imageUrl: data
+                                                                  .thumbnail!,
+                                                              httpHeaders:
+                                                                  App.HEADERS,
+                                                              errorWidget:
+                                                                  (context, url,
+                                                                      error) {
+                                                                return const Material(
+                                                                  child: Card
+                                                                      .filled(),
+                                                                );
+                                                              },
+                                                            )
+                                                          : const SizedBox
+                                                              .shrink(),
+                                            ),
                                             Container(
-                                              alignment: Alignment.bottomLeft,
+                                              alignment: Alignment.topRight,
                                               padding: const EdgeInsets.only(
                                                 left: 10,
+                                                top: 8,
                                                 right: 14,
                                               ),
                                               child: AnimatedDefaultTextStyle(
@@ -165,7 +194,7 @@ class KeepWatching extends StatelessWidget {
                                                         const TextStyle())
                                                     .copyWith(fontSize: 14),
                                                 child: Text(
-                                                  'Episódio ${data.numberEpisode}',
+                                                  data.cdToDuration.label(),
                                                   maxLines: 1,
                                                   textAlign: TextAlign.start,
                                                   overflow:
@@ -173,67 +202,108 @@ class KeepWatching extends StatelessWidget {
                                                 ),
                                               ),
                                             ),
-                                            Container(
-                                              alignment: Alignment.topLeft,
-                                              padding: const EdgeInsets.only(
-                                                left: 10,
-                                                right: 6,
-                                                bottom: 8,
+                                            if (anime != null)
+                                              Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                mainAxisSize: MainAxisSize.max,
+                                                children: [
+                                                  Container(
+                                                    alignment:
+                                                        Alignment.bottomLeft,
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                      left: 10,
+                                                      right: 14,
+                                                    ),
+                                                    child:
+                                                        AnimatedDefaultTextStyle(
+                                                      duration: const Duration(
+                                                          milliseconds: 350),
+                                                      style: (textTheme
+                                                                  .titleMedium ??
+                                                              const TextStyle())
+                                                          .copyWith(
+                                                              fontSize: 14),
+                                                      child: Text(
+                                                        'Episódio ${data.numberEpisode}',
+                                                        maxLines: 1,
+                                                        textAlign:
+                                                            TextAlign.start,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    alignment:
+                                                        Alignment.topLeft,
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                      left: 10,
+                                                      right: 6,
+                                                      bottom: 8,
+                                                    ),
+                                                    child: Text(
+                                                      anime.title,
+                                                      maxLines: 1,
+                                                      style: textTheme
+                                                          .titleMedium
+                                                          ?.copyWith(
+                                                              fontSize: 14),
+                                                      textAlign:
+                                                          TextAlign.start,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      // style: textTheme.labelSmall?.copyWith(),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              child: Text(
-                                                anime.title,
-                                                maxLines: 1,
-                                                style: textTheme.titleMedium
-                                                    ?.copyWith(fontSize: 14),
-                                                textAlign: TextAlign.start,
-                                                overflow: TextOverflow.ellipsis,
-                                                // style: textTheme.labelSmall?.copyWith(),
+                                            Material(
+                                              type: MaterialType.transparency,
+                                              child: InkWell(
+                                                onTap: () async {
+                                                  final videoFile =
+                                                      AppStorage.getReleaseFile(
+                                                    anime!.toAnime,
+                                                    data.toEpisode(
+                                                        anime.isDublado),
+                                                  );
+
+                                                  await context.push(
+                                                    RouteName.PLAYER,
+                                                    extra: PlayerArgs(
+                                                      forceEnterFullScreen:
+                                                          true,
+                                                      data: videoFile != null
+                                                          ? FileVideoData(
+                                                              file: videoFile)
+                                                          : null,
+                                                      getAnimeData: false,
+                                                      anime: anime.toAnime,
+                                                      episode: data.toEpisode(
+                                                          anime.isDublado),
+                                                      startPossition:
+                                                          data.cdToDuration,
+                                                    ),
+                                                  );
+                                                },
                                               ),
                                             ),
                                           ],
                                         ),
-                                      Material(
-                                        type: MaterialType.transparency,
-                                        child: InkWell(
-                                          onTap: () async {
-                                            final videoFile =
-                                                AppStorage.getReleaseFile(
-                                              anime!.toAnime,
-                                              data.toEpisode(anime.isDublado),
-                                            );
-
-                                            await context.push(
-                                              RouteName.PLAYER,
-                                              extra: PlayerArgs(
-                                                forceEnterFullScreen: true,
-                                                data: videoFile != null
-                                                    ? FileVideoData(
-                                                        file: videoFile)
-                                                    : null,
-                                                getAnimeData: false,
-                                                anime: anime.toAnime,
-                                                episode: data
-                                                    .toEpisode(anime.isDublado),
-                                                startPossition:
-                                                    data.cdToDuration,
-                                              ),
-                                            );
-                                          },
-                                        ),
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                      _ => const SizedBox.shrink(),
-                    };
-                  },
-                ),
-              ),
-      ),
+                                );
+                              }),
+                            _ => const SizedBox.shrink(),
+                          };
+                        },
+                      ),
+                    ),
+            ),
     );
   }
 }

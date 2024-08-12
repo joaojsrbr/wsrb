@@ -7,12 +7,14 @@ import 'package:app_wsrb_jsr/app/ui/content_information/destinations/release_des
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/content_persistent_header.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_auto_cache/flutter_auto_cache.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
 class RefContentInformationView extends StatefulWidget {
@@ -91,6 +93,10 @@ class _RefContentkInformationViewState
                 TimeoutException("Tempo excedido"),
               ),
             );
+
+    if (contentCache is Success) {
+      await Future.delayed(const Duration(seconds: 2));
+    }
 
     resultCotent.fold(
       onError: navigationState.pop,
@@ -252,18 +258,67 @@ class _RefContentkInformationViewState
       releasesIsLoading: _releasesIsLoading,
       builder: (context) {
         final sizeOf = MediaQuery.sizeOf(context);
+        final content = ContentScope.contentOf(context);
+
         return Scaffold(
           body: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
-              const SliverAppBar(),
-              SliverPersistentHeader(
-                pinned: false,
-                floating: false,
-                delegate: ContentPersistentHeader(
-                  content: !_isLoading ? _content : argument.content,
-                  isLoading: _isLoading,
-                  maxExtent: sizeOf.height * .32,
-                  minExtent: sizeOf.height * .32,
+              SliverAppBar(
+                expandedHeight: sizeOf.height * .40,
+                flexibleSpace: const FlexibleSpaceBar(
+                  background: ContentHeader(),
+                  stretchModes: [],
+                  collapseMode: CollapseMode.pin,
+                ),
+                actions: [
+                  Builder(builder: (context) {
+                    final libraryService = LibraryService(
+                      context.watch(),
+                      context.watch(),
+                    );
+                    return IconButton(
+                      onPressed: () {
+                        customLog(
+                            'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${content.title} - id: ${content.stringID}');
+                        if (libraryService.favoritesIDS
+                            .contains(content.stringID)) {
+                          _libraryController.remove(
+                              contentEntity: content.toEntity());
+                        } else {
+                          _libraryController.add(
+                            contentEntity: content.toEntity(isFavorite: true),
+                          );
+                        }
+                      },
+                      icon: FadeThroughTransitionSwitcher(
+                        enableSecondChild: libraryService.favoritesIDS.contains(
+                          content.stringID,
+                        ),
+                        secondChild: Icon(MdiIcons.heart, color: Colors.red),
+                        child: Icon(MdiIcons.heartOutline),
+                      ),
+                    );
+                  }),
+                ],
+                bottom: TabBar(
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  tabAlignment: TabAlignment.fill,
+                  controller: _bottomTabController,
+                  tabs: ContentTabBar.values
+                      .map(
+                        (e) => Tab(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(e.getIconData(content)),
+                              const SizedBox(width: 8),
+                              Center(child: Text(e.getTitle(content))),
+                            ],
+                          ),
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
             ],

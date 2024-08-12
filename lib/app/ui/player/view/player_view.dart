@@ -215,6 +215,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     bool onInit = false,
     Duration? initPossition,
   ]) async {
+    await _registerListeners(true);
     final playbackState = playerAudioHandler.playbackState;
     playerAudioHandler.setPlayerController = this;
 
@@ -256,7 +257,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       await player!.seek(initPossition);
     }
 
-    if (!_playerArgs.getAnimeData) {
+    if (!_playerArgs.getAnimeData && _playerArgs.forceEnterFullScreen) {
       addPostFrameCallback((time) {
         PlayerView.videoStateKey.currentState?.enterFullscreen();
       });

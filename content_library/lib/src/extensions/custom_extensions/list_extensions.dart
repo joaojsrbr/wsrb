@@ -14,8 +14,10 @@ extension CustomListExtensions<E, Id> on List<E> {
     return reverse ? reversed.toList() : this;
   }
 
-  void addIfNoContains(E element) {
-    if (!contains(element)) add(element);
+  void addIfNoContains(E element, [bool Function(E)? test]) {
+    final _ = any(test ?? (e) => contains(element));
+
+    if (!_) add(element);
   }
 
   void addOrUpdateWhere(E element, bool Function(E) test) {

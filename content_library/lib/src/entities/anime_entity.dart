@@ -9,8 +9,9 @@ part 'anime_entity.g.dart';
 
 @Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toAnime'})
 class AnimeEntity extends ContentEntity {
+  @override
   @Index(replace: true, unique: true)
-  String stringID;
+  String get stringID => super.stringID;
 
   IsarLinks<EpisodeEntity> episodes = IsarLinks<EpisodeEntity>();
 
@@ -32,7 +33,7 @@ class AnimeEntity extends ContentEntity {
   String? generateID;
 
   AnimeEntity({
-    required this.stringID,
+    required super.stringID,
     required this.url,
     required this.title,
     required this.source,

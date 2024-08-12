@@ -5,8 +5,6 @@ import 'package:app_wsrb_jsr/app/ui/content_information/view/refactory_content_i
 import 'package:app_wsrb_jsr/app/ui/download/view/download_view.dart';
 import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
-import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
-import 'package:app_wsrb_jsr/app/ui/reading/view/reading_view.dart';
 import 'package:content_library/content_library.dart';
 import 'package:go_router/go_router.dart';
 
@@ -55,17 +53,18 @@ final appRoutes = GoRouter(
             );
           },
         ),
-        GoRoute(
-          path: RouteName.READ.subRouter,
-          pageBuilder: (context, state) {
-            final ReadingViewArgs extra = state.extra as ReadingViewArgs;
-            return SharedAxisTransitionPageWrapper(
-              transitionKey: state.pageKey,
-              arguments: state.extra,
-              screen: extra.capturedThemes.wrap(const ReadingView()),
-            );
-          },
-        ),
+        // !TODO descomentar se for usar
+        // GoRoute(
+        //   path: RouteName.READ.subRouter,
+        //   pageBuilder: (context, state) {
+        //     final ReadingViewArgs extra = state.extra as ReadingViewArgs;
+        //     return SharedAxisTransitionPageWrapper(
+        //       transitionKey: state.pageKey,
+        //       arguments: state.extra,
+        //       screen: extra.capturedThemes.wrap(const ReadingView()),
+        //     );
+        //   },
+        // ),
         GoRoute(
           path: RouteName.PLAYER.subRouter,
           pageBuilder: (context, state) {

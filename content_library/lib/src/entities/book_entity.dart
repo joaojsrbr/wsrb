@@ -9,8 +9,10 @@ part 'book_entity.g.dart';
 
 @Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toBook'})
 class BookEntity extends ContentEntity {
+  @override
   @Index(replace: true, unique: true)
-  String stringID;
+  String get stringID => super.stringID;
+
   String title;
   String url;
   DateTime? createdAt;
@@ -47,7 +49,7 @@ class BookEntity extends ContentEntity {
   IsarLinks<ChapterEntity> chapters = IsarLinks<ChapterEntity>();
 
   BookEntity({
-    required this.stringID,
+    required super.stringID,
     required this.title,
     required this.url,
     required this.source,

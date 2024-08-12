@@ -28,41 +28,43 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final downloadRelease = ContentScope.of(context).downloadRelease;
     final Content content = ContentScope.contentOf(context);
     final DownloadService downloadService = context.watch<DownloadService>();
     final bool releasesIsLoading = ContentScope.releasesIsLoadingOf(context);
-    final sizeOf = MediaQuery.sizeOf(context);
-    return SizedBox(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          const _ReleasePagination(),
-          SizedBox(
-            height: sizeOf.height,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 350),
-              child: releasesIsLoading
-                  ? const Center(child: CircularProgressIndicator.adaptive())
-                  : ListView.separated(
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.only(bottom: 8),
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 4),
-                      itemCount: content.releases.length,
-                      itemBuilder: (context, index) {
-                        final release = content.releases.elementAt(index);
-                        final releaseFile =
-                            AppStorage.getReleaseFile(content, release);
+    final HiveController hiveController = context.watch<HiveController>();
+    return ListView(
+      shrinkWrap: true,
+      padding: EdgeInsets.zero,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        const _ReleasePagination(),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 350),
+          child: releasesIsLoading
+              ? const Center(child: CircularProgressIndicator.adaptive())
+              : Column(
+                  children: List.generate(
+                    content.releases.length,
+                    (index) {
+                      final release = content.releases
+                          .reverse(hiveController.reverseContents)
+                          .elementAt(index);
 
-                        final DownloadInfo? downloadInfo =
-                            downloadService.downloadList.firstWhereOrNull(
-                          (info) => info.releaseId.contains(release.stringID),
-                        );
+                      final releaseFile =
+                          AppStorage.getReleaseFile(content, release);
 
-                        final downloaded = releaseFile?.existsSync() ?? false;
+                      final DownloadInfo? downloadInfo =
+                          downloadService.downloadList.firstWhereOrNull(
+                        (info) => info.releaseId.contains(release.stringID),
+                      );
 
-                        return ChangeNotifierProvider(
-                          create: (context) => downloadInfo,
+                      final downloaded = releaseFile?.existsSync() ?? false;
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: ChangeNotifierProvider.value(
+                          value: downloadInfo,
                           builder: (context, child) {
                             final downloadInfo = context.watch<DownloadInfo?>();
                             return GestureDetector(
@@ -220,7 +222,9 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
                                                 );
                                               }
                                             }
-                                          : () {},
+                                          : () {
+                                              downloadRelease(release);
+                                            },
                                   icon: downloadInfo?.isDownloading == true
                                       ? const SizedBox(
                                           width: 24,
@@ -310,13 +314,13 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
                               ),
                             );
                           },
-                        );
-                      },
-                    ),
-            ),
-          ),
-        ],
-      ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+        ),
+      ],
     );
   }
 

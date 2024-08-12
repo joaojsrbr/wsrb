@@ -7,7 +7,10 @@ abstract class Entity with EquatableMixin {
 }
 
 abstract class ContentEntity extends Entity
-    with MergeClassEntity<ContentEntity> {}
+    with MergeClassEntity<ContentEntity> {
+  final String stringID;
+  ContentEntity({required this.stringID});
+}
 
 abstract class HistoryEntity extends Entity
     implements Comparable<HistoryEntity> {}

@@ -294,7 +294,8 @@ class AnrollSource extends RSource {
           releases: EpisodeReleases()..add(episode),
         );
 
-        contentRepository.addIfNoContains(anime);
+        contentRepository.addIfNoContains(
+            anime, (other) => other.stringID == anime.stringID);
       }
       contentRepository.isSuccess = true;
       contentRepository._hasMore = false;

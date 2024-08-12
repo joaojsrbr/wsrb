@@ -1,6 +1,8 @@
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
+import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -16,7 +18,7 @@ class _InformationDestinationState extends State<InformationDestination>
   String substring = "";
   bool isOver100 = false;
   bool _expanded = false;
-  final Map<String, Text> _contentInformation = {};
+  final Map<String, Widget> _contentInformation = {};
   late Content _content;
 
   @override
@@ -26,15 +28,15 @@ class _InformationDestinationState extends State<InformationDestination>
   void didChangeDependencies() {
     _content = ContentScope.contentOf(context);
 
-    substring = _content.sinopse ?? "";
-
     if (!_expanded) isOver100 = substring.length > 100;
 
     if (isOver100 && !_expanded) {
       substring = "${_content.sinopse?.substring(0, 100)} ...";
     }
 
-    if (_content.animeMedia != null && mounted) _getInformation();
+    if (_content.animeMedia != null && mounted) {
+      _getInformation();
+    }
 
     super.didChangeDependencies();
   }
@@ -43,30 +45,45 @@ class _InformationDestinationState extends State<InformationDestination>
     _contentInformation.clear();
     final Locale appLocale = Localizations.localeOf(context);
     final ThemeData themeData = Theme.of(context);
+
+    Map<String, Widget> cache = {};
     final now = DateTime.now();
 
     if (_content.animeMedia?.startDate?.isEmpty != true) {
-      _contentInformation["Data de início"] =
-          Text(DateFormat("d MMMM y", appLocale.toLanguageTag()).format(
-        DateTime(
+      _contentInformation["Data de início"] = Text(
+        key: ValueKey(DateTime(
           _content.animeMedia!.startDate!.year!,
           _content.animeMedia!.startDate!.month!,
           _content.animeMedia!.startDate!.day!,
+        ).toString()),
+        DateFormat("d MMMM y", appLocale.toLanguageTag()).format(
+          DateTime(
+            _content.animeMedia!.startDate!.year!,
+            _content.animeMedia!.startDate!.month!,
+            _content.animeMedia!.startDate!.day!,
+          ),
         ),
-      ));
+      );
     }
     if (_content.animeMedia?.endDate?.isEmpty != true) {
-      _contentInformation["Data final"] =
-          Text(DateFormat("d MMMM y", appLocale.toLanguageTag()).format(
-        DateTime(
+      cache["Data final"] = Text(
+        key: ValueKey(DateTime(
           _content.animeMedia!.endDate!.year!,
           _content.animeMedia!.endDate!.month!,
           _content.animeMedia!.endDate!.day!,
+        ).toString()),
+        DateFormat("d MMMM y", appLocale.toLanguageTag()).format(
+          DateTime(
+            _content.animeMedia!.endDate!.year!,
+            _content.animeMedia!.endDate!.month!,
+            _content.animeMedia!.endDate!.day!,
+          ),
         ),
-      ));
+      );
     }
     if (_content.animeMedia?.averageScore != null) {
-      _contentInformation["Pontuação"] = Text.rich(
+      cache["Pontuação"] = Text.rich(
+        key: ValueKey((_content.animeMedia!.averageScore! / 10).toString()),
         TextSpan(
           children: [
             TextSpan(
@@ -83,39 +100,64 @@ class _InformationDestinationState extends State<InformationDestination>
       );
     }
     if (_content.animeMedia?.episodes != null) {
-      _contentInformation["Total de episódios"] = Text(
+      cache["Total de episódios"] = Text(
+        key: ValueKey(_content.animeMedia!.episodes.toString()),
         _content.animeMedia!.episodes.toString(),
       );
     }
     if (_content.animeMedia?.format != null) {
-      _contentInformation["Formato"] = Text(
+      cache["Formato"] = Text(
+        key: ValueKey(_content.animeMedia!.format!.name),
         _content.animeMedia!.format!.name,
       );
     }
     if (_content.animeMedia?.status != null) {
-      _contentInformation["Status"] = Text(
+      cache["Status"] = Text(
+        key: ValueKey(_content.animeMedia!.status!.toString()),
         _content.animeMedia!.status!.toString(),
       );
     }
     if (_content.animeMedia?.popularity != null) {
-      _contentInformation["Popularidade"] = Text(
+      cache["Popularidade"] = Text(
+        key: ValueKey(_content.animeMedia!.popularity!.toString()),
         _content.animeMedia!.popularity!.toString(),
       );
     }
     if (_content.animeMedia?.favourites != null) {
-      _contentInformation["Favoritos"] = Text(
+      cache["Favoritos"] = Text(
+        key: ValueKey(_content.animeMedia!.favourites!.toString()),
         _content.animeMedia!.favourites!.toString(),
       );
     }
     if (_content.animeMedia?.season != null) {
-      _contentInformation["Temporada"] = Text(
+      cache["Temporada"] = Text(
+        key: ValueKey("${_content.animeMedia!.season!.name} ${now.year}"),
         "${_content.animeMedia!.season!.name} ${now.year}",
       );
     }
     if (_content.animeMedia?.title?.romaji != null) {
-      _contentInformation["Nome Romaji"] = Text(
-        _content.animeMedia!.title!.romaji!,
+      cache["Nome Romaji"] = GestureDetector(
+        onLongPress: () async {
+          copyToClipboard(
+            context,
+            messageCopy: _content.animeMedia!.title!.romaji!,
+            messageSnackBar: 'Copiado para a área de transferência!',
+          );
+          await Feedback.forLongPress(context);
+        },
+        child: Text(
+          key: ValueKey(_content.animeMedia!.title!.romaji!),
+          _content.animeMedia!.title!.romaji!,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.end,
+          maxLines: 1,
+        ),
       );
+    }
+
+    if (!mapEquals(cache, _contentInformation)) {
+      _contentInformation.clear();
+      _contentInformation.addEntries(cache.entries);
     }
   }
 
@@ -125,47 +167,53 @@ class _InformationDestinationState extends State<InformationDestination>
     final ThemeData themeData = Theme.of(context);
 
     return ListView(
+      shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.only(bottom: 8),
       children: [
         if ((_expanded ? _content.sinopse ?? "" : substring).isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            child: SizedBox(
-              width: double.infinity,
-              child: Card.filled(
-                color: themeData.colorScheme.primary.withOpacity(0.04),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-                child: InkWell(
-                  overlayColor: _OverlayColor(context),
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: isOver100
-                      ? () => setState(() => _expanded = !_expanded)
-                      : null,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Sinopse',
-                          textAlign: TextAlign.start,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(fontSize: 28),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            _expanded ? _content.sinopse ?? "" : substring,
-                            textAlign: TextAlign.justify,
-                            style: Theme.of(context).textTheme.bodyMedium,
+            child: Card.filled(
+              color: themeData.colorScheme.primary.withOpacity(0.04),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: InkWell(
+                overlayColor: _OverlayColor(context),
+                borderRadius: BorderRadius.circular(8),
+                onTap: isOver100
+                    ? () => setState(() => _expanded = !_expanded)
+                    : null,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Sinopse',
+                        textAlign: TextAlign.start,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(fontSize: 28),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: AnimatedSize(
+                          duration: const Duration(milliseconds: 350),
+                          alignment: Alignment.topCenter,
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Text(
+                              _expanded ? _content.sinopse ?? "" : substring,
+                              textAlign: TextAlign.justify,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -173,6 +221,7 @@ class _InformationDestinationState extends State<InformationDestination>
           ),
         if (_contentInformation.isNotEmpty)
           Padding(
+            key: ValueKey(_contentInformation.values.length),
             padding: EdgeInsets.only(
                 right: 8,
                 left: 8,
@@ -200,7 +249,7 @@ class _InformationDestinationState extends State<InformationDestination>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(entry.key),
-                          entry.value,
+                          Flexible(child: entry.value),
                         ],
                       ),
                     ),
@@ -232,14 +281,7 @@ class _InformationDestinationState extends State<InformationDestination>
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: [
-                    ...switch (_content) {
-                      Anime data => data.genres.map((e) => e.label),
-                      Book data => data.genres.map((e) => e.label),
-                      _ => <String>[],
-                    },
-                    ..._content.animeMedia!.genres!,
-                  ]
+                  children: _content.animeMedia!.genres!
                       .map((e) => e.capitalize)
                       .toList()
                       .unique()
@@ -290,32 +332,43 @@ class _InformationDestinationState extends State<InformationDestination>
                         _content.animeMedia?.characters?.nodes![index];
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: SizedBox(
-                        width: 120,
-                        child: Column(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: CachedNetworkImage(
-                                fit: BoxFit.cover,
-                                height: 140,
-                                maxHeightDiskCache: 400,
-                                maxWidthDiskCache: 200,
-                                width: 120,
-                                imageUrl: personagem!.image!.large!,
+                      child: GestureDetector(
+                        onLongPress: () async {
+                          copyToClipboard(
+                            context,
+                            messageCopy: personagem.name!.full!.trim(),
+                            messageSnackBar:
+                                'Copiado para a área de transferência!',
+                          );
+                          await Feedback.forLongPress(context);
+                        },
+                        child: SizedBox(
+                          width: 120,
+                          child: Column(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: CachedNetworkImage(
+                                  fit: BoxFit.cover,
+                                  height: 140,
+                                  maxHeightDiskCache: 400,
+                                  maxWidthDiskCache: 200,
+                                  width: 120,
+                                  imageUrl: personagem!.image!.large!,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Flexible(
-                              child: Text(
-                                personagem.name!.full!,
-                                style: themeData.textTheme.titleSmall,
-                                textAlign: TextAlign.start,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
+                              const SizedBox(height: 2),
+                              Flexible(
+                                child: Text(
+                                  personagem.name!.full!,
+                                  style: themeData.textTheme.titleSmall,
+                                  textAlign: TextAlign.start,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -350,32 +403,43 @@ class _InformationDestinationState extends State<InformationDestination>
                     final staff = _content.animeMedia?.staff?.nodes![index];
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: SizedBox(
-                        width: 120,
-                        child: Column(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: CachedNetworkImage(
-                                fit: BoxFit.cover,
-                                height: 140,
-                                maxHeightDiskCache: 400,
-                                maxWidthDiskCache: 200,
-                                width: 120,
-                                imageUrl: staff!.image!.large!,
+                      child: GestureDetector(
+                        onLongPress: () async {
+                          copyToClipboard(
+                            context,
+                            messageCopy: staff.name!.full!.trim(),
+                            messageSnackBar:
+                                'Copiado para a área de transferência!',
+                          );
+                          await Feedback.forLongPress(context);
+                        },
+                        child: SizedBox(
+                          width: 120,
+                          child: Column(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: CachedNetworkImage(
+                                  fit: BoxFit.cover,
+                                  height: 140,
+                                  maxHeightDiskCache: 400,
+                                  maxWidthDiskCache: 200,
+                                  width: 120,
+                                  imageUrl: staff!.image!.large!,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Flexible(
-                              child: Text(
-                                staff.name!.full!,
-                                style: themeData.textTheme.titleSmall,
-                                textAlign: TextAlign.start,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
+                              const SizedBox(height: 2),
+                              Flexible(
+                                child: Text(
+                                  staff.name!.full!,
+                                  style: themeData.textTheme.titleSmall,
+                                  textAlign: TextAlign.start,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );

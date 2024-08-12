@@ -346,29 +346,30 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
 
                                               final animeEntity = libraryService
                                                   .entities
-                                                  .firstWhereOrNull((entity) =>
-                                                      switch (entity) {
-                                                        AnimeEntity anime =>
-                                                          anime
-                                                              .title.capitalize
-                                                              .contains(
-                                                                  data.title),
-                                                        _ => false,
-                                                      });
+                                                  .firstWhereOrNull(
+                                                (entity) => switch (entity) {
+                                                  AnimeEntity anime =>
+                                                    anime.title.toID.contains(
+                                                        data.title.toID),
+                                                  _ => false,
+                                                },
+                                              );
 
                                               if (animeEntity != null &&
                                                   animeEntity is AnimeEntity) {
                                                 final episode = animeEntity
                                                     .episodes
-                                                    .firstWhere((episode) =>
-                                                        episode.numberEpisode ==
-                                                        data.number);
+                                                    .firstWhere(
+                                                  (episode) =>
+                                                      episode.numberEpisode ==
+                                                      data.number,
+                                                );
 
                                                 await context.push(
                                                   RouteName.PLAYER,
                                                   extra: PlayerArgs(
                                                     getAnimeData: false,
-                                                    forceEnterFullScreen: true,
+                                                    forceEnterFullScreen: false,
                                                     startPossition:
                                                         episode.currentDuration >
                                                                 0
@@ -376,7 +377,8 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                                                                 .cdToDuration
                                                             : null,
                                                     episode: episode.toEpisode(
-                                                        animeEntity.isDublado),
+                                                      animeEntity.isDublado,
+                                                    ),
                                                     anime: animeEntity.toAnime,
                                                     data: FileVideoData(
                                                       file:
