@@ -2,9 +2,7 @@
 
 import 'package:content_library/content_library.dart';
 
-import '../utils/object_utils.dart';
-
-class Book extends Content with MergeClass<Content> {
+class Book extends Content {
   final Source source;
   final String? alternativeTitle;
   final List<Genre> genres;
@@ -163,4 +161,7 @@ class Book extends Content with MergeClass<Content> {
       source: source,
     );
   }
+
+  @override
+  Book merge(Content other) => super.merge(other) as Book;
 }

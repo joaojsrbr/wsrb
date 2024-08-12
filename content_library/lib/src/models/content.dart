@@ -1,11 +1,12 @@
 import 'package:anilist_dart/anilist.dart';
+import 'package:content_library/src/utils/object_utils.dart';
 import 'package:equatable/equatable.dart';
 
 import '../entities/entity.dart';
 import '../extensions/custom_extensions/string_extensions.dart';
 import '../utils/releases.dart';
 
-abstract class Content extends Equatable {
+abstract class Content extends Equatable with MergeClass<Content> {
   String get imageUrl;
 
   String get stringID => title.toUuID;

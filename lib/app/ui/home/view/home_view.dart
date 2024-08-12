@@ -189,7 +189,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                   };
 
                                   return Tab(
-                                      icon: Icon(icons.elementAt(index)));
+                                    icon: Icon(icons.elementAt(index)),
+                                  );
                                 },
                               ),
                             ),
@@ -251,7 +252,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                 ..insert(
                                   0,
                                   const Tab(
-                                      text: 'Padrão', key: ValueKey('Padrão')),
+                                    text: 'Padrão',
+                                    key: ValueKey('Padrão'),
+                                  ),
                                 ),
                               isScrollable: true,
                             )
@@ -264,8 +267,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                     ? EdgeInsets.zero
                                     : EdgeInsets.only(
                                         right: 12,
-                                        top:
-                                            _tabController.index == 0 ? 14 : 8),
+                                        top: _tabController.index == 0 ? 14 : 8,
+                                      ),
                                 physics: const BouncingScrollPhysics(),
                                 scrollDirection: Axis.horizontal,
                                 cacheExtent: 300,

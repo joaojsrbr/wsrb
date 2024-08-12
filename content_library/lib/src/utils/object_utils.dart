@@ -1,6 +1,6 @@
 import 'package:content_library/content_library.dart';
 
-mixin MergeClass<T extends Content> on Content {
+mixin MergeClass<T extends Content> {
   T merge(T other) {
     if (identical(runtimeType, other.runtimeType)) {
       switch (this) {
