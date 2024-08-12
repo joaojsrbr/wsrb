@@ -76,7 +76,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
     SubordinateLibraryTabController newTabController;
 
-    if (dispose == true) {
+    if (dispose) {
       setStateIfMounted(() {
         newTabController = _subordinateLibraryTabController.copyWithAndDispose(
           length: length,
@@ -394,13 +394,18 @@ class _MenuButton<T> extends StatelessWidget {
                           position: position,
                           clipBehavior: Clip.hardEdge,
                           items: data
-                              .map((e) => PopupMenuItem(
-                                    value: e,
-                                    enabled: enableMenuItem?.call(e) ?? true,
-                                    child: ListTile(
-                                        leading: leadingMenuItem?.call(e),
-                                        title: Text(e.toString())),
-                                  ))
+                              .map(
+                                (e) => PopupMenuItem(
+                                  value: e,
+                                  enabled: enableMenuItem?.call(e) ?? true,
+                                  child: ListTile(
+                                    leading: leadingMenuItem?.call(e),
+                                    title: Text(
+                                      e.toString(),
+                                    ),
+                                  ),
+                                ),
+                              )
                               .toList(),
                         );
 
