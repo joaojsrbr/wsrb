@@ -435,20 +435,18 @@ class _ImageWidget extends StatelessWidget {
         child: CachedNetworkImage(
           imageUrl: content.imageUrl,
           imageBuilder: (context, imageProvider) {
-            return HomeScope.maybeOf(context)?.tabController.index == 1
-                ? Hero(
-                    tag: content.getHeroTag(),
-                    child: Image(
-                      fit: BoxFit.cover,
-                      alignment: FractionalOffset.center,
-                      image: imageProvider,
-                    ),
-                  )
-                : Image(
-                    fit: BoxFit.cover,
-                    alignment: FractionalOffset.center,
-                    image: imageProvider,
-                  );
+            return HeroMode(
+              enabled: content is Anime && (content as Anime).animeID != null,
+              child: Hero(
+                key: ValueKey(content.getHeroTag()),
+                tag: content.getHeroTag(),
+                child: Image(
+                  fit: BoxFit.cover,
+                  alignment: FractionalOffset.center,
+                  image: imageProvider,
+                ),
+              ),
+            );
           },
           errorListener: (value) {
             customLog(value.toString());

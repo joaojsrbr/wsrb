@@ -117,7 +117,7 @@ class _RefContentkInformationViewState
       _releases[_index] = data.releases;
     }
 
-    setState(() {
+    setStateIfMounted(() {
       switch (data) {
         case Anime data:
           _content = (_content as Anime).merge(data);
@@ -130,28 +130,30 @@ class _RefContentkInformationViewState
       _isLoading = false;
     });
 
-    final LibraryService libraryService = LibraryService(
-      _libraryController,
-      context.read(),
-    );
-
-    if (libraryService.contains(content: data)) {
-      ContentEntity contentEntity = data.toEntity();
-      final entity =
-          libraryService.getContentEntityByStringID(_content.stringID);
-
-      if (entity != null) {
-        contentEntity = contentEntity.merge(entity);
-      }
-
-      _libraryController.add(
-        contentEntity: data.toEntity(
-          updatedAt: DateTime.now(),
-          isFavorite: true,
-        ),
+    ifMounted(() {
+      final LibraryService libraryService = LibraryService(
+        _libraryController,
+        context.read(),
       );
-    }
-    AutoCache.data.saveJson(key: data.stringID, data: data.map);
+
+      if (libraryService.contains(content: data)) {
+        ContentEntity contentEntity = data.toEntity();
+        final entity =
+            libraryService.getContentEntityByStringID(_content.stringID);
+
+        if (entity != null) {
+          contentEntity = contentEntity.merge(entity);
+        }
+
+        _libraryController.add(
+          contentEntity: data.toEntity(
+            updatedAt: DateTime.now(),
+            isFavorite: true,
+          ),
+        );
+      }
+      AutoCache.data.saveJson(key: data.stringID, data: data.map);
+    });
   }
 
   void _handleSetListIndex(int index) async {

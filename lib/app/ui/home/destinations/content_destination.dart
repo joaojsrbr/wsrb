@@ -67,7 +67,6 @@ class _ContentDestinationState extends State<ContentDestination>
                         crossAxisCount: 2,
                       ),
                       physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 6,

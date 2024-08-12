@@ -160,7 +160,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               HomeScope.of(context).tabController;
 
           return Scaffold(
-            extendBody: true,
             body: ExtendedNestedScrollView(
               onlyOneScrollInBody: true,
               controller: _scrollController,

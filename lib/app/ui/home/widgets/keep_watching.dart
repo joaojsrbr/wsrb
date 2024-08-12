@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
@@ -336,14 +335,19 @@ class _ImageState extends State<_Image> {
       width: 480,
       height: 280,
     );
-    scheduleMicrotask(_precacheImage);
     super.initState();
   }
 
-  void _precacheImage() {
-    precacheImage(_memoryImage, context);
-    precacheImage(_placeHolder, context);
-  }
+  // void _precacheImage() {
+  //   precacheImage(_memoryImage, context);
+  //   precacheImage(_placeHolder, context);
+  // }
+
+  // @override
+  // void didChangeDependencies() {
+  //   if (mounted) _precacheImage();
+  //   super.didChangeDependencies();
+  // }
 
   @override
   void didUpdateWidget(covariant _Image oldWidget) {

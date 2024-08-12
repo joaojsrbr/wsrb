@@ -2,14 +2,13 @@
 
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
+import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
-import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
 
 class LibraryDestination extends StatefulWidget {
   const LibraryDestination({super.key});
@@ -151,7 +150,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
         child: GridView.builder(
           itemCount: filter.length,
           physics: const NeverScrollableScrollPhysics(),
-          // shrinkWrap: true,
+          shrinkWrap: true,
           padding: const EdgeInsets.only(left: 8, right: 8, top: 12),
           gridDelegate: gridDelegate,
           itemBuilder: (context, index) {

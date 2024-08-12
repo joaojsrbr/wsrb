@@ -38,13 +38,15 @@ class AnrollSource extends RSource {
     final videoContent =
         'https://cdn-zenitsu-gamabunta.b-cdn.net/cf/hls/animes/${release.slugSerie}/$stringNumber.mp4/media-1/stream.m3u8';
 
-    data.add(Data.videoData(
-      videoContent: videoContent,
-      httpHeaders: {
-        "origin": BASE_URL,
-        "referer": "$BASE_URL/",
-      },
-    ));
+    data.add(
+      Data.videoData(
+        videoContent: videoContent,
+        httpHeaders: {
+          "origin": BASE_URL,
+          "referer": "$BASE_URL/",
+        },
+      ),
+    );
 
     return Result.success(data);
   }
@@ -66,6 +68,7 @@ class AnrollSource extends RSource {
                   .last;
             },
           );
+      final newAnime = content.copyWith(animeID: animeID);
 
       final episodesResponse = await contentRepository._dio.get(
         'https://apiv3-prd.anroll.net/animes/$animeID/episodes?order=asc${page == -1 ? '' : '&page=$page'}',
@@ -105,11 +108,11 @@ class AnrollSource extends RSource {
           thumbnail: thumbnail,
         );
 
-        content.releases.addOrUpdateWhere(episode, episode.isEqualStringID);
+        newAnime.releases.addOrUpdateWhere(episode, episode.isEqualStringID);
       }
 
       return Result.success(
-        content.copyWith(
+        newAnime.copyWith(
           totalOfPages: totalOfPages,
           totalOfEpisodes: totalOfEpisodes,
         ),
@@ -124,7 +127,7 @@ class AnrollSource extends RSource {
     try {
       if (content is! Anime) throw AnimeGetDataException();
 
-      Anime newAnime = content;
+      Anime newAnime = content.copyWith();
 
       final String generateID =
           content.releases.firstOrNull?.generateID ?? content.generateID!;
