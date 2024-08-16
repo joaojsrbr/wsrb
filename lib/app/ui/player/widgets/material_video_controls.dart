@@ -6,7 +6,6 @@ import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
-
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -344,11 +343,6 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
   Widget build(BuildContext context) {
     if (!context.mounted) return const SizedBox.shrink();
 
-    final capturedThemes = InheritedTheme.capture(
-      from: PlayerView.videoStateKey.currentContext!,
-      to: Navigator.of(context).context,
-    );
-
     final orientation = MediaQuery.orientationOf(context);
     final isPortrait = orientation == Orientation.portrait;
 
@@ -357,10 +351,9 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
     final seekOnDoubleTapEnabledWhileControlsAreVisible =
         (_theme(context).seekOnDoubleTap &&
             _theme(context).seekOnDoubleTapEnabledWhileControlsVisible);
-    // customLog(mount);
 
-    Widget container = PopScope(
-      onPopInvoked: (result) {
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
         if (scope.playerArgs.forceEnterFullScreen && isFullscreen(context)) {
           addPostFrameCallback((timer) =>
               Navigator.of(PlayerView.videoStateKey.currentContext!).pop());
@@ -693,8 +686,6 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
         ),
       ),
     );
-
-    return capturedThemes.wrap(container);
   }
 }
 

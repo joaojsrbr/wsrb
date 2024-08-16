@@ -2,7 +2,6 @@ import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/image_filter.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -393,10 +392,17 @@ class _OverlayColor extends WidgetStateProperty<Color?> {
   }
 }
 
-class _ImageWidget extends StatelessWidget {
+class _ImageWidget extends StatefulWidget {
   const _ImageWidget(this.content);
 
   final Content content;
+
+  @override
+  State<_ImageWidget> createState() => _ImageWidgetState();
+}
+
+class _ImageWidgetState extends State<_ImageWidget> {
+  bool _error = false;
 
   @override
   Widget build(BuildContext context) {
@@ -405,62 +411,58 @@ class _ImageWidget extends StatelessWidget {
 
     final themeData = Theme.of(context);
 
-    if (content.imageUrl.isEmpty &&
-        ![params.isLibrary, params.isSearch].contains(true)) {
-      return SizedBox(
-        child: Card.filled(
-          color: themeData.colorScheme.primary.withOpacity(0.04),
-        ),
+    if ((widget.content.imageUrl.isEmpty &&
+            !params.isLibrary &&
+            !params.isSearch) ||
+        _error) {
+      return Card.filled(
+        color: themeData.colorScheme.primary.withOpacity(0.04),
       );
     }
 
-    Widget imageWidget = Material(
-      borderRadius: BorderRadius.circular(8),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: CachedNetworkImage(
-          imageUrl: content.imageUrl,
-          imageBuilder: (context, imageProvider) {
-            return ShaderMask(
-              blendMode: BlendMode.srcOver,
-              shaderCallback: (bounds) {
-                return LinearGradient(
-                  begin: Alignment.center,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black54.withOpacity(0.55),
-                  ],
-                  stops: const [0.0, .9],
-                ).createShader(bounds);
-              },
-              child: Image(
-                fit: BoxFit.cover,
-                alignment: FractionalOffset.center,
-                image: imageProvider,
-              ),
-            );
-          },
-          errorListener: (value) {
-            customLog(value.toString());
-          },
-          errorWidget: (context, url, error) {
-            return Card.filled(
-              color: themeData.colorScheme.secondary.withOpacity(0.04),
-              shape: const RoundedRectangleBorder(),
-            );
-          },
-          maxHeightDiskCache: params.isLibrary ? 500 : 500,
-          maxWidthDiskCache: params.isLibrary ? 500 : 500,
-          httpHeaders: App.HEADERS,
-        ),
+    return ClipRRect(
+      borderRadius: ItemContent._borderRadius,
+      child: CachedNetworkImage(
+        filterQuality: FilterQuality.medium,
+        imageUrl: widget.content.imageUrl,
+        placeholder: (context, url) {
+          return Card.filled(
+            color: themeData.colorScheme.primary.withOpacity(0.04),
+          );
+        },
+        imageBuilder: (context, imageProvider) {
+          return ShaderMask(
+            blendMode: BlendMode.srcOver,
+            shaderCallback: (bounds) {
+              return LinearGradient(
+                begin: Alignment.center,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black54.withOpacity(0.55),
+                ],
+                stops: const [0.0, .9],
+              ).createShader(bounds);
+            },
+            child: Image(
+              fit: BoxFit.cover,
+              alignment: FractionalOffset.center,
+              image: imageProvider,
+            ),
+          );
+        },
+        errorListener: (value) {
+          addPostFrameSetState(() => _error = true);
+        },
+        errorWidget: (context, url, error) {
+          return Card.filled(
+            color: themeData.colorScheme.primary.withOpacity(0.04),
+          );
+        },
+        maxHeightDiskCache: params.isLibrary ? 500 : 500,
+        maxWidthDiskCache: params.isLibrary ? 500 : 500,
+        httpHeaders: App.HEADERS,
       ),
-    );
-
-    return ImageFilter(
-      saturation: 0.2,
-      brightness: params.isSearch ? -0.10 : -0.06,
-      child: imageWidget,
     );
   }
 }

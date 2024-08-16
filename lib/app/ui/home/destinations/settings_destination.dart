@@ -62,10 +62,9 @@ class _SettingsDestinationState extends State<SettingsDestination>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final themeData = Theme.of(context);
+    final ThemeData themeData = Theme.of(context);
     final HiveController hiveController = context.watch<HiveController>();
     final ThemeController themeController = context.watch<ThemeController>();
-    final textTheme = themeData.textTheme;
 
     return SettingsList(
       contentPadding: const EdgeInsets.only(top: 8),
@@ -84,7 +83,7 @@ class _SettingsDestinationState extends State<SettingsDestination>
         _CustomSettingsSection(
           title: Text(
             'Geral',
-            style: textTheme.titleLarge?.copyWith(
+            style: themeData.textTheme.titleLarge?.copyWith(
               color: themeData.colorScheme.primary,
             ),
           ),
@@ -113,7 +112,7 @@ class _SettingsDestinationState extends State<SettingsDestination>
                         padding: const EdgeInsets.only(right: 8.0),
                         child: Text(
                           connectivityResult,
-                          style: textTheme.titleSmall?.copyWith(),
+                          style: themeData.textTheme.titleSmall?.copyWith(),
                         ),
                       ),
                     ),
@@ -145,7 +144,7 @@ class _SettingsDestinationState extends State<SettingsDestination>
         _CustomSettingsSection(
           title: Text(
             'Aparência',
-            style: textTheme.titleLarge?.copyWith(
+            style: themeData.textTheme.titleLarge?.copyWith(
               color: themeData.colorScheme.primary,
             ),
           ),
@@ -245,13 +244,13 @@ class _SettingsDestinationState extends State<SettingsDestination>
                     const SizedBox(height: 8),
                     flex.ColorPicker(
                       pickersEnabled: const <flex.ColorPickerType, bool>{
-                        flex.ColorPickerType.both: true,
-                        flex.ColorPickerType.primary: false,
+                        flex.ColorPickerType.primary: true,
+                        flex.ColorPickerType.both: false,
                         flex.ColorPickerType.accent: false,
                         flex.ColorPickerType.bw: false,
                         flex.ColorPickerType.custom: false,
                         flex.ColorPickerType.customSecondary: false,
-                        flex.ColorPickerType.wheel: true,
+                        flex.ColorPickerType.wheel: false,
                       },
                       recentColors: _recentColors,
                       pickerTypeLabels: const <flex.ColorPickerType, String>{
@@ -273,6 +272,7 @@ class _SettingsDestinationState extends State<SettingsDestination>
                         });
                       },
                       onColorChangeEnd: (value) {
+                        customLog(value);
                         themeController.setAppColor(value);
                       },
                     ),
@@ -285,7 +285,7 @@ class _SettingsDestinationState extends State<SettingsDestination>
         _CustomSettingsSection(
           title: Text(
             'Player',
-            style: textTheme.titleLarge?.copyWith(
+            style: themeData.textTheme.titleLarge?.copyWith(
               color: themeData.colorScheme.primary,
             ),
           ),

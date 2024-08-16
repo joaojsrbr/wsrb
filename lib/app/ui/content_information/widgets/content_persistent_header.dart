@@ -26,25 +26,23 @@ class ContentHeader extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CachedNetworkImage(
-                  imageBuilder: (context, imageProvider) {
-                    return Material(
-                      borderRadius: BorderRadius.circular(8),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image(
-                          height: 200,
-                          width: 140,
-                          fit: BoxFit.cover,
-                          image: imageProvider,
-                        ),
-                      ),
-                    );
-                  },
-                  maxHeightDiskCache: 500,
-                  maxWidthDiskCache: 400,
-                  imageUrl: content.imageUrl,
-                  httpHeaders: App.HEADERS,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: CachedNetworkImage(
+                    height: 200,
+                    width: 140,
+                    filterQuality: FilterQuality.medium,
+                    placeholder: (context, url) {
+                      return Card.filled(
+                        color: themeData.colorScheme.primary.withOpacity(0.04),
+                      );
+                    },
+                    fit: BoxFit.cover,
+                    maxHeightDiskCache: 500,
+                    maxWidthDiskCache: 400,
+                    imageUrl: content.imageUrl,
+                    httpHeaders: App.HEADERS,
+                  ),
                 ),
                 Expanded(
                   child: Padding(

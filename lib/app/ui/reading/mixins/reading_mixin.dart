@@ -7,7 +7,7 @@ mixin _ReadingVars on State<ReadingView> {
   Chapter? _chapter;
   bool _isLoading = true;
   // bool _enabledSystemUIMode = false;
-  bool _showFooterWidget = true;
+  final bool _showFooterWidget = true;
   final List<Widget> _contents = [];
   // ignore: unused_field
   final Releases _releases = Releases();

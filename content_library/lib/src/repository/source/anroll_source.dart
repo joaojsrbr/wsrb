@@ -17,8 +17,10 @@ class AnrollSource extends RSource {
   @override
   Future<Result<List<Data>>> getContent(Release release) async {
     if (release is! Episode) {
-      return Result.failure(AnimeGetDataException(
-          message: "A instancia content precisa ser do tipo Episode"));
+      return Result.failure(
+        AnimeGetDataException(
+            message: "A instancia content precisa ser do tipo Episode"),
+      );
     }
 
     final List<Data> data = [];
@@ -51,27 +53,35 @@ class AnrollSource extends RSource {
     return Result.success(data);
   }
 
+  Future<Anime> _getAnimeID(Anime anime) async {
+    Anime newAnime = anime.copyWith();
+    if (newAnime.animeID == null) {
+      await contentRepository._dio
+          .get("https://www.anroll.net/e/${anime.generateID}")
+          .then(
+        (response) {
+          newAnime = newAnime.copyWith(
+            animeID: parse(response.data)
+                .querySelector('#anime_title a')
+                ?.attributes['href']
+                ?.split('/')
+                .last,
+          );
+        },
+      );
+    }
+    return newAnime;
+  }
+
   @override
   Future<Result<Anime>> getReleases(Content content, int page) async {
     if (content is! Anime) throw AnimeGetDataException();
 
     try {
-      final animeID = content.animeID ??
-          await contentRepository._dio
-              .get("https://www.anroll.net/e/${content.generateID}")
-              .then(
-            (response) {
-              return parse(response.data)
-                  .querySelector('#anime_title a')
-                  ?.attributes['href']
-                  ?.split('/')
-                  .last;
-            },
-          );
-      final newAnime = content.copyWith(animeID: animeID);
+      Anime newAnime = await _getAnimeID(content);
 
       final episodesResponse = await contentRepository._dio.get(
-        'https://apiv3-prd.anroll.net/animes/$animeID/episodes?order=asc${page == -1 ? '' : '&page=$page'}',
+        'https://apiv3-prd.anroll.net/animes/${newAnime.animeID}/episodes?order=asc${page == -1 ? '' : '&page=$page'}',
       );
 
       final episodesList = episodesResponse.data['data'] as List;
@@ -80,9 +90,7 @@ class AnrollSource extends RSource {
           episodesResponse.data['meta']['totalOfEpisodes'] as int?;
       int? totalOfPages = episodesResponse.data['meta']['totalOfPages'] as int?;
 
-      final lastEpisode = episodesList.last;
-
-      final lastENumber = int.parse(lastEpisode['n_episodio']);
+      final lastENumber = int.parse(episodesList.last['n_episodio']);
 
       content.releases.removeWhere(
           (element) => (int.tryParse(element.number) ?? 0) > lastENumber);
@@ -92,7 +100,7 @@ class AnrollSource extends RSource {
         final titleEpisode = map['titulo_episodio'] as String;
         final pageNumber = episodesResponse.data['meta']['pageNumber'] as int?;
         final sinopseEpisode = map['sinopse_episodio'] as String?;
-        final episodeGenerateID = map['generate_id'];
+        final episodeGenerateID = map['generate_id'] as String?;
         final thumbnail =
             "https://static.anroll.net/images/animes/screens/${content.slugSerie}/${map['n_episodio']}.jpg";
 
@@ -127,28 +135,12 @@ class AnrollSource extends RSource {
     try {
       if (content is! Anime) throw AnimeGetDataException();
 
-      Anime newAnime = content.copyWith();
+      Anime newAnime = await _getAnimeID(content);
 
       final String generateID =
           content.releases.firstOrNull?.generateID ?? content.generateID!;
 
       final String buildId = await getBuildId();
-
-      if (content.animeID == null) {
-        await contentRepository._dio
-            .get("https://www.anroll.net/e/$generateID")
-            .then(
-          (response) {
-            newAnime = newAnime.copyWith(
-              animeID: parse(response.data)
-                  .querySelector('#anime_title a')
-                  ?.attributes['href']
-                  ?.split('/')
-                  .last,
-            );
-          },
-        );
-      }
 
       Future<void> getData() async {
         final animeApiUrl =

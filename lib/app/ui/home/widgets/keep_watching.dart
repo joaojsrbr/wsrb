@@ -22,54 +22,26 @@ class KeepWatching extends StatefulWidget {
 class _KeepWatchingState extends State<KeepWatching> {
   List<HistoryEntity> _sortedByUpdateAt = [];
 
-  late final LibraryService _libraryService;
-
-  late final LibraryController _libraryController;
-
-  @override
-  void initState() {
-    _libraryController = context.read<LibraryController>()
-      ..addListener(_libraryListener);
-    _libraryService = LibraryService(
-      _libraryController,
-      context.read(),
-    );
-    super.initState();
-  }
-
-  void _libraryListener() {
-    final TabController tabController = HomeScope.of(context).tabController;
-    setStateIfMounted(() {
-      _sortedByUpdateAt = (tabController.index == 0
-              ? _libraryService.entities
-              : _libraryService.favorites)
-          .map(_libraryService.getIsarLinks)
-          .nonNulls
-          .flattened
-          .sorted();
-    });
-  }
+  late LibraryService _libraryService;
 
   @override
   void didChangeDependencies() {
-    if (_sortedByUpdateAt.isEmpty) {
-      final TabController tabController = HomeScope.of(context).tabController;
+    final TabController tabController = HomeScope.of(context).tabController;
+    final LibraryController libraryController =
+        context.watch<LibraryController>();
+    _libraryService = LibraryService(
+      libraryController,
+      context.watch(),
+    );
+    _sortedByUpdateAt = (tabController.index == 0
+            ? _libraryService.entities
+            : _libraryService.favorites)
+        .map(_libraryService.getIsarLinks)
+        .nonNulls
+        .flattened
+        .sorted();
 
-      _sortedByUpdateAt = (tabController.index == 0
-              ? _libraryService.entities
-              : _libraryService.favorites)
-          .map(_libraryService.getIsarLinks)
-          .nonNulls
-          .flattened
-          .sorted();
-    }
     super.didChangeDependencies();
-  }
-
-  @override
-  void dispose() {
-    _libraryController.removeListener(_libraryListener);
-    super.dispose();
   }
 
   @override
@@ -86,13 +58,13 @@ class _KeepWatchingState extends State<KeepWatching> {
       child: _sortedByUpdateAt.isEmpty || ![0, 1].contains(tabController.index)
           ? null
           : AnimatedSize(
-              duration: const Duration(milliseconds: 250),
+              duration: const Duration(milliseconds: 350),
               child: SizedBox(
                 height: 180,
                 width: double.infinity,
                 child: ListView.builder(
                   key: PageStorageKey(
-                    'home_and_library_watching_${tabController.index}',
+                    'home_and_library_watching_${_sortedByUpdateAt.length}',
                   ),
                   controller: scope.keepWatchingScrollController,
                   padding: const EdgeInsets.only(left: 12, top: 12),
@@ -299,13 +271,13 @@ class _ImageState extends State<_Image> {
     _currentPositionUint8List = base64.decode(widget.currentPositionBase64);
     _memoryImage = ResizeImage(
       MemoryImage(_currentPositionUint8List),
-      width: 480,
-      height: 280,
+      width: 500,
+      height: 300,
     );
     _placeHolder = const ResizeImage(
       App.IMAGE_BLACK,
-      width: 480,
-      height: 280,
+      width: 500,
+      height: 300,
     );
     super.initState();
   }
@@ -327,8 +299,8 @@ class _ImageState extends State<_Image> {
       _currentPositionUint8List = base64.decode(widget.currentPositionBase64);
       _memoryImage = ResizeImage(
         MemoryImage(_currentPositionUint8List),
-        width: 480,
-        height: 280,
+        width: 500,
+        height: 300,
       );
     }
     super.didUpdateWidget(oldWidget);
@@ -337,6 +309,8 @@ class _ImageState extends State<_Image> {
   @override
   Widget build(BuildContext context) {
     return FadeInImage(
+      // key: ValueKey(widget.currentPositionBase64),
+      filterQuality: FilterQuality.medium,
       placeholder: _placeHolder,
       image: _memoryImage,
       fit: BoxFit.cover,

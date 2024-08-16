@@ -31,7 +31,7 @@ class _RefContentkInformationViewState
     with SubscriptionsMixin, SingleTickerProviderStateMixin {
   late final ContentRepository _repository;
   late final TabController _bottomTabController;
-  late final ConnectionChecker _connectionChecker;
+  // late final ConnectionChecker _connectionChecker;
   late final LibraryService _libraryService;
   late final LibraryController _libraryController;
   late final HistoricController _historicController;
@@ -60,7 +60,7 @@ class _RefContentkInformationViewState
     _historicController = context.read<HistoricController>();
     _libraryController = context.read<LibraryController>();
     _libraryService = LibraryService(_libraryController, context.read());
-    _connectionChecker = context.read<ConnectionChecker>();
+    // _connectionChecker = context.read<ConnectionChecker>();
     _downloadService = context.read<DownloadService>();
     _repository = context.read<ContentRepository>();
     scheduleMicrotask(_onInit);

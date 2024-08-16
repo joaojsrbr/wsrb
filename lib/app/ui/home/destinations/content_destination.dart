@@ -57,7 +57,7 @@ class _ContentDestinationState extends State<ContentDestination>
         padding: EdgeInsets.only(right: railMenuController.isOpen ? 50 : 0),
         child: Builder(builder: (context) {
           return AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
+            duration: const Duration(milliseconds: 350),
             child: connectionChecker.connectivityResult.isEmpty
                 ? const FullScreenErrorWidget(btnAtualizar: false)
                 : LoadingMoreList(

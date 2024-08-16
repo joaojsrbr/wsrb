@@ -30,7 +30,7 @@ class ThemeController extends ChangeNotifier {
 
   static const defaultValueAppColor = HiveDefaultValue(
     'theme_service_app_color',
-    Color(0xff110218),
+    Color(0xff673ab7),
   );
 
   ThemeMode get themeMode => _themeMode;

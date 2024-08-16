@@ -16,6 +16,6 @@ class MainActivity : AudioServiceActivity() {
     }
 
     override fun onPictureInPictureModeChanged(active: Boolean, newConfig: Configuration?) {
-        callbackHelper.onPictureInPictureModeChanged(active)
+        callbackHelper.onPictureInPictureModeChanged(active,this)
     }
 }

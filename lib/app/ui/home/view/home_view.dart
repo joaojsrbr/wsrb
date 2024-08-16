@@ -28,7 +28,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   late final TabController _tabController;
   late final CustomSearchController _searchController;
   late final ScrollController _scrollController;
-  late final ConnectionChecker _connectionChecker;
+  // late final ConnectionChecker _connectionChecker;
   late SubordinateLibraryTabController _subordinateLibraryTabController;
   late final ScrollController _keepWatchingScrollController;
   late final CategoryController _categoryController;
@@ -58,7 +58,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
     _railMenuController = RailMenuController();
 
-    _connectionChecker = context.read<ConnectionChecker>();
+    // _connectionChecker = context.read<ConnectionChecker>();
 
     _startTabController(false);
   }
@@ -98,27 +98,31 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   void _scrollControllerListener() {
-    if (_scrollController.position.pixels <= 10.0 &&
-        _keepWatchingScrollController.hasClients) {
-      _keepWatchingScrollController.animateTo(
-        0,
-        duration: const Duration(milliseconds: 450),
-        curve: Curves.ease,
-      );
-    }
+    addPostFrameCallback((timer) {
+      if (_scrollController.position.pixels <= 10.0 &&
+          _keepWatchingScrollController.hasClients) {
+        _keepWatchingScrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.ease,
+        );
+      }
+    });
   }
 
   void _tabControllerListener() {
     if (_valueNotifierList.isNotEmpty) _valueNotifierList.clear();
     _searchController.clear();
 
-    if (mounted) context.unFocusKeyBoard();
+    addPostFrameCallback((timer) {
+      if (mounted) context.unFocusKeyBoard();
 
-    _scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 450),
-      curve: Curves.ease,
-    );
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.ease,
+      );
+    });
   }
 
   set setScroll(bool enable) {

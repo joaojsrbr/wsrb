@@ -8,6 +8,11 @@ extension StateExtension<S extends StatefulWidget> on State<S> {
     if (mounted) setState(callback);
   }
 
+  void addPostFrameSetState(VoidCallback callback) {
+    // ignore: invalid_use_of_protected_member
+    addPostFrameCallback((_) => setState(callback));
+  }
+
   void ifMounted(VoidCallback callback) {
     if (mounted) callback.call();
   }

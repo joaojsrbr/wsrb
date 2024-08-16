@@ -637,6 +637,7 @@ class _Content extends StatelessWidget {
                         controller: videoController,
                       ),
                       child: Video(
+                        filterQuality: FilterQuality.medium,
                         aspectRatio: 16 / 9,
                         onEnterFullscreen: scope.isPipActivated
                             ? () async {}
@@ -735,7 +736,8 @@ class _Content extends StatelessWidget {
                                             Padding(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                      vertical: 12.0),
+                                                vertical: 12.0,
+                                              ),
                                               child: Text(
                                                 'Sinopse',
                                                 style: Theme.of(context)
