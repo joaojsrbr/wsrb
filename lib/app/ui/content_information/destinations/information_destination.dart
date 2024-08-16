@@ -169,6 +169,12 @@ class _InformationDestinationState extends State<InformationDestination>
   }
 
   @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     super.build(context);
     final ThemeData themeData = Theme.of(context);
@@ -214,7 +220,9 @@ class _InformationDestinationState extends State<InformationDestination>
                           child: SizedBox(
                             width: double.infinity,
                             child: SelectableText(
-                              _expanded ? _substring : (_content.sinopse ?? ""),
+                              !_expanded
+                                  ? _substring
+                                  : (_content.sinopse ?? ""),
                               focusNode: _focusNode,
                               onSelectionChanged: (selection, cause) {
                                 addPostFrameSetState(() {

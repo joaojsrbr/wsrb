@@ -187,8 +187,8 @@ class AnrollSource extends RSource {
       }
 
       Future<void> getEpisodes() async {
-        await getReleases(newAnime, -1).then((result) =>
-            result.fold(onSuccess: (data) => newAnime = newAnime.merge(data)));
+        await getReleases(newAnime, -1).then(
+            (result) => result.fold(onSuccess: (data) => newAnime = data));
       }
 
       Future<void> getAniListData() async {
