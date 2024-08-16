@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:anilist_dart/anilist.dart';
 import 'package:content_library/src/constants/source.dart';
 import 'package:content_library/src/entities/chapter_entity.dart';
 import 'package:content_library/src/entities/entity.dart';
@@ -7,12 +10,19 @@ import 'package:isar/isar.dart';
 
 part 'book_entity.g.dart';
 
-@Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toBook'})
+@Collection(ignore: {
+  'props',
+  'imageUrl',
+  'stringify',
+  'hashCode',
+  'toBook',
+  'map',
+})
 class BookEntity extends ContentEntity {
   @override
   @Index(replace: true, unique: true)
   String get stringID => super.stringID;
-
+  String? anilistMedia;
   String title;
   String url;
   DateTime? createdAt;
@@ -30,6 +40,7 @@ class BookEntity extends ContentEntity {
 
   @override
   Map<String, dynamic> get map => {
+        "anilistMedia": anilistMedia,
         "stringID": stringID,
         "alternativeTitle": alternativeTitle,
         "chapters": chapters,
@@ -55,6 +66,7 @@ class BookEntity extends ContentEntity {
     required this.source,
     required this.originalImage,
     this.createdAt,
+    this.anilistMedia,
     this.sinopse,
     this.updatedAt,
     this.alternativeTitle,
@@ -87,14 +99,16 @@ class BookEntity extends ContentEntity {
 
   Book get toBook {
     return Book(
+      anilistMedia: anilistMedia != null
+          ? AnilistMedia.fromJson(jsonDecode(anilistMedia!))
+          : null,
       sinopse: sinopse,
       source: source,
       url: url,
       title: title,
-      releases: ChapterReleases(),
-      // releases: ChapterReleases.from(
-      //   chapters.map((entity) => entity (isDublado)).toList(),
-      // ),
+      releases: ChapterReleases.from(
+        chapters.map((entity) => entity.toChapter),
+      ),
       extraLarge: extraLarge,
       largeImage: largeImage,
       mediumImage: mediumImage,

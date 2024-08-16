@@ -41,9 +41,10 @@ class _DioStatus extends dio.Interceptor {
 
   @override
   void onError(dio.DioException err, dio.ErrorInterceptorHandler handler) {
-    // customLog(err.message ?? '', error: err);
-    customLog('ERROR[${err.runtimeType}]: ${err.message}',
-        stackTrace: err.stackTrace);
+    customLog(
+      'ERROR[${err.runtimeType}]: ${err.message}',
+      stackTrace: err.stackTrace,
+    );
     super.onError(err, handler);
   }
 }
@@ -53,7 +54,10 @@ class DioClient
   late final dio.Dio _dio;
 
   DioClient._internal([dio.BaseOptions? options]) {
-    _dio = dio.Dio(options);
+    _dio = dio.Dio(
+      options,
+    );
+
     addInterceptor(_DioStatus());
   }
 

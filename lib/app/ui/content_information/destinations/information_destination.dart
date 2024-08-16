@@ -34,7 +34,7 @@ class _InformationDestinationState extends State<InformationDestination>
       substring = "${_content.sinopse?.substring(0, 100)} ...";
     }
 
-    if (_content.animeMedia != null && mounted) {
+    if (_content.anilistMedia != null && mounted) {
       _getInformation();
     }
 
@@ -49,45 +49,45 @@ class _InformationDestinationState extends State<InformationDestination>
     Map<String, Widget> cache = {};
     final now = DateTime.now();
 
-    if (_content.animeMedia?.startDate?.isEmpty != true) {
+    if (_content.anilistMedia?.startDate?.isEmpty != true) {
       _contentInformation["Data de início"] = Text(
         key: ValueKey(DateTime(
-          _content.animeMedia!.startDate!.year!,
-          _content.animeMedia!.startDate!.month!,
-          _content.animeMedia!.startDate!.day!,
+          _content.anilistMedia!.startDate!.year!,
+          _content.anilistMedia!.startDate!.month!,
+          _content.anilistMedia!.startDate!.day!,
         ).toString()),
         DateFormat("d MMMM y", appLocale.toLanguageTag()).format(
           DateTime(
-            _content.animeMedia!.startDate!.year!,
-            _content.animeMedia!.startDate!.month!,
-            _content.animeMedia!.startDate!.day!,
+            _content.anilistMedia!.startDate!.year!,
+            _content.anilistMedia!.startDate!.month!,
+            _content.anilistMedia!.startDate!.day!,
           ),
         ),
       );
     }
-    if (_content.animeMedia?.endDate?.isEmpty != true) {
+    if (_content.anilistMedia?.endDate?.isEmpty != true) {
       cache["Data final"] = Text(
         key: ValueKey(DateTime(
-          _content.animeMedia!.endDate!.year!,
-          _content.animeMedia!.endDate!.month!,
-          _content.animeMedia!.endDate!.day!,
+          _content.anilistMedia!.endDate!.year!,
+          _content.anilistMedia!.endDate!.month!,
+          _content.anilistMedia!.endDate!.day!,
         ).toString()),
         DateFormat("d MMMM y", appLocale.toLanguageTag()).format(
           DateTime(
-            _content.animeMedia!.endDate!.year!,
-            _content.animeMedia!.endDate!.month!,
-            _content.animeMedia!.endDate!.day!,
+            _content.anilistMedia!.endDate!.year!,
+            _content.anilistMedia!.endDate!.month!,
+            _content.anilistMedia!.endDate!.day!,
           ),
         ),
       );
     }
-    if (_content.animeMedia?.averageScore != null) {
+    if (_content.anilistMedia?.averageScore != null) {
       cache["Pontuação"] = Text.rich(
-        key: ValueKey((_content.animeMedia!.averageScore! / 10).toString()),
+        key: ValueKey((_content.anilistMedia!.averageScore! / 10).toString()),
         TextSpan(
           children: [
             TextSpan(
-              text: (_content.animeMedia!.averageScore! / 10).toString(),
+              text: (_content.anilistMedia!.averageScore! / 10).toString(),
             ),
             const TextSpan(
               text: " / ",
@@ -99,55 +99,55 @@ class _InformationDestinationState extends State<InformationDestination>
         ),
       );
     }
-    if (_content.animeMedia?.episodes != null) {
+    if (_content.anilistMedia?.episodes != null) {
       cache["Total de episódios"] = Text(
-        key: ValueKey(_content.animeMedia!.episodes.toString()),
-        _content.animeMedia!.episodes.toString(),
+        key: ValueKey(_content.anilistMedia!.episodes.toString()),
+        _content.anilistMedia!.episodes.toString(),
       );
     }
-    if (_content.animeMedia?.format != null) {
+    if (_content.anilistMedia?.format != null) {
       cache["Formato"] = Text(
-        key: ValueKey(_content.animeMedia!.format!.name),
-        _content.animeMedia!.format!.name,
+        key: ValueKey(_content.anilistMedia!.format!.name),
+        _content.anilistMedia!.format!.name,
       );
     }
-    if (_content.animeMedia?.status != null) {
+    if (_content.anilistMedia?.status != null) {
       cache["Status"] = Text(
-        key: ValueKey(_content.animeMedia!.status!.toString()),
-        _content.animeMedia!.status!.toString(),
+        key: ValueKey(_content.anilistMedia!.status!.toString()),
+        _content.anilistMedia!.status!.toString(),
       );
     }
-    if (_content.animeMedia?.popularity != null) {
+    if (_content.anilistMedia?.popularity != null) {
       cache["Popularidade"] = Text(
-        key: ValueKey(_content.animeMedia!.popularity!.toString()),
-        _content.animeMedia!.popularity!.toString(),
+        key: ValueKey(_content.anilistMedia!.popularity!.toString()),
+        _content.anilistMedia!.popularity!.toString(),
       );
     }
-    if (_content.animeMedia?.favourites != null) {
+    if (_content.anilistMedia?.favourites != null) {
       cache["Favoritos"] = Text(
-        key: ValueKey(_content.animeMedia!.favourites!.toString()),
-        _content.animeMedia!.favourites!.toString(),
+        key: ValueKey(_content.anilistMedia!.favourites!.toString()),
+        _content.anilistMedia!.favourites!.toString(),
       );
     }
-    if (_content.animeMedia?.season != null) {
+    if (_content.anilistMedia?.season != null) {
       cache["Temporada"] = Text(
-        key: ValueKey("${_content.animeMedia!.season!.name} ${now.year}"),
-        "${_content.animeMedia!.season!.name} ${now.year}",
+        key: ValueKey("${_content.anilistMedia!.season!.name} ${now.year}"),
+        "${_content.anilistMedia!.season!.name} ${now.year}",
       );
     }
-    if (_content.animeMedia?.title?.romaji != null) {
+    if (_content.anilistMedia?.title?.romaji != null) {
       cache["Nome Romaji"] = GestureDetector(
         onLongPress: () async {
           copyToClipboard(
             context,
-            messageCopy: _content.animeMedia!.title!.romaji!,
+            messageCopy: _content.anilistMedia!.title!.romaji!,
             messageSnackBar: 'Copiado para a área de transferência!',
           );
           await Feedback.forLongPress(context);
         },
         child: Text(
-          key: ValueKey(_content.animeMedia!.title!.romaji!),
-          _content.animeMedia!.title!.romaji!,
+          key: ValueKey(_content.anilistMedia!.title!.romaji!),
+          _content.anilistMedia!.title!.romaji!,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.end,
           maxLines: 1,
@@ -257,8 +257,15 @@ class _InformationDestinationState extends State<InformationDestination>
                 }).toList(),
               ),
             ),
+          )
+        else
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text('Nenhuma dado encontrado.'),
+            ),
           ),
-        if (_content.animeMedia?.genres != null)
+        if (_content.anilistMedia?.genres != null)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -281,7 +288,7 @@ class _InformationDestinationState extends State<InformationDestination>
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: _content.animeMedia!.genres!
+                  children: _content.anilistMedia!.genres!
                       .map((e) => e.capitalize)
                       .toList()
                       .unique()
@@ -306,7 +313,7 @@ class _InformationDestinationState extends State<InformationDestination>
               ),
             ],
           ),
-        if (_content.animeMedia?.characters?.nodes != null)
+        if (_content.anilistMedia?.characters?.nodes != null)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -324,12 +331,12 @@ class _InformationDestinationState extends State<InformationDestination>
                 height: 160,
                 width: double.infinity,
                 child: ListView.builder(
-                  itemCount: _content.animeMedia?.characters?.nodes?.length,
+                  itemCount: _content.anilistMedia?.characters?.nodes?.length,
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   itemBuilder: (context, index) {
                     final personagem =
-                        _content.animeMedia?.characters?.nodes![index];
+                        _content.anilistMedia?.characters?.nodes![index];
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: GestureDetector(
@@ -378,7 +385,7 @@ class _InformationDestinationState extends State<InformationDestination>
             ],
           ),
         const SizedBox(height: 8),
-        if (_content.animeMedia?.staff?.nodes != null)
+        if (_content.anilistMedia?.staff?.nodes != null)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -396,11 +403,11 @@ class _InformationDestinationState extends State<InformationDestination>
                 height: 160,
                 width: double.infinity,
                 child: ListView.builder(
-                  itemCount: _content.animeMedia?.staff?.nodes?.length,
+                  itemCount: _content.anilistMedia?.staff?.nodes?.length,
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   itemBuilder: (context, index) {
-                    final staff = _content.animeMedia?.staff?.nodes![index];
+                    final staff = _content.anilistMedia?.staff?.nodes![index];
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: GestureDetector(

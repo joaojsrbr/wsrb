@@ -39,6 +39,7 @@ mixin MergeClassEntity<T extends ContentEntity> on Entity {
           final merged = mergeMap([map1, map2], acceptNull: true);
 
           final obj = AnimeEntity(
+            totalOfEpisodes: merged['totalOfEpisodes'],
             stringID: merged['stringID'],
             url: merged['url'],
             title: merged['title'],

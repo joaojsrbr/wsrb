@@ -1,11 +1,13 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:convert';
+
 import 'package:content_library/content_library.dart';
 
 class Anime extends Content {
   const Anime({
     required super.url,
     required super.title,
-    super.animeMedia,
+    super.anilistMedia,
     required EpisodeReleases releases,
     required this.source,
     required this.originalImage,
@@ -53,13 +55,13 @@ class Anime extends Content {
     bool? isDublado,
     Source? source,
     int? totalOfEpisodes,
-    AnilistMedia? animeMedia,
+    AnilistMedia? anilistMedia,
     int? totalOfPages,
     String? sinopse,
     List<Genre>? genres,
   }) {
     return Anime(
-      animeMedia: animeMedia ?? this.animeMedia,
+      anilistMedia: anilistMedia ?? this.anilistMedia,
       source: source ?? this.source,
       genres: genres ?? this.genres,
       totalOfPages: totalOfPages ?? this.totalOfPages,
@@ -85,7 +87,12 @@ class Anime extends Content {
     DateTime? updatedAt,
     bool isFavorite = false,
   }) {
-    return AnimeEntity(
+    final content = AnimeEntity(
+      totalOfPages: totalOfPages,
+      anilistMedia: anilistMedia != null
+          ? jsonEncode(AnilistMedia.toJson(anilistMedia!))
+          : null,
+      totalOfEpisodes: totalOfEpisodes,
       source: source,
       animeID: animeID,
       stringID: stringID,
@@ -105,6 +112,12 @@ class Anime extends Content {
           ? releases.firstOrNull?.thumbnail ?? ''
           : originalImage,
     );
+
+    content.episodes.addAll(
+      releases.map((episode) => episode.toEntity(anime: this)),
+    );
+
+    return content;
   }
 
   @override
@@ -117,8 +130,8 @@ class Anime extends Content {
 
   factory Anime.fromMap(Map<String, dynamic> map) {
     return Anime(
-      animeMedia: map['animeMedia'] != null
-          ? AnilistMedia.fromJson(map['animeMedia'])
+      anilistMedia: map['anilistMedia'] != null
+          ? AnilistMedia.fromJson(map['anilistMedia'])
           : null,
       title: map['title'],
       url: map['url'],

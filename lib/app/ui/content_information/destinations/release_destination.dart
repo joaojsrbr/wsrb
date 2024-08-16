@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:quiver/iterables.dart';
 
 class ReleaseDestination extends StatefulWidget {
   const ReleaseDestination({super.key});
@@ -34,7 +33,6 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
     final bool releasesIsLoading = ContentScope.releasesIsLoadingOf(context);
     final HiveController hiveController = context.watch<HiveController>();
     return ListView(
-      shrinkWrap: true,
       padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       children: [
@@ -42,7 +40,10 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 350),
           child: releasesIsLoading
-              ? const Center(child: CircularProgressIndicator.adaptive())
+              ? const SizedBox(
+                  height: 200,
+                  child: Center(child: CircularProgressIndicator.adaptive()),
+                )
               : Column(
                   children: List.generate(
                     content.releases.length,
@@ -429,7 +430,7 @@ class _ReleasePagination extends StatefulWidget {
 class _ReleasePaginationState extends State<_ReleasePagination> {
   late Content _content;
 
-  List<List<int>> _partitionOfInt = [];
+  List<int> _totalPage = [];
   BoolList _selectChips = BoolList.empty();
 
   @override
@@ -437,21 +438,19 @@ class _ReleasePaginationState extends State<_ReleasePagination> {
     _content = ContentScope.contentOf(context);
     final index = ContentScope.indexOf(context);
 
-    if (_content case Anime data when data.totalOfEpisodes != null) {
-      _partitionOfInt = partition(
-        List.generate(data.totalOfEpisodes!, (index) => index + 1),
-        data.releases.length,
-      ).toList();
+    if (_content case Anime data
+        when data.totalOfEpisodes != null && data.totalOfPages != null) {
+      _totalPage = List.generate(data.totalOfPages!, (index) => index + 1);
     } else {
-      _partitionOfInt = partition(
-        List.generate(_content.releases.length, (index) => index + 1),
-        _content.releases.length,
-      ).toList();
+      _totalPage = List.generate(
+        _content.releases.partition(20).length,
+        (index) => index + 1,
+      );
     }
 
-    if (_partitionOfInt.length != _selectChips.length) {
+    if (_totalPage.length != _selectChips.length) {
       _selectChips = BoolList.generate(
-        _partitionOfInt.length,
+        _totalPage.length,
         (index) => false,
       );
     }
@@ -470,8 +469,7 @@ class _ReleasePaginationState extends State<_ReleasePagination> {
     final setListIndex = ContentScope.of(context).setListIndex;
 
     final chipsWidgets = List.generate(_selectChips.length, (index) {
-      int firstText = _partitionOfInt[index].first;
-      int lastText = _partitionOfInt[index].last;
+      int page = _totalPage[index];
 
       return Padding(
         padding: const EdgeInsets.only(right: 8),
@@ -479,7 +477,7 @@ class _ReleasePaginationState extends State<_ReleasePagination> {
           padding: const EdgeInsets.symmetric(horizontal: 8),
           selected: _selectChips[index],
           onSelected: (value) => setListIndex.call(index),
-          label: Text('$firstText - $lastText'),
+          label: Text('$page'),
         ),
       );
     });

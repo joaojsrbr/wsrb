@@ -57,38 +57,43 @@ const EpisodeEntitySchema = CollectionSchema(
       name: r'numberEpisode',
       type: IsarType.long,
     ),
-    r'sinopse': PropertySchema(
+    r'pageNumber': PropertySchema(
       id: 8,
+      name: r'pageNumber',
+      type: IsarType.long,
+    ),
+    r'sinopse': PropertySchema(
+      id: 9,
       name: r'sinopse',
       type: IsarType.string,
     ),
     r'slugSerie': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'slugSerie',
       type: IsarType.string,
     ),
     r'stringID': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'stringID',
       type: IsarType.string,
     ),
     r'thumbnail': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'thumbnail',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'url',
       type: IsarType.string,
     )
@@ -178,13 +183,14 @@ void _episodeEntitySerialize(
   writer.writeString(offsets[5], object.generateID);
   writer.writeBool(offsets[6], object.isComplete);
   writer.writeLong(offsets[7], object.numberEpisode);
-  writer.writeString(offsets[8], object.sinopse);
-  writer.writeString(offsets[9], object.slugSerie);
-  writer.writeString(offsets[10], object.stringID);
-  writer.writeString(offsets[11], object.thumbnail);
-  writer.writeString(offsets[12], object.title);
-  writer.writeDateTime(offsets[13], object.updatedAt);
-  writer.writeString(offsets[14], object.url);
+  writer.writeLong(offsets[8], object.pageNumber);
+  writer.writeString(offsets[9], object.sinopse);
+  writer.writeString(offsets[10], object.slugSerie);
+  writer.writeString(offsets[11], object.stringID);
+  writer.writeString(offsets[12], object.thumbnail);
+  writer.writeString(offsets[13], object.title);
+  writer.writeDateTime(offsets[14], object.updatedAt);
+  writer.writeString(offsets[15], object.url);
 }
 
 EpisodeEntity _episodeEntityDeserialize(
@@ -202,13 +208,14 @@ EpisodeEntity _episodeEntityDeserialize(
     generateID: reader.readStringOrNull(offsets[5]),
     isComplete: reader.readBoolOrNull(offsets[6]) ?? false,
     numberEpisode: reader.readLongOrNull(offsets[7]),
-    sinopse: reader.readStringOrNull(offsets[8]),
-    slugSerie: reader.readStringOrNull(offsets[9]),
-    stringID: reader.readString(offsets[10]),
-    thumbnail: reader.readStringOrNull(offsets[11]),
-    title: reader.readString(offsets[12]),
-    updatedAt: reader.readDateTimeOrNull(offsets[13]),
-    url: reader.readString(offsets[14]),
+    pageNumber: reader.readLongOrNull(offsets[8]),
+    sinopse: reader.readStringOrNull(offsets[9]),
+    slugSerie: reader.readStringOrNull(offsets[10]),
+    stringID: reader.readString(offsets[11]),
+    thumbnail: reader.readStringOrNull(offsets[12]),
+    title: reader.readString(offsets[13]),
+    updatedAt: reader.readDateTimeOrNull(offsets[14]),
+    url: reader.readString(offsets[15]),
   );
   object.id = id;
   return object;
@@ -238,18 +245,20 @@ P _episodeEntityDeserializeProp<P>(
     case 7:
       return (reader.readLongOrNull(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
-      return (reader.readString(offset)) as P;
-    case 11:
       return (reader.readStringOrNull(offset)) as P;
-    case 12:
+    case 11:
       return (reader.readString(offset)) as P;
+    case 12:
+      return (reader.readStringOrNull(offset)) as P;
     case 13:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 14:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 15:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1213,6 +1222,80 @@ extension EpisodeEntityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'numberEpisode',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      pageNumberIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'pageNumber',
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      pageNumberIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'pageNumber',
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      pageNumberEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'pageNumber',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      pageNumberGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'pageNumber',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      pageNumberLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'pageNumber',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      pageNumberBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'pageNumber',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -2281,6 +2364,19 @@ extension EpisodeEntityQuerySortBy
     });
   }
 
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByPageNumber() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pageNumber', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
+      sortByPageNumberDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pageNumber', Sort.desc);
+    });
+  }
+
   QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortBySinopse() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sinopse', Sort.asc);
@@ -2493,6 +2589,19 @@ extension EpisodeEntityQuerySortThenBy
     });
   }
 
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByPageNumber() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pageNumber', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
+      thenByPageNumberDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pageNumber', Sort.desc);
+    });
+  }
+
   QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenBySinopse() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sinopse', Sort.asc);
@@ -2640,6 +2749,12 @@ extension EpisodeEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct> distinctByPageNumber() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'pageNumber');
+    });
+  }
+
   QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct> distinctBySinopse(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2744,6 +2859,12 @@ extension EpisodeEntityQueryProperty
   QueryBuilder<EpisodeEntity, int?, QQueryOperations> numberEpisodeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'numberEpisode');
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, int?, QQueryOperations> pageNumberProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'pageNumber');
     });
   }
 

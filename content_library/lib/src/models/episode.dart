@@ -51,6 +51,7 @@ class Episode extends Release {
   }) =>
       EpisodeEntity(
         title: title,
+        pageNumber: pageNumber,
         animeStringID: anime.stringID,
         generateID: generateID,
         slugSerie: slugSerie,

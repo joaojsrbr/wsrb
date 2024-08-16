@@ -17,6 +17,7 @@ class EpisodeEntity extends HistoryEntity {
   String stringID;
   String animeStringID;
   DateTime? createdAt;
+  int? pageNumber;
   DateTime? updatedAt;
   String? thumbnail;
   String? slugSerie;
@@ -37,6 +38,7 @@ class EpisodeEntity extends HistoryEntity {
     required this.numberEpisode,
     required this.url,
     this.slugSerie,
+    this.pageNumber,
     this.currentPositionBase64,
     this.generateID,
     this.createdAt,
@@ -51,6 +53,7 @@ class EpisodeEntity extends HistoryEntity {
         thumbnail,
         animeStringID,
         currentPositionBase64,
+        pageNumber,
         currentDuration,
         isComplete,
         stringID,
@@ -77,6 +80,7 @@ class EpisodeEntity extends HistoryEntity {
 
   Episode toEpisode(bool isDublado) {
     return Episode(
+      pageNumber: pageNumber,
       url: url,
       title: title,
       numberEpisode: numberEpisode,

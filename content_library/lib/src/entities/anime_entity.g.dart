@@ -17,84 +17,99 @@ const AnimeEntitySchema = CollectionSchema(
   name: r'AnimeEntity',
   id: 2165130097224532509,
   properties: {
-    r'animeID': PropertySchema(
+    r'anilistMedia': PropertySchema(
       id: 0,
+      name: r'anilistMedia',
+      type: IsarType.string,
+    ),
+    r'animeID': PropertySchema(
+      id: 1,
       name: r'animeID',
       type: IsarType.string,
     ),
     r'createdAt': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'extraLarge': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'extraLarge',
       type: IsarType.string,
     ),
     r'generateID': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'generateID',
       type: IsarType.string,
     ),
     r'isDublado': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isDublado',
       type: IsarType.bool,
     ),
     r'isFavorite': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'isFavorite',
       type: IsarType.bool,
     ),
     r'largeImage': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'largeImage',
       type: IsarType.string,
     ),
     r'mediumImage': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'mediumImage',
       type: IsarType.string,
     ),
     r'originalImage': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'originalImage',
       type: IsarType.string,
     ),
     r'sinopse': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'sinopse',
       type: IsarType.string,
     ),
     r'slugSerie': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'slugSerie',
       type: IsarType.string,
     ),
     r'source': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'source',
       type: IsarType.byte,
       enumMap: _AnimeEntitysourceEnumValueMap,
     ),
     r'stringID': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'stringID',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'title',
       type: IsarType.string,
     ),
+    r'totalOfEpisodes': PropertySchema(
+      id: 15,
+      name: r'totalOfEpisodes',
+      type: IsarType.long,
+    ),
+    r'totalOfPages': PropertySchema(
+      id: 16,
+      name: r'totalOfPages',
+      type: IsarType.long,
+    ),
     r'updatedAt': PropertySchema(
-      id: 14,
+      id: 17,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 15,
+      id: 18,
       name: r'url',
       type: IsarType.string,
     )
@@ -140,6 +155,12 @@ int _animeEntityEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.anilistMedia;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.animeID;
     if (value != null) {
@@ -195,22 +216,25 @@ void _animeEntitySerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.animeID);
-  writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeString(offsets[2], object.extraLarge);
-  writer.writeString(offsets[3], object.generateID);
-  writer.writeBool(offsets[4], object.isDublado);
-  writer.writeBool(offsets[5], object.isFavorite);
-  writer.writeString(offsets[6], object.largeImage);
-  writer.writeString(offsets[7], object.mediumImage);
-  writer.writeString(offsets[8], object.originalImage);
-  writer.writeString(offsets[9], object.sinopse);
-  writer.writeString(offsets[10], object.slugSerie);
-  writer.writeByte(offsets[11], object.source.index);
-  writer.writeString(offsets[12], object.stringID);
-  writer.writeString(offsets[13], object.title);
-  writer.writeDateTime(offsets[14], object.updatedAt);
-  writer.writeString(offsets[15], object.url);
+  writer.writeString(offsets[0], object.anilistMedia);
+  writer.writeString(offsets[1], object.animeID);
+  writer.writeDateTime(offsets[2], object.createdAt);
+  writer.writeString(offsets[3], object.extraLarge);
+  writer.writeString(offsets[4], object.generateID);
+  writer.writeBool(offsets[5], object.isDublado);
+  writer.writeBool(offsets[6], object.isFavorite);
+  writer.writeString(offsets[7], object.largeImage);
+  writer.writeString(offsets[8], object.mediumImage);
+  writer.writeString(offsets[9], object.originalImage);
+  writer.writeString(offsets[10], object.sinopse);
+  writer.writeString(offsets[11], object.slugSerie);
+  writer.writeByte(offsets[12], object.source.index);
+  writer.writeString(offsets[13], object.stringID);
+  writer.writeString(offsets[14], object.title);
+  writer.writeLong(offsets[15], object.totalOfEpisodes);
+  writer.writeLong(offsets[16], object.totalOfPages);
+  writer.writeDateTime(offsets[17], object.updatedAt);
+  writer.writeString(offsets[18], object.url);
 }
 
 AnimeEntity _animeEntityDeserialize(
@@ -220,24 +244,27 @@ AnimeEntity _animeEntityDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = AnimeEntity(
-    animeID: reader.readStringOrNull(offsets[0]),
-    createdAt: reader.readDateTimeOrNull(offsets[1]),
-    extraLarge: reader.readStringOrNull(offsets[2]),
-    generateID: reader.readStringOrNull(offsets[3]),
-    isDublado: reader.readBoolOrNull(offsets[4]) ?? false,
-    isFavorite: reader.readBoolOrNull(offsets[5]) ?? false,
-    largeImage: reader.readStringOrNull(offsets[6]),
-    mediumImage: reader.readStringOrNull(offsets[7]),
-    originalImage: reader.readString(offsets[8]),
-    sinopse: reader.readStringOrNull(offsets[9]),
-    slugSerie: reader.readStringOrNull(offsets[10]),
+    anilistMedia: reader.readStringOrNull(offsets[0]),
+    animeID: reader.readStringOrNull(offsets[1]),
+    createdAt: reader.readDateTimeOrNull(offsets[2]),
+    extraLarge: reader.readStringOrNull(offsets[3]),
+    generateID: reader.readStringOrNull(offsets[4]),
+    isDublado: reader.readBoolOrNull(offsets[5]) ?? false,
+    isFavorite: reader.readBoolOrNull(offsets[6]) ?? false,
+    largeImage: reader.readStringOrNull(offsets[7]),
+    mediumImage: reader.readStringOrNull(offsets[8]),
+    originalImage: reader.readString(offsets[9]),
+    sinopse: reader.readStringOrNull(offsets[10]),
+    slugSerie: reader.readStringOrNull(offsets[11]),
     source:
-        _AnimeEntitysourceValueEnumMap[reader.readByteOrNull(offsets[11])] ??
+        _AnimeEntitysourceValueEnumMap[reader.readByteOrNull(offsets[12])] ??
             Source.ANROLL,
-    stringID: reader.readString(offsets[12]),
-    title: reader.readString(offsets[13]),
-    updatedAt: reader.readDateTimeOrNull(offsets[14]),
-    url: reader.readString(offsets[15]),
+    stringID: reader.readString(offsets[13]),
+    title: reader.readString(offsets[14]),
+    totalOfEpisodes: reader.readLongOrNull(offsets[15]),
+    totalOfPages: reader.readLongOrNull(offsets[16]),
+    updatedAt: reader.readDateTimeOrNull(offsets[17]),
+    url: reader.readString(offsets[18]),
   );
   object.id = id;
   return object;
@@ -253,35 +280,41 @@ P _animeEntityDeserializeProp<P>(
     case 0:
       return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readDateTimeOrNull(offset)) as P;
-    case 2:
       return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
       return (reader.readBoolOrNull(offset) ?? false) as P;
     case 6:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 7:
       return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return (reader.readString(offset)) as P;
-    case 9:
       return (reader.readStringOrNull(offset)) as P;
+    case 9:
+      return (reader.readString(offset)) as P;
     case 10:
       return (reader.readStringOrNull(offset)) as P;
     case 11:
+      return (reader.readStringOrNull(offset)) as P;
+    case 12:
       return (_AnimeEntitysourceValueEnumMap[reader.readByteOrNull(offset)] ??
           Source.ANROLL) as P;
-    case 12:
-      return (reader.readString(offset)) as P;
     case 13:
       return (reader.readString(offset)) as P;
     case 14:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 15:
+      return (reader.readLongOrNull(offset)) as P;
+    case 16:
+      return (reader.readLongOrNull(offset)) as P;
+    case 17:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 18:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -496,6 +529,160 @@ extension AnimeEntityQueryWhere
 
 extension AnimeEntityQueryFilter
     on QueryBuilder<AnimeEntity, AnimeEntity, QFilterCondition> {
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      anilistMediaIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'anilistMedia',
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      anilistMediaIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'anilistMedia',
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      anilistMediaEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'anilistMedia',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      anilistMediaGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'anilistMedia',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      anilistMediaLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'anilistMedia',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      anilistMediaBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'anilistMedia',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      anilistMediaStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'anilistMedia',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      anilistMediaEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'anilistMedia',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      anilistMediaContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'anilistMedia',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      anilistMediaMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'anilistMedia',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      anilistMediaIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'anilistMedia',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      anilistMediaIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'anilistMedia',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
       animeIDIsNull() {
     return QueryBuilder.apply(this, (query) {
@@ -2175,6 +2362,154 @@ extension AnimeEntityQueryFilter
   }
 
   QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      totalOfEpisodesIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'totalOfEpisodes',
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      totalOfEpisodesIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'totalOfEpisodes',
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      totalOfEpisodesEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'totalOfEpisodes',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      totalOfEpisodesGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'totalOfEpisodes',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      totalOfEpisodesLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'totalOfEpisodes',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      totalOfEpisodesBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'totalOfEpisodes',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      totalOfPagesIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'totalOfPages',
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      totalOfPagesIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'totalOfPages',
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      totalOfPagesEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'totalOfPages',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      totalOfPagesGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'totalOfPages',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      totalOfPagesLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'totalOfPages',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      totalOfPagesBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'totalOfPages',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
       updatedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2449,6 +2784,19 @@ extension AnimeEntityQueryLinks
 
 extension AnimeEntityQuerySortBy
     on QueryBuilder<AnimeEntity, AnimeEntity, QSortBy> {
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> sortByAnilistMedia() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'anilistMedia', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy>
+      sortByAnilistMediaDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'anilistMedia', Sort.desc);
+    });
+  }
+
   QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> sortByAnimeID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'animeID', Sort.asc);
@@ -2618,6 +2966,32 @@ extension AnimeEntityQuerySortBy
     });
   }
 
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> sortByTotalOfEpisodes() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalOfEpisodes', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy>
+      sortByTotalOfEpisodesDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalOfEpisodes', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> sortByTotalOfPages() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalOfPages', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy>
+      sortByTotalOfPagesDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalOfPages', Sort.desc);
+    });
+  }
+
   QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> sortByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -2645,6 +3019,19 @@ extension AnimeEntityQuerySortBy
 
 extension AnimeEntityQuerySortThenBy
     on QueryBuilder<AnimeEntity, AnimeEntity, QSortThenBy> {
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> thenByAnilistMedia() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'anilistMedia', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy>
+      thenByAnilistMediaDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'anilistMedia', Sort.desc);
+    });
+  }
+
   QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> thenByAnimeID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'animeID', Sort.asc);
@@ -2826,6 +3213,32 @@ extension AnimeEntityQuerySortThenBy
     });
   }
 
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> thenByTotalOfEpisodes() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalOfEpisodes', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy>
+      thenByTotalOfEpisodesDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalOfEpisodes', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> thenByTotalOfPages() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalOfPages', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy>
+      thenByTotalOfPagesDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalOfPages', Sort.desc);
+    });
+  }
+
   QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> thenByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -2853,6 +3266,13 @@ extension AnimeEntityQuerySortThenBy
 
 extension AnimeEntityQueryWhereDistinct
     on QueryBuilder<AnimeEntity, AnimeEntity, QDistinct> {
+  QueryBuilder<AnimeEntity, AnimeEntity, QDistinct> distinctByAnilistMedia(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'anilistMedia', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<AnimeEntity, AnimeEntity, QDistinct> distinctByAnimeID(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2948,6 +3368,19 @@ extension AnimeEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<AnimeEntity, AnimeEntity, QDistinct>
+      distinctByTotalOfEpisodes() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'totalOfEpisodes');
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QDistinct> distinctByTotalOfPages() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'totalOfPages');
+    });
+  }
+
   QueryBuilder<AnimeEntity, AnimeEntity, QDistinct> distinctByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'updatedAt');
@@ -2967,6 +3400,12 @@ extension AnimeEntityQueryProperty
   QueryBuilder<AnimeEntity, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<AnimeEntity, String?, QQueryOperations> anilistMediaProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'anilistMedia');
     });
   }
 
@@ -3051,6 +3490,18 @@ extension AnimeEntityQueryProperty
   QueryBuilder<AnimeEntity, String, QQueryOperations> titleProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'title');
+    });
+  }
+
+  QueryBuilder<AnimeEntity, int?, QQueryOperations> totalOfEpisodesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'totalOfEpisodes');
+    });
+  }
+
+  QueryBuilder<AnimeEntity, int?, QQueryOperations> totalOfPagesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'totalOfPages');
     });
   }
 

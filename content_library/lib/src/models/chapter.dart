@@ -1,13 +1,15 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
-import 'release.dart';
+import 'package:content_library/content_library.dart';
 
 class Chapter extends Release {
   final bool read;
+  final String animeStringID;
 
   const Chapter({
     this.read = false,
     required super.url,
+    required this.animeStringID,
     required super.title,
   });
 
@@ -26,21 +28,45 @@ class Chapter extends Release {
   }
 
   @override
-  List<Object?> get props => [title, url, read, stringID];
+  List<Object?> get props => [
+        title,
+        url,
+        read,
+        stringID,
+        animeStringID,
+      ];
 
   Map<String, dynamic> get toMap {
     return <String, dynamic>{
       'title': title,
       'url': url,
       'read': read,
+      'animeStringID': animeStringID,
     };
   }
 
   factory Chapter.fromMap(Map<String, dynamic> map) {
     return Chapter(
       title: map['title'] as String,
+      animeStringID: map['animeStringID'] as String,
       url: map['url'] as String,
       read: map['read'] as bool,
+    );
+  }
+
+  ChapterEntity toEntity(
+    double readPercent,
+    DateTime? createdAt,
+    DateTime? updatedAt, [
+    bool isComplete = false,
+  ]) {
+    return ChapterEntity(
+      url: url,
+      title: title,
+      animeStringID: animeStringID,
+      readPercent: readPercent,
+      stringID: stringID,
+      isComplete: isComplete,
     );
   }
 }

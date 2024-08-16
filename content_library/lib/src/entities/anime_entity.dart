@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:anilist_dart/anilist.dart';
 import 'package:content_library/src/constants/source.dart';
 import 'package:content_library/src/entities/entity.dart';
 import 'package:content_library/src/entities/episode_entity.dart';
@@ -7,7 +10,14 @@ import 'package:isar/isar.dart';
 
 part 'anime_entity.g.dart';
 
-@Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toAnime'})
+@Collection(ignore: {
+  'props',
+  'imageUrl',
+  'stringify',
+  'hashCode',
+  'toAnime',
+  'map',
+})
 class AnimeEntity extends ContentEntity {
   @override
   @Index(replace: true, unique: true)
@@ -15,6 +25,7 @@ class AnimeEntity extends ContentEntity {
 
   IsarLinks<EpisodeEntity> episodes = IsarLinks<EpisodeEntity>();
 
+  String? anilistMedia;
   DateTime? createdAt;
   String? animeID;
   DateTime? updatedAt;
@@ -31,14 +42,19 @@ class AnimeEntity extends ContentEntity {
   String? largeImage;
   String? mediumImage;
   String? generateID;
+  int? totalOfEpisodes;
+  int? totalOfPages;
 
   AnimeEntity({
     required super.stringID,
     required this.url,
+    required this.totalOfEpisodes,
     required this.title,
     required this.source,
+    this.anilistMedia,
     this.createdAt,
     this.animeID,
+    this.totalOfPages,
     this.isDublado = false,
     this.slugSerie,
     this.updatedAt,
@@ -57,6 +73,8 @@ class AnimeEntity extends ContentEntity {
   @override
   Map<String, dynamic> get map => {
         "stringID": stringID,
+        "totalOfPages": totalOfPages,
+        "totalOfEpisodes": totalOfEpisodes,
         "animeID": animeID,
         "episodes": episodes,
         "createdAt": createdAt?.toString(),
@@ -81,6 +99,7 @@ class AnimeEntity extends ContentEntity {
         stringID,
         episodes,
         createdAt,
+        totalOfPages,
         sinopse,
         updatedAt,
         source,
@@ -94,14 +113,20 @@ class AnimeEntity extends ContentEntity {
         largeImage,
         mediumImage,
         generateID,
+        totalOfEpisodes,
       ];
 
   Anime get toAnime {
     return Anime(
+      anilistMedia: anilistMedia != null
+          ? AnilistMedia.fromJson(jsonDecode(anilistMedia!))
+          : null,
       url: url,
+      totalOfPages: totalOfPages,
       animeID: animeID,
       title: title,
       generateID: generateID,
+      totalOfEpisodes: totalOfEpisodes,
       slugSerie: slugSerie,
       source: source,
       sinopse: sinopse,

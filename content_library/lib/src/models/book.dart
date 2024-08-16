@@ -1,5 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'dart:convert';
+
 import 'package:content_library/content_library.dart';
 
 class Book extends Content {
@@ -17,7 +19,7 @@ class Book extends Content {
   final String? mediumImage;
 
   const Book({
-    super.animeMedia,
+    super.anilistMedia,
     required ChapterReleases releases,
     required super.title,
     required this.source,
@@ -70,8 +72,8 @@ class Book extends Content {
 
   factory Book.fromMap(Map<String, dynamic> map) {
     return Book(
-      animeMedia: map['animeMedia'] != null
-          ? AnilistMedia.fromJson(map['animeMedia'])
+      anilistMedia: map['anilistMedia'] != null
+          ? AnilistMedia.fromJson(map['anilistMedia'])
           : null,
       title: map['title'],
       releases: map['releases'] is ChapterReleases
@@ -100,7 +102,7 @@ class Book extends Content {
 
   @override
   Book copyWith({
-    AnilistMedia? animeMedia,
+    AnilistMedia? anilistMedia,
     Releases? releases,
     String? title,
     String? url,
@@ -121,7 +123,7 @@ class Book extends Content {
     return Book(
       releases: ChapterReleases.from(releases ?? this.releases),
       type: type ?? this.type,
-      animeMedia: animeMedia ?? this.animeMedia,
+      anilistMedia: anilistMedia ?? this.anilistMedia,
       extraLarge: extraLarge ?? this.extraLarge,
       title: title ?? this.title,
       url: url ?? this.url,
@@ -145,8 +147,11 @@ class Book extends Content {
     DateTime? updatedAt,
     bool isFavorite = false,
   }) {
-    return BookEntity(
+    final book = BookEntity(
       sinopse: sinopse,
+      anilistMedia: anilistMedia != null
+          ? jsonEncode(AnilistMedia.toJson(anilistMedia!))
+          : null,
       stringID: stringID,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -160,6 +165,18 @@ class Book extends Content {
       url: url,
       source: source,
     );
+
+    book.chapters.addAll(
+      releases.map(
+        (chapter) => chapter.toEntity(
+          0.0,
+          createdAt,
+          updatedAt,
+        ),
+      ),
+    );
+
+    return book;
   }
 
   @override

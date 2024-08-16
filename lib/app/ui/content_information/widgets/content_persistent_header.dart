@@ -28,18 +28,15 @@ class ContentHeader extends StatelessWidget {
               children: [
                 CachedNetworkImage(
                   imageBuilder: (context, imageProvider) {
-                    return Hero(
-                      tag: content.getHeroTag(),
-                      child: Material(
+                    return Material(
+                      borderRadius: BorderRadius.circular(8),
+                      child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image(
-                            height: 200,
-                            width: 140,
-                            fit: BoxFit.cover,
-                            image: imageProvider,
-                          ),
+                        child: Image(
+                          height: 200,
+                          width: 140,
+                          fit: BoxFit.cover,
+                          image: imageProvider,
                         ),
                       ),
                     );

@@ -22,64 +22,69 @@ const BookEntitySchema = CollectionSchema(
       name: r'alternativeTitle',
       type: IsarType.string,
     ),
-    r'createdAt': PropertySchema(
+    r'anilistMedia': PropertySchema(
       id: 1,
+      name: r'anilistMedia',
+      type: IsarType.string,
+    ),
+    r'createdAt': PropertySchema(
+      id: 2,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'extraLarge': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'extraLarge',
       type: IsarType.string,
     ),
     r'isFavorite': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'isFavorite',
       type: IsarType.bool,
     ),
     r'largeImage': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'largeImage',
       type: IsarType.string,
     ),
     r'mediumImage': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'mediumImage',
       type: IsarType.string,
     ),
     r'originalImage': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'originalImage',
       type: IsarType.string,
     ),
     r'sinopse': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'sinopse',
       type: IsarType.string,
     ),
     r'source': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'source',
       type: IsarType.byte,
       enumMap: _BookEntitysourceEnumValueMap,
     ),
     r'stringID': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'stringID',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'url',
       type: IsarType.string,
     )
@@ -132,6 +137,12 @@ int _bookEntityEstimateSize(
     }
   }
   {
+    final value = object.anilistMedia;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.extraLarge;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -169,18 +180,19 @@ void _bookEntitySerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.alternativeTitle);
-  writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeString(offsets[2], object.extraLarge);
-  writer.writeBool(offsets[3], object.isFavorite);
-  writer.writeString(offsets[4], object.largeImage);
-  writer.writeString(offsets[5], object.mediumImage);
-  writer.writeString(offsets[6], object.originalImage);
-  writer.writeString(offsets[7], object.sinopse);
-  writer.writeByte(offsets[8], object.source.index);
-  writer.writeString(offsets[9], object.stringID);
-  writer.writeString(offsets[10], object.title);
-  writer.writeDateTime(offsets[11], object.updatedAt);
-  writer.writeString(offsets[12], object.url);
+  writer.writeString(offsets[1], object.anilistMedia);
+  writer.writeDateTime(offsets[2], object.createdAt);
+  writer.writeString(offsets[3], object.extraLarge);
+  writer.writeBool(offsets[4], object.isFavorite);
+  writer.writeString(offsets[5], object.largeImage);
+  writer.writeString(offsets[6], object.mediumImage);
+  writer.writeString(offsets[7], object.originalImage);
+  writer.writeString(offsets[8], object.sinopse);
+  writer.writeByte(offsets[9], object.source.index);
+  writer.writeString(offsets[10], object.stringID);
+  writer.writeString(offsets[11], object.title);
+  writer.writeDateTime(offsets[12], object.updatedAt);
+  writer.writeString(offsets[13], object.url);
 }
 
 BookEntity _bookEntityDeserialize(
@@ -191,19 +203,20 @@ BookEntity _bookEntityDeserialize(
 ) {
   final object = BookEntity(
     alternativeTitle: reader.readStringOrNull(offsets[0]),
-    createdAt: reader.readDateTimeOrNull(offsets[1]),
-    extraLarge: reader.readStringOrNull(offsets[2]),
-    isFavorite: reader.readBoolOrNull(offsets[3]) ?? false,
-    largeImage: reader.readStringOrNull(offsets[4]),
-    mediumImage: reader.readStringOrNull(offsets[5]),
-    originalImage: reader.readString(offsets[6]),
-    sinopse: reader.readStringOrNull(offsets[7]),
-    source: _BookEntitysourceValueEnumMap[reader.readByteOrNull(offsets[8])] ??
+    anilistMedia: reader.readStringOrNull(offsets[1]),
+    createdAt: reader.readDateTimeOrNull(offsets[2]),
+    extraLarge: reader.readStringOrNull(offsets[3]),
+    isFavorite: reader.readBoolOrNull(offsets[4]) ?? false,
+    largeImage: reader.readStringOrNull(offsets[5]),
+    mediumImage: reader.readStringOrNull(offsets[6]),
+    originalImage: reader.readString(offsets[7]),
+    sinopse: reader.readStringOrNull(offsets[8]),
+    source: _BookEntitysourceValueEnumMap[reader.readByteOrNull(offsets[9])] ??
         Source.ANROLL,
-    stringID: reader.readString(offsets[9]),
-    title: reader.readString(offsets[10]),
-    updatedAt: reader.readDateTimeOrNull(offsets[11]),
-    url: reader.readString(offsets[12]),
+    stringID: reader.readString(offsets[10]),
+    title: reader.readString(offsets[11]),
+    updatedAt: reader.readDateTimeOrNull(offsets[12]),
+    url: reader.readString(offsets[13]),
   );
   object.id = id;
   return object;
@@ -219,29 +232,31 @@ P _bookEntityDeserializeProp<P>(
     case 0:
       return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
-    case 4:
       return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
-      return (reader.readString(offset)) as P;
-    case 7:
       return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
     case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
       return (_BookEntitysourceValueEnumMap[reader.readByteOrNull(offset)] ??
           Source.ANROLL) as P;
-    case 9:
-      return (reader.readString(offset)) as P;
     case 10:
       return (reader.readString(offset)) as P;
     case 11:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 12:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 13:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -603,6 +618,160 @@ extension BookEntityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'alternativeTitle',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      anilistMediaIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'anilistMedia',
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      anilistMediaIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'anilistMedia',
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      anilistMediaEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'anilistMedia',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      anilistMediaGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'anilistMedia',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      anilistMediaLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'anilistMedia',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      anilistMediaBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'anilistMedia',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      anilistMediaStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'anilistMedia',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      anilistMediaEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'anilistMedia',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      anilistMediaContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'anilistMedia',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      anilistMediaMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'anilistMedia',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      anilistMediaIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'anilistMedia',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      anilistMediaIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'anilistMedia',
         value: '',
       ));
     });
@@ -2091,6 +2260,18 @@ extension BookEntityQuerySortBy
     });
   }
 
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> sortByAnilistMedia() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'anilistMedia', Sort.asc);
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> sortByAnilistMediaDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'anilistMedia', Sort.desc);
+    });
+  }
+
   QueryBuilder<BookEntity, BookEntity, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -2248,6 +2429,18 @@ extension BookEntityQuerySortThenBy
       thenByAlternativeTitleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'alternativeTitle', Sort.desc);
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> thenByAnilistMedia() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'anilistMedia', Sort.asc);
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> thenByAnilistMediaDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'anilistMedia', Sort.desc);
     });
   }
 
@@ -2418,6 +2611,13 @@ extension BookEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<BookEntity, BookEntity, QDistinct> distinctByAnilistMedia(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'anilistMedia', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<BookEntity, BookEntity, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
@@ -2512,6 +2712,12 @@ extension BookEntityQueryProperty
       alternativeTitleProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'alternativeTitle');
+    });
+  }
+
+  QueryBuilder<BookEntity, String?, QQueryOperations> anilistMediaProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'anilistMedia');
     });
   }
 

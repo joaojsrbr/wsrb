@@ -23,7 +23,7 @@ abstract class Content extends Equatable with MergeClass<Content> {
 
   Releases get releases => _releases;
 
-  final AnilistMedia? animeMedia;
+  final AnilistMedia? anilistMedia;
 
   final String title;
 
@@ -32,13 +32,13 @@ abstract class Content extends Equatable with MergeClass<Content> {
     required this.url,
     required this.title,
     this.sinopse,
-    this.animeMedia,
+    this.anilistMedia,
   });
 
   Content copyWith({
     String? title,
     String? sinopse,
-    AnilistMedia? animeMedia,
+    AnilistMedia? anilistMedia,
     String? url,
     Releases? releases,
   });
@@ -53,8 +53,8 @@ abstract class Content extends Equatable with MergeClass<Content> {
   });
 
   Map<String, dynamic> get map => {
-        "animeMedia":
-            animeMedia != null ? AnilistMedia.toJson(animeMedia!) : null,
+        "anilistMedia":
+            anilistMedia != null ? AnilistMedia.toJson(anilistMedia!) : null,
         "releases": _releases.toMap,
         "url": url,
         "title": title,

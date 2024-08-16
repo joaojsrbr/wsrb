@@ -4,9 +4,11 @@ import 'package:equatable/equatable.dart';
 
 class ContentInformationArgs extends Equatable {
   final Content content;
+  final bool getData;
 
   const ContentInformationArgs({
     required this.content,
+    this.getData = true,
   });
 
   @override

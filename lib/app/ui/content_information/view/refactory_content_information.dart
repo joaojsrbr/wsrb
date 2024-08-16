@@ -11,6 +11,7 @@ import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switc
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:content_library/content_library.dart';
+import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_auto_cache/flutter_auto_cache.dart';
 import 'package:go_router/go_router.dart';
@@ -31,7 +32,9 @@ class _RefContentkInformationViewState
   late final ContentRepository _repository;
   late final TabController _bottomTabController;
   late final ConnectionChecker _connectionChecker;
+  late final LibraryService _libraryService;
   late final LibraryController _libraryController;
+  late final HistoricController _historicController;
   late final DownloadService _downloadService;
   late final PageController _pageController;
 
@@ -54,7 +57,9 @@ class _RefContentkInformationViewState
     _bottomTabController = TabController(length: 2, vsync: this)
       ..addListener(_bottomTabControllerListener);
     _pageController = PageController();
+    _historicController = context.read<HistoricController>();
     _libraryController = context.read<LibraryController>();
+    _libraryService = LibraryService(_libraryController, context.read());
     _connectionChecker = context.read<ConnectionChecker>();
     _downloadService = context.read<DownloadService>();
     _repository = context.read<ContentRepository>();
@@ -72,18 +77,24 @@ class _RefContentkInformationViewState
   void _onInit() async {
     if (!mounted) return;
     final navigationState = Navigator.of(context);
+    Result<Content> contentCache = Result.success(_informationArgs.content);
 
-    final cache = await AutoCache.data.getJson(
-      key: _informationArgs.content.stringID,
-    );
+    if (_informationArgs.getData) {
+      final cache = await AutoCache.data.getJson(
+        key: _informationArgs.content.stringID,
+      );
+      contentCache = switch (_informationArgs.content) {
+        Anime _ when cache.data != null =>
+          Result.success(Anime.fromMap(cache.data!)),
+        Book _ when cache.data != null =>
+          Result.success(Book.fromMap(cache.data!)),
+        _ => const Result<Content>.cancel(),
+      };
+    }
 
-    final contentCache = switch (_informationArgs.content) {
-      Anime _ when cache.data != null =>
-        Result.success(Anime.fromMap(cache.data!)),
-      Book _ when cache.data != null =>
-        Result.success(Book.fromMap(cache.data!)),
-      _ => const Result<Content>.cancel(),
-    };
+    if (_informationArgs.content.releases.isEmpty) {
+      contentCache = const Result.empty();
+    }
 
     final resultCotent = (contentCache is Success)
         ? contentCache
@@ -94,16 +105,12 @@ class _RefContentkInformationViewState
               ),
             );
 
-    if (contentCache is Success) {
-      await Future.delayed(const Duration(seconds: 2));
-    }
-
     resultCotent.fold(
       onError: navigationState.pop,
       onSuccess: _onSuccess,
     );
 
-    if (contentCache is Success) {
+    if (contentCache is Success && _informationArgs.getData) {
       addPostFrameCallback((timer) {
         _repository.getData(_informationArgs.content).then((result) {
           result.fold(onSuccess: _onSuccess);
@@ -112,47 +119,36 @@ class _RefContentkInformationViewState
     }
   }
 
-  void _onSuccess(Content data) {
-    if (_releases.isEmpty) {
+  void _onSuccess(Content data, [bool refresh = false]) {
+    // if(data is Anime && data.totalOfPages != null) {
+    //     List.generate(data.totalOfPages!, (index) => )
+    // }
+
+    if (_releases.isEmpty && data is Anime) {
+      for (var data in _content.releases) {
+        if (data is Episode && data.pageNumber != null) {
+          customLog(data.pageNumber! - 1);
+          if (_releases[data.pageNumber! - 1] == null) {
+            _releases[data.pageNumber! - 1] = Releases()..add(data);
+          } else {
+            _releases[data.pageNumber! - 1]?.add(data);
+          }
+        }
+      }
+    } else {
       _releases[_index] = data.releases;
     }
 
     setStateIfMounted(() {
-      switch (data) {
-        case Anime data:
-          _content = (_content as Anime).merge(data);
-          break;
-        case Book data:
-          _content = data;
-          break;
-      }
+      _content = data.copyWith(releases: _releases[_index]);
 
       _isLoading = false;
     });
 
-    ifMounted(() {
-      final LibraryService libraryService = LibraryService(
-        _libraryController,
-        context.read(),
-      );
-
-      if (libraryService.contains(content: data)) {
-        ContentEntity contentEntity = data.toEntity();
-        final entity =
-            libraryService.getContentEntityByStringID(_content.stringID);
-
-        if (entity != null) {
-          contentEntity = contentEntity.merge(entity);
-        }
-
-        _libraryController.add(
-          contentEntity: data.toEntity(
-            updatedAt: DateTime.now(),
-            isFavorite: true,
-          ),
-        );
+    ifMounted(() async {
+      if (_informationArgs.getData) {
+        AutoCache.data.saveJson(key: data.stringID, data: data.map);
       }
-      AutoCache.data.saveJson(key: data.stringID, data: data.map);
     });
   }
 
@@ -185,7 +181,7 @@ class _RefContentkInformationViewState
         onSuccess: (data) {
           _releases[_index] = data.releases;
 
-          setStateIfMounted(() => _content = data);
+          _onSuccess(data);
         },
       );
     } else {
@@ -260,6 +256,7 @@ class _RefContentkInformationViewState
     return ContentScope(
       bottomTabController: _bottomTabController,
       index: _index,
+      informationArgs: _informationArgs,
       isLoading: _isLoading,
       setListIndex: _handleSetListIndex,
       downloadRelease: _downloadRelease,
@@ -271,7 +268,8 @@ class _RefContentkInformationViewState
         final content = ContentScope.contentOf(context);
 
         return Scaffold(
-          body: NestedScrollView(
+          body: ExtendedNestedScrollView(
+            onlyOneScrollInBody: true,
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
               SliverAppBar(
                 expandedHeight: sizeOf.height * .40,
@@ -337,6 +335,9 @@ class _RefContentkInformationViewState
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : PageView(
+                      physics: _isLoading
+                          ? const NeverScrollableScrollPhysics()
+                          : const PageScrollPhysics(),
                       onPageChanged: _bottomTabController.animateTo,
                       controller: _pageController,
                       children: const [
@@ -357,6 +358,56 @@ class _RefContentkInformationViewState
       ..removeListener(_bottomTabControllerListener)
       ..dispose();
     _changeTabBarIndex.cancel();
+    _saveData();
     super.dispose();
+  }
+
+  void _saveData() {
+    if (_libraryService.contains(content: _content)) {
+      ContentEntity contentEntity = _content.toEntity();
+
+      final entity =
+          _libraryService.getContentEntityByStringID(_content.stringID);
+
+      if (_libraryService.favoritesIDS.contains(_content.stringID) &&
+          !_informationArgs.getData) {
+        _historicController
+            .addAll(
+          historyEntities: _content.releases
+              .map(
+                (e) => switch (e) {
+                  Episode data => data.toEntity(anime: _content as Anime),
+                  Chapter data => data.toEntity(0.0, null, null),
+                  _ => null,
+                },
+              )
+              .nonNulls
+              .toList(),
+        )
+            .whenComplete(() {
+          if (entity != null) {
+            contentEntity = contentEntity.merge(entity);
+          }
+
+          _libraryController.add(
+            contentEntity: _content.toEntity(
+              updatedAt: DateTime.now(),
+              isFavorite: true,
+            ),
+          );
+        });
+      } else {
+        if (entity != null) {
+          contentEntity = contentEntity.merge(entity);
+        }
+
+        _libraryController.add(
+          contentEntity: _content.toEntity(
+            updatedAt: DateTime.now(),
+            isFavorite: true,
+          ),
+        );
+      }
+    }
   }
 }

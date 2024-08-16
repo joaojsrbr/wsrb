@@ -51,12 +51,12 @@ class ItemContent extends StatelessWidget {
       padding: const EdgeInsets.all(4.0),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        height: height ??
-            (!isLibrary
-                ? isOpen
-                    ? 140
-                    : 160
-                : null),
+        // height: height ??
+        //     (!isLibrary
+        //         ? isOpen
+        //             ? 140
+        //             : 160
+        //         : null),
         width: width,
         decoration: BoxDecoration(
           borderRadius: _borderRadius.subtract(BorderRadius.circular(2)),
@@ -114,15 +114,7 @@ class ItemContent extends StatelessWidget {
                       maxLines: 2,
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.ellipsis,
-                      style: textTheme.labelMedium?.copyWith(
-                        shadows: [
-                          const Shadow(
-                            color: Colors.black,
-                            blurRadius: 18.0,
-                            offset: Offset(2.0, 2.0),
-                          ),
-                        ],
-                      ),
+                      style: textTheme.labelMedium?.copyWith(),
                     ),
                   ),
                   Container(
@@ -137,13 +129,6 @@ class ItemContent extends StatelessWidget {
                       style:
                           (textTheme.titleSmall ?? const TextStyle()).copyWith(
                         fontSize: isOpen ? 14 : 16,
-                        shadows: [
-                          const Shadow(
-                            color: Colors.black,
-                            blurRadius: 18.0,
-                            offset: Offset(2.0, 2.0),
-                          ),
-                        ],
                       ),
                       child: Text(
                         content.title,
@@ -334,6 +319,7 @@ class ItemContent extends StatelessWidget {
                         RouteName.CONTENTINFO,
                         extra: ContentInformationArgs(
                           content: content,
+                          getData: false,
                         ),
                       );
 
@@ -435,16 +421,23 @@ class _ImageWidget extends StatelessWidget {
         child: CachedNetworkImage(
           imageUrl: content.imageUrl,
           imageBuilder: (context, imageProvider) {
-            return HeroMode(
-              enabled: content is Anime && (content as Anime).animeID != null,
-              child: Hero(
-                key: ValueKey(content.getHeroTag()),
-                tag: content.getHeroTag(),
-                child: Image(
-                  fit: BoxFit.cover,
-                  alignment: FractionalOffset.center,
-                  image: imageProvider,
-                ),
+            return ShaderMask(
+              blendMode: BlendMode.srcOver,
+              shaderCallback: (bounds) {
+                return LinearGradient(
+                  begin: Alignment.center,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black54.withOpacity(0.55),
+                  ],
+                  stops: const [0.0, .9],
+                ).createShader(bounds);
+              },
+              child: Image(
+                fit: BoxFit.cover,
+                alignment: FractionalOffset.center,
+                image: imageProvider,
               ),
             );
           },

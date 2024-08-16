@@ -200,13 +200,13 @@ class AnrollSource extends RSource {
       }
 
       Future<void> getAniListData() async {
-        final animeMedia = await contentRepository.getAnilistMedia(newAnime);
+        final anilistMedia = await contentRepository.getAnilistMedia(newAnime);
 
-        if (animeMedia != null) {
+        if (anilistMedia != null) {
           newAnime = newAnime.copyWith(
-            animeMedia: animeMedia,
-            largeImage: animeMedia.coverImage?.large,
-            mediumImage: animeMedia.coverImage?.medium,
+            anilistMedia: anilistMedia,
+            largeImage: anilistMedia.coverImage?.large,
+            mediumImage: anilistMedia.coverImage?.medium,
           );
         }
       }
