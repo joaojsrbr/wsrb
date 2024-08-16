@@ -28,7 +28,7 @@ class ItemContent extends StatelessWidget {
 
   final Content content;
 
-  static final _borderRadius = BorderRadius.circular(12);
+  static final _borderRadius = BorderRadius.circular(8);
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +49,7 @@ class ItemContent extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(4.0),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
+        duration: const Duration(milliseconds: 350),
         // height: height ??
         //     (!isLibrary
         //         ? isOpen
@@ -58,7 +58,7 @@ class ItemContent extends StatelessWidget {
         //         : null),
         width: width,
         decoration: BoxDecoration(
-          borderRadius: _borderRadius.subtract(BorderRadius.circular(2)),
+          borderRadius: _borderRadius.add(BorderRadius.circular(2)),
           border: valueNotifierList.contains(content.stringID)
               ? Border.all(color: Colors.white, width: 1.5)
               : null,

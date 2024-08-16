@@ -15,10 +15,12 @@ class InformationDestination extends StatefulWidget {
 
 class _InformationDestinationState extends State<InformationDestination>
     with AutomaticKeepAliveClientMixin {
-  String substring = "";
-  bool isOver100 = false;
+  String _substring = "";
+  bool _isOver100 = false;
+  bool _isSelection = false;
   bool _expanded = false;
   final Map<String, Widget> _contentInformation = {};
+  final FocusNode _focusNode = FocusNode();
   late Content _content;
 
   @override
@@ -28,10 +30,10 @@ class _InformationDestinationState extends State<InformationDestination>
   void didChangeDependencies() {
     _content = ContentScope.contentOf(context);
 
-    if (!_expanded) isOver100 = substring.length > 100;
+    if (!_expanded) _isOver100 = (_content.sinopse ?? "").length > 100;
 
-    if (isOver100 && !_expanded) {
-      substring = "${_content.sinopse?.substring(0, 100)} ...";
+    if (_isOver100 && !_expanded) {
+      _substring = "${_content.sinopse?.substring(0, 100)} ...";
     }
 
     if (_content.anilistMedia != null && mounted) {
@@ -161,6 +163,11 @@ class _InformationDestinationState extends State<InformationDestination>
     }
   }
 
+  void _setExpanded() {
+    if (!_isOver100 || _isSelection) return;
+    setState(() => _expanded = !_expanded);
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -171,7 +178,7 @@ class _InformationDestinationState extends State<InformationDestination>
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.only(bottom: 8),
       children: [
-        if ((_expanded ? _content.sinopse ?? "" : substring).isNotEmpty)
+        if ((_content.sinopse ?? "").isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             child: Card.filled(
@@ -182,9 +189,10 @@ class _InformationDestinationState extends State<InformationDestination>
               child: InkWell(
                 overlayColor: _OverlayColor(context),
                 borderRadius: BorderRadius.circular(8),
-                onTap: isOver100
-                    ? () => setState(() => _expanded = !_expanded)
-                    : null,
+                onLongPress: () {
+                  _focusNode.requestFocus();
+                },
+                onTap: _setExpanded,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
@@ -205,8 +213,23 @@ class _InformationDestinationState extends State<InformationDestination>
                           alignment: Alignment.topCenter,
                           child: SizedBox(
                             width: double.infinity,
-                            child: Text(
-                              _expanded ? _content.sinopse ?? "" : substring,
+                            child: SelectableText(
+                              _expanded ? _substring : (_content.sinopse ?? ""),
+                              focusNode: _focusNode,
+                              onSelectionChanged: (selection, cause) {
+                                addPostFrameSetState(() {
+                                  if (cause ==
+                                      SelectionChangedCause.longPress) {
+                                    _isSelection = true;
+                                  } else if (cause ==
+                                      SelectionChangedCause.tap) {
+                                    _isSelection = false;
+                                  }
+                                });
+                                customLog(cause);
+                              },
+                              enableInteractiveSelection: true,
+                              onTap: _setExpanded,
                               textAlign: TextAlign.justify,
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
@@ -226,9 +249,7 @@ class _InformationDestinationState extends State<InformationDestination>
                 right: 8,
                 left: 8,
                 bottom: 12,
-                top: (_expanded ? _content.sinopse ?? "" : substring).isEmpty
-                    ? 8
-                    : 0),
+                top: (_content.sinopse ?? "").isEmpty ? 8 : 0),
             child: Card.filled(
               color: themeData.colorScheme.primary.withOpacity(0.04),
               shape: RoundedRectangleBorder(
