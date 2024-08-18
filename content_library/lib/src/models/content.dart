@@ -1,10 +1,6 @@
-import 'package:anilist_dart/anilist.dart';
+import 'package:content_library/content_library.dart';
 import 'package:content_library/src/utils/object_utils.dart';
 import 'package:equatable/equatable.dart';
-
-import '../entities/entity.dart';
-import '../extensions/custom_extensions/string_extensions.dart';
-import '../utils/releases.dart';
 
 abstract class Content extends Equatable with MergeClass<Content> {
   String get imageUrl;
@@ -23,12 +19,15 @@ abstract class Content extends Equatable with MergeClass<Content> {
 
   Releases get releases => _releases;
 
+  final List<Genre> genres;
+
   final AnilistMedia? anilistMedia;
 
   final String title;
 
   const Content(
     this._releases, {
+    this.genres = const [],
     required this.url,
     required this.title,
     this.sinopse,
@@ -37,6 +36,7 @@ abstract class Content extends Equatable with MergeClass<Content> {
 
   Content copyWith({
     String? title,
+    List<Genre>? genres,
     String? sinopse,
     AnilistMedia? anilistMedia,
     String? url,

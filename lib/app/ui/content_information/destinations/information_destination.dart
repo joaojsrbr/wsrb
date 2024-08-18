@@ -180,7 +180,7 @@ class _InformationDestinationState extends State<InformationDestination>
     final ThemeData themeData = Theme.of(context);
 
     return ListView(
-      shrinkWrap: true,
+      // shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.only(bottom: 8),
       children: [
@@ -286,15 +286,8 @@ class _InformationDestinationState extends State<InformationDestination>
                 }).toList(),
               ),
             ),
-          )
-        else
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text('Nenhuma dado encontrado.'),
-            ),
           ),
-        if (_content.anilistMedia?.genres != null)
+        if (_content.anilistMedia?.genres != null || _content.genres.isNotEmpty)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -317,10 +310,10 @@ class _InformationDestinationState extends State<InformationDestination>
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: _content.anilistMedia!.genres!
+                  children: (_content.genres.isNotEmpty
+                          ? _content.genres.map((e) => e.label)
+                          : _content.anilistMedia?.genres ?? <String>[])
                       .map((e) => e.capitalize)
-                      .toList()
-                      .unique()
                       .map(
                         (e) => Card.filled(
                           color:
@@ -484,6 +477,13 @@ class _InformationDestinationState extends State<InformationDestination>
               ),
             ],
           ),
+        if (_contentInformation.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text('Nenhum dado encontrado.'),
+            ),
+          )
       ],
     );
   }

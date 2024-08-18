@@ -140,13 +140,13 @@ class SubordinateScrollController extends ScrollController {
     this.parent, {
     String subordinateDebugLabel = 'subordinate',
   }) : super(
-          debugLabel: parent?.debugLabel == null
+          debugLabel: parent.debugLabel == null
               ? null
-              : '${parent?.debugLabel}/$subordinateDebugLabel',
-          initialScrollOffset: parent?.initialScrollOffset ?? 0,
-          keepScrollOffset: parent?.keepScrollOffset ?? true,
+              : '${parent.debugLabel}/$subordinateDebugLabel',
+          initialScrollOffset: parent.initialScrollOffset,
+          keepScrollOffset: parent.keepScrollOffset,
         );
-  final ScrollController? parent;
+  final ScrollController parent;
 
   @override
   ScrollPosition createScrollPosition(
@@ -154,25 +154,24 @@ class SubordinateScrollController extends ScrollController {
     ScrollContext context,
     ScrollPosition? oldPosition,
   ) =>
-      parent?.createScrollPosition(physics, context, oldPosition) ??
-      super.createScrollPosition(physics, context, oldPosition);
+      parent.createScrollPosition(physics, context, oldPosition);
 
   @override
   void attach(ScrollPosition position) {
     super.attach(position);
-    parent?.attach(position);
+    parent.attach(position);
   }
 
   @override
   void detach(ScrollPosition position) {
-    parent?.detach(position);
+    parent.detach(position);
     super.detach(position);
   }
 
   @override
   void dispose() {
     for (final position in positions) {
-      parent?.detach(position);
+      parent.detach(position);
     }
 
     super.dispose();

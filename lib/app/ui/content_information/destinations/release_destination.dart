@@ -32,7 +32,9 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
     final DownloadService downloadService = context.watch<DownloadService>();
     final bool releasesIsLoading = ContentScope.releasesIsLoadingOf(context);
     final HiveController hiveController = context.watch<HiveController>();
+
     return ListView(
+      // shrinkWrap: true,
       padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       children: [
@@ -427,11 +429,15 @@ class _ReleasePagination extends StatefulWidget {
   State<_ReleasePagination> createState() => _ReleasePaginationState();
 }
 
-class _ReleasePaginationState extends State<_ReleasePagination> {
+class _ReleasePaginationState extends State<_ReleasePagination>
+    with AutomaticKeepAliveClientMixin {
   late Content _content;
 
   List<int> _totalPage = [];
   BoolList _selectChips = BoolList.empty();
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void didChangeDependencies() {
@@ -465,34 +471,36 @@ class _ReleasePaginationState extends State<_ReleasePagination> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final hiveController = context.watch<HiveController>();
     final setListIndex = ContentScope.of(context).setListIndex;
 
-    final chipsWidgets = List.generate(_selectChips.length, (index) {
-      int page = _totalPage[index];
+    // final chipsWidgets = List.generate(_selectChips.length, (index) {
+    //   int page = _totalPage[index];
 
-      return Padding(
-        padding: const EdgeInsets.only(right: 8),
-        child: ChoiceChip(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          selected: _selectChips[index],
-          onSelected: (value) => setListIndex.call(index),
-          label: Text('$page'),
-        ),
-      );
-    });
+    //   return Padding(
+    //     padding: const EdgeInsets.only(right: 8),
+    //     child: ChoiceChip(
+    //       padding: const EdgeInsets.symmetric(horizontal: 8),
+    //       selected: _selectChips[index],
+    //       onSelected: (value) => setListIndex.call(index),
+    //       label: Text('$page'),
+    //     ),
+    //   );
+    // });
+
     return Padding(
-      padding: const EdgeInsets.only(top: 12, bottom: 12),
+      padding: const EdgeInsets.only(top: 10, bottom: 6),
       child: SizedBox(
         width: double.infinity,
         height: 36,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: List.generate(_selectChips.length + 2, (index) {
+        child: ListView.builder(
+            shrinkWrap: true,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            scrollDirection: Axis.horizontal,
+            itemCount: _selectChips.length + 2,
+            itemBuilder: (context, index) {
               switch (index) {
                 case 0:
                   return IconButton.filled(
@@ -516,10 +524,18 @@ class _ReleasePaginationState extends State<_ReleasePagination> {
                   return const VerticalDivider();
               }
 
-              return chipsWidgets[index - 2];
+              int page = _totalPage[index - 2];
+
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  selected: _selectChips[index - 2],
+                  onSelected: (value) => setListIndex.call(index - 2),
+                  label: Text('$page'),
+                ),
+              );
             }),
-          ),
-        ),
       ),
     );
   }

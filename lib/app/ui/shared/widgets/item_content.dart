@@ -11,30 +11,60 @@ import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
-class ItemContent extends StatelessWidget {
-  const ItemContent({
-    super.key,
-    this.isLibrary = false,
-    this.isSearch = false,
-    this.height,
-    this.width,
-    required this.content,
-  });
-
+class ItemContent extends StatefulWidget {
+  final bool _isLibrary;
+  final bool _isSearch;
   final double? width;
   final double? height;
-  final bool isLibrary;
-  final bool isSearch;
-
   final Content content;
 
-  static final _borderRadius = BorderRadius.circular(8);
+  const ItemContent({
+    super.key,
+    required this.content,
+    this.width,
+    this.height,
+  })  : _isSearch = false,
+        _isLibrary = false;
+
+  const ItemContent.library({
+    super.key,
+    required this.content,
+    this.width,
+    this.height,
+  })  : _isSearch = false,
+        _isLibrary = true;
+
+  const ItemContent.search({
+    super.key,
+    required this.content,
+    this.width,
+    this.height,
+  })  : _isSearch = false,
+        _isLibrary = true;
+
+  static ItemContent? maybeOf(BuildContext context) {
+    return context.findAncestorWidgetOfExactType<ItemContent>();
+  }
+
+  static ItemContent of(BuildContext context) {
+    return context.findAncestorWidgetOfExactType<ItemContent>()!;
+  }
+
+  @override
+  State<ItemContent> createState() => _ItemContentState();
+}
+
+class _ItemContentState extends State<ItemContent> {
+  // final bool _error = false;
+
+  static final BorderRadius _borderRadius = BorderRadius.circular(8);
+
+  bool get _isLibrary => widget._isLibrary;
+  bool get _isSearch => widget._isSearch;
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData themeData = Theme.of(context);
-
-    final TextTheme textTheme = themeData.textTheme;
+    final content = widget.content;
 
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
@@ -42,240 +72,128 @@ class ItemContent extends StatelessWidget {
     final RailMenuController? railMenuController =
         RailMenu.menuControllerMaybeOf(context);
 
-    final bool isOpen = railMenuController?.isOpen ?? false;
+    final ThemeData themeData = Theme.of(context);
 
-    final AppSnackBar appSnackBar = context.appSnackBar;
+    final textTheme = themeData.textTheme;
 
-    return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 350),
-        // height: height ??
-        //     (!isLibrary
-        //         ? isOpen
-        //             ? 140
-        //             : 160
-        //         : null),
-        width: width,
-        decoration: BoxDecoration(
-          borderRadius: _borderRadius.add(BorderRadius.circular(2)),
-          border: valueNotifierList.contains(content.stringID)
-              ? Border.all(color: Colors.white, width: 1.5)
-              : null,
-        ),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 350),
+      height: widget.height,
+      width: widget.width,
+      decoration: BoxDecoration(
+        borderRadius: _borderRadius.add(BorderRadius.circular(2)),
+        border: valueNotifierList.contains(content.stringID)
+            ? Border.all(color: Colors.white, width: 1.5)
+            : null,
+      ),
+      child: ClipRRect(
+        borderRadius: _borderRadius,
         child: Stack(
           fit: StackFit.expand,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 350),
-              width: isOpen ? (180 - railMenuController!.menuSize.width) : 160,
-              child: _ImageWidget(content),
+            CachedNetworkImage(
+              filterQuality: FilterQuality.medium,
+              imageUrl: widget.content.imageUrl,
+              placeholder: (context, url) {
+                return Card.filled(
+                  color: themeData.colorScheme.primary.withOpacity(0.04),
+                );
+              },
+              imageBuilder: (context, imageProvider) {
+                return ShaderMask(
+                  blendMode: BlendMode.srcOver,
+                  shaderCallback: (bounds) {
+                    return LinearGradient(
+                      begin: Alignment.center,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black54.withOpacity(0.35),
+                      ],
+                      stops: const [0.0, .9],
+                    ).createShader(bounds);
+                  },
+                  child: Image(
+                    fit: BoxFit.cover,
+                    alignment: FractionalOffset.center,
+                    image: imageProvider,
+                  ),
+                );
+              },
+              errorListener: (value) {
+                // addPostFrameSetState(() => _error = true);
+              },
+              errorWidget: (context, url, error) {
+                return Card.filled(
+                  color: themeData.colorScheme.primary.withOpacity(0.04),
+                );
+              },
+              maxHeightDiskCache: 350,
+              maxWidthDiskCache: 300,
+              httpHeaders: App.HEADERS,
             ),
             Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
+              bottom: 8,
+              left: 12,
+              right: 12,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  Container(
-                    alignment: Alignment.topLeft,
-                    padding: const EdgeInsets.only(
-                      left: 14,
-                      top: 8,
-                      right: 12,
-                    ),
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 350),
+                    style: (textTheme.titleSmall ?? const TextStyle()).copyWith(
+                        fontSize: railMenuController?.isOpen == true
+                            ? (textTheme.titleSmall!.fontSize! - 2)
+                            : textTheme.titleSmall!.fontSize),
                     child: Text.rich(
                       TextSpan(
                         children: [
-                          if (!isLibrary &&
-                              !isSearch &&
-                              content is Anime &&
-                              content.releases.length == 1)
+                          if (content.releases.length == 1) ...[
                             TextSpan(
                               text: 'Episódio ${content.releases.first.number}',
                             ),
-                          if (content is Anime && !isLibrary && !isSearch)
                             const TextSpan(text: ' - '),
-                          if (content is Anime)
+                          ],
+                          if (content is Anime) ...[
                             TextSpan(
-                              text:
-                                  (content as Anime).isDublado ? 'DUB' : 'LEG',
+                              text: content.isDublado ? 'DUB' : 'LEG',
                               style: TextStyle(
-                                color: (content as Anime).isDublado
+                                color: content.isDublado
                                     ? Colors.green
                                     : Colors.blue,
                               ),
                             ),
+                          ],
                         ],
                       ),
                       maxLines: 2,
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.ellipsis,
-                      style: textTheme.labelMedium?.copyWith(),
                     ),
                   ),
-                  Container(
-                    alignment: Alignment.topLeft,
-                    padding: const EdgeInsets.only(
-                      left: 14,
-                      right: 12,
-                      bottom: 8,
-                    ),
-                    child: AnimatedDefaultTextStyle(
-                      duration: const Duration(milliseconds: 350),
-                      style:
-                          (textTheme.titleSmall ?? const TextStyle()).copyWith(
-                        fontSize: isOpen ? 14 : 16,
-                      ),
-                      child: Text(
-                        content.title,
-                        maxLines: 1,
-                        textAlign: TextAlign.start,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 350),
+                    style:
+                        (textTheme.titleSmall ?? const TextStyle()).copyWith(),
+                    child: Text(
+                      content.title,
+                      maxLines: 1,
+                      textAlign: TextAlign.start,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
             ),
-            // if (!(isLibrary || isSearch))
-            //   Row(
-            //     crossAxisAlignment: CrossAxisAlignment.start,
-            //     mainAxisSize: MainAxisSize.max,
-            //     children: [
-            //       Expanded(
-            //         child: Column(
-            //           mainAxisAlignment: MainAxisAlignment.start,
-            //           mainAxisSize: MainAxisSize.max,
-            //           children: [
-            //             Container(
-            //               alignment: Alignment.topLeft,
-            //               padding: const EdgeInsets.only(
-            //                 left: 14,
-            //                 top: 12,
-            //                 right: 12,
-            //               ),
-            //               child: AnimatedDefaultTextStyle(
-            //                 duration: const Duration(milliseconds: 350),
-            //                 style: (textTheme.titleMedium ?? const TextStyle())
-            //                     .copyWith(
-            //                   fontSize: isOpen ? 14 : 16,
-            //                 ),
-            //                 child: Text(
-            //                   content.title,
-            //                   maxLines: 2,
-            //                   textAlign: TextAlign.start,
-            //                   overflow: TextOverflow.ellipsis,
-            //                 ),
-            //               ),
-            //             ),
-            //             if (content is Anime &&
-            //                 content.releases.isNotEmpty &&
-            //                 content.releases.firstOrNull != null)
-            //               Container(
-            //                 alignment: Alignment.topLeft,
-            //                 padding: const EdgeInsets.only(
-            //                   left: 14,
-            //                   top: 8,
-            //                   right: 12,
-            //                 ),
-            //                 child: Text(
-            //                   content.releases.first.title,
-            //                   maxLines: 2,
-            //                   textAlign: TextAlign.start,
-            //                   overflow: TextOverflow.ellipsis,
-            //                   style: textTheme.labelSmall?.copyWith(),
-            //                 ),
-            //               ),
-            //           ],
-            //         ),
-            //       ),
-            //     ],
-            //   )
-            // else
-            //   ClipRRect(
-            //     clipBehavior: Clip.antiAliasWithSaveLayer,
-            //     borderRadius: _borderRadius,
-            //     child: Stack(
-            //       fit: StackFit.expand,
-            //       children: [
-            //         ShaderMask(
-            //           blendMode: BlendMode.srcOver,
-            //           shaderCallback: (bounds) {
-            //             return LinearGradient(
-            //               begin: Alignment.center,
-            //               end: Alignment.bottomCenter,
-            //               colors: [
-            //                 Colors.transparent,
-            //                 Colors.black38.withOpacity(0.75),
-            //               ],
-            //               stops: const [0.0, .9],
-            //             ).createShader(bounds);
-            //           },
-            //           child: _ImageWidget(content),
-            //         ),
-            //         Container(
-            //           alignment: Alignment.bottomLeft,
-            //           padding: const EdgeInsets.only(
-            //             left: 12,
-            //             bottom: 8,
-            //             right: 12,
-            //           ),
-            //           child: AnimatedDefaultTextStyle(
-            //             duration: const Duration(milliseconds: 350),
-            //             style: (textTheme.titleMedium ?? const TextStyle())
-            //                 .copyWith(
-            //               fontSize: isOpen ? 12 : 14,
-            //             ),
-            //             child: Text(
-            //               content.title,
-            //               maxLines: 2,
-            //               textAlign: TextAlign.start,
-            //               overflow: TextOverflow.ellipsis,
-            //             ),
-            //           ),
-            //         ),
-            //         if (content is Anime)
-            //           Positioned(
-            //             top: 0,
-            //             right: 0,
-            //             child: Card(
-            //               elevation: 1,
-            //               shape: RoundedRectangleBorder(
-            //                 borderRadius: _borderRadius.copyWith(
-            //                   bottomLeft: const Radius.circular(6),
-            //                   topRight: Radius.zero,
-            //                   bottomRight: Radius.zero,
-            //                   topLeft: Radius.zero,
-            //                 ),
-            //               ),
-            //               margin: EdgeInsets.zero,
-            //               child: Padding(
-            //                 padding: const EdgeInsets.all(6.6),
-            //                 child: Text(
-            //                   (content as Anime).isDublado ? 'DUB' : 'LEG',
-            //                   style: textTheme.labelMedium?.copyWith(
-            //                     fontSize: 10,
-            //                     color: (content as Anime).isDublado
-            //                         ? Colors.blue
-            //                         : Colors.red,
-            //                   ),
-            //                 ),
-            //               ),
-            //             ),
-            //           ),
-            //       ],
-            //     ),
-            //   ),
             Material(
               color: Colors.transparent,
               borderRadius: _borderRadius,
               child: InkWell(
                 borderRadius: _borderRadius,
                 overlayColor: _OverlayColor(content),
-                onLongPress: isSearch
+                onLongPress: _isSearch
                     ? null
                     : () {
                         if (valueNotifierList.isEmpty) {
@@ -287,6 +205,7 @@ class ItemContent extends StatelessWidget {
                         // HomeRailMenu.menuControllerMaybeOf(context)?.open();
                       },
                 onTap: () async {
+                  final appSnackBar = context.appSnackBar;
                   final searchController =
                       HomeScope.byKeyMaybeOf()?.searchController;
 
@@ -303,9 +222,9 @@ class ItemContent extends StatelessWidget {
                   } else {
                     if (content is Anime &&
                         content.releases.length == 1 &&
-                        !isLibrary &&
-                        !isSearch) {
-                      final anime = content as Anime;
+                        !_isLibrary &&
+                        !_isSearch) {
+                      final anime = content;
                       await context.push(
                         RouteName.PLAYER,
                         extra: PlayerArgs(
@@ -330,13 +249,15 @@ class ItemContent extends StatelessWidget {
                 },
               ),
             ),
-            if (content is Anime && !(isLibrary || isSearch))
-              Positioned(
+            Visibility(
+              visible: content is Anime,
+              child: Positioned(
                 top: 0,
                 left: 0,
                 child: IconButton(
                   onPressed: valueNotifierList.isEmpty
                       ? () async {
+                          final appSnackBar = context.appSnackBar;
                           customLog(
                             'IconButton[MdiIcons.information] tapped title: ${content.title} - id: ${content.stringID}',
                           );
@@ -361,6 +282,7 @@ class ItemContent extends StatelessWidget {
                   icon: Icon(MdiIcons.information),
                 ),
               ),
+            ),
           ],
         ),
       ),
@@ -389,80 +311,5 @@ class _OverlayColor extends WidgetStateProperty<Color?> {
       return Colors.transparent;
     }
     return Colors.transparent;
-  }
-}
-
-class _ImageWidget extends StatefulWidget {
-  const _ImageWidget(this.content);
-
-  final Content content;
-
-  @override
-  State<_ImageWidget> createState() => _ImageWidgetState();
-}
-
-class _ImageWidgetState extends State<_ImageWidget> {
-  bool _error = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final ItemContent params =
-        context.findAncestorWidgetOfExactType<ItemContent>()!;
-
-    final themeData = Theme.of(context);
-
-    if ((widget.content.imageUrl.isEmpty &&
-            !params.isLibrary &&
-            !params.isSearch) ||
-        _error) {
-      return Card.filled(
-        color: themeData.colorScheme.primary.withOpacity(0.04),
-      );
-    }
-
-    return ClipRRect(
-      borderRadius: ItemContent._borderRadius,
-      child: CachedNetworkImage(
-        filterQuality: FilterQuality.medium,
-        imageUrl: widget.content.imageUrl,
-        placeholder: (context, url) {
-          return Card.filled(
-            color: themeData.colorScheme.primary.withOpacity(0.04),
-          );
-        },
-        imageBuilder: (context, imageProvider) {
-          return ShaderMask(
-            blendMode: BlendMode.srcOver,
-            shaderCallback: (bounds) {
-              return LinearGradient(
-                begin: Alignment.center,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black54.withOpacity(0.55),
-                ],
-                stops: const [0.0, .9],
-              ).createShader(bounds);
-            },
-            child: Image(
-              fit: BoxFit.cover,
-              alignment: FractionalOffset.center,
-              image: imageProvider,
-            ),
-          );
-        },
-        errorListener: (value) {
-          addPostFrameSetState(() => _error = true);
-        },
-        errorWidget: (context, url, error) {
-          return Card.filled(
-            color: themeData.colorScheme.primary.withOpacity(0.04),
-          );
-        },
-        maxHeightDiskCache: params.isLibrary ? 500 : 500,
-        maxWidthDiskCache: params.isLibrary ? 500 : 500,
-        httpHeaders: App.HEADERS,
-      ),
-    );
   }
 }

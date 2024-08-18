@@ -4,7 +4,6 @@ import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
-
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -203,9 +202,9 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
                         return SizedBox(
                           width: 168,
                           height: 220,
-                          child: ItemContent(
+                          child: ItemContent.search(
+                            key: ObjectKey(content),
                             content: content,
-                            isSearch: true,
                           ),
                         );
                       },

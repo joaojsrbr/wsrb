@@ -7,7 +7,6 @@ import 'package:content_library/content_library.dart';
 class Book extends Content {
   final Source source;
   final String? alternativeTitle;
-  final List<Genre> genres;
   final List<String> authors;
   final List<String> artists;
   final double? score;
@@ -25,7 +24,7 @@ class Book extends Content {
     required this.source,
     required this.originalImage,
     required super.url,
-    this.genres = const [],
+    super.genres,
     this.alternativeTitle,
     super.sinopse,
     this.extraLarge,

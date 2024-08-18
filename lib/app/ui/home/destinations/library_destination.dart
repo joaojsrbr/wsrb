@@ -154,9 +154,9 @@ class LibraryeDestinationState extends State<LibraryDestination>
           padding: const EdgeInsets.only(left: 8, right: 8, top: 12),
           gridDelegate: gridDelegate,
           itemBuilder: (context, index) {
-            return ItemContent(
+            return ItemContent.library(
+              key: ObjectKey(filter.elementAt(index)),
               content: filter.elementAt(index),
-              isLibrary: true,
             );
           },
         ),

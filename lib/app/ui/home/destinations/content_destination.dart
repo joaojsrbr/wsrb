@@ -62,9 +62,12 @@ class _ContentDestinationState extends State<ContentDestination>
                 ? const FullScreenErrorWidget(btnAtualizar: false)
                 : LoadingMoreList(
                     ListConfig<Content>(
+                      shrinkWrap: true,
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 8,
                       ),
                       physics: const NeverScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(
@@ -83,6 +86,9 @@ class _ContentDestinationState extends State<ContentDestination>
   }
 
   Widget _itemBuilder(BuildContext context, Content content, int index) {
-    return ItemContent(content: content);
+    return ItemContent(
+      content: content,
+      key: ObjectKey(content),
+    );
   }
 }

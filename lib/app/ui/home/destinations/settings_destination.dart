@@ -69,7 +69,7 @@ class _SettingsDestinationState extends State<SettingsDestination>
     return SettingsList(
       contentPadding: const EdgeInsets.only(top: 8),
       brightness: themeData.brightness,
-      shrinkWrap: false,
+      shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       darkTheme: SettingsThemeData(
         tileHighlightColor: themeData.highlightColor,

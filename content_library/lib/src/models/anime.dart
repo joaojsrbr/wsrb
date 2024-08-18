@@ -12,7 +12,6 @@ class Anime extends Content {
     required this.source,
     required this.originalImage,
     this.slugSerie,
-    this.genres = const [],
     this.extraLarge,
     this.mediumImage,
     this.animeID,
@@ -22,12 +21,12 @@ class Anime extends Content {
     this.generateID,
     this.isDublado = false,
     super.sinopse,
+    super.genres,
   }) : super(releases);
 
   @override
   EpisodeReleases get releases => super.releases as EpisodeReleases;
 
-  final List<Genre> genres;
   final String? generateID;
   final String? animeID;
   final Source source;
