@@ -7,6 +7,7 @@ class SharedAxisTransitionPageWrapper extends Page {
     this.screenBuilder,
     this.transitionDuratio,
     this.reverseTransitionDuration,
+    super.restorationId,
     required ValueKey transitionKey,
     super.arguments,
   }) : super(key: transitionKey);

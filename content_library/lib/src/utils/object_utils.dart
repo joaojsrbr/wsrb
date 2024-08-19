@@ -5,16 +5,16 @@ mixin MergeClass<T extends Content> {
     if (identical(runtimeType, other.runtimeType)) {
       switch (this) {
         case Anime data when other is Anime:
-          final Map<String, dynamic> map1 = data.map;
-          final Map<String, dynamic> map2 = other.map;
+          final Map<String, dynamic> map1 = data.toJson();
+          final Map<String, dynamic> map2 = other.toJson();
 
           final merged = mergeMap([map1, map2], acceptNull: true);
 
           return Anime.fromMap(merged) as T;
 
         case Book data when other is Anime:
-          final Map<String, dynamic> map1 = data.map;
-          final Map<String, dynamic> map2 = other.map;
+          final Map<String, dynamic> map1 = data.toJson();
+          final Map<String, dynamic> map2 = other.toJson();
 
           final merged = mergeMap([map1, map2], acceptNull: true);
 

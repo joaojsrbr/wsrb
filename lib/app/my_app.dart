@@ -19,6 +19,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp.router(
       themeMode: themeController.themeMode,
+      restorationScopeId: 'root',
       darkTheme: themeController.darkTheme,
       supportedLocales: const [Locale('en', 'US'), Locale('pt')],
       localizationsDelegates: const [

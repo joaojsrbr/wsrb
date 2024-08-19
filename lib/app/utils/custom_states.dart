@@ -1,24 +1,28 @@
+import 'dart:async';
+
 import 'package:content_library/content_library.dart';
 import 'package:flutter/widgets.dart';
-import 'dart:async';
 
 abstract class StateByArgument<T extends StatefulWidget, A extends Object>
     extends State<T> {
   @override
   Widget build(BuildContext context) {
-    final argument = ModalRoute.of(context)?.settings.arguments;
+    final argument = parse(ModalRoute.of(context)?.settings.arguments);
+
     assert(argument is A);
     return buildByArgument(context, argument as A);
   }
+
+  Object parse(Object? argument) => argument as A;
 
   A argument() {
     Object? argument;
     if (!mounted) {
       addPostFrameCallback((data) {
-        argument = ModalRoute.of(context)?.settings.arguments;
+        argument = parse(ModalRoute.of(context)?.settings.arguments);
       });
     } else {
-      argument = ModalRoute.of(context)?.settings.arguments;
+      argument = parse(ModalRoute.of(context)?.settings.arguments);
     }
 
     bool checksArguments() {

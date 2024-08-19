@@ -52,8 +52,9 @@ class Book extends Content {
   }
 
   @override
-  Map<String, dynamic> get map => {
-        ...super.map,
+  Map<String, dynamic> toJson() => {
+        ...super.toJson(),
+        'class': 'BOOK',
         "stringID": stringID,
         "source": source,
         "originalImage": originalImage,

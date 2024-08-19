@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/home/destinations/content_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/home/destinations/library_destination.dart';
@@ -24,7 +26,8 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
+class _HomeViewState extends State<HomeView>
+    with TickerProviderStateMixin, RestorationMixin {
   late final TabController _tabController;
   late final CustomSearchController _searchController;
   late final ScrollController _scrollController;
@@ -35,6 +38,26 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   late final ValueNotifierList _valueNotifierList;
   late final RailMenuController _railMenuController;
   bool _disableScroll = false;
+
+  @override
+  String? get restorationId => 'home';
+
+  // late RestorableRouteFuture<int> _counterRoute;
+  final RestorableInt _homeTabControllerIndex = RestorableInt(0);
+  final RestorableDouble _homeScrollControllerPosition = RestorableDouble(0.0);
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    // registerForRestoration(_counterRoute, 'route');
+    registerForRestoration(
+      _homeTabControllerIndex,
+      'home_tab_controller_index',
+    );
+    registerForRestoration(
+      _homeScrollControllerPosition,
+      'home_scroll_controller_position',
+    );
+  }
 
   @override
   void initState() {
@@ -61,6 +84,16 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     // _connectionChecker = context.read<ConnectionChecker>();
 
     _startTabController(false);
+
+    scheduleMicrotask(() {
+      _tabController.animateTo(
+        _homeTabControllerIndex.value,
+        duration: Duration.zero,
+      );
+      _scrollController.jumpTo(
+        _homeScrollControllerPosition.value,
+      );
+    });
   }
 
   void _valueNotifierListListener() {
@@ -98,6 +131,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   void _scrollControllerListener() {
+    _homeScrollControllerPosition.value = _scrollController.position.pixels;
     addPostFrameCallback((timer) {
       if (_scrollController.position.pixels <= 10.0 &&
           _keepWatchingScrollController.hasClients) {
@@ -111,6 +145,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   void _tabControllerListener() {
+    _homeTabControllerIndex.value = _tabController.index;
     if (_valueNotifierList.isNotEmpty) _valueNotifierList.clear();
     _searchController.clear();
 
@@ -168,6 +203,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               onlyOneScrollInBody: true,
               controller: _scrollController,
               physics: _mainPhysics,
+              restorationId: 'home_scroll',
               headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return [
                   SliverAppBar(

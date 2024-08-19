@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, constant_identifier_names
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/destinations/information_destination.dart';
@@ -28,7 +29,7 @@ class RefContentInformationView extends StatefulWidget {
 
 class _RefContentkInformationViewState
     extends StateByArgument<RefContentInformationView, ContentInformationArgs>
-    with SubscriptionsMixin, SingleTickerProviderStateMixin {
+    with SubscriptionsMixin, SingleTickerProviderStateMixin, RestorationMixin {
   late final ContentRepository _repository;
   late final TabController _bottomTabController;
   // late final ConnectionChecker _connectionChecker;
@@ -37,11 +38,17 @@ class _RefContentkInformationViewState
   late final HistoricController _historicController;
   late final DownloadService _downloadService;
 
+  final RestorableInt _tabViewIndex = RestorableInt(0);
+  final RestorableValue<String?> _restorableContent = RestorableStringN(null);
+
   final Debouncer _changeTabBarIndex = Debouncer(
     duration: Duration.zero,
   );
 
-  late Content _content = _informationArgs.content;
+  late Content _content = _restorableContent.value != null
+      ? Content.fromMap(_restorableContent.value!)
+      : _informationArgs.content;
+
   bool _isLoading = true;
   bool _releasesIsLoading = false;
   int _index = 0;
@@ -51,9 +58,16 @@ class _RefContentkInformationViewState
   late final ContentInformationArgs _informationArgs = argument();
 
   @override
+  Object parse(Object? argument) {
+    if (argument is ContentInformationArgs) return argument;
+    return ContentInformationArgs.fromJson(argument.toString());
+  }
+
+  @override
   void initState() {
     super.initState();
-    _bottomTabController = TabController(length: 2, vsync: this);
+    _bottomTabController = TabController(length: 2, vsync: this)
+      ..addListener(_tabControllerListener);
     _historicController = context.read<HistoricController>();
     _libraryController = context.read<LibraryController>();
     _libraryService = LibraryService(_libraryController, context.read());
@@ -63,8 +77,30 @@ class _RefContentkInformationViewState
     scheduleMicrotask(_onInit);
   }
 
+  void _scrollToIndex() async {
+    addPostFrameCallback((timer) {
+      _bottomTabController.animateTo(
+        _tabViewIndex.value,
+        duration: Duration.zero,
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  void _tabControllerListener() {
+    _tabViewIndex.value = _bottomTabController.index;
+  }
+
   void _onInit() async {
     if (!mounted) return;
+    _scrollToIndex();
+    if (_restorableContent.value != null) {
+      setState(() {
+        _isLoading = false;
+        _releasesIsLoading = false;
+      });
+      return;
+    }
     final navigationState = Navigator.of(context);
     Result<Content> contentCache = Result.success(_informationArgs.content);
 
@@ -138,9 +174,10 @@ class _RefContentkInformationViewState
 
     ifMounted(() async {
       if (_informationArgs.getData) {
-        AutoCache.data.saveJson(key: data.stringID, data: data.map);
+        AutoCache.data.saveJson(key: data.stringID, data: data.toJson());
       }
     });
+    _restorableContent.value = jsonEncode(_content.toJson());
   }
 
   void _handleSetListIndex(int index) async {
@@ -240,6 +277,15 @@ class _RefContentkInformationViewState
   }
 
   @override
+  String? get restorationId => 'content_information';
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(_tabViewIndex, 'tab_index');
+    registerForRestoration(_restorableContent, 'content');
+  }
+
+  @override
   Widget buildByArgument(
     BuildContext context,
     ContentInformationArgs argument,
@@ -261,6 +307,7 @@ class _RefContentkInformationViewState
           // floatHeaderSlivers: true,
           onlyOneScrollInBody: true,
           physics: const AlwaysScrollableScrollPhysics(),
+          restorationId: 'content_scroll',
           key: const PageStorageKey("content_pageStorageKey"),
           headerSliverBuilder: (context, innerBoxIsScrolled) => [
             SliverAppBar(
@@ -344,7 +391,11 @@ class _RefContentkInformationViewState
 
   @override
   void dispose() {
-    _bottomTabController.dispose();
+    _bottomTabController
+      ..removeListener(_tabControllerListener)
+      ..dispose();
+    _tabViewIndex.dispose();
+    _restorableContent.dispose();
     _changeTabBarIndex.cancel();
     _saveData();
     super.dispose();
