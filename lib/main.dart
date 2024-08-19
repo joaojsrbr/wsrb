@@ -12,92 +12,77 @@ import 'package:provider/provider.dart';
 
 @pragma('vm:entry-point')
 void main() async {
-  runZonedGuarded(
-    () async {
-      WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
 
-      MediaKit.ensureInitialized();
-      late final HiveController hiveController;
-      late final AnrollLoginService anrollLoginService;
-      late final ThemeController themeController;
+  MediaKit.ensureInitialized();
 
-      final DioClient dioClient = DioClient();
+  final DioClient dioClient = DioClient();
 
-      Future<void> start(HiveService service) async {
-        hiveController = HiveController(service);
-        anrollLoginService = AnrollLoginService(dioClient, service);
-        themeController = ThemeController(service);
-        await Future.wait(
-            [hiveController.loadAll(), themeController.loadAll()]);
-      }
+  final IsarServiceImpl isarServiceImpl = IsarServiceImpl();
+  final ConnectionChecker connectionChecker = ConnectionChecker();
+  final ValueNotifierList valueNotifierList = ValueNotifierList();
 
-      final IsarServiceImpl isarServiceImpl = IsarServiceImpl();
-      final ConnectionChecker connectionChecker = ConnectionChecker();
-      final ValueNotifierList valueNotifierList = ValueNotifierList();
+  final HiveService hiveServiceImpl = HiveServiceImpl();
+  final HiveController hiveController = HiveController(hiveServiceImpl);
+  // late final AnrollLoginService anrollLoginService;
+  final ThemeController themeController = ThemeController(hiveServiceImpl);
 
-      final HiveService hiveServiceImpl = HiveServiceImpl(start: start);
-      await hiveServiceImpl.init();
+  final HiveCacheServiceImpl hiveCacheServiceImpl = HiveCacheServiceImpl();
 
-      final HiveCacheServiceImpl hiveCacheServiceImpl = HiveCacheServiceImpl();
+  final LibraryController libraryController =
+      LibraryController(isarServiceImpl, hiveController);
 
-      final LibraryController libraryController =
-          LibraryController(isarServiceImpl, hiveController);
+  final HistoricController historicController =
+      HistoricController(isarServiceImpl);
 
-      final HistoricController historicController =
-          HistoricController(isarServiceImpl);
+  final CategoryController categoryController =
+      CategoryController(isarServiceImpl);
 
-      final CategoryController categoryController =
-          CategoryController(isarServiceImpl);
+  Future<void> libraryStart() async {
+    await Future.wait([
+      historicController.start(),
+      categoryController.start(),
+      libraryController.start(),
+    ]);
+  }
 
-      Future<void> libraryStart() async {
-        await Future.wait([
-          historicController.start(),
-          categoryController.start(),
-          libraryController.start(),
-        ]);
-      }
+  await PermissionUtils.manageExternalStorage();
 
-      await PermissionUtils.manageExternalStorage();
+  await Future.wait([
+    themeController.loadAll(),
+    hiveController.loadAll(),
+    hiveServiceImpl.init(),
+    AutoCacheInitializer.initialize(configuration: App.APP_CACHE_CONFIG),
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
+    Workmanager().initialize(callbackDispatcher, isInDebugMode: true),
+    isarServiceImpl.startDatabase(onStart: libraryStart),
+    hiveCacheServiceImpl.init(),
+    PlayerAudioHandlerMixin.startPlayerAudio(),
+    connectionChecker.start(),
+  ]);
 
-      await Future.wait([
-        AutoCacheInitializer.initialize(configuration: App.APP_CACHE_CONFIG),
-        SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
-        Workmanager().initialize(callbackDispatcher, isInDebugMode: true),
-        isarServiceImpl.startDatabase(onStart: libraryStart),
-        hiveCacheServiceImpl.init(),
-        PlayerAudioHandlerMixin.startPlayerAudio(),
-        connectionChecker.start(),
-      ]);
+  final ContentRepository contentRepository =
+      ContentRepository(hiveController, dioClient);
 
-      final ContentRepository contentRepository =
-          ContentRepository(hiveController, dioClient);
-
-      runApp(
-        MultiProvider(
-          providers: [
-            Provider(create: (context) => anrollLoginService),
-            Provider(create: (context) => dioClient),
-            ChangeNotifierProvider(create: (context) => connectionChecker),
-            ChangeNotifierProvider(create: (context) => themeController),
-            ChangeNotifierProvider(create: (context) => hiveController),
-            ChangeNotifierProvider(create: (context) => libraryController),
-            ChangeNotifierProvider(create: (context) => categoryController),
-            ChangeNotifierProvider(create: (context) => historicController),
-            ChangeNotifierProvider(create: (context) => valueNotifierList),
-            ChangeNotifierProvider(create: (context) => DownloadService()),
-            Provider(
-              create: (context) => contentRepository,
-              dispose: (context, repository) => repository.dispose(),
-            ),
-          ],
-          child: const MyApp(),
+  runApp(
+    MultiProvider(
+      providers: [
+        // Provider(create: (context) => anrollLoginService),
+        Provider(create: (context) => dioClient),
+        ChangeNotifierProvider(create: (context) => connectionChecker),
+        ChangeNotifierProvider(create: (context) => themeController),
+        ChangeNotifierProvider(create: (context) => hiveController),
+        ChangeNotifierProvider(create: (context) => libraryController),
+        ChangeNotifierProvider(create: (context) => categoryController),
+        ChangeNotifierProvider(create: (context) => historicController),
+        ChangeNotifierProvider(create: (context) => valueNotifierList),
+        ChangeNotifierProvider(create: (context) => DownloadService()),
+        Provider(
+          create: (context) => contentRepository,
+          dispose: (context, repository) => repository.dispose(),
         ),
-      );
-    },
-    (error, stackTrace) => customLog(
-      error,
-      error: error,
-      stackTrace: stackTrace,
+      ],
+      child: const MyApp(),
     ),
   );
 }

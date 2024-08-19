@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:content_library/content_library.dart';
 import 'package:content_library/src/utils/object_utils.dart';
 import 'package:equatable/equatable.dart';
@@ -34,6 +36,15 @@ abstract class Content extends Equatable with MergeClass<Content> {
     this.anilistMedia,
   });
 
+  factory Content.fromMap(String data) {
+    final map = jsonDecode(data);
+
+    if (map['class'] == 'ANIME') {
+      return Anime.fromMap(map);
+    }
+    return Book.fromMap(map);
+  }
+
   Content copyWith({
     String? title,
     List<Genre>? genres,
@@ -52,7 +63,7 @@ abstract class Content extends Equatable with MergeClass<Content> {
     bool isFavorite = false,
   });
 
-  Map<String, dynamic> get map => {
+  Map<String, dynamic> toJson() => {
         "anilistMedia":
             anilistMedia != null ? AnilistMedia.toJson(anilistMedia!) : null,
         "releases": _releases.toMap,
@@ -62,5 +73,5 @@ abstract class Content extends Equatable with MergeClass<Content> {
       };
 
   @override
-  List<Object?> get props => map.values.toList();
+  List<Object?> get props => toJson().values.toList();
 }
