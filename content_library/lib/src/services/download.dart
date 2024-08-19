@@ -1,8 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:async';
 import 'dart:io';
 
 import 'package:content_library/content_library.dart';
 import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter/ffprobe_kit.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:ffmpeg_kit_flutter/statistics.dart';
 import 'package:flutter/foundation.dart';
@@ -74,8 +76,42 @@ class DownloadService extends ChangeNotifier {
               '${releaseDir.path}/episodio_${release.number}.mp4',
             ];
 
+            final Completer completer = Completer();
+
+            await FFprobeKit.getMediaInformationFromCommand(
+              [
+                for (final header
+                    in (selected.httpHeaders ?? <String, String>{}).entries)
+                  '-headers "${header.key.capitalize}: ${header.value}"',
+                '-i',
+                '"${selected.videoContent}"'
+              ].join(' '),
+            ).then((session) async {
+              final output = await session.getOutput();
+              final RegExp rgDuration = RegExp(r"(Duration:).*[0-9](, start)");
+
+              if (output != null) {
+                final duration = rgDuration
+                    .stringMatch(output)
+                    ?.replaceAll(', start', '')
+                    .replaceAll('Duration:', '')
+                    .trim();
+
+                final info = DownloadInfo(
+                  path: '${releaseDir.path}/episodio_${release.number}.mp4',
+                  id: -1,
+                  releaseId: release.stringID,
+                  isDownloading: false,
+                  videoDuration: duration?.parseDuration(),
+                );
+                downloadList.add(info);
+                completer.complete();
+                notifyListeners();
+              }
+            });
+
+            await completer.future;
             customLog(args.join(' '));
-            // return;
 
             await FFmpegKit.executeAsync(
               args.join(' '),
@@ -101,7 +137,9 @@ class DownloadService extends ChangeNotifier {
                   onResult?.call(Result.failure(Exception(returnCode)));
                 }
               },
-              (test) => customLog(test.getMessage()),
+              (test) {
+                // customLog(test.getMessage());
+              },
               (status) async {
                 (downloadList.firstWhere(
                   (info) => info.releaseId == release.stringID,
@@ -117,6 +155,8 @@ class DownloadService extends ChangeNotifier {
                     return info;
                   },
                 )).setValue(
+                  time: status.getTime(),
+                  id: status.getSessionId(),
                   isDownloading: true,
                   speed: status.getSpeed(),
                   bitrate: status.getBitrate(),
@@ -152,11 +192,15 @@ class DownloadInfo with ChangeNotifier {
   double speed;
   double bitrate;
   String path;
+  Duration? videoDuration;
+  double time;
 
   DownloadInfo({
     required this.id,
     required this.releaseId,
     required this.path,
+    this.videoDuration,
+    this.time = 0.0,
     this.bitrate = 0.0,
     this.speed = 0.0,
     this.isDownloading = false,
@@ -164,23 +208,28 @@ class DownloadInfo with ChangeNotifier {
 
   void setValue({
     int? id,
+    double? time,
     bool? isDownloading,
     String? releaseId,
     double? speed,
     double? bitrate,
+    Duration? videoDuration,
   }) {
+    this.videoDuration = videoDuration ?? this.videoDuration;
     this.id = id ?? this.id;
+    this.time = time ?? this.time;
     this.speed = speed ?? this.speed;
     this.bitrate = bitrate ?? this.bitrate;
     this.releaseId = releaseId ?? this.releaseId;
     this.isDownloading = isDownloading ?? this.isDownloading;
 
     notifyListeners();
-    customLog(toString());
+    // customLog(toString());
+    // customLog(this.time ~/ (videoDuration?.inMilliseconds ?? 0.0));
   }
 
   @override
   String toString() {
-    return 'DownloadInfo(id: $id, isDownloading: $isDownloading, speed: $speed, bitrate: $bitrate)';
+    return 'DownloadInfo(id: $id, isDownloading: $isDownloading, releaseId: $releaseId, speed: $speed, bitrate: $bitrate, videoDuration: $videoDuration, time: $time)';
   }
 }

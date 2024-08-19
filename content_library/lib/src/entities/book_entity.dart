@@ -39,7 +39,7 @@ class BookEntity extends ContentEntity {
   String? mediumImage;
 
   @override
-  Map<String, dynamic> get map => {
+  Map<String, dynamic> toMap() => {
         "anilistMedia": anilistMedia,
         "stringID": stringID,
         "alternativeTitle": alternativeTitle,

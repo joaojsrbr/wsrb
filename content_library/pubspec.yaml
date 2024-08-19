@@ -35,8 +35,8 @@ dependencies:
   flutter_auto_cache: ^0.0.4
   anilist_dart:
     git: https://github.com/joaojsrbr/anilist_dart
-  dio_proxy_adapter:
-    git: https://github.com/SherlockHolmes2045/dio-proxy-adapter
+  # dio_proxy_adapter:
+  #   git: https://github.com/SherlockHolmes2045/dio-proxy-adapter
 
 
   # belatuk_merge_map: ^5.2.0

@@ -70,6 +70,7 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
                           value: downloadInfo,
                           builder: (context, child) {
                             final downloadInfo = context.watch<DownloadInfo?>();
+
                             return GestureDetector(
                               onDoubleTap: release is Episode &&
                                       release.sinopse?.isNotEmpty == true
@@ -171,11 +172,17 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
                                           );
                                           if (result == true &&
                                               downloadInfo?.id != null) {
-                                            downloadService
+                                            await downloadService
                                                 .cancelReleaseDownload(
                                               content: content,
                                               release: release,
                                               sessionId: downloadInfo!.id,
+                                            );
+
+                                            await downloadService
+                                                .deleteReleaseFile(
+                                              content: content,
+                                              release: release,
                                             );
                                           }
                                         }
@@ -229,15 +236,47 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
                                               downloadRelease(release);
                                             },
                                   icon: downloadInfo?.isDownloading == true
-                                      ? const SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator
-                                              .adaptive(
-                                            strokeAlign: -2,
-                                            strokeWidth: 3,
-                                          ),
-                                        )
+                                      ? downloadInfo?.videoDuration != null &&
+                                              (downloadInfo?.time ?? 0) > 0.0
+                                          ? SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: TweenAnimationBuilder(
+                                                curve: Curves.easeInOut,
+                                                duration: Duration.zero,
+                                                tween: Tween<double>(
+                                                  begin: 0.0,
+                                                  end: (((downloadInfo!.time *
+                                                              100) /
+                                                          downloadInfo
+                                                              .videoDuration!
+                                                              .inMilliseconds) /
+                                                      100),
+                                                ),
+                                                builder: (
+                                                  context,
+                                                  value,
+                                                  child,
+                                                ) {
+                                                  customLog(value);
+                                                  return CircularProgressIndicator
+                                                      .adaptive(
+                                                    value: value,
+                                                    strokeAlign: -2,
+                                                    strokeWidth: 3,
+                                                  );
+                                                },
+                                              ),
+                                            )
+                                          : const SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: CircularProgressIndicator
+                                                  .adaptive(
+                                                strokeAlign: -2,
+                                                strokeWidth: 3,
+                                              ),
+                                            )
                                       : Icon(
                                           MdiIcons.downloadCircle,
                                           color:

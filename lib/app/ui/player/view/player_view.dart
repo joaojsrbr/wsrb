@@ -220,8 +220,11 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     playerAudioHandler.setPlayerController = this;
 
     if (onInit) {
-      setPlayer = Player(configuration: const PlayerConfiguration());
-      _videoController = VideoController(player!);
+      setPlayer = Player(configuration: const PlayerConfiguration(pitch: true));
+      _videoController = VideoController(
+        player!,
+        configuration: const VideoControllerConfiguration(),
+      );
     }
 
     List<Future> futures = [
@@ -430,7 +433,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     _overlayNextEpisode.value = null;
     customLog('[$runtimeType][_handleOnTapEpisode()][${episode.title}]');
 
-    await _saveVideoPosition();
+    await _saveVideoPosition(() async {
+      await setSessionActive(false);
+    });
 
     final file = AppStorage.getReleaseFile(_playerArgs.anime, episode);
 
@@ -615,171 +620,159 @@ class _Content extends StatelessWidget {
     } else if (videoController != null) {
       children.addAll([
         Expanded(
-          flex: 2,
-          child: DraggableScrollableSheet(
-            minChildSize: 0.8,
-            controller: scope.draggableScrollableController,
-            initialChildSize: 1.0,
-            builder: (context, scrollController) {
-              return Column(
-                children: [
-                  Flexible(
-                    flex: 1,
-                    child: PipWidget(
-                      onPipAction: scope.onPipAction,
-                      onPipEntered: scope.onPipChange,
-                      onPipExited: scope.onPipChange,
-                      pipLayout: PipActionsLayout.media_only_pause,
-                      pipChild: Video(
-                        aspectRatio: 16 / 9,
-                        fit: activeFit,
-                        controls: (state) => const SizedBox.shrink(),
-                        controller: videoController,
-                      ),
-                      child: Video(
-                        filterQuality: FilterQuality.medium,
-                        aspectRatio: 16 / 9,
-                        onEnterFullscreen: scope.isPipActivated
-                            ? () async {}
-                            : () async {
-                                await SystemChrome.setPreferredOrientations([
-                                  DeviceOrientation.landscapeLeft,
-                                  DeviceOrientation.landscapeRight,
-                                ]);
-                                SystemChrome.setEnabledSystemUIMode(
-                                  SystemUiMode.immersive,
-                                );
-                              },
-                        onExitFullscreen: scope.isPipActivated
-                            ? () async {}
-                            : () async {
-                                await SystemChrome.setPreferredOrientations(
-                                  [DeviceOrientation.portraitUp],
-                                );
-                              },
-                        fit: activeFit,
-                        controls: (state) {
-                          final PlayerScope scopeFullScreen = PlayerScope.of(
-                              PlayerView.videoStateKey.currentContext!);
-                          if (!scopeFullScreen.isPipActivated) {
-                            return CustomMaterialControls(state);
-                          }
-                          return const SizedBox.shrink();
-                        },
-                        key: PlayerView.videoStateKey,
-                        controller: videoController,
-                      ),
-                    ),
+          flex: 1,
+          child: Column(
+            children: [
+              Flexible(
+                child: PipWidget(
+                  onPipAction: scope.onPipAction,
+                  onPipEntered: scope.onPipChange,
+                  onPipExited: scope.onPipChange,
+                  pipLayout: PipActionsLayout.media_only_pause,
+                  pipChild: Video(
+                    aspectRatio: 16 / 9,
+                    fit: activeFit,
+                    controls: (state) => const SizedBox.shrink(),
+                    controller: videoController,
                   ),
-                  if (!scope.isPipActivated)
-                    Expanded(
-                      flex: 2,
-                      child: ListView.separated(
-                        controller: scrollController,
-                        shrinkWrap: true,
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.only(top: 18, bottom: 18),
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 10),
-                        itemCount: playerArgs.anime.releases.length,
-                        itemBuilder: (context, index) {
-                          final Episode episode = playerArgs
-                              .anime.releases.reversed
-                              .elementAt(index);
-                          final String? thumbnail = episode.thumbnail;
+                  child: Video(
+                    filterQuality: FilterQuality.medium,
+                    aspectRatio: 16 / 9,
+                    onEnterFullscreen: scope.isPipActivated
+                        ? () async {}
+                        : () async {
+                            await SystemChrome.setPreferredOrientations([
+                              DeviceOrientation.landscapeLeft,
+                              DeviceOrientation.landscapeRight,
+                            ]);
+                            SystemChrome.setEnabledSystemUIMode(
+                              SystemUiMode.immersive,
+                            );
+                          },
+                    onExitFullscreen: scope.isPipActivated
+                        ? () async {}
+                        : () async {
+                            await SystemChrome.setPreferredOrientations(
+                              [DeviceOrientation.portraitUp],
+                            );
+                          },
+                    fit: activeFit,
+                    controls: (state) {
+                      final PlayerScope scopeFullScreen = PlayerScope.of(
+                          PlayerView.videoStateKey.currentContext!);
+                      if (!scopeFullScreen.isPipActivated) {
+                        return CustomMaterialControls(state);
+                      }
+                      return const SizedBox.shrink();
+                    },
+                    key: PlayerView.videoStateKey,
+                    controller: videoController,
+                  ),
+                ),
+              ),
+              if (!scope.isPipActivated &&
+                  (playerArgs.getAnimeData && !playerArgs.forceEnterFullScreen))
+                Expanded(
+                  flex: 2,
+                  child: ListView.separated(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(top: 18, bottom: 18),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 10),
+                    itemCount: playerArgs.anime.releases.length,
+                    itemBuilder: (context, index) {
+                      final Episode episode =
+                          playerArgs.anime.releases.reversed.elementAt(index);
+                      final String? thumbnail = episode.thumbnail;
 
-                          return ListTile(
-                            selected: episode.stringID
-                                .contains(playerArgs.episode.stringID),
-                            leading: SizedBox(
-                              width: 112,
-                              height: double.infinity,
-                              child: thumbnail != null
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: CachedNetworkImage(
-                                        imageUrl: thumbnail,
-                                        placeholder: (context, url) =>
-                                            const Card.filled(),
-                                        fit: BoxFit.cover,
-                                        maxWidthDiskCache: 300,
-                                        maxHeightDiskCache: 200,
-                                      ),
-                                    )
-                                  : const Card.filled(),
-                            ),
-                            titleTextStyle: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                    fontSize: 13, fontWeight: FontWeight.bold),
-                            onTap: () async {
-                              customLog(
-                                'tapped name: ${episode.title} - id: ${episode.stringID}',
-                              );
-                              scope.onTapEpisode(episode);
-                            },
-                            onLongPress: episode.sinopse?.isNotEmpty == true
-                                ? () {
-                                    showModalBottomSheet(
-                                      isScrollControlled: false,
-                                      isDismissible: true,
-                                      showDragHandle: true,
-                                      useRootNavigator: true,
-                                      context: context,
-                                      builder: (context) {
-                                        return Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                vertical: 12.0,
-                                              ),
-                                              child: Text(
-                                                'Sinopse',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .titleLarge
-                                                    ?.copyWith(
-                                                        fontWeight:
-                                                            FontWeight.bold),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 16,
-                                              ),
-                                              child: Text(
-                                                episode.sinopse!.trim(),
-                                                textAlign: TextAlign.justify,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyMedium,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 30),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  }
-                                : null,
-                            visualDensity: const VisualDensity(
-                                vertical: 2, horizontal: -2),
-                            title: Text(
-                              '${episode.number}. ${episode.title}',
-                            ),
+                      return ListTile(
+                        selected: episode.stringID
+                            .contains(playerArgs.episode.stringID),
+                        leading: SizedBox(
+                          width: 112,
+                          height: double.infinity,
+                          child: thumbnail != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: CachedNetworkImage(
+                                    imageUrl: thumbnail,
+                                    placeholder: (context, url) =>
+                                        const Card.filled(),
+                                    fit: BoxFit.cover,
+                                    maxWidthDiskCache: 300,
+                                    maxHeightDiskCache: 200,
+                                  ),
+                                )
+                              : const Card.filled(),
+                        ),
+                        titleTextStyle: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                                fontSize: 13, fontWeight: FontWeight.bold),
+                        onTap: () async {
+                          customLog(
+                            'tapped name: ${episode.title} - id: ${episode.stringID}',
                           );
+                          scope.onTapEpisode(episode);
                         },
-                      ),
-                    ),
-                ],
-              );
-            },
+                        onLongPress: episode.sinopse?.isNotEmpty == true
+                            ? () {
+                                showModalBottomSheet(
+                                  isScrollControlled: false,
+                                  isDismissible: true,
+                                  showDragHandle: true,
+                                  useRootNavigator: true,
+                                  context: context,
+                                  builder: (context) {
+                                    return Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 12.0,
+                                          ),
+                                          child: Text(
+                                            'Sinopse',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleLarge
+                                                ?.copyWith(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                          ),
+                                          child: Text(
+                                            episode.sinopse!.trim(),
+                                            textAlign: TextAlign.justify,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 30),
+                                      ],
+                                    );
+                                  },
+                                );
+                              }
+                            : null,
+                        visualDensity:
+                            const VisualDensity(vertical: 2, horizontal: -2),
+                        title: Text(
+                          '${episode.number}. ${episode.title}',
+                        ),
+                      );
+                    },
+                  ),
+                ),
+            ],
           ),
         ),
       ]);

@@ -27,14 +27,14 @@ mixin MergeClass<T extends Content> {
   }
 }
 mixin MergeClassEntity<T extends ContentEntity> on Entity {
-  Map<String, dynamic> get map;
+  Map<String, dynamic> toMap();
 
   T merge(T other) {
     if (identical(runtimeType, other.runtimeType)) {
       switch (this) {
         case AnimeEntity data when other is AnimeEntity:
-          final Map<String, dynamic> map1 = data.map;
-          final Map<String, dynamic> map2 = other.map;
+          final Map<String, dynamic> map1 = data.toMap();
+          final Map<String, dynamic> map2 = other.toMap();
 
           final merged = mergeMap([map1, map2], acceptNull: true);
 
@@ -65,8 +65,8 @@ mixin MergeClassEntity<T extends ContentEntity> on Entity {
           return obj as T;
 
         case BookEntity data when other is BookEntity:
-          final Map<String, dynamic> map1 = data.map;
-          final Map<String, dynamic> map2 = other.map;
+          final Map<String, dynamic> map1 = data.toMap();
+          final Map<String, dynamic> map2 = other.toMap();
 
           final merged = mergeMap([map1, map2], acceptNull: true);
 

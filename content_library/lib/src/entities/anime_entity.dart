@@ -71,7 +71,7 @@ class AnimeEntity extends ContentEntity {
       extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   @override
-  Map<String, dynamic> get map => {
+  Map<String, dynamic> toMap() => {
         "stringID": stringID,
         "totalOfPages": totalOfPages,
         "totalOfEpisodes": totalOfEpisodes,

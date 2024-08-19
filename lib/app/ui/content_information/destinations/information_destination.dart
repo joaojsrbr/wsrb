@@ -352,57 +352,61 @@ class _InformationDestinationState extends State<InformationDestination>
               SizedBox(
                 height: 160,
                 width: double.infinity,
-                child: ListView.builder(
-                  itemCount: _content.anilistMedia?.characters?.nodes?.length,
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  itemBuilder: (context, index) {
-                    final personagem =
-                        _content.anilistMedia?.characters?.nodes![index];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: GestureDetector(
-                        onLongPress: () async {
-                          copyToClipboard(
-                            context,
-                            messageCopy: personagem.name!.full!.trim(),
-                            messageSnackBar:
-                                'Copiado para a área de transferência!',
-                          );
-                          await Feedback.forLongPress(context);
-                        },
-                        child: SizedBox(
-                          width: 120,
-                          child: Column(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: CachedNetworkImage(
-                                  fit: BoxFit.cover,
-                                  height: 140,
-                                  maxHeightDiskCache: 400,
-                                  maxWidthDiskCache: 200,
-                                  width: 120,
-                                  imageUrl: personagem!.image!.large!,
+                child: Builder(builder: (context) {
+                  final list = _content.anilistMedia?.characters?.nodes
+                      ?.unique((staff) => staff.name!.full!);
+                  if (list == null) return const SizedBox.shrink();
+                  return ListView.builder(
+                    itemCount: list.length,
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    itemBuilder: (context, index) {
+                      final personagem = list.elementAt(index);
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: GestureDetector(
+                          onLongPress: () async {
+                            copyToClipboard(
+                              context,
+                              messageCopy: personagem.name!.full!.trim(),
+                              messageSnackBar:
+                                  'Copiado para a área de transferência!',
+                            );
+                            await Feedback.forLongPress(context);
+                          },
+                          child: SizedBox(
+                            width: 120,
+                            child: Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: CachedNetworkImage(
+                                    fit: BoxFit.cover,
+                                    height: 140,
+                                    maxHeightDiskCache: 400,
+                                    maxWidthDiskCache: 200,
+                                    width: 120,
+                                    imageUrl: personagem.image!.large!,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Flexible(
-                                child: Text(
-                                  personagem.name!.full!,
-                                  style: themeData.textTheme.titleSmall,
-                                  textAlign: TextAlign.start,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
+                                const SizedBox(height: 2),
+                                Flexible(
+                                  child: Text(
+                                    personagem.name!.full!,
+                                    style: themeData.textTheme.titleSmall,
+                                    textAlign: TextAlign.start,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  );
+                }),
               ),
             ],
           ),
@@ -424,56 +428,61 @@ class _InformationDestinationState extends State<InformationDestination>
               SizedBox(
                 height: 160,
                 width: double.infinity,
-                child: ListView.builder(
-                  itemCount: _content.anilistMedia?.staff?.nodes?.length,
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  itemBuilder: (context, index) {
-                    final staff = _content.anilistMedia?.staff?.nodes![index];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: GestureDetector(
-                        onLongPress: () async {
-                          copyToClipboard(
-                            context,
-                            messageCopy: staff.name!.full!.trim(),
-                            messageSnackBar:
-                                'Copiado para a área de transferência!',
-                          );
-                          await Feedback.forLongPress(context);
-                        },
-                        child: SizedBox(
-                          width: 120,
-                          child: Column(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: CachedNetworkImage(
-                                  fit: BoxFit.cover,
-                                  height: 140,
-                                  maxHeightDiskCache: 400,
-                                  maxWidthDiskCache: 200,
-                                  width: 120,
-                                  imageUrl: staff!.image!.large!,
+                child: Builder(builder: (context) {
+                  final list = _content.anilistMedia?.staff?.nodes
+                      ?.unique((staff) => staff.name!.full!);
+                  if (list == null) return const SizedBox.shrink();
+                  return ListView.builder(
+                    itemCount: list.length,
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    itemBuilder: (context, index) {
+                      final staff = list.elementAt(index);
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: GestureDetector(
+                          onLongPress: () async {
+                            copyToClipboard(
+                              context,
+                              messageCopy: staff.name!.full!.trim(),
+                              messageSnackBar:
+                                  'Copiado para a área de transferência!',
+                            );
+                            await Feedback.forLongPress(context);
+                          },
+                          child: SizedBox(
+                            width: 120,
+                            child: Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: CachedNetworkImage(
+                                    fit: BoxFit.cover,
+                                    height: 140,
+                                    maxHeightDiskCache: 400,
+                                    maxWidthDiskCache: 200,
+                                    width: 120,
+                                    imageUrl: staff.image!.large!,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Flexible(
-                                child: Text(
-                                  staff.name!.full!,
-                                  style: themeData.textTheme.titleSmall,
-                                  textAlign: TextAlign.start,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
+                                const SizedBox(height: 2),
+                                Flexible(
+                                  child: Text(
+                                    staff.name!.full!,
+                                    style: themeData.textTheme.titleSmall,
+                                    textAlign: TextAlign.start,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  );
+                }),
               ),
             ],
           ),

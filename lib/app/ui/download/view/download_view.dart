@@ -277,7 +277,10 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
                               border: selected
-                                  ? Border.all(color: Colors.white, width: 1.5)
+                                  ? Border.all(
+                                      color:
+                                          const Color.fromARGB(255, 19, 15, 15),
+                                      width: 1.5)
                                   : null),
                           child: Stack(
                             children: [
@@ -366,7 +369,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                                                 RouteName.PLAYER,
                                                 extra: PlayerArgs(
                                                   getAnimeData: false,
-                                                  forceEnterFullScreen: false,
+                                                  forceEnterFullScreen: true,
                                                   startPossition:
                                                       episode.currentDuration >
                                                               0

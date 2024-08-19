@@ -2,12 +2,18 @@ import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+extension CustomIterable<E, Id> on Iterable<E> {
+  Iterable<E> unique([Id Function(E element)? id, bool inplace = true]) {
+    final ids = <dynamic>{};
+    var list = inplace ? toList() : List<E>.from(this);
+    list.retainWhere((x) => ids.add(id != null ? id(x) : x as Id));
+    return list;
+  }
+}
+
 extension CustomListExtensions<E, Id> on List<E> {
   bool get isNull {
-    for (final element in this) {
-      if (element == null) return true;
-    }
-    return false;
+    return contains(null);
   }
 
   List<E> reverse(bool reverse) {
