@@ -200,7 +200,15 @@ class _LibraryButtons extends StatelessWidget {
                               valueNotifierList.contains(element.stringID))
                           .toList()
                           .unique((content) => content.stringID);
-                      final contentEntities = allSelected
+                      valueNotifierList.clear();
+
+                      final contentEntities = (await Future.wait(
+                        allSelected.map(
+                          (content) => repository.getData(content).then(
+                              (result) =>
+                                  result.fold(onSuccess: (success) => success)),
+                        ),
+                      ))
                           .map(
                             (e) => switch (e) {
                               Anime data => data.toEntity(isFavorite: true),
@@ -214,7 +222,6 @@ class _LibraryButtons extends StatelessWidget {
                       await libraryController.addAll(
                         contentEntities: contentEntities,
                       );
-                      valueNotifierList.clear();
                     },
                     icon: FadeThroughTransitionSwitcher(
                       enableSecondChild: valueNotifierList.length > 1,

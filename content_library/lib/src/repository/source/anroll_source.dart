@@ -19,7 +19,8 @@ class AnrollSource extends RSource {
     if (release is! Episode) {
       return Result.failure(
         AnimeGetDataException(
-            message: "A instancia content precisa ser do tipo Episode"),
+          message: "A instancia content precisa ser do tipo Episode",
+        ),
       );
     }
 
@@ -38,7 +39,7 @@ class AnrollSource extends RSource {
     }
 
     final videoContent =
-        'https://cdn-zenitsu-gamabunta.b-cdn.net/cf/hls/animes/${release.slugSerie}/$stringNumber.mp4/media-1/stream.m3u8';
+        'https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/animes/${release.slugSerie}/$stringNumber.mp4/media-1/stream.m3u8';
 
     data.add(
       Data.videoData(
@@ -218,13 +219,13 @@ class AnrollSource extends RSource {
   }
 
   Future<String> getBuildId() async {
-    final Response responseTest = await contentRepository._dio.get(
+    final Response response = await contentRepository._dio.get(
       BASE_URL,
       responseType: ResponseType.plain,
     );
 
     final Element? element =
-        parse(responseTest.data).querySelector('#__NEXT_DATA__');
+        parse(response.data).querySelector('#__NEXT_DATA__');
 
     if (element == null) {
       throw AnrollGetIdException();

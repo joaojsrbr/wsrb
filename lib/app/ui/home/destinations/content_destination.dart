@@ -78,6 +78,7 @@ class _ContentDestinationState extends State<ContentDestination>
                       itemBuilder: _itemBuilder,
                       sourceList: _contentRepository,
                     ),
+                    key: const PageStorageKey("content_destination"),
                   ),
           );
         }),

@@ -12,7 +12,6 @@ import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switc
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:content_library/content_library.dart';
-import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_auto_cache/flutter_auto_cache.dart';
 import 'package:go_router/go_router.dart';
@@ -135,13 +134,13 @@ class _RefContentkInformationViewState
       onSuccess: _onSuccess,
     );
 
-    if (contentCache is Success && _informationArgs.getData) {
-      addPostFrameCallback((timer) {
-        _repository.getData(_content).then((result) {
-          result.fold(onSuccess: _onSuccess);
-        });
-      });
-    }
+    // if (contentCache is Success && _informationArgs.getData) {
+    //   addPostFrameCallback((timer) {
+    //     _repository.getData(_content).then((result) {
+    //       result.fold(onSuccess: _onSuccess);
+    //     });
+    //   });
+    // }
   }
 
   void _onSuccess(Content data, [bool refresh = false]) {
@@ -303,86 +302,98 @@ class _RefContentkInformationViewState
       content: !_isLoading ? _content : argument.content,
       releasesIsLoading: _releasesIsLoading,
       builder: (context) => Scaffold(
-        body: ExtendedNestedScrollView(
-          // floatHeaderSlivers: true,
-          onlyOneScrollInBody: true,
-          physics: const AlwaysScrollableScrollPhysics(),
-          restorationId: 'content_scroll',
-          key: const PageStorageKey("content_pageStorageKey"),
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverAppBar(
-              expandedHeight: sizeOf.height * .40,
-              flexibleSpace: const FlexibleSpaceBar(
-                background: ContentHeader(),
-                stretchModes: [],
-                collapseMode: CollapseMode.pin,
-              ),
-              actions: [
-                Builder(builder: (context) {
-                  final libraryService = LibraryService(
-                    context.watch(),
-                    context.watch(),
-                  );
-                  return IconButton(
-                    onPressed: () {
-                      customLog(
-                          'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${_content.title} - id: ${_content.stringID}');
-                      if (libraryService.favoritesIDS
-                          .contains(_content.stringID)) {
-                        _libraryController.remove(
-                            contentEntity: _content.toEntity());
-                      } else {
-                        _libraryController.add(
-                          contentEntity: _content.toEntity(isFavorite: true),
-                        );
-                      }
-                    },
-                    icon: FadeThroughTransitionSwitcher(
-                      enableSecondChild: libraryService.favoritesIDS.contains(
-                        _content.stringID,
-                      ),
-                      secondChild: Icon(MdiIcons.heart, color: Colors.red),
-                      child: Icon(MdiIcons.heartOutline),
-                    ),
-                  );
-                }),
-              ],
-              bottom: TabBar(
-                indicatorSize: TabBarIndicatorSize.tab,
-                tabAlignment: TabAlignment.fill,
-                controller: _bottomTabController,
-                tabs: ContentTabBar.values
-                    .map(
-                      (e) => Tab(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(e.getIconData(_content)),
-                            const SizedBox(width: 8),
-                            Center(child: Text(e.getTitle(_content))),
-                          ],
+        body: RefreshIndicator(
+          notificationPredicate: (notification) {
+            // with NestedScrollView local(depth == 2)
+            if (notification is OverscrollNotification) {
+              return notification.depth == 2;
+            }
+            return notification.depth == 0;
+          },
+          onRefresh: () async {
+            await _repository.getData(_content).then((result) {
+              result.fold(onSuccess: _onSuccess);
+            });
+          },
+          child: NestedScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            floatHeaderSlivers: true,
+            restorationId: 'content_scroll',
+            key: const PageStorageKey("content_pageStorageKey"),
+            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+              SliverAppBar(
+                expandedHeight: sizeOf.height * .40,
+                flexibleSpace: const FlexibleSpaceBar(
+                  background: ContentHeader(),
+                  collapseMode: CollapseMode.parallax,
+                ),
+                actions: [
+                  Builder(builder: (context) {
+                    final libraryService = LibraryService(
+                      context.watch(),
+                      context.watch(),
+                    );
+                    return IconButton(
+                      onPressed: () {
+                        customLog(
+                            'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${_content.title} - id: ${_content.stringID}');
+                        if (libraryService.favoritesIDS
+                            .contains(_content.stringID)) {
+                          _libraryController.remove(
+                              contentEntity: _content.toEntity());
+                        } else {
+                          _libraryController.add(
+                            contentEntity: _content.toEntity(isFavorite: true),
+                          );
+                        }
+                      },
+                      icon: FadeThroughTransitionSwitcher(
+                        enableSecondChild: libraryService.favoritesIDS.contains(
+                          _content.stringID,
                         ),
+                        secondChild: Icon(MdiIcons.heart, color: Colors.red),
+                        child: Icon(MdiIcons.heartOutline),
                       ),
-                    )
-                    .toList(),
+                    );
+                  }),
+                ],
+                bottom: TabBar(
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  tabAlignment: TabAlignment.fill,
+                  controller: _bottomTabController,
+                  tabs: ContentTabBar.values
+                      .map(
+                        (e) => Tab(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(e.getIconData(_content)),
+                              const SizedBox(width: 8),
+                              Center(child: Text(e.getTitle(_content))),
+                            ],
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
               ),
+            ],
+            body: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 350),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : TabBarView(
+                      physics: _isLoading
+                          ? const NeverScrollableScrollPhysics()
+                          : const PageScrollPhysics(),
+                      controller: _bottomTabController,
+                      children: const [
+                        InformationDestination(),
+                        ReleaseDestination(),
+                      ],
+                    ),
             ),
-          ],
-          body: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 350),
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : TabBarView(
-                    physics: _isLoading
-                        ? const NeverScrollableScrollPhysics()
-                        : const PageScrollPhysics(),
-                    controller: _bottomTabController,
-                    children: const [
-                      InformationDestination(),
-                      ReleaseDestination(),
-                    ],
-                  ),
           ),
         ),
       ),

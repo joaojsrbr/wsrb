@@ -32,336 +32,315 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
     final DownloadService downloadService = context.watch<DownloadService>();
     final bool releasesIsLoading = ContentScope.releasesIsLoadingOf(context);
     final HiveController hiveController = context.watch<HiveController>();
-
     return ListView(
-      // shrinkWrap: true,
-      padding: EdgeInsets.zero,
+      shrinkWrap: true,
+      padding: const EdgeInsets.only(top: 4),
       physics: const NeverScrollableScrollPhysics(),
       children: [
         const _ReleasePagination(),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 350),
-          child: releasesIsLoading
-              ? const SizedBox(
-                  height: 200,
-                  child: Center(child: CircularProgressIndicator.adaptive()),
-                )
-              : Column(
-                  children: List.generate(
-                    content.releases.length,
-                    (index) {
-                      final release = content.releases
-                          .reverse(hiveController.reverseContents)
-                          .elementAt(index);
+        if (releasesIsLoading)
+          const SizedBox(
+            height: 200,
+            child: Center(child: CircularProgressIndicator.adaptive()),
+          )
+        else
+          ...List.generate(
+            content.releases.length,
+            (index) {
+              final release = content.releases
+                  .reverse(hiveController.reverseContents)
+                  .elementAt(index);
 
-                      final releaseFile =
-                          AppStorage.getReleaseFile(content, release);
+              final releaseFile = AppStorage.getReleaseFile(content, release);
 
-                      final DownloadInfo? downloadInfo =
-                          downloadService.downloadList.firstWhereOrNull(
-                        (info) => info.releaseId.contains(release.stringID),
-                      );
+              final DownloadInfo? downloadInfo =
+                  downloadService.downloadList.firstWhereOrNull(
+                (info) => info.releaseId.contains(release.stringID),
+              );
 
-                      final downloaded = releaseFile?.existsSync() ?? false;
+              final downloaded = releaseFile?.existsSync() ?? false;
 
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: ChangeNotifierProvider.value(
-                          value: downloadInfo,
-                          builder: (context, child) {
-                            final downloadInfo = context.watch<DownloadInfo?>();
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: ChangeNotifierProvider.value(
+                  value: downloadInfo,
+                  builder: (context, child) {
+                    final downloadInfo = context.watch<DownloadInfo?>();
 
-                            return GestureDetector(
-                              onDoubleTap: release is Episode &&
-                                      release.sinopse?.isNotEmpty == true
-                                  ? () {
-                                      showModalBottomSheet(
-                                        isScrollControlled: false,
-                                        isDismissible: true,
-                                        showDragHandle: true,
-                                        useRootNavigator: true,
+                    return GestureDetector(
+                      onDoubleTap: release is Episode &&
+                              release.sinopse?.isNotEmpty == true
+                          ? () {
+                              showModalBottomSheet(
+                                isScrollControlled: false,
+                                isDismissible: true,
+                                showDragHandle: true,
+                                useRootNavigator: true,
+                                context: context,
+                                builder: (context) {
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 12.0,
+                                        ),
+                                        child: Text(
+                                          'Sinopse',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleLarge
+                                              ?.copyWith(
+                                                  fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                        ),
+                                        child: Text(
+                                          release.sinopse!.trim(),
+                                          textAlign: TextAlign.justify,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 30),
+                                    ],
+                                  );
+                                },
+                              );
+                            }
+                          : null,
+                      child: ListTile(
+                        dense: true,
+                        isThreeLine: false,
+                        subtitle: downloadInfo?.isDownloading == true &&
+                                (downloadInfo?.speed ?? 0) > 0.0
+                            ? Text(
+                                'speed: ${downloadInfo?.speed.toStringAsFixed(2)}')
+                            : const Text(''),
+                        horizontalTitleGap: 20,
+                        contentPadding: const EdgeInsets.only(
+                          left: 16.0,
+                          right: 8,
+                        ),
+                        trailing: IconButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: downloadInfo?.isDownloading == true &&
+                                  !downloaded
+                              ? () async {
+                                  final result = await showAdaptiveDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: Text(
+                                            'Cancelar download do episódio ${release.number} ?'),
+                                        actionsAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(context)
+                                                    .pop(false),
+                                            child: const Text('NÃO'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(true),
+                                            child: const Text(
+                                              'SIM',
+                                              style:
+                                                  TextStyle(color: Colors.red),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                  if (result == true &&
+                                      downloadInfo?.id != null) {
+                                    await downloadService.cancelReleaseDownload(
+                                      content: content,
+                                      release: release,
+                                      sessionId: downloadInfo!.id,
+                                    );
+
+                                    await downloadService.deleteReleaseFile(
+                                      content: content,
+                                      release: release,
+                                    );
+                                  }
+                                }
+                              : downloaded
+                                  ? () async {
+                                      final result = await showAdaptiveDialog(
                                         context: context,
                                         builder: (context) {
-                                          return Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  vertical: 12.0,
-                                                ),
-                                                child: Text(
-                                                  'Sinopse',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .titleLarge
-                                                      ?.copyWith(
-                                                          fontWeight:
-                                                              FontWeight.bold),
+                                          return AlertDialog(
+                                            title: Text(
+                                                'Deseja deletar o arquivo ${release.number} ?'),
+                                            actionsAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(context)
+                                                        .pop(false),
+                                                child: const Text(
+                                                  'NÃO',
+                                                  style: TextStyle(
+                                                      color: Colors.red),
                                                 ),
                                               ),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 16,
-                                                ),
-                                                child: Text(
-                                                  release.sinopse!.trim(),
-                                                  textAlign: TextAlign.justify,
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyMedium,
-                                                ),
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(context)
+                                                        .pop(true),
+                                                child: const Text('SIM'),
                                               ),
-                                              const SizedBox(height: 30),
                                             ],
                                           );
                                         },
                                       );
+
+                                      if (result == true) {
+                                        downloadService.deleteReleaseFile(
+                                          content: content,
+                                          release: release,
+                                        );
+                                      }
                                     }
-                                  : null,
-                              child: ListTile(
-                                dense: true,
-                                isThreeLine: false,
-                                subtitle: downloadInfo?.isDownloading == true &&
-                                        (downloadInfo?.speed ?? 0) > 0.0
-                                    ? Text(
-                                        'speed: ${downloadInfo?.speed.toStringAsFixed(2)}')
-                                    : const Text(''),
-                                horizontalTitleGap: 20,
-                                contentPadding:
-                                    const EdgeInsets.only(left: 16.0, right: 8),
-                                trailing: IconButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: downloadInfo?.isDownloading ==
-                                              true &&
-                                          !downloaded
-                                      ? () async {
-                                          final result =
-                                              await showAdaptiveDialog(
-                                            context: context,
-                                            builder: (context) {
-                                              return AlertDialog(
-                                                title: Text(
-                                                    'Cancelar download do episódio ${release.number} ?'),
-                                                actionsAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () =>
-                                                        Navigator.of(context)
-                                                            .pop(false),
-                                                    child: const Text('NÃO'),
-                                                  ),
-                                                  TextButton(
-                                                    onPressed: () =>
-                                                        Navigator.of(context)
-                                                            .pop(true),
-                                                    child: const Text(
-                                                      'SIM',
-                                                      style: TextStyle(
-                                                          color: Colors.red),
-                                                    ),
-                                                  ),
-                                                ],
-                                              );
-                                            },
+                                  : () {
+                                      downloadRelease(release);
+                                    },
+                          icon: downloadInfo?.isDownloading == true
+                              ? downloadInfo?.videoDuration != null &&
+                                      (downloadInfo?.time ?? 0) > 0.0
+                                  ? SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: TweenAnimationBuilder(
+                                        curve: Curves.easeInOut,
+                                        duration: Duration.zero,
+                                        tween: Tween<double>(
+                                          begin: 0.0,
+                                          end: (((downloadInfo!.time * 100) /
+                                                  downloadInfo.videoDuration!
+                                                      .inMilliseconds) /
+                                              100),
+                                        ),
+                                        builder: (
+                                          context,
+                                          value,
+                                          child,
+                                        ) {
+                                          customLog(value);
+                                          return CircularProgressIndicator
+                                              .adaptive(
+                                            value: value,
+                                            strokeAlign: -2,
+                                            strokeWidth: 3,
                                           );
-                                          if (result == true &&
-                                              downloadInfo?.id != null) {
-                                            await downloadService
-                                                .cancelReleaseDownload(
-                                              content: content,
-                                              release: release,
-                                              sessionId: downloadInfo!.id,
-                                            );
-
-                                            await downloadService
-                                                .deleteReleaseFile(
-                                              content: content,
-                                              release: release,
-                                            );
-                                          }
-                                        }
-                                      : downloaded
-                                          ? () async {
-                                              final result =
-                                                  await showAdaptiveDialog(
-                                                context: context,
-                                                builder: (context) {
-                                                  return AlertDialog(
-                                                    title: Text(
-                                                        'Deseja deletar o arquivo ${release.number} ?'),
-                                                    actionsAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () =>
-                                                            Navigator.of(
-                                                                    context)
-                                                                .pop(false),
-                                                        child: const Text(
-                                                          'NÃO',
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.red),
-                                                        ),
-                                                      ),
-                                                      TextButton(
-                                                        onPressed: () =>
-                                                            Navigator.of(
-                                                                    context)
-                                                                .pop(true),
-                                                        child:
-                                                            const Text('SIM'),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              );
-
-                                              if (result == true) {
-                                                downloadService
-                                                    .deleteReleaseFile(
-                                                  content: content,
-                                                  release: release,
-                                                );
-                                              }
-                                            }
-                                          : () {
-                                              downloadRelease(release);
-                                            },
-                                  icon: downloadInfo?.isDownloading == true
-                                      ? downloadInfo?.videoDuration != null &&
-                                              (downloadInfo?.time ?? 0) > 0.0
-                                          ? SizedBox(
-                                              width: 24,
-                                              height: 24,
-                                              child: TweenAnimationBuilder(
-                                                curve: Curves.easeInOut,
-                                                duration: Duration.zero,
-                                                tween: Tween<double>(
-                                                  begin: 0.0,
-                                                  end: (((downloadInfo!.time *
-                                                              100) /
-                                                          downloadInfo
-                                                              .videoDuration!
-                                                              .inMilliseconds) /
-                                                      100),
-                                                ),
-                                                builder: (
-                                                  context,
-                                                  value,
-                                                  child,
-                                                ) {
-                                                  customLog(value);
-                                                  return CircularProgressIndicator
-                                                      .adaptive(
-                                                    value: value,
-                                                    strokeAlign: -2,
-                                                    strokeWidth: 3,
-                                                  );
-                                                },
-                                              ),
-                                            )
-                                          : const SizedBox(
-                                              width: 24,
-                                              height: 24,
-                                              child: CircularProgressIndicator
-                                                  .adaptive(
-                                                strokeAlign: -2,
-                                                strokeWidth: 3,
-                                              ),
-                                            )
-                                      : Icon(
-                                          MdiIcons.downloadCircle,
-                                          color:
-                                              downloaded ? Colors.green : null,
-                                        ),
-                                ),
-                                leading: SizedBox(
-                                  width: 110,
-                                  height: double.infinity,
-                                  child: release is Episode &&
-                                          release.thumbnail != null
-                                      ? ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          child: CachedNetworkImage(
-                                            imageUrl: release.thumbnail!,
-                                            placeholder: (context, url) =>
-                                                const Card.filled(),
-                                            fit: BoxFit.cover,
-                                            maxWidthDiskCache: 300,
-                                            maxHeightDiskCache: 200,
-                                          ),
-                                        )
-                                      : const Card.filled(),
-                                ),
-                                titleTextStyle: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold),
-                                onTap: () async {
-                                  customLog(
-                                    'tapped name: ${release.title} - id: ${release.stringID}',
-                                  );
-
-                                  final GoRouter goRouter =
-                                      GoRouter.of(context);
-
-                                  if (release is Chapter && content is Book) {
-                                    await goRouter.push(
-                                      RouteName.READ,
-                                      extra: ReadingViewArgs(
-                                        capturedThemes: InheritedTheme.capture(
-                                          from: context,
-                                          to: Navigator.of(context).context,
-                                        ),
-                                        chapter: release,
-                                        currentIndex: index,
-                                        book: content,
+                                        },
                                       ),
-                                    );
-                                  } else if (release is Episode &&
-                                      content is Anime) {
-                                    final result = await _fileOrURL(
-                                        release, releaseFile, context);
-                                    if (result != null) {
-                                      await goRouter.push(
-                                        RouteName.PLAYER,
-                                        extra: PlayerArgs(
-                                          data: result,
-                                          anime: content,
-                                          episode: release,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
-                                minVerticalPadding: 0,
-                                minTileHeight: 68,
-                                visualDensity: const VisualDensity(
-                                    vertical: 4, horizontal: -2),
-                                title: Text(
-                                  '${release.number}. ${release.title}',
-                                  maxLines: 2,
+                                    )
+                                  : const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator.adaptive(
+                                        strokeAlign: -2,
+                                        strokeWidth: 3,
+                                      ),
+                                    )
+                              : Icon(
+                                  MdiIcons.downloadCircle,
+                                  color: downloaded ? Colors.green : null,
                                 ),
+                        ),
+                        leading: SizedBox(
+                          width: 110,
+                          height: double.infinity,
+                          child: release is Episode && release.thumbnail != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: CachedNetworkImage(
+                                    httpHeaders: {
+                                      ...App.HEADERS,
+                                      'Referer':
+                                          '${hiveController.source.baseURL}/',
+                                    },
+                                    imageUrl: release.thumbnail!,
+                                    placeholder: (context, url) =>
+                                        const Card.filled(),
+                                    errorWidget: (context, url, error) {
+                                      return const Card.filled();
+                                    },
+                                    fit: BoxFit.cover,
+                                    maxWidthDiskCache: 300,
+                                    maxHeightDiskCache: 200,
+                                  ),
+                                )
+                              : const Card.filled(),
+                        ),
+                        titleTextStyle: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                                fontSize: 13, fontWeight: FontWeight.bold),
+                        onTap: () async {
+                          customLog(
+                            'tapped name: ${release.title} - id: ${release.stringID}',
+                          );
+
+                          final GoRouter goRouter = GoRouter.of(context);
+
+                          if (release is Chapter && content is Book) {
+                            await goRouter.push(
+                              RouteName.READ,
+                              extra: ReadingViewArgs(
+                                capturedThemes: InheritedTheme.capture(
+                                  from: context,
+                                  to: Navigator.of(context).context,
+                                ),
+                                chapter: release,
+                                currentIndex: index,
+                                book: content,
                               ),
                             );
-                          },
+                          } else if (release is Episode && content is Anime) {
+                            final result =
+                                await _fileOrURL(release, releaseFile, context);
+                            if (result != null) {
+                              await goRouter.push(
+                                RouteName.PLAYER,
+                                extra: PlayerArgs(
+                                  data: result,
+                                  anime: content,
+                                  episode: release,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        minVerticalPadding: 0,
+                        minTileHeight: 68,
+                        visualDensity:
+                            const VisualDensity(vertical: 4, horizontal: -2),
+                        title: Text(
+                          '${release.number}. ${release.title}',
+                          maxLines: 2,
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 ),
-        ),
+              );
+            },
+          )
       ],
     );
   }
@@ -534,47 +513,47 @@ class _ReleasePaginationState extends State<_ReleasePagination>
         width: double.infinity,
         height: 36,
         child: ListView.builder(
-            shrinkWrap: true,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            scrollDirection: Axis.horizontal,
-            itemCount: _selectChips.length + 2,
-            itemBuilder: (context, index) {
-              switch (index) {
-                case 0:
-                  return IconButton.filled(
-                    style: IconButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          scrollDirection: Axis.horizontal,
+          itemCount: _selectChips.length + 2,
+          itemBuilder: (context, index) {
+            switch (index) {
+              case 0:
+                return IconButton.filled(
+                  style: IconButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    iconSize: 21,
-                    onPressed: () => hiveController
-                        .setReverseContents(!hiveController.reverseContents),
-                    icon: FadeThroughTransitionSwitcher(
-                      enableSecondChild: !hiveController.reverseContents,
-                      duration: const Duration(milliseconds: 350),
-                      secondChild: Icon(MdiIcons.sortNumericAscending),
-                      child: Icon(MdiIcons.sortNumericDescending),
-                    ),
-                  );
+                  ),
+                  iconSize: 21,
+                  onPressed: () => hiveController
+                      .setReverseContents(!hiveController.reverseContents),
+                  icon: FadeThroughTransitionSwitcher(
+                    enableSecondChild: !hiveController.reverseContents,
+                    duration: const Duration(milliseconds: 350),
+                    secondChild: Icon(MdiIcons.sortNumericAscending),
+                    child: Icon(MdiIcons.sortNumericDescending),
+                  ),
+                );
 
-                case 1:
-                  return const VerticalDivider();
-              }
+              case 1:
+                return const VerticalDivider();
+            }
 
-              int page = _totalPage[index - 2];
+            int page = _totalPage[index - 2];
 
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ChoiceChip(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  selected: _selectChips[index - 2],
-                  onSelected: (value) => setListIndex.call(index - 2),
-                  label: Text('$page'),
-                ),
-              );
-            }),
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                selected: _selectChips[index - 2],
+                onSelected: (value) => setListIndex.call(index - 2),
+                label: Text('$page'),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

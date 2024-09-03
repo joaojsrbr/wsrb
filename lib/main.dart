@@ -47,7 +47,7 @@ void main() async {
   }
 
   await PermissionUtils.manageExternalStorage();
-
+  await isarServiceImpl.startDatabase(onStart: libraryStart);
   await Future.wait([
     themeController.loadAll(),
     hiveController.loadAll(),
@@ -55,7 +55,6 @@ void main() async {
     AutoCacheInitializer.initialize(configuration: App.APP_CACHE_CONFIG),
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
     Workmanager().initialize(callbackDispatcher, isInDebugMode: true),
-    isarServiceImpl.startDatabase(onStart: libraryStart),
     hiveCacheServiceImpl.init(),
     PlayerAudioHandlerMixin.startPlayerAudio(),
     connectionChecker.start(),

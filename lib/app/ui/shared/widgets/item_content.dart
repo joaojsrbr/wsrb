@@ -55,8 +55,6 @@ class ItemContent extends StatefulWidget {
 }
 
 class _ItemContentState extends State<ItemContent> {
-  // final bool _error = false;
-
   static final BorderRadius _borderRadius = BorderRadius.circular(8);
 
   bool get _isLibrary => widget._isLibrary;
@@ -72,10 +70,15 @@ class _ItemContentState extends State<ItemContent> {
     final RailMenuController? railMenuController =
         RailMenu.menuControllerMaybeOf(context);
 
+    // final ContentRepository contentRepository =
+    //     context.read<ContentRepository>();
+
+    final HiveController hiveController = context.watch<HiveController>();
+
     final ThemeData themeData = Theme.of(context);
 
     final textTheme = themeData.textTheme;
-
+    // customLog(widget.content.imageUrl);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 350),
       height: widget.height,
@@ -94,6 +97,7 @@ class _ItemContentState extends State<ItemContent> {
             CachedNetworkImage(
               filterQuality: FilterQuality.medium,
               imageUrl: widget.content.imageUrl,
+
               placeholder: (context, url) {
                 return Card.filled(
                   color: themeData.colorScheme.primary.withOpacity(0.04),
@@ -121,6 +125,7 @@ class _ItemContentState extends State<ItemContent> {
                 );
               },
               errorListener: (value) {
+                customLog(value);
                 // addPostFrameSetState(() => _error = true);
               },
               errorWidget: (context, url, error) {
@@ -130,7 +135,12 @@ class _ItemContentState extends State<ItemContent> {
               },
               maxHeightDiskCache: 350,
               maxWidthDiskCache: 300,
-              httpHeaders: App.HEADERS,
+
+              httpHeaders: {
+                ...App.HEADERS,
+                'Referer': '${hiveController.source.baseURL}/',
+              },
+              // httpHeaders: App.HEADERS,
             ),
             Positioned(
               bottom: 8,
@@ -141,45 +151,49 @@ class _ItemContentState extends State<ItemContent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 350),
-                    style: (textTheme.titleSmall ?? const TextStyle()).copyWith(
-                        fontSize: railMenuController?.isOpen == true
-                            ? (textTheme.titleSmall!.fontSize! - 2)
-                            : textTheme.titleSmall!.fontSize),
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          if (content.releases.length == 1) ...[
-                            TextSpan(
-                              text: 'Episódio ${content.releases.first.number}',
-                            ),
-                            const TextSpan(text: ' - '),
-                          ],
-                          if (content is Anime) ...[
-                            TextSpan(
-                              text: content.isDublado ? 'DUB' : 'LEG',
-                              style: TextStyle(
-                                color: content.isDublado
-                                    ? Colors.green
-                                    : Colors.blue,
+                  if (!_isLibrary && !_isSearch)
+                    AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 350),
+                      style: (textTheme.titleSmall ?? const TextStyle())
+                          .copyWith(
+                              fontSize: railMenuController?.isOpen == true
+                                  ? (textTheme.titleSmall!.fontSize! - 2)
+                                  : textTheme.titleSmall!.fontSize),
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            if (content.releases.length == 1) ...[
+                              TextSpan(
+                                text:
+                                    'Episódio ${content.releases.first.number}',
                               ),
-                            ),
+                              const TextSpan(text: ' - '),
+                            ],
+                            if (content is Anime) ...[
+                              TextSpan(
+                                text: content.isDublado ? 'DUB' : 'LEG',
+                                style: TextStyle(
+                                  color: content.isDublado
+                                      ? Colors.green
+                                      : Colors.blue,
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
+                        maxLines: 2,
+                        textAlign: TextAlign.start,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      textAlign: TextAlign.start,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
                   AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 350),
-                    style:
-                        (textTheme.titleSmall ?? const TextStyle()).copyWith(),
+                    style: _isLibrary
+                        ? textTheme.titleMedium!
+                        : textTheme.titleSmall!.copyWith(),
                     child: Text(
                       content.title,
-                      maxLines: 1,
+                      maxLines: _isLibrary ? 2 : 1,
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -250,7 +264,7 @@ class _ItemContentState extends State<ItemContent> {
               ),
             ),
             Visibility(
-              visible: content is Anime,
+              visible: content is Anime && !_isLibrary && !_isSearch,
               child: Positioned(
                 top: 0,
                 left: 0,

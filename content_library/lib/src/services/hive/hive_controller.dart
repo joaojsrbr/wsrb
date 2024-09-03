@@ -27,7 +27,7 @@ class HiveController extends ChangeNotifier {
   static const _defaultValueConnectivityResult =
       HiveDefaultValue('connectivity_result', ConnectivityResult.none);
   static const _defaultValueHistoricSavePercent =
-      HiveDefaultValue('historico_save_percent', 0.25);
+      HiveDefaultValue('historico_save_percent', 0.00);
 
   bool get reverseContents => _reverseContents;
   ConnectivityResult get connectivityResult => _connectivityResult;

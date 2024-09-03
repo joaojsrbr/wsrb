@@ -1,5 +1,4 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 
 class SubordinateLibraryTabController extends TabController {
@@ -9,73 +8,20 @@ class SubordinateLibraryTabController extends TabController {
     required super.length,
   });
 
-  // int get _currentIndex => 1;
-
-  final Debouncer _changePageDebouncer = Debouncer(
-    duration: const Duration(milliseconds: 100),
-  );
-
   PageController? _parent;
 
   set setParent(PageController? pageView) {
-    _parent?.removeListener(_setIgnorePointer);
+    _parent?.removeListener(_pageListener);
     _parent = pageView;
-    _parent?.addListener(_setIgnorePointer);
+    _parent?.addListener(_pageListener);
   }
 
-  bool _changePage = false;
-
-  set setChangePage(bool changePag) {
-    _changePage = changePag;
+  void _pageListener() {
+    setIgnorePointer(false);
   }
 
-  void _setIgnorePointer() {
-    if (_parent?.page == null) return;
-
-    final parentPage = _parent!.page!;
-    final nextPage = parentPage + 1;
-    final previousPage = parentPage - 1;
-
-    if ([
-      nextPage.toInt(),
-      previousPage.toInt(),
-    ].contains(parentPage.toInt())) {
-      _changePageDebouncer.cancel();
-      _changePage = false;
-    }
-
-    // customLog(_currentIndex);
-    // customLog(parentPage);
-
-    // if (parentPage < nextPage && parentPage >= _currentIndex) {
-    //   _parent?.position.context.setIgnorePointer(true);
-    // } else if (_currentIndex != 0 &&
-    //     parentPage > 0.8 &&
-    //     parentPage < _currentIndex) {
-    //   _parent?.position.context.setIgnorePointer(false);
-    // }
-  }
-
-  Future<void> parentNextPage() async {
-    if (_parent?.page == null) return;
-    _parent?.position.context.setIgnorePointer(true);
-    // await _parent?.animateToPage(
-    //   _parent!.page!.toInt() + 1,
-    //   duration: kTabScrollDuration,
-    //   curve: Curves.ease,
-    // );
-    _changePage = false;
-  }
-
-  Future<void> parentPreviousPage() async {
-    if (_parent?.page == null) return;
-    _parent?.position.context.setIgnorePointer(true);
-    // await _parent?.animateToPage(
-    //   _parent!.page!.toInt() - 1,
-    //   duration: kTabScrollDuration,
-    //   curve: Curves.ease,
-    // );
-    _changePage = false;
+  void setIgnorePointer([bool? active]) {
+    _parent?.position.context.setIgnorePointer(active ?? true);
   }
 
   bool scrollNotificationNextPage(ScrollNotification notification) {
@@ -84,25 +30,20 @@ class SubordinateLibraryTabController extends TabController {
     final axisDirection = notification.metrics.axisDirection;
 
     if (verticalDirections.contains(axisDirection)) {
-      _setIgnorePointer();
+      setIgnorePointer(false);
       return false;
     }
 
-    if (notification is ScrollUpdateNotification) _setIgnorePointer();
+    if (notification is ScrollUpdateNotification) setIgnorePointer(false);
     if (notification is OverscrollNotification) {
-      _changePageDebouncer.cancel();
       final ScrollMetrics metrics = notification.metrics;
       final double pixels = metrics.pixels.roundToDouble();
       final double maxScrollExtent = metrics.maxScrollExtent.roundToDouble();
       final double minScrollExtent = metrics.minScrollExtent;
       if (pixels == minScrollExtent) {
-        _changePageDebouncer.call(() => _changePage = true);
-        if (!_changePage) return false;
-        parentPreviousPage();
+        setIgnorePointer(true);
       } else if (pixels == maxScrollExtent) {
-        _changePageDebouncer.call(() => _changePage = true);
-        if (!_changePage) return false;
-        parentNextPage();
+        setIgnorePointer(true);
       }
     }
     return false;
@@ -110,9 +51,7 @@ class SubordinateLibraryTabController extends TabController {
 
   @override
   void dispose() {
-    // removeListener(_setIgnorePointer);
-    _changePageDebouncer.cancel();
-    _parent?.removeListener(_setIgnorePointer);
+    _parent?.removeListener(_pageListener);
     super.dispose();
   }
 
@@ -179,13 +118,13 @@ class SubordinateScrollController extends ScrollController {
 
   @override
   void addListener(VoidCallback listener) {
-    parent?.addListener(listener);
+    parent.addListener(listener);
     super.addListener(listener);
   }
 
   @override
   void removeListener(VoidCallback listener) {
-    parent?.removeListener(listener);
+    parent.removeListener(listener);
     super.removeListener(listener);
   }
 }

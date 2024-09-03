@@ -15,6 +15,7 @@ class ContentHeader extends StatelessWidget {
     final themeData = Theme.of(context);
 
     return SafeArea(
+      key: const ValueKey('content_persistent'),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -34,7 +35,7 @@ class ContentHeader extends StatelessWidget {
                     filterQuality: FilterQuality.medium,
                     placeholder: (context, url) {
                       return Card.filled(
-                        color: themeData.colorScheme.primary.withOpacity(0.04),
+                        color: themeData.colorScheme.primary.withAlpha(10),
                       );
                     },
                     fit: BoxFit.cover,

@@ -520,10 +520,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   @override
-  Widget buildByArgument(
-    BuildContext context,
-    PlayerArgs argument,
-  ) {
+  Widget buildByArgument(BuildContext context, PlayerArgs argument) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       extendBody: true,
@@ -595,6 +592,10 @@ class _Content extends StatelessWidget {
     final VideoController? videoController = scope.videoController;
     final double currentValueCircularAnimation =
         PlayerScope.currentValueCircularAnimationOf(context);
+    final HiveController hiveController = context.watch<HiveController>();
+
+    final Size sizeOf = MediaQuery.sizeOf(context);
+
     List<Widget> children = [];
 
     if (isLoading) {
@@ -620,10 +621,11 @@ class _Content extends StatelessWidget {
     } else if (videoController != null) {
       children.addAll([
         Expanded(
-          flex: 1,
           child: Column(
             children: [
-              Flexible(
+              SizedBox(
+                height: sizeOf.height * .35,
+                width: double.infinity,
                 child: PipWidget(
                   onPipAction: scope.onPipAction,
                   onPipEntered: scope.onPipChange,
@@ -673,7 +675,7 @@ class _Content extends StatelessWidget {
               if (!scope.isPipActivated &&
                   (playerArgs.getAnimeData && !playerArgs.forceEnterFullScreen))
                 Expanded(
-                  flex: 2,
+                  flex: 1,
                   child: ListView.separated(
                     physics: const BouncingScrollPhysics(),
                     padding: const EdgeInsets.only(top: 18, bottom: 18),
@@ -695,6 +697,11 @@ class _Content extends StatelessWidget {
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: CachedNetworkImage(
+                                    httpHeaders: {
+                                      ...App.HEADERS,
+                                      'Referer':
+                                          '${hiveController.source.baseURL}/',
+                                    },
                                     imageUrl: thumbnail,
                                     placeholder: (context, url) =>
                                         const Card.filled(),

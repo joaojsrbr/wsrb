@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions/duration.dart';
 import 'package:provider/provider.dart';
+import 'package:sliver_tools/sliver_tools.dart';
 
 class KeepWatching extends StatefulWidget {
   const KeepWatching({super.key});
@@ -63,16 +64,15 @@ class _KeepWatchingState extends State<KeepWatching> {
     //         : Padding(
     //             padding: const EdgeInsets.only(top: 16),
     //             child: SizedBox(
-    //               height: 160,
-    //               width: 100,
-    //               child: CarouselView(
+    //               height: 180,
+    //               child: CarouselView.weighted(
     //                 key: PageStorageKey(
     //                   'home_and_library_watching_${_sortedByUpdateAt.length}',
     //                 ),
     //                 shape: RoundedRectangleBorder(
     //                   borderRadius: BorderRadius.circular(12),
     //                 ),
-    //                 itemExtent: 190,
+    //                 flexWeights: [9, 4, 4],
     //                 children: List.generate(_sortedByUpdateAt.length, (index) {
     //                   final HistoryEntity historyEntity =
     //                       _sortedByUpdateAt.elementAt(index);
@@ -244,13 +244,14 @@ class _KeepWatchingState extends State<KeepWatching> {
     //   ),
     // );
 
-    return SliverToBoxAdapter(
-      child: _sortedByUpdateAt.isEmpty || ![0, 1].contains(tabController.index)
-          ? null
-          : AnimatedSize(
-              duration: const Duration(milliseconds: 350),
-              child: SizedBox(
-                height: 160,
+    return SliverAnimatedPaintExtent(
+      duration: const Duration(milliseconds: 350),
+      child: SliverToBoxAdapter(
+        child: _sortedByUpdateAt.isEmpty ||
+                ![0, 1].contains(tabController.index)
+            ? null
+            : SizedBox(
+                height: 200,
                 child: ListView.builder(
                   key: PageStorageKey(
                     'home_and_library_watching_${_sortedByUpdateAt.length}',
@@ -277,7 +278,7 @@ class _KeepWatchingState extends State<KeepWatching> {
                               bottom: 8,
                             ),
                             child: SizedBox(
-                              width: 190,
+                              width: 240,
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
                                 child: Stack(
@@ -432,7 +433,7 @@ class _KeepWatchingState extends State<KeepWatching> {
                   },
                 ),
               ),
-            ),
+      ),
     );
   }
 }

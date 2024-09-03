@@ -170,6 +170,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
           _files
             ..addOrUpdateWhere(data, (element) => element == data)
             ..sort();
+          setStateIfMounted(() {});
         });
 
     setStateIfMounted(() {

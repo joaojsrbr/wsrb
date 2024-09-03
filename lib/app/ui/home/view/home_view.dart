@@ -86,13 +86,15 @@ class _HomeViewState extends State<HomeView>
     _startTabController(false);
 
     scheduleMicrotask(() {
-      _tabController.animateTo(
-        _homeTabControllerIndex.value,
-        duration: Duration.zero,
-      );
-      _scrollController.jumpTo(
-        _homeScrollControllerPosition.value,
-      );
+      addPostFrameCallback((timer) {
+        _tabController.animateTo(
+          _homeTabControllerIndex.value,
+          duration: Duration.zero,
+        );
+        _scrollController.jumpTo(
+          _homeScrollControllerPosition.value,
+        );
+      });
     });
   }
 
@@ -208,34 +210,35 @@ class _HomeViewState extends State<HomeView>
                 return [
                   SliverAppBar(
                     pinned: false,
+                    primary: true,
                     floating: false,
-                    bottom: [0, 2].contains(tabController.index)
-                        ? TabBar(
-                            controller: _tabController,
-                            tabs: List.generate(
-                              _tabController.length,
-                              (index) => Builder(
-                                builder: (context) {
-                                  final icons = {
-                                    _tabController.index == 0
-                                        ? MdiIcons.home
-                                        : MdiIcons.homeOutline,
-                                    _tabController.index == 1
-                                        ? MdiIcons.library
-                                        : MdiIcons.libraryOutline,
-                                    _tabController.index == 2
-                                        ? MdiIcons.cog
-                                        : MdiIcons.cogOutline,
-                                  };
+                    bottom: TabBar(
+                      controller: _tabController,
+                      dividerColor:
+                          _tabController.index == 1 ? Colors.transparent : null,
+                      tabs: List.generate(
+                        _tabController.length,
+                        (index) => Builder(
+                          builder: (context) {
+                            final icons = {
+                              _tabController.index == 0
+                                  ? MdiIcons.home
+                                  : MdiIcons.homeOutline,
+                              _tabController.index == 1
+                                  ? MdiIcons.library
+                                  : MdiIcons.libraryOutline,
+                              _tabController.index == 2
+                                  ? MdiIcons.cog
+                                  : MdiIcons.cogOutline,
+                            };
 
-                                  return Tab(
-                                    icon: Icon(icons.elementAt(index)),
-                                  );
-                                },
-                              ),
-                            ),
-                          )
-                        : null,
+                            return Tab(
+                              icon: Icon(icons.elementAt(index)),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
                     actions: [
                       if ([0, 1].contains(tabController.index))
                         Padding(
@@ -307,7 +310,7 @@ class _HomeViewState extends State<HomeView>
                                     ? EdgeInsets.zero
                                     : EdgeInsets.only(
                                         right: 12,
-                                        top: _tabController.index == 0 ? 14 : 8,
+                                        top: _tabController.index == 0 ? 8 : 8,
                                       ),
                                 physics: const BouncingScrollPhysics(),
                                 scrollDirection: Axis.horizontal,

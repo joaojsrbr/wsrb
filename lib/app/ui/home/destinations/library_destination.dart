@@ -131,8 +131,8 @@ class LibraryeDestinationState extends State<LibraryDestination>
         crossAxisCount: 2,
         childAspectRatio: 1,
         crossAxisSpacing: 8,
-        mainAxisSpacing: 10,
-        // mainAxisExtent: 170,
+        mainAxisSpacing: 8,
+        mainAxisExtent: 260,
       );
 
       final searchController = HomeScope.of(context).searchController;
@@ -146,13 +146,33 @@ class LibraryeDestinationState extends State<LibraryDestination>
 
       return AnimatedPadding(
         duration: const Duration(milliseconds: 350),
-        padding: EdgeInsets.only(right: railMenuController.isOpen ? 50 : 0),
+        padding: EdgeInsets.only(
+          right: railMenuController.isOpen ? 50 : 4,
+          left: 4,
+          top: 12,
+        ),
+        // child: SingleChildScrollView(
+        //   padding: EdgeInsets.zero,
+        //   child: Wrap(
+        //     spacing: 8,
+        //     runSpacing: 8,
+        //     children: filter.map(
+        //       (item) {
+        //         return ItemContent.library(
+        //           key: ObjectKey(item),
+        //           height: 200,
+        //           width: 160,
+        //           content: item,
+        //         );
+        //       },
+        //     ).toList(),
+        //   ),
+        // ),
         child: GridView.builder(
           itemCount: filter.length,
           physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          padding: const EdgeInsets.only(left: 8, right: 8, top: 12),
           gridDelegate: gridDelegate,
+          padding: const EdgeInsets.only(bottom: 40),
           itemBuilder: (context, index) {
             return ItemContent.library(
               key: ObjectKey(filter.elementAt(index)),
@@ -167,10 +187,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-
-    // if (kDebugMode) {
-    // }
-    // _setChildren();
+    _setChildren();
 
     final SubordinateLibraryTabController subordinateLibraryTabController =
         HomeScope.of(context).subordinateLibraryTabController;
@@ -179,7 +196,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
       onNotification:
           subordinateLibraryTabController.scrollNotificationNextPage,
       child: TabBarView(
-        physics: const ClampingScrollPhysics(),
+        key: const PageStorageKey('library_page'),
         controller: subordinateLibraryTabController,
         children: _children,
       ),
