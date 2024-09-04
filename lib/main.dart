@@ -28,7 +28,6 @@ void main() async {
   final ThemeController themeController = ThemeController(hiveServiceImpl);
 
   final HiveCacheServiceImpl hiveCacheServiceImpl = HiveCacheServiceImpl();
-
   final LibraryController libraryController =
       LibraryController(isarServiceImpl, hiveController);
 
@@ -38,17 +37,16 @@ void main() async {
   final CategoryController categoryController =
       CategoryController(isarServiceImpl);
 
-  Future<void> libraryStart() async {
+  await isarServiceImpl.startDatabase(onStart: () async {
     await Future.wait([
       historicController.start(),
       categoryController.start(),
       libraryController.start(),
     ]);
-  }
+  });
 
-  await PermissionUtils.manageExternalStorage();
-  await isarServiceImpl.startDatabase(onStart: libraryStart);
   await Future.wait([
+    PermissionUtils.manageExternalStorage(),
     themeController.loadAll(),
     hiveController.loadAll(),
     hiveServiceImpl.init(),

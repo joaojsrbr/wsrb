@@ -291,8 +291,8 @@ class _KeepWatchingState extends State<KeepWatching> {
                                           begin: Alignment.topCenter,
                                           end: Alignment.bottomCenter,
                                           colors: [
-                                            Colors.black38.withOpacity(0.28),
-                                            Colors.black38.withOpacity(0.28),
+                                            Colors.black38.withAlpha(71),
+                                            Colors.black38.withAlpha(71),
                                             // Colors.transparent,
                                           ],
                                           stops: const [0.00, 1.0],

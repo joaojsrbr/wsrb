@@ -180,7 +180,7 @@ class _LibraryButtons extends StatelessWidget {
         return Padding(
           padding: EdgeInsets.only(top: padding),
           child: Card.filled(
-            color: themeData.colorScheme.primary.withOpacity(0.04),
+            color: themeData.colorScheme.primary.withAlpha(10),
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(8),

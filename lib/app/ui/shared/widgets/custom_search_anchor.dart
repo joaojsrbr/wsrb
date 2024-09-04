@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
+
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 
@@ -1188,7 +1189,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                       ?.copyWith(side: effectiveSide)
                       .borderRadius as BorderRadius,
                 ),
-                focusColor: colorScheme.surface.withOpacity(0.5),
+                focusColor: colorScheme.surface.withAlpha(128),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: effectiveShape
                       ?.copyWith(side: effectiveSide)
@@ -1220,9 +1221,9 @@ class _SearchBarDefaultsM3 extends SearchBarThemeData {
       WidgetStateColor.resolveWith(
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.disabled)) {
-            return _colors.onSurface.withOpacity(0.04);
+            return _colors.onSurface.withAlpha(10);
           }
-          return _colors.surfaceContainerHighest.withOpacity(0.16);
+          return _colors.surfaceContainerHighest.withAlpha(40);
         },
       );
   // WidgetStatePropertyAll<Color>(_colors.surface);
@@ -1243,10 +1244,10 @@ class _SearchBarDefaultsM3 extends SearchBarThemeData {
   WidgetStateProperty<Color?>? get overlayColor =>
       WidgetStateProperty.resolveWith((Set<WidgetState> states) {
         if (states.contains(WidgetState.pressed)) {
-          return _colors.onSurface.withOpacity(0.12);
+          return _colors.onSurface.withAlpha(30);
         }
         if (states.contains(WidgetState.hovered)) {
-          return _colors.onSurface.withOpacity(0.08);
+          return _colors.onSurface.withAlpha(20);
         }
         if (states.contains(WidgetState.focused)) {
           return Colors.transparent;

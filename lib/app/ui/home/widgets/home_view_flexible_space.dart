@@ -282,7 +282,7 @@ class _BarSideMaterialState extends WidgetStateProperty<BorderSide?> {
     //   );
     // }
     return BorderSide(
-      color: colorScheme.primary.withOpacity(0.10),
+      color: colorScheme.primary.withAlpha(26),
     );
   }
 }

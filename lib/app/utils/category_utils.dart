@@ -349,7 +349,7 @@ class CategoryUtils {
                                             .borderRadius as BorderRadius,
                                       ),
                                       focusColor:
-                                          colorScheme.surface.withOpacity(0.5),
+                                          colorScheme.surface.withAlpha(128),
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: effectiveShape
                                             ?.copyWith(side: effectiveSide)
@@ -433,9 +433,9 @@ class _SearchBarDefaultsM3 extends SearchBarThemeData {
       WidgetStateColor.resolveWith(
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.disabled)) {
-            return _colors.onSurface.withOpacity(0.04);
+            return _colors.onSurface.withAlpha(10);
           }
-          return _colors.surfaceContainerHighest.withOpacity(0.16);
+          return _colors.surfaceContainerHighest.withAlpha(41);
         },
       );
 
@@ -455,10 +455,10 @@ class _SearchBarDefaultsM3 extends SearchBarThemeData {
   WidgetStateProperty<Color?>? get overlayColor =>
       WidgetStateProperty.resolveWith((Set<WidgetState> states) {
         if (states.contains(WidgetState.pressed)) {
-          return _colors.onSurface.withOpacity(0.12);
+          return _colors.onSurface.withAlpha(30);
         }
         if (states.contains(WidgetState.hovered)) {
-          return _colors.onSurface.withOpacity(0.08);
+          return _colors.onSurface.withAlpha(20);
         }
         if (states.contains(WidgetState.focused)) {
           return Colors.transparent;
@@ -488,8 +488,8 @@ class _SearchBarDefaultsM3 extends SearchBarThemeData {
           _textTheme.bodyLarge?.copyWith(color: _colors.onSurfaceVariant));
 
   @override
-  WidgetStateProperty<BorderSide?>? get side => WidgetStatePropertyAll(
-      BorderSide(color: _colors.primary.withOpacity(0.10)));
+  WidgetStateProperty<BorderSide?>? get side =>
+      WidgetStatePropertyAll(BorderSide(color: _colors.primary.withAlpha(26)));
 
   @override
   BoxConstraints get constraints =>

@@ -100,7 +100,7 @@ class _ItemContentState extends State<ItemContent> {
 
               placeholder: (context, url) {
                 return Card.filled(
-                  color: themeData.colorScheme.primary.withOpacity(0.04),
+                  color: themeData.colorScheme.primary.withAlpha(10),
                 );
               },
               imageBuilder: (context, imageProvider) {
@@ -112,7 +112,7 @@ class _ItemContentState extends State<ItemContent> {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black54.withOpacity(0.35),
+                        Colors.black54.withAlpha(90),
                       ],
                       stops: const [0.0, .9],
                     ).createShader(bounds);
@@ -130,7 +130,7 @@ class _ItemContentState extends State<ItemContent> {
               },
               errorWidget: (context, url, error) {
                 return Card.filled(
-                  color: themeData.colorScheme.primary.withOpacity(0.04),
+                  color: themeData.colorScheme.primary.withAlpha(10),
                 );
               },
               maxHeightDiskCache: 350,
@@ -318,9 +318,9 @@ class _OverlayColor extends WidgetStateProperty<Color?> {
   @override
   Color? resolve(Set<WidgetState> states) {
     if (states.contains(WidgetState.pressed)) {
-      return _color?.withOpacity(0.12);
+      return _color?.withAlpha(30);
     } else if (states.contains(WidgetState.hovered)) {
-      return _color?.withOpacity(0.08);
+      return _color?.withAlpha(20);
     } else if (states.contains(WidgetState.focused)) {
       return Colors.transparent;
     }

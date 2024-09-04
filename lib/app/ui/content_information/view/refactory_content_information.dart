@@ -172,11 +172,11 @@ class _RefContentkInformationViewState
     });
 
     ifMounted(() async {
-      if (_informationArgs.getData) {
+      if ((await AutoCache.data.getJson(key: data.stringID)).data == null) {
         AutoCache.data.saveJson(key: data.stringID, data: data.toJson());
+        _restorableContent.value = jsonEncode(_content.toJson());
       }
     });
-    _restorableContent.value = jsonEncode(_content.toJson());
   }
 
   void _handleSetListIndex(int index) async {
@@ -311,8 +311,18 @@ class _RefContentkInformationViewState
             return notification.depth == 0;
           },
           onRefresh: () async {
-            await _repository.getData(_content).then((result) {
-              result.fold(onSuccess: _onSuccess);
+            final appSnackBar = context.appSnackBar;
+
+            await _repository
+                .getData(_informationArgs.content)
+                .timeout(
+                  const Duration(seconds: 5),
+                  onTimeout: () => Result.failure(
+                    TimeoutException("Tempo excedido"),
+                  ),
+                )
+                .then((result) {
+              result.fold(onSuccess: _onSuccess, onError: appSnackBar.onError);
             });
           },
           child: NestedScrollView(
