@@ -251,7 +251,7 @@ class _KeepWatchingState extends State<KeepWatching> {
                 ![0, 1].contains(tabController.index)
             ? null
             : SizedBox(
-                height: 200,
+                height: 180,
                 child: ListView.builder(
                   key: PageStorageKey(
                     'home_and_library_watching_${_sortedByUpdateAt.length}',

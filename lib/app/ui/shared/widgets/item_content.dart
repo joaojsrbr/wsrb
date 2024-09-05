@@ -67,11 +67,8 @@ class _ItemContentState extends State<ItemContent> {
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
 
-    final RailMenuController? railMenuController =
-        RailMenu.menuControllerMaybeOf(context);
-
-    // final ContentRepository contentRepository =
-    //     context.read<ContentRepository>();
+    final BottomMenuController? bottomMenuController =
+        BottomMenu.menuControllerMaybeOf(context);
 
     final HiveController hiveController = context.watch<HiveController>();
 
@@ -156,7 +153,7 @@ class _ItemContentState extends State<ItemContent> {
                       duration: const Duration(milliseconds: 350),
                       style: (textTheme.titleSmall ?? const TextStyle())
                           .copyWith(
-                              fontSize: railMenuController?.isOpen == true
+                              fontSize: bottomMenuController?.isOpen == true
                                   ? (textTheme.titleSmall!.fontSize! - 2)
                                   : textTheme.titleSmall!.fontSize),
                       child: Text.rich(

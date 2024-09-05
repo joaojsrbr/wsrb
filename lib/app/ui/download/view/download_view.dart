@@ -71,7 +71,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
   );
 
   final List<_FileData> _files = [];
-  late final RailMenuController _railMenuController;
+  late final BottomMenuController _bottomMenuController;
   final List<String> _fileSelected = [];
 
   late final DownloadService _downloadService;
@@ -80,7 +80,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
 
   @override
   void initState() {
-    _railMenuController = RailMenuController();
+    _bottomMenuController = BottomMenuController();
     _downloadService = context.read<DownloadService>();
     scheduleMicrotask(_onInit);
     super.initState();
@@ -94,9 +94,9 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
     }
 
     if (_fileSelected.isNotEmpty) {
-      _railMenuController.open();
-    } else if (_fileSelected.isEmpty && _railMenuController.isOpen) {
-      _railMenuController.close();
+      _bottomMenuController.open();
+    } else if (_fileSelected.isEmpty && _bottomMenuController.isOpen) {
+      _bottomMenuController.close();
     }
   }
 
@@ -188,8 +188,8 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
           await subscriptions.cancelAll();
           _onInit();
         },
-        child: RailMenu(
-          railMenuController: _railMenuController,
+        child: BottomMenu(
+          railMenuController: _bottomMenuController,
           buttons: (context) {
             return Padding(
               padding: const EdgeInsets.only(top: 8.0),
@@ -215,7 +215,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                           await file.file.delete();
                         }
 
-                        _railMenuController.close();
+                        _bottomMenuController.close();
 
                         setStateIfMounted(_fileSelected.clear);
                       },
@@ -240,162 +240,150 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                   child: Divider(height: 2),
                 ),
               Builder(builder: (context) {
-                final menuController = RailMenu.menuControllerOf(context);
-                return AnimatedPadding(
-                  duration: const Duration(milliseconds: 250),
-                  padding: EdgeInsets.only(
-                    right: menuController.isOpen
-                        ? menuController.menuSize.width + 8
-                        : 8,
-                    left: 8,
-                  ),
-                  child: ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(
-                        parent: BouncingScrollPhysics()),
-                    padding: const EdgeInsets.only(top: 8),
-                    itemCount: _files.isNotEmpty ? _files.length : 1,
-                    itemBuilder: (context, index) {
-                      if (_files.isEmpty) {
-                        return const Align(
-                          alignment: Alignment.topCenter,
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 12),
-                            child: Text('Nenhum arquivo encontrado.'),
-                          ),
-                        );
-                      }
-
-                      final data = _files.elementAt(index);
-
-                      final selected = _fileSelected.contains(data.file.path);
-
-                      return Padding(
-                        padding: index != 0
-                            ? const EdgeInsets.only(top: 8)
-                            : EdgeInsets.zero,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 450),
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: selected
-                                  ? Border.all(
-                                      color:
-                                          const Color.fromARGB(255, 19, 15, 15),
-                                      width: 1.5)
-                                  : null),
-                          child: Stack(
-                            children: [
-                              Card(
-                                child: Row(
-                                  children: [
-                                    SizedBox(
-                                      width: 100,
-                                      height: 90,
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            const BorderRadius.horizontal(
-                                                left: Radius.circular(8)),
-                                        child: data.imageThumbnail.isNotEmpty
-                                            ? _Image(path: data.imageThumbnail)
-                                            : DecoratedBox(
-                                                decoration: BoxDecoration(
-                                                  color: data.isVideo
-                                                      ? Colors.blue
-                                                      : Colors.orange,
-                                                ),
-                                                child: Center(
-                                                  child: Text(
-                                                      data.number.toString()),
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Flexible(
-                                      child: ListTile(
-                                        subtitle:
-                                            Text('Episódio ${data.number}'),
-                                        title: Text(
-                                          data.title,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Positioned.fill(
-                                child: Material(
-                                  type: MaterialType.transparency,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(8),
-                                    onLongPress: selected
-                                        ? null
-                                        : () {
-                                            add(data.file.path);
-                                          },
-                                    onTap: _fileSelected.isNotEmpty
-                                        ? () {
-                                            add(data.file.path);
-                                          }
-                                        : () async {
-                                            final LibraryService
-                                                libraryService = LibraryService(
-                                              context.read(),
-                                              context.read(),
-                                            );
-
-                                            final animeEntity = libraryService
-                                                .entities
-                                                .firstWhereOrNull(
-                                              (entity) => switch (entity) {
-                                                AnimeEntity anime => anime
-                                                    .title.toID
-                                                    .contains(data.title.toID),
-                                                _ => false,
-                                              },
-                                            );
-
-                                            if (animeEntity != null &&
-                                                animeEntity is AnimeEntity) {
-                                              final episode = animeEntity
-                                                  .episodes
-                                                  .firstWhere(
-                                                (episode) =>
-                                                    episode.numberEpisode ==
-                                                    data.number,
-                                              );
-
-                                              await context.push(
-                                                RouteName.PLAYER,
-                                                extra: PlayerArgs(
-                                                  getAnimeData: false,
-                                                  forceEnterFullScreen: true,
-                                                  startPossition:
-                                                      episode.currentDuration >
-                                                              0
-                                                          ? episode.cdToDuration
-                                                          : null,
-                                                  episode: episode.toEpisode(
-                                                    animeEntity.isDublado,
-                                                  ),
-                                                  anime: animeEntity.toAnime,
-                                                  data: FileVideoData(
-                                                    file: File(data.file.path),
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                          },
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                final menuController = BottomMenu.menuControllerOf(context);
+                return ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics()),
+                  padding: const EdgeInsets.only(top: 8, right: 8, left: 8),
+                  itemCount: _files.isNotEmpty ? _files.length : 1,
+                  itemBuilder: (context, index) {
+                    if (_files.isEmpty) {
+                      return const Align(
+                        alignment: Alignment.topCenter,
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 12),
+                          child: Text('Nenhum arquivo encontrado.'),
                         ),
                       );
-                    },
-                  ),
+                    }
+
+                    final data = _files.elementAt(index);
+
+                    final selected = _fileSelected.contains(data.file.path);
+
+                    return Padding(
+                      padding: index != 0
+                          ? const EdgeInsets.only(top: 8)
+                          : EdgeInsets.zero,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 450),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8).add(selected
+                              ? BorderRadius.circular(2)
+                              : BorderRadius.zero),
+                          border: selected
+                              ? Border.all(color: Colors.white, width: 1.5)
+                              : null,
+                        ),
+                        child: Stack(
+                          children: [
+                            Card(
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 100,
+                                    height: 90,
+                                    child: ClipRRect(
+                                      borderRadius:
+                                          const BorderRadius.horizontal(
+                                              left: Radius.circular(8)),
+                                      child: data.imageThumbnail.isNotEmpty
+                                          ? _Image(path: data.imageThumbnail)
+                                          : DecoratedBox(
+                                              decoration: BoxDecoration(
+                                                color: data.isVideo
+                                                    ? Colors.blue
+                                                    : Colors.orange,
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                    data.number.toString()),
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: ListTile(
+                                      subtitle: Text('Episódio ${data.number}'),
+                                      title: Text(
+                                        data.title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Positioned.fill(
+                              child: Material(
+                                type: MaterialType.transparency,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onLongPress: selected
+                                      ? null
+                                      : () {
+                                          add(data.file.path);
+                                        },
+                                  onTap: _fileSelected.isNotEmpty
+                                      ? () {
+                                          add(data.file.path);
+                                        }
+                                      : () async {
+                                          final LibraryService libraryService =
+                                              LibraryService(
+                                            context.read(),
+                                            context.read(),
+                                          );
+
+                                          final animeEntity = libraryService
+                                              .entities
+                                              .firstWhereOrNull(
+                                            (entity) => switch (entity) {
+                                              AnimeEntity anime => anime
+                                                  .title.toID
+                                                  .contains(data.title.toID),
+                                              _ => false,
+                                            },
+                                          );
+
+                                          if (animeEntity != null &&
+                                              animeEntity is AnimeEntity) {
+                                            final episode =
+                                                animeEntity.episodes.firstWhere(
+                                              (episode) =>
+                                                  episode.numberEpisode ==
+                                                  data.number,
+                                            );
+
+                                            await context.push(
+                                              RouteName.PLAYER,
+                                              extra: PlayerArgs(
+                                                getAnimeData: false,
+                                                forceEnterFullScreen: true,
+                                                startPossition:
+                                                    episode.currentDuration > 0
+                                                        ? episode.cdToDuration
+                                                        : null,
+                                                episode: episode.toEpisode(
+                                                  animeEntity.isDublado,
+                                                ),
+                                                anime: animeEntity.toAnime,
+                                                data: FileVideoData(
+                                                  file: File(data.file.path),
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 );
               })
             ],

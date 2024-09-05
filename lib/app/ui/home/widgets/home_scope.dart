@@ -10,18 +10,18 @@ class HomeScope extends InheritedNotifier<Listenable> {
     required this.tabController,
     required this.homeController,
     required this.searchController,
-    required this.railMenuController,
+    required this.bottomMenuController,
     required this.keepWatchingScrollController,
     required this.subordinateLibraryTabController,
   }) : super(
           notifier: Listenable.merge(
-            [tabController, searchController, railMenuController],
+            [tabController, searchController, bottomMenuController],
           ),
           key: _homeScopeKey,
         );
 
   static final GlobalKey _homeScopeKey = GlobalKey();
-  final RailMenuController railMenuController;
+  final BottomMenuController bottomMenuController;
   final CustomSearchController searchController;
   final TabController tabController;
   final ScrollController homeController;

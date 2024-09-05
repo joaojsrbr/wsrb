@@ -8,59 +8,62 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
-class RailMenu extends StatefulWidget {
-  const RailMenu({
+class BottomMenu extends StatefulWidget {
+  const BottomMenu({
     super.key,
     required this.child,
     this.buttons,
     this.railMenuController,
   });
 
-  final RailMenuController? railMenuController;
+  final BottomMenuController? railMenuController;
   final WidgetBuilder? buttons;
   final Widget child;
 
-  static RailMenuController? menuControllerMaybeOf(BuildContext context) {
-    return _RailMenuControllerScope.maybeOf(context)?.notifier;
+  static BottomMenuController? menuControllerMaybeOf(BuildContext context) {
+    return _BottomMenuControllerScope.maybeOf(context)?.notifier;
   }
 
-  static RailMenuController menuControllerOf(BuildContext context) {
-    return _RailMenuControllerScope.of(context).notifier!;
+  static BottomMenuController menuControllerOf(BuildContext context) {
+    return _BottomMenuControllerScope.of(context).notifier!;
   }
 
   @override
-  State<RailMenu> createState() => _RailMenuState();
+  State<BottomMenu> createState() => _BottomMenuState();
 }
 
-class _RailMenuState extends State<RailMenu> {
-  late final RailMenuController _railMenuController;
+class _BottomMenuState extends State<BottomMenu> {
+  late final BottomMenuController _railMenuController;
 
   @override
   void initState() {
-    _railMenuController = (widget.railMenuController ?? RailMenuController());
+    _railMenuController = (widget.railMenuController ?? BottomMenuController());
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return _RailMenuControllerScope(
+    return _BottomMenuControllerScope(
       notifier: _railMenuController,
-      child: Builder(builder: (context) {
-        final railMenuController = RailMenu.menuControllerOf(context);
-        return Stack(
-          children: [
-            Positioned.fill(child: widget.child),
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 350),
-              right: 0,
-              width: railMenuController.isOpen
-                  ? railMenuController.menuSize.width
-                  : 0,
-              child: widget.buttons?.call(context) ?? const _LibraryButtons(),
-            )
-          ],
-        );
-      }),
+      child: Builder(
+        builder: (context) {
+          final railMenuController = BottomMenu.menuControllerOf(context);
+          return Stack(
+            alignment: Alignment.bottomCenter,
+            fit: StackFit.expand,
+            children: [
+              widget.child,
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 350),
+                right: 0,
+                left: 0,
+                height: railMenuController.isOpen ? kToolbarHeight : 0,
+                child: widget.buttons?.call(context) ?? const _LibraryButtons(),
+              )
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -74,31 +77,32 @@ class _RailMenuState extends State<RailMenu> {
   }
 }
 
-class _RailMenuControllerScope extends InheritedNotifier<RailMenuController> {
-  const _RailMenuControllerScope({
+class _BottomMenuControllerScope
+    extends InheritedNotifier<BottomMenuController> {
+  const _BottomMenuControllerScope({
     required super.child,
     required super.notifier,
   });
 
-  static _RailMenuControllerScope of(BuildContext context) {
+  static _BottomMenuControllerScope of(BuildContext context) {
     return context
-        .dependOnInheritedWidgetOfExactType<_RailMenuControllerScope>()!;
+        .dependOnInheritedWidgetOfExactType<_BottomMenuControllerScope>()!;
   }
 
-  static _RailMenuControllerScope? maybeOf(BuildContext context) {
+  static _BottomMenuControllerScope? maybeOf(BuildContext context) {
     return context
-        .dependOnInheritedWidgetOfExactType<_RailMenuControllerScope>();
+        .dependOnInheritedWidgetOfExactType<_BottomMenuControllerScope>();
   }
 
   @override
-  bool updateShouldNotify(_RailMenuControllerScope oldWidget) {
+  bool updateShouldNotify(_BottomMenuControllerScope oldWidget) {
     return notifier?.isOpen != oldWidget.notifier?.isOpen ||
         notifier?.menuSize != oldWidget.notifier?.menuSize;
   }
 }
 
-class RailMenuController extends ChangeNotifier {
-  RailMenuController({bool? opened, double minWidth = 50}) {
+class BottomMenuController extends ChangeNotifier {
+  BottomMenuController({bool? opened, double minWidth = 50}) {
     _openMenu = opened ?? false;
     _menuSize = Size.fromWidth(minWidth);
   }
@@ -132,7 +136,6 @@ class _LibraryButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeData = Theme.of(context);
     final LibraryController libraryController =
         context.read<LibraryController>();
     final ContentRepository repository = context.read<ContentRepository>();
@@ -141,52 +144,17 @@ class _LibraryButtons extends StatelessWidget {
     final LibraryService libraryService =
         LibraryService(libraryController, context.watch());
 
-    final ScrollableState scrollable = Scrollable.of(
-      context,
-      axis: Axis.vertical,
-    );
     final TabController tabController = HomeScope.of(context).tabController;
 
-    return AnimatedBuilder(
-      animation: scrollable.position,
-      builder: (context, child) {
-        double paddingPercent = 0.0;
-
-        switch (tabController.index) {
-          case 0:
-            paddingPercent = ((scrollable.position.pixels -
-                        ((libraryService.favorites.isEmpty ||
-                                libraryService.favorites.isEmpty)
-                            ? 150
-                            : 330))
-                    .clamp(0.0, 100) /
-                100);
-            break;
-          case 1:
-            paddingPercent = ((scrollable.position.pixels -
-                        ((libraryService.favorites.isEmpty ||
-                                libraryService.favorites.isEmpty)
-                            ? 150
-                            : 200))
-                    .clamp(0.0, 100) /
-                100);
-            break;
-        }
-
-        if (tabController.index == 0) {}
-
-        final padding = (100 * paddingPercent).clamp(10.0, 50.0);
-
-        return Padding(
-          padding: EdgeInsets.only(top: padding),
-          child: Card.filled(
-            color: themeData.colorScheme.primary.withAlpha(10),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(8),
-                bottomLeft: Radius.circular(8),
-              ),
-            ),
+    return SizedBox(
+      width: double.infinity,
+      height: kToolbarHeight,
+      child: Card(
+        shape: const RoundedRectangleBorder(),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: OverflowBar(
               spacing: 8,
               textDirection: Directionality.of(context),
@@ -296,8 +264,8 @@ class _LibraryButtons extends StatelessWidget {
               ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/content_indicator_build.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -42,9 +41,6 @@ class _ContentDestinationState extends State<ContentDestination>
       await _contentRepository.refresh(true);
     }
 
-    final RailMenuController railMenuController =
-        RailMenu.menuControllerOf(context);
-
     final ConnectionChecker connectionChecker =
         context.watch<ConnectionChecker>();
 
@@ -52,37 +48,33 @@ class _ContentDestinationState extends State<ContentDestination>
 
     return RefreshIndicator(
       onRefresh: onRefresh,
-      child: AnimatedPadding(
-        duration: const Duration(milliseconds: 350),
-        padding: EdgeInsets.only(right: railMenuController.isOpen ? 50 : 0),
-        child: Builder(builder: (context) {
-          return AnimatedSwitcher(
-            duration: const Duration(milliseconds: 350),
-            child: connectionChecker.connectivityResult.isEmpty
-                ? const FullScreenErrorWidget(btnAtualizar: false)
-                : LoadingMoreList(
-                    ListConfig<Content>(
-                      shrinkWrap: true,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                      ),
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 6,
-                      ),
-                      indicatorBuilder: contentIndicatorBuilder,
-                      itemBuilder: _itemBuilder,
-                      sourceList: _contentRepository,
+      child: Builder(builder: (context) {
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 350),
+          child: connectionChecker.connectivityResult.isEmpty
+              ? const FullScreenErrorWidget(btnAtualizar: false)
+              : LoadingMoreList(
+                  ListConfig<Content>(
+                    shrinkWrap: true,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
                     ),
-                    key: const PageStorageKey("content_destination"),
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    indicatorBuilder: contentIndicatorBuilder,
+                    itemBuilder: _itemBuilder,
+                    sourceList: _contentRepository,
                   ),
-          );
-        }),
-      ),
+                  key: const PageStorageKey("content_destination"),
+                ),
+        );
+      }),
     );
   }
 
