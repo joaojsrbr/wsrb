@@ -2,7 +2,6 @@ import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
@@ -66,9 +65,6 @@ class _ItemContentState extends State<ItemContent> {
 
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
-
-    final BottomMenuController? bottomMenuController =
-        BottomMenu.menuControllerMaybeOf(context);
 
     final HiveController hiveController = context.watch<HiveController>();
 
@@ -152,10 +148,7 @@ class _ItemContentState extends State<ItemContent> {
                     AnimatedDefaultTextStyle(
                       duration: const Duration(milliseconds: 350),
                       style: (textTheme.titleSmall ?? const TextStyle())
-                          .copyWith(
-                              fontSize: bottomMenuController?.isOpen == true
-                                  ? (textTheme.titleSmall!.fontSize! - 2)
-                                  : textTheme.titleSmall!.fontSize),
+                          .copyWith(fontSize: textTheme.titleSmall!.fontSize),
                       child: Text.rich(
                         TextSpan(
                           children: [
