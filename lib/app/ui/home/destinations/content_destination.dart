@@ -79,9 +79,6 @@ class _ContentDestinationState extends State<ContentDestination>
   }
 
   Widget _itemBuilder(BuildContext context, Content content, int index) {
-    return ItemContent(
-      content: content,
-      key: ObjectKey(content),
-    );
+    return ItemContent(content: content);
   }
 }

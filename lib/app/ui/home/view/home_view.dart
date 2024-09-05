@@ -7,9 +7,9 @@ import 'package:app_wsrb_jsr/app/ui/home/destinations/settings_destination.dart'
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_view_flexible_space.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/keep_watching.dart';
+import 'package:app_wsrb_jsr/app/ui/home/widgets/menu_button.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
 import 'package:app_wsrb_jsr/app/utils/category_utils.dart';
 import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
 import 'package:content_library/content_library.dart';
@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:sliver_tools/sliver_tools.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -31,7 +32,6 @@ class _HomeViewState extends State<HomeView>
   late final TabController _tabController;
   late final CustomSearchController _searchController;
   late final ScrollController _scrollController;
-  // late final ConnectionChecker _connectionChecker;
   late SubordinateLibraryTabController _subordinateLibraryTabController;
   late final ScrollController _keepWatchingScrollController;
   late final CategoryController _categoryController;
@@ -42,13 +42,11 @@ class _HomeViewState extends State<HomeView>
   @override
   String? get restorationId => 'home';
 
-  // late RestorableRouteFuture<int> _counterRoute;
   final RestorableInt _homeTabControllerIndex = RestorableInt(0);
   final RestorableDouble _homeScrollControllerPosition = RestorableDouble(0.0);
 
   @override
   void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
-    // registerForRestoration(_counterRoute, 'route');
     registerForRestoration(
       _homeTabControllerIndex,
       'home_tab_controller_index',
@@ -80,8 +78,6 @@ class _HomeViewState extends State<HomeView>
       ..addListener(_valueNotifierListListener);
 
     _bottomMenuController = BottomMenuController();
-
-    // _connectionChecker = context.read<ConnectionChecker>();
 
     _startTabController(false);
 
@@ -180,6 +176,12 @@ class _HomeViewState extends State<HomeView>
     return const FixedOverscrollBouncingScrollPhysics();
   }
 
+  static final _homeTabIcons = [
+    Icon(MdiIcons.home),
+    Icon(MdiIcons.library),
+    Icon(MdiIcons.cog),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final CategoryController categoryController =
@@ -199,6 +201,10 @@ class _HomeViewState extends State<HomeView>
         builder: (context) {
           final TabController tabController =
               HomeScope.of(context).tabController;
+          final LibraryService libraryService = LibraryService(
+            context.watch(),
+            context.watch(),
+          );
 
           return Scaffold(
             body: BottomMenu(
@@ -211,35 +217,18 @@ class _HomeViewState extends State<HomeView>
                 headerSliverBuilder: (context, innerBoxIsScrolled) {
                   return [
                     SliverAppBar(
-                      pinned: false,
-                      primary: true,
-                      floating: false,
+                      // pinned: true,
+                      // floating: true,
                       bottom: TabBar(
                         controller: _tabController,
-                        dividerColor: _tabController.index == 1
+                        dividerColor: (libraryService.notCompleted.isNotEmpty ||
+                                    libraryService.completed.isEmpty) &&
+                                _tabController.index == 1
                             ? Colors.transparent
                             : null,
                         tabs: List.generate(
                           _tabController.length,
-                          (index) => Builder(
-                            builder: (context) {
-                              final icons = {
-                                _tabController.index == 0
-                                    ? MdiIcons.home
-                                    : MdiIcons.homeOutline,
-                                _tabController.index == 1
-                                    ? MdiIcons.library
-                                    : MdiIcons.libraryOutline,
-                                _tabController.index == 2
-                                    ? MdiIcons.cog
-                                    : MdiIcons.cogOutline,
-                              };
-
-                              return Tab(
-                                icon: Icon(icons.elementAt(index)),
-                              );
-                            },
-                          ),
+                          (index) => Tab(icon: _homeTabIcons.elementAt(index)),
                         ),
                       ),
                       actions: [
@@ -275,10 +264,10 @@ class _HomeViewState extends State<HomeView>
                       title: const HomeViewFlexibleSpace(),
                     ),
                     const KeepWatching(),
-                    SliverToBoxAdapter(
-                      child: AnimatedSize(
-                        duration: const Duration(milliseconds: 350),
-                        child: _tabController.index == 1
+                    SliverAnimatedPaintExtent(
+                      duration: const Duration(milliseconds: 350),
+                      child: SliverToBoxAdapter(
+                        child: identical(tabController.index, 1)
                             ? TabBar(
                                 key: const ValueKey('tab_bar_library'),
                                 tabAlignment: TabAlignment.start,
@@ -307,7 +296,6 @@ class _HomeViewState extends State<HomeView>
                                 isScrollable: true,
                               )
                             : SizedBox(
-                                key: const ValueKey('menu_buttom_home'),
                                 width: double.infinity,
                                 height: _tabController.index == 0 ? 58 : 0,
                                 child: ListView(
@@ -320,9 +308,8 @@ class _HomeViewState extends State<HomeView>
                                         ),
                                   physics: const BouncingScrollPhysics(),
                                   scrollDirection: Axis.horizontal,
-                                  cacheExtent: 300,
                                   children: [
-                                    _MenuButton(
+                                    MenuButton(
                                       data: Source.list,
                                       onTap: hiveController.setSource,
                                       enableSecondChild:
@@ -330,9 +317,10 @@ class _HomeViewState extends State<HomeView>
                                       enableMenuItem: (data) =>
                                           !(hiveController.source == data),
                                       child: Text(
-                                          hiveController.source.toString()),
+                                        hiveController.source.toString(),
+                                      ),
                                     ),
-                                    _MenuButton(
+                                    MenuButton(
                                       data: OrderBy.list,
                                       onTap: hiveController.setOrderBy,
                                       leadingMenuItem: (data) =>
@@ -343,7 +331,8 @@ class _HomeViewState extends State<HomeView>
                                               ) ||
                                               tabController.index != 0,
                                       child: Text(
-                                          hiveController.orderBy.toString()),
+                                        hiveController.orderBy.toString(),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -382,94 +371,5 @@ class _HomeViewState extends State<HomeView>
       ..dispose();
     _valueNotifierList.removeListener(_valueNotifierListListener);
     super.dispose();
-  }
-}
-
-class _MenuButton<T> extends StatelessWidget {
-  final void Function(T data)? onTap;
-  final Widget? child;
-  final bool enableSecondChild;
-  final List<T> data;
-  final bool Function(T data)? enableMenuItem;
-  final Widget Function(T data)? leadingMenuItem;
-
-  const _MenuButton({
-    required this.onTap,
-    required this.child,
-    this.enableMenuItem,
-    this.leadingMenuItem,
-    this.enableSecondChild = false,
-    required this.data,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeThroughTransitionSwitcher(
-      duration: const Duration(milliseconds: 350),
-      enableSecondChild: enableSecondChild,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 20, bottom: 4),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 140, maxHeight: 38),
-          child: Builder(builder: (context) {
-            return FilledButton(
-              style: FilledButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: (data.length == 1)
-                  ? null
-                  : () async {
-                      final RenderBox? button =
-                          context.findRenderObject() as RenderBox?;
-
-                      final RenderBox? overlay = Navigator.of(context)
-                          .overlay
-                          ?.context
-                          .findRenderObject() as RenderBox?;
-                      if (overlay != null && button != null) {
-                        final size = button.size;
-
-                        final RelativeRect position = RelativeRect.fromRect(
-                          Rect.fromPoints(
-                            button.localToGlobal(size.bottomLeft(Offset.zero)),
-                            button.localToGlobal(size.bottomLeft(Offset.zero)),
-                          ),
-                          Offset(size.width > 100 ? -5 : size.width, -5) &
-                              overlay.size,
-                        );
-
-                        final result = await showMenu(
-                          context: context,
-                          position: position,
-                          clipBehavior: Clip.hardEdge,
-                          items: data
-                              .map(
-                                (e) => PopupMenuItem(
-                                  value: e,
-                                  enabled: enableMenuItem?.call(e) ?? true,
-                                  child: ListTile(
-                                    leading: leadingMenuItem?.call(e),
-                                    title: Text(
-                                      e.toString(),
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        );
-
-                        if (result == null) return;
-
-                        onTap?.call(result);
-                      }
-                    },
-              child: child,
-            );
-          }),
-        ),
-      ),
-    );
   }
 }

@@ -29,7 +29,7 @@ class SharedAxisTransitionPageWrapper extends Page {
       settings: this,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return SharedAxisTransition(
-          fillColor: Theme.of(context).canvasColor,
+          fillColor: Theme.of(context).cardColor,
           animation: animation,
           secondaryAnimation: secondaryAnimation,
           transitionType: SharedAxisTransitionType.scaled,

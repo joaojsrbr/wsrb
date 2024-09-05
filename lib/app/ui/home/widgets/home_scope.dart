@@ -1,5 +1,5 @@
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
 import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +15,11 @@ class HomeScope extends InheritedNotifier<Listenable> {
     required this.subordinateLibraryTabController,
   }) : super(
           notifier: Listenable.merge(
-            [tabController, searchController, bottomMenuController],
+            [
+              tabController,
+              searchController,
+              bottomMenuController,
+            ],
           ),
           key: _homeScopeKey,
         );

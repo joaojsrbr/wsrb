@@ -221,8 +221,8 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
                               ? downloadInfo?.videoDuration != null &&
                                       (downloadInfo?.time ?? 0) > 0.0
                                   ? SizedBox(
-                                      width: 24,
-                                      height: 24,
+                                      width: 32,
+                                      height: 32,
                                       child: TweenAnimationBuilder(
                                         curve: Curves.easeInOut,
                                         duration: Duration.zero,
@@ -238,19 +238,32 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
                                           value,
                                           child,
                                         ) {
-                                          customLog(value);
-                                          return CircularProgressIndicator
-                                              .adaptive(
-                                            value: value,
-                                            strokeAlign: -2,
-                                            strokeWidth: 3,
+                                          return Stack(
+                                            children: [
+                                              CircularProgressIndicator
+                                                  .adaptive(
+                                                value: value,
+                                                strokeAlign: -2,
+                                                strokeWidth: 3,
+                                              ),
+                                              Center(
+                                                child: Text(
+                                                  (value * 100)
+                                                      .ceil()
+                                                      .toString(),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .labelSmall,
+                                                ),
+                                              ),
+                                            ],
                                           );
                                         },
                                       ),
                                     )
                                   : const SizedBox(
-                                      width: 24,
-                                      height: 24,
+                                      width: 32,
+                                      height: 32,
                                       child: CircularProgressIndicator.adaptive(
                                         strokeAlign: -2,
                                         strokeWidth: 3,
@@ -258,6 +271,7 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
                                     )
                               : Icon(
                                   MdiIcons.downloadCircle,
+                                  size: 32,
                                   color: downloaded ? Colors.green : null,
                                 ),
                         ),
@@ -280,8 +294,8 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
                                       return const Card.filled();
                                     },
                                     fit: BoxFit.cover,
-                                    maxWidthDiskCache: 300,
-                                    maxHeightDiskCache: 200,
+                                    maxWidthDiskCache: 200,
+                                    maxHeightDiskCache: 150,
                                   ),
                                 )
                               : const Card.filled(),

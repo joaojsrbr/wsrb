@@ -15,7 +15,7 @@ class ContentHeader extends StatelessWidget {
     final themeData = Theme.of(context);
 
     return SafeArea(
-      key: const ValueKey('content_persistent'),
+      key: const ObjectKey('content_persistent'),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -39,8 +39,8 @@ class ContentHeader extends StatelessWidget {
                       );
                     },
                     fit: BoxFit.cover,
-                    maxHeightDiskCache: 500,
-                    maxWidthDiskCache: 400,
+                    memCacheHeight: 300,
+                    memCacheWidth: 200,
                     imageUrl: content.imageUrl,
                     httpHeaders: App.HEADERS,
                   ),

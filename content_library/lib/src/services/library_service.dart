@@ -17,6 +17,34 @@ class LibraryService {
       .map(_map)
       .nonNulls);
 
+  UnmodifiableListView<ContentEntity> get completed =>
+      UnmodifiableListView(entities
+          .where(
+            (entity) => switch (entity) {
+              AnimeEntity data =>
+                data.episodes.any((episode) => episode.isComplete),
+              BookEntity data =>
+                data.chapters.any((episode) => episode.isComplete),
+              _ => false,
+            },
+          )
+          .nonNulls);
+
+  UnmodifiableListView<ContentEntity> get notCompleted =>
+      UnmodifiableListView(entities
+          .where(
+            (entity) => switch (entity) {
+              AnimeEntity data => data.episodes.any((episode) =>
+                  !episode.isComplete &&
+                  (episode.videoPercent > _hiveController.historicSavePercent)),
+              BookEntity data => data.chapters.any((chapter) =>
+                  !chapter.isComplete &&
+                  (chapter.readPercent > _hiveController.historicSavePercent)),
+              _ => false,
+            },
+          )
+          .nonNulls);
+
   Iterable<HistoryEntity>? getIsarLinks(ContentEntity element) {
     return switch (element) {
       AnimeEntity data => data.episodes
@@ -24,8 +52,11 @@ class LibraryService {
               !episode.isComplete &&
               (episode.videoPercent > _hiveController.historicSavePercent))
           .toList(),
-      BookEntity data =>
-        data.chapters.where((episode) => !episode.isComplete).toList(),
+      BookEntity data => data.chapters
+          .where((episode) =>
+              !episode.isComplete &&
+              (episode.readPercent > _hiveController.historicSavePercent))
+          .toList(),
       _ => null
     };
   }

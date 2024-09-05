@@ -27,7 +27,7 @@ final appRoutes = GoRouter(
       path: RouteName.HOME,
       pageBuilder: (context, state) {
         return SharedAxisTransitionPageWrapper(
-          restorationId: 'router.home_info',
+          restorationId: 'router.home',
           transitionKey: state.pageKey,
           screen: const HomeView(),
         );
@@ -38,8 +38,8 @@ final appRoutes = GoRouter(
           pageBuilder: (context, state) {
             return SharedAxisTransitionPageWrapper(
               restorationId: 'router.content_info',
-              reverseTransitionDuration: const Duration(milliseconds: 850),
-              transitionDuratio: const Duration(milliseconds: 850),
+              // reverseTransitionDuration: const Duration(milliseconds: 850),
+              // transitionDuratio: const Duration(milliseconds: 850),
               arguments: state.extra,
               transitionKey: state.pageKey,
               screen: const RefContentInformationView(),
@@ -51,7 +51,7 @@ final appRoutes = GoRouter(
           pageBuilder: (context, state) {
             return SharedAxisTransitionPageWrapper(
               arguments: state.extra,
-              restorationId: 'router.download_info',
+              restorationId: 'router.download',
               transitionKey: state.pageKey,
               screen: const DownloadView(),
             );

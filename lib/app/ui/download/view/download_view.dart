@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/rail_menu.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
 import 'package:content_library/content_library.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -180,7 +180,6 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
 
   @override
   Widget build(BuildContext context) {
-    final themeData = Theme.of(context);
     return Scaffold(
       appBar: AppBar(),
       body: RefreshIndicator(
@@ -191,39 +190,27 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
         child: BottomMenu(
           railMenuController: _bottomMenuController,
           buttons: (context) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Card.filled(
-                color: themeData.colorScheme.primary.withAlpha(10),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(8),
-                    bottomLeft: Radius.circular(8),
-                  ),
+            return OverflowBar(
+              spacing: 8,
+              textDirection: Directionality.of(context),
+              overflowAlignment: OverflowBarAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: () async {
+                    final allSelected = _files.where(
+                        (file) => _fileSelected.contains(file.file.path));
+
+                    for (final file in allSelected) {
+                      await file.file.delete();
+                    }
+
+                    _bottomMenuController.close();
+
+                    setStateIfMounted(_fileSelected.clear);
+                  },
+                  icon: Icon(MdiIcons.delete),
                 ),
-                child: OverflowBar(
-                  spacing: 8,
-                  textDirection: Directionality.of(context),
-                  overflowAlignment: OverflowBarAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: () async {
-                        final allSelected = _files.where(
-                            (file) => _fileSelected.contains(file.file.path));
-
-                        for (final file in allSelected) {
-                          await file.file.delete();
-                        }
-
-                        _bottomMenuController.close();
-
-                        setStateIfMounted(_fileSelected.clear);
-                      },
-                      icon: Icon(MdiIcons.delete),
-                    ),
-                  ],
-                ),
-              ),
+              ],
             );
           },
           child: Stack(
@@ -240,7 +227,6 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                   child: Divider(height: 2),
                 ),
               Builder(builder: (context) {
-                final menuController = BottomMenu.menuControllerOf(context);
                 return ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(
                       parent: BouncingScrollPhysics()),

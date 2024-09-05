@@ -31,6 +31,7 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
   @override
   void initState() {
     super.initState();
+
     _contentRepository = context.read<ContentRepository>();
     scheduleMicrotask(() {
       _searchController = HomeScope.of(context).searchController
@@ -87,7 +88,6 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
 
     final ConnectionChecker connectionChecker =
         context.watch<ConnectionChecker>();
-
     return IgnorePointer(
       ignoring: tabController.index == 2 ||
           valueNotifierList.isNotEmpty ||
@@ -191,7 +191,7 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
                 controlAffinity: ListTileControlAffinity.leading,
                 children: <Widget>[
                   SizedBox(
-                    height: 220,
+                    height: 200,
                     child: ListView.builder(
                       itemCount: entry.value.length,
                       scrollDirection: Axis.horizontal,
@@ -199,12 +199,13 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
                       padding: const EdgeInsets.all(8.0),
                       itemBuilder: (context, index) {
                         final content = entry.value[index];
-                        return SizedBox(
-                          width: 168,
-                          height: 220,
-                          child: ItemContent.search(
-                            key: ObjectKey(content),
-                            content: content,
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: SizedBox(
+                            width: 140,
+                            child: ItemContent.search(
+                              content: content,
+                            ),
                           ),
                         );
                       },

@@ -38,8 +38,8 @@ class ItemContent extends StatefulWidget {
     required this.content,
     this.width,
     this.height,
-  })  : _isSearch = false,
-        _isLibrary = true;
+  })  : _isSearch = true,
+        _isLibrary = false;
 
   static ItemContent? maybeOf(BuildContext context) {
     return context.findAncestorWidgetOfExactType<ItemContent>();
@@ -49,20 +49,39 @@ class ItemContent extends StatefulWidget {
     return context.findAncestorWidgetOfExactType<ItemContent>()!;
   }
 
+  static final BorderRadius _borderRadius = BorderRadius.circular(8);
+
+  static final _OverlayColor _overlayColor = _OverlayColor();
+
   @override
   State<ItemContent> createState() => _ItemContentState();
 }
 
 class _ItemContentState extends State<ItemContent> {
-  static final BorderRadius _borderRadius = BorderRadius.circular(8);
+  int? _memCacheWidth;
+  int? _memCacheHeight;
 
-  bool get _isLibrary => widget._isLibrary;
-  bool get _isSearch => widget._isSearch;
+  @override
+  void initState() {
+    _setCache();
+    super.initState();
+  }
+
+  void _setCache() {
+    _memCacheHeight = widget._isLibrary
+        ? 500
+        : widget._isSearch
+            ? 350
+            : 200;
+    _memCacheWidth = widget._isLibrary
+        ? 300
+        : widget._isSearch
+            ? 300
+            : 300;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final content = widget.content;
-
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
 
@@ -71,69 +90,51 @@ class _ItemContentState extends State<ItemContent> {
     final ThemeData themeData = Theme.of(context);
 
     final textTheme = themeData.textTheme;
-    // customLog(widget.content.imageUrl);
+
     return AnimatedContainer(
+      key: ObjectKey(widget.content),
       duration: const Duration(milliseconds: 350),
       height: widget.height,
       width: widget.width,
       decoration: BoxDecoration(
-        borderRadius: _borderRadius.add(BorderRadius.circular(2)),
-        border: valueNotifierList.contains(content.stringID)
+        borderRadius: ItemContent._borderRadius.add(BorderRadius.circular(2)),
+        border: valueNotifierList.contains(widget.content.stringID)
             ? Border.all(color: Colors.white, width: 1.5)
             : null,
       ),
       child: ClipRRect(
-        borderRadius: _borderRadius,
+        borderRadius: ItemContent._borderRadius,
         child: Stack(
           fit: StackFit.expand,
           children: [
-            CachedNetworkImage(
-              filterQuality: FilterQuality.medium,
-              imageUrl: widget.content.imageUrl,
-
-              placeholder: (context, url) {
-                return Card.filled(
-                  color: themeData.colorScheme.primary.withAlpha(10),
-                );
+            ShaderMask(
+              blendMode: BlendMode.srcOver,
+              shaderCallback: (bounds) {
+                return LinearGradient(
+                  begin: Alignment.center,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black54.withAlpha(90),
+                  ],
+                  stops: const [0.0, .9],
+                ).createShader(bounds);
               },
-              imageBuilder: (context, imageProvider) {
-                return ShaderMask(
-                  blendMode: BlendMode.srcOver,
-                  shaderCallback: (bounds) {
-                    return LinearGradient(
-                      begin: Alignment.center,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black54.withAlpha(90),
-                      ],
-                      stops: const [0.0, .9],
-                    ).createShader(bounds);
-                  },
-                  child: Image(
-                    fit: BoxFit.cover,
-                    alignment: FractionalOffset.center,
-                    image: imageProvider,
-                  ),
-                );
-              },
-              errorListener: (value) {
-                customLog(value);
-                // addPostFrameSetState(() => _error = true);
-              },
-              errorWidget: (context, url, error) {
-                return Card.filled(
-                  color: themeData.colorScheme.primary.withAlpha(10),
-                );
-              },
-              maxHeightDiskCache: 350,
-              maxWidthDiskCache: 300,
-
-              httpHeaders: {
-                ...App.HEADERS,
-                'Referer': '${hiveController.source.baseURL}/',
-              },
-              // httpHeaders: App.HEADERS,
+              child: CachedNetworkImage(
+                filterQuality: FilterQuality.medium,
+                imageUrl: widget.content.imageUrl,
+                placeholder: (context, url) => const _Placeholder(),
+                errorListener: customLog,
+                fit: BoxFit.cover,
+                alignment: FractionalOffset.center,
+                errorWidget: (context, url, error) => const _Placeholder(),
+                memCacheHeight: _memCacheHeight,
+                memCacheWidth: _memCacheWidth,
+                httpHeaders: {
+                  ...App.HEADERS,
+                  'Referer': '${hiveController.source.baseURL}/',
+                },
+              ),
             ),
             Positioned(
               bottom: 8,
@@ -144,7 +145,7 @@ class _ItemContentState extends State<ItemContent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  if (!_isLibrary && !_isSearch)
+                  if (!widget._isLibrary && !widget._isSearch)
                     AnimatedDefaultTextStyle(
                       duration: const Duration(milliseconds: 350),
                       style: (textTheme.titleSmall ?? const TextStyle())
@@ -152,18 +153,20 @@ class _ItemContentState extends State<ItemContent> {
                       child: Text.rich(
                         TextSpan(
                           children: [
-                            if (content.releases.length == 1) ...[
+                            if (widget.content.releases.length == 1) ...[
                               TextSpan(
                                 text:
-                                    'Episódio ${content.releases.first.number}',
+                                    'Episódio ${widget.content.releases.first.number}',
                               ),
                               const TextSpan(text: ' - '),
                             ],
-                            if (content is Anime) ...[
+                            if (widget.content is Anime) ...[
                               TextSpan(
-                                text: content.isDublado ? 'DUB' : 'LEG',
+                                text: (widget.content as Anime).isDublado
+                                    ? 'DUB'
+                                    : 'LEG',
                                 style: TextStyle(
-                                  color: content.isDublado
+                                  color: (widget.content as Anime).isDublado
                                       ? Colors.green
                                       : Colors.blue,
                                 ),
@@ -178,12 +181,12 @@ class _ItemContentState extends State<ItemContent> {
                     ),
                   AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 350),
-                    style: _isLibrary
+                    style: widget._isLibrary
                         ? textTheme.titleMedium!
                         : textTheme.titleSmall!.copyWith(),
                     child: Text(
-                      content.title,
-                      maxLines: _isLibrary ? 2 : 1,
+                      widget.content.title,
+                      maxLines: widget._isLibrary ? 2 : 1,
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -193,18 +196,18 @@ class _ItemContentState extends State<ItemContent> {
             ),
             Material(
               color: Colors.transparent,
-              borderRadius: _borderRadius,
+              borderRadius: ItemContent._borderRadius,
               child: InkWell(
-                borderRadius: _borderRadius,
-                overlayColor: _OverlayColor(content),
-                onLongPress: _isSearch
+                borderRadius: ItemContent._borderRadius,
+                overlayColor: ItemContent._overlayColor,
+                onLongPress: widget._isSearch
                     ? null
                     : () {
                         if (valueNotifierList.isEmpty) {
                           customLog(
-                            'InkWell long tapped title: ${content.title} - id: ${content.stringID}',
+                            'InkWell long tapped title: ${widget.content.title} - id: ${widget.content.stringID}',
                           );
-                          valueNotifierList.toggle(content.stringID);
+                          valueNotifierList.toggle(widget.content.stringID);
                         }
                         // HomeRailMenu.menuControllerMaybeOf(context)?.open();
                       },
@@ -219,16 +222,16 @@ class _ItemContentState extends State<ItemContent> {
                     // searchController?.clear();
                   }
                   if (valueNotifierList.isNotEmpty) {
-                    valueNotifierList.toggle(content.stringID);
+                    valueNotifierList.toggle(widget.content.stringID);
                     customLog(
-                      'InkWell tapped title: ${content.title} - id: ${content.stringID}',
+                      'InkWell tapped title: ${widget.content.title} - id: ${widget.content.stringID}',
                     );
                   } else {
-                    if (content is Anime &&
-                        content.releases.length == 1 &&
-                        !_isLibrary &&
-                        !_isSearch) {
-                      final anime = content;
+                    if (widget.content is Anime &&
+                        widget.content.releases.length == 1 &&
+                        !widget._isLibrary &&
+                        !widget._isSearch) {
+                      final anime = widget.content as Anime;
                       await context.push(
                         RouteName.PLAYER,
                         extra: PlayerArgs(
@@ -240,7 +243,7 @@ class _ItemContentState extends State<ItemContent> {
                       final result = await context.push(
                         RouteName.CONTENTINFO,
                         extra: ContentInformationArgs(
-                          content: content,
+                          content: widget.content,
                           getData: false,
                         ),
                       );
@@ -254,7 +257,9 @@ class _ItemContentState extends State<ItemContent> {
               ),
             ),
             Visibility(
-              visible: content is Anime && !_isLibrary && !_isSearch,
+              visible: widget.content is Anime &&
+                  !widget._isLibrary &&
+                  !widget._isSearch,
               child: Positioned(
                 top: 0,
                 left: 0,
@@ -263,13 +268,13 @@ class _ItemContentState extends State<ItemContent> {
                       ? () async {
                           final appSnackBar = context.appSnackBar;
                           customLog(
-                            'IconButton[MdiIcons.information] tapped title: ${content.title} - id: ${content.stringID}',
+                            'IconButton[MdiIcons.information] tapped title: ${widget.content.title} - id: ${widget.content.stringID}',
                           );
 
                           final result = await context.push(
                             RouteName.CONTENTINFO,
                             extra: ContentInformationArgs(
-                              content: content,
+                              content: widget.content,
                             ),
                           );
                           if (result != null) {
@@ -277,7 +282,9 @@ class _ItemContentState extends State<ItemContent> {
                           }
                         }
                       : null,
-                  style: ButtonStyle(overlayColor: _OverlayColor(content)),
+                  style: ButtonStyle(
+                    overlayColor: ItemContent._overlayColor,
+                  ),
                   visualDensity: const VisualDensity(
                     horizontal: -2,
                     vertical: -2,
@@ -295,25 +302,29 @@ class _ItemContentState extends State<ItemContent> {
 }
 
 class _OverlayColor extends WidgetStateProperty<Color?> {
-  _OverlayColor(this.content) {
-    if (content is Anime) {
-      _color = (content as Anime).isDublado ? Colors.blue : Colors.red;
-    }
-  }
-
-  Color? _color;
-
-  final Content content;
+  _OverlayColor();
 
   @override
   Color? resolve(Set<WidgetState> states) {
     if (states.contains(WidgetState.pressed)) {
-      return _color?.withAlpha(30);
+      return Colors.blue.withAlpha(30);
     } else if (states.contains(WidgetState.hovered)) {
-      return _color?.withAlpha(20);
+      return Colors.blue.withAlpha(20);
     } else if (states.contains(WidgetState.focused)) {
       return Colors.transparent;
     }
     return Colors.transparent;
+  }
+}
+
+class _Placeholder extends StatelessWidget {
+  const _Placeholder();
+
+  @override
+  Widget build(BuildContext context) {
+    final themeData = Theme.of(context);
+    return Card.filled(
+      color: themeData.colorScheme.primary.withAlpha(10),
+    );
   }
 }

@@ -28,12 +28,8 @@ class _KeepWatchingState extends State<KeepWatching> {
   @override
   void didChangeDependencies() {
     final TabController tabController = HomeScope.of(context).tabController;
-    final LibraryController libraryController =
-        context.watch<LibraryController>();
-    _libraryService = LibraryService(
-      libraryController,
-      context.watch(),
-    );
+
+    _libraryService = LibraryService(context.watch(), context.watch());
     _sortedByUpdateAt = (tabController.index == 0
             ? _libraryService.entities
             : _libraryService.favorites)
@@ -458,27 +454,22 @@ class _ImageState extends State<_Image> {
     _currentPositionUint8List = base64.decode(widget.currentPositionBase64);
     _memoryImage = ResizeImage(
       MemoryImage(_currentPositionUint8List),
-      width: 500,
-      height: 300,
+      width: 720,
+      height: 450,
     );
     _placeHolder = const ResizeImage(
       App.IMAGE_BLACK,
-      width: 500,
-      height: 300,
+      width: 720,
+      height: 450,
     );
+    // scheduleMicrotask(_precacheImage);
     super.initState();
   }
 
-  void _precacheImage() {
-    precacheImage(_memoryImage, context);
-    precacheImage(_placeHolder, context);
-  }
-
-  @override
-  void didChangeDependencies() {
-    if (mounted) _precacheImage();
-    super.didChangeDependencies();
-  }
+  // void _precacheImage() {
+  //   precacheImage(_memoryImage, context);
+  //   precacheImage(_placeHolder, context);
+  // }
 
   @override
   void didUpdateWidget(covariant _Image oldWidget) {
@@ -486,8 +477,8 @@ class _ImageState extends State<_Image> {
       _currentPositionUint8List = base64.decode(widget.currentPositionBase64);
       _memoryImage = ResizeImage(
         MemoryImage(_currentPositionUint8List),
-        width: 500,
-        height: 300,
+        width: 720,
+        height: 450,
       );
     }
     super.didUpdateWidget(oldWidget);
@@ -496,8 +487,8 @@ class _ImageState extends State<_Image> {
   @override
   Widget build(BuildContext context) {
     return FadeInImage(
-      // key: ValueKey(widget.currentPositionBase64),
-      filterQuality: FilterQuality.medium,
+      fadeOutDuration: const Duration(milliseconds: 350),
+      fadeInDuration: const Duration(milliseconds: 350),
       placeholder: _placeHolder,
       image: _memoryImage,
       fit: BoxFit.cover,

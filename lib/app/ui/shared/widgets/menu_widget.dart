@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -53,10 +52,8 @@ class _MenuWidgetState<T> extends State<MenuWidget<T>> {
 
   @override
   Widget build(BuildContext context) {
-    // final size = MediaQuery.sizeOf(context);
     final constraints = widget.constraints;
     final cardShape = RoundedRectangleBorder(borderRadius: widget.borderRadius);
-    // final disableButton = context.watch<LoadBookRepository>().error;
 
     return ChangeNotifierProvider(
       create: (context) => _menuController,
@@ -73,7 +70,6 @@ class _MenuWidgetState<T> extends State<MenuWidget<T>> {
               builder: (context) => InkWell(
                 borderRadius: widget.borderRadius,
                 onTap: widget.disableButton ? null : () => _openMenu(context),
-                // onTap: disableButton ? null : () => _onTap(context),
                 child: const Stack(
                   fit: StackFit.expand,
                   children: [
@@ -110,7 +106,6 @@ class _MenuWidgetState<T> extends State<MenuWidget<T>> {
     );
     final result = await showMenu<T>(
       context: context,
-      // initialValue: widget.data,
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: widget.menuBorderRadius),
       position: _buttonPosition(context),

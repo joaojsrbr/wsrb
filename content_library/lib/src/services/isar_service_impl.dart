@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:content_library/content_library.dart';
 import 'package:content_library/src/services/isar_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 
 class IsarServiceImpl implements IsarService {
@@ -244,12 +241,13 @@ class IsarServiceImpl implements IsarService {
     List<CollectionSchema<dynamic>>? schemas,
     bool inspector = true,
   }) async {
-    String isarPath = "${App.APP_DIRECTORY}/biblioteca";
+    String isarPath = (await getApplicationDocumentsDirectory()).path;
 
-    if (kDebugMode) isarPath = "$isarPath/debug";
-
-    final isarDir = Directory(isarPath);
-    if (!await isarDir.exists()) await isarDir.create(recursive: true);
+    // if (kDebugMode) {
+    //   isarPath = "${App.APP_DIRECTORY}/biblioteca/debug";
+    //   final isarDir = Directory(isarPath);
+    //   if (!await isarDir.exists()) await isarDir.create(recursive: true);
+    // }
 
     // final dir = await getApplicationDocumentsDirectory();
     _isar = await Isar.open(
@@ -262,7 +260,7 @@ class IsarServiceImpl implements IsarService {
         CategoryEntitySchema,
       ],
       maxSizeMiB: 2048,
-      directory: isarDir.path,
+      directory: isarPath,
       inspector: inspector,
     );
     await onStart?.call();

@@ -143,7 +143,8 @@ class _RefContentkInformationViewState
     // }
   }
 
-  void _onSuccess(Content data, [bool refresh = false]) {
+  void _onSuccess(Content data,
+      [bool refresh = false, bool forceSaveCache = false]) {
     // if(data is Anime && data.totalOfPages != null) {
     //     List.generate(data.totalOfPages!, (index) => )
     // }
@@ -172,7 +173,8 @@ class _RefContentkInformationViewState
     });
 
     ifMounted(() async {
-      if ((await AutoCache.data.getJson(key: data.stringID)).data == null) {
+      if ((await AutoCache.data.getJson(key: data.stringID)).data == null ||
+          forceSaveCache) {
         AutoCache.data.saveJson(key: data.stringID, data: data.toJson());
         _restorableContent.value = jsonEncode(_content.toJson());
       }
@@ -322,12 +324,14 @@ class _RefContentkInformationViewState
                   ),
                 )
                 .then((result) {
-              result.fold(onSuccess: _onSuccess, onError: appSnackBar.onError);
+              result.fold(
+                onSuccess: (result) => _onSuccess(result, false, true),
+                onError: appSnackBar.onError,
+              );
             });
           },
           child: NestedScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            floatHeaderSlivers: true,
             restorationId: 'content_scroll',
             key: const PageStorageKey("content_pageStorageKey"),
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
@@ -335,7 +339,7 @@ class _RefContentkInformationViewState
                 expandedHeight: sizeOf.height * .40,
                 flexibleSpace: const FlexibleSpaceBar(
                   background: ContentHeader(),
-                  collapseMode: CollapseMode.parallax,
+                  collapseMode: CollapseMode.pin,
                 ),
                 actions: [
                   Builder(builder: (context) {
