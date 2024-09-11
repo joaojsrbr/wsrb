@@ -1,6 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, constant_identifier_names
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/destinations/information_destination.dart';
@@ -10,7 +9,6 @@ import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
-import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_auto_cache/flutter_auto_cache.dart';
@@ -26,9 +24,8 @@ class RefContentInformationView extends StatefulWidget {
       _RefContentkInformationViewState();
 }
 
-class _RefContentkInformationViewState
-    extends StateByArgument<RefContentInformationView, ContentInformationArgs>
-    with SubscriptionsMixin, SingleTickerProviderStateMixin, RestorationMixin {
+class _RefContentkInformationViewState extends State<RefContentInformationView>
+    with SubscriptionsMixin, SingleTickerProviderStateMixin {
   late final ContentRepository _repository;
   late final TabController _bottomTabController;
   // late final ConnectionChecker _connectionChecker;
@@ -37,16 +34,11 @@ class _RefContentkInformationViewState
   late final HistoricController _historicController;
   late final DownloadService _downloadService;
 
-  final RestorableInt _tabViewIndex = RestorableInt(0);
-  final RestorableValue<String?> _restorableContent = RestorableStringN(null);
-
   final Debouncer _changeTabBarIndex = Debouncer(
     duration: Duration.zero,
   );
 
-  late Content _content = _restorableContent.value != null
-      ? Content.fromMap(_restorableContent.value!)
-      : _informationArgs.content;
+  Content? _content;
 
   bool _isLoading = true;
   bool _releasesIsLoading = false;
@@ -54,75 +46,43 @@ class _RefContentkInformationViewState
 
   final Map<int, Releases> _releases = {};
 
-  late final ContentInformationArgs _informationArgs = argument();
-
-  @override
-  Object parse(Object? argument) {
-    if (argument is ContentInformationArgs) return argument;
-    return ContentInformationArgs.fromJson(argument.toString());
-  }
+  ContentInformationArgs? _informationArgs;
 
   @override
   void initState() {
     super.initState();
-    _bottomTabController = TabController(length: 2, vsync: this)
-      ..addListener(_tabControllerListener);
+    _bottomTabController = TabController(length: 2, vsync: this);
     _historicController = context.read<HistoricController>();
     _libraryController = context.read<LibraryController>();
     _libraryService = LibraryService(_libraryController, context.read());
-    // _connectionChecker = context.read<ConnectionChecker>();
     _downloadService = context.read<DownloadService>();
     _repository = context.read<ContentRepository>();
     scheduleMicrotask(_onInit);
   }
 
-  void _scrollToIndex() async {
-    addPostFrameCallback((timer) {
-      _bottomTabController.animateTo(
-        _tabViewIndex.value,
-        duration: Duration.zero,
-        curve: Curves.easeInOut,
-      );
-    });
-  }
-
-  void _tabControllerListener() {
-    _tabViewIndex.value = _bottomTabController.index;
-  }
-
   void _onInit() async {
     if (!mounted) return;
-    _scrollToIndex();
-    if (_restorableContent.value != null) {
-      setState(() {
-        _isLoading = false;
-        _releasesIsLoading = false;
-      });
-      return;
+
+    final args = ModalRoute.settingsOf(context)?.arguments;
+
+    if (args is String) {
+      _informationArgs = ContentInformationArgs.fromJson(args);
+    } else {
+      _informationArgs = args as ContentInformationArgs;
     }
+
+    _content = _informationArgs!.content;
+
     final navigationState = Navigator.of(context);
-    Result<Content> contentCache = Result.success(_informationArgs.content);
+    Result<Content> contentCache = Result.success(_informationArgs!.content);
 
-    if (_informationArgs.getData) {
-      final cache = await AutoCache.data.getJson(
-        key: _informationArgs.content.stringID,
-      );
-      contentCache = switch (_informationArgs.content) {
-        Anime _ when cache.data != null =>
-          Result.success(Anime.fromMap(cache.data!)),
-        Book _ when cache.data != null =>
-          Result.success(Book.fromMap(cache.data!)),
-        _ => const Result<Content>.cancel(),
-      };
-    }
-
-    if (_informationArgs.content.releases.isEmpty) {
+    if (_informationArgs!.content.releases.isEmpty) {
       contentCache = const Result.empty();
     }
 
     final resultCotent = (contentCache is Success)
         ? contentCache
-        : await _repository.getData(_informationArgs.content).timeout(
+        : await _repository.getData(_informationArgs!.content).timeout(
               const Duration(seconds: 5),
               onTimeout: () => Result.failure(
                 TimeoutException("Tempo excedido"),
@@ -143,8 +103,11 @@ class _RefContentkInformationViewState
     // }
   }
 
-  void _onSuccess(Content data,
-      [bool refresh = false, bool forceSaveCache = false]) {
+  void _onSuccess(
+    Content data, [
+    bool refresh = false,
+    bool forceSaveCache = false,
+  ]) {
     // if(data is Anime && data.totalOfPages != null) {
     //     List.generate(data.totalOfPages!, (index) => )
     // }
@@ -152,7 +115,7 @@ class _RefContentkInformationViewState
     _releases.clear();
 
     if (_releases.isEmpty && data is Anime) {
-      for (var data in _content.releases) {
+      for (var data in _content!.releases) {
         if (data is Episode && data.pageNumber != null) {
           customLog(data.pageNumber! - 1);
           if (_releases[data.pageNumber! - 1] == null) {
@@ -166,17 +129,15 @@ class _RefContentkInformationViewState
       _releases[_index] = data.releases;
     }
 
-    setStateIfMounted(() {
+    addPostFrameSetState(() {
       _content = data.copyWith(releases: _releases[_index]);
-
       _isLoading = false;
     });
 
-    ifMounted(() async {
+    scheduleMicrotask(() async {
       if ((await AutoCache.data.getJson(key: data.stringID)).data == null ||
           forceSaveCache) {
         AutoCache.data.saveJson(key: data.stringID, data: data.toJson());
-        _restorableContent.value = jsonEncode(_content.toJson());
       }
     });
   }
@@ -190,12 +151,12 @@ class _RefContentkInformationViewState
 
     if (releases == null) {
       setStateIfMounted(() => _releasesIsLoading = true);
-      await _getReleases(_content.copyWith(releases: Releases()));
+      await _getReleases(_content!.copyWith(releases: Releases()));
       setStateIfMounted(() => _releasesIsLoading = false);
     } else {
       setStateIfMounted(() {
         if (_releasesIsLoading) _releasesIsLoading = false;
-        _content = _content.copyWith(releases: releases);
+        _content = _content!.copyWith(releases: releases);
       });
     }
   }
@@ -233,15 +194,15 @@ class _RefContentkInformationViewState
       case Episode data when mounted && _content is Anime:
         await _downloadService.downloadReleaseVideoByHLS(
           data,
-          _content,
+          _content!,
           _repository,
           statisticsCallback: (statistics) async {},
           onResult: (result) async {
             if (result is Success) {
-              AnimeEntity animeEntity = _content.toEntity() as AnimeEntity;
+              AnimeEntity animeEntity = _content!.toEntity() as AnimeEntity;
 
               final bAnimeEntity =
-                  libraryService.getContentEntityByStringID(_content.stringID)
+                  libraryService.getContentEntityByStringID(_content!.stringID)
                       as AnimeEntity?;
 
               if (bAnimeEntity != null) {
@@ -278,20 +239,20 @@ class _RefContentkInformationViewState
   }
 
   @override
-  String? get restorationId => 'content_information';
+  void didChangeDependencies() {
+    final argsContent =
+        ModalRoute.settingsOf(context)?.arguments as ContentInformationArgs;
 
-  @override
-  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
-    registerForRestoration(_tabViewIndex, 'tab_index');
-    registerForRestoration(_restorableContent, 'content');
+    _content = argsContent.content;
+
+    super.didChangeDependencies();
   }
 
   @override
-  Widget buildByArgument(
-    BuildContext context,
-    ContentInformationArgs argument,
-  ) {
+  Widget build(BuildContext context) {
     final sizeOf = MediaQuery.sizeOf(context);
+
+    customLog('build');
 
     return ContentScope(
       bottomTabController: _bottomTabController,
@@ -301,7 +262,7 @@ class _RefContentkInformationViewState
       setListIndex: _handleSetListIndex,
       downloadRelease: _downloadRelease,
       releases: _releases,
-      content: !_isLoading ? _content : argument.content,
+      content: _content,
       releasesIsLoading: _releasesIsLoading,
       builder: (context) => Scaffold(
         body: RefreshIndicator(
@@ -316,7 +277,7 @@ class _RefContentkInformationViewState
             final appSnackBar = context.appSnackBar;
 
             await _repository
-                .getData(_informationArgs.content)
+                .getData(_informationArgs!.content)
                 .timeout(
                   const Duration(seconds: 5),
                   onTimeout: () => Result.failure(
@@ -350,20 +311,20 @@ class _RefContentkInformationViewState
                     return IconButton(
                       onPressed: () {
                         customLog(
-                            'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${_content.title} - id: ${_content.stringID}');
+                            'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${_content!.title} - id: ${_content!.stringID}');
                         if (libraryService.favoritesIDS
-                            .contains(_content.stringID)) {
+                            .contains(_content!.stringID)) {
                           _libraryController.remove(
-                              contentEntity: _content.toEntity());
+                              contentEntity: _content!.toEntity());
                         } else {
                           _libraryController.add(
-                            contentEntity: _content.toEntity(isFavorite: true),
+                            contentEntity: _content!.toEntity(isFavorite: true),
                           );
                         }
                       },
                       icon: FadeThroughTransitionSwitcher(
                         enableSecondChild: libraryService.favoritesIDS.contains(
-                          _content.stringID,
+                          _content?.stringID,
                         ),
                         secondChild: Icon(MdiIcons.heart, color: Colors.red),
                         child: Icon(MdiIcons.heartOutline),
@@ -382,9 +343,9 @@ class _RefContentkInformationViewState
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Icon(e.getIconData(_content)),
+                              Icon(e.getIconData(_content!)),
                               const SizedBox(width: 8),
-                              Center(child: Text(e.getTitle(_content))),
+                              Center(child: Text(e.getTitle(_content!))),
                             ],
                           ),
                         ),
@@ -416,11 +377,8 @@ class _RefContentkInformationViewState
 
   @override
   void dispose() {
-    _bottomTabController
-      ..removeListener(_tabControllerListener)
-      ..dispose();
-    _tabViewIndex.dispose();
-    _restorableContent.dispose();
+    _bottomTabController.dispose();
+
     _changeTabBarIndex.cancel();
     _saveData();
     super.dispose();
@@ -428,16 +386,16 @@ class _RefContentkInformationViewState
 
   void _saveData() {
     if (_libraryService.contains(content: _content)) {
-      ContentEntity contentEntity = _content.toEntity();
+      ContentEntity contentEntity = _content!.toEntity();
 
       final entity =
-          _libraryService.getContentEntityByStringID(_content.stringID);
+          _libraryService.getContentEntityByStringID(_content!.stringID);
 
-      if (_libraryService.favoritesIDS.contains(_content.stringID) &&
-          !_informationArgs.getData) {
+      if (_libraryService.favoritesIDS.contains(_content!.stringID) &&
+          !_informationArgs!.getData) {
         _historicController
             .addAll(
-          historyEntities: _content.releases
+          historyEntities: _content!.releases
               .map(
                 (e) => switch (e) {
                   Episode data => data.toEntity(anime: _content as Anime),
@@ -454,7 +412,7 @@ class _RefContentkInformationViewState
           }
 
           _libraryController.add(
-            contentEntity: _content.toEntity(
+            contentEntity: _content!.toEntity(
               updatedAt: DateTime.now(),
               isFavorite: true,
             ),
@@ -466,7 +424,7 @@ class _RefContentkInformationViewState
         }
 
         _libraryController.add(
-          contentEntity: _content.toEntity(
+          contentEntity: _content!.toEntity(
             updatedAt: DateTime.now(),
             isFavorite: true,
           ),

@@ -67,9 +67,9 @@ class _SettingsDestinationState extends State<SettingsDestination>
     final ThemeController themeController = context.watch<ThemeController>();
 
     return SettingsList(
-      contentPadding: const EdgeInsets.only(top: 8),
+      contentPadding: const EdgeInsets.only(top: 8, bottom: 20),
       brightness: themeData.brightness,
-      shrinkWrap: false,
+      shrinkWrap: true,
       key: const PageStorageKey("settings_destination"),
       physics: const NeverScrollableScrollPhysics(),
       darkTheme: SettingsThemeData(
@@ -291,25 +291,25 @@ class _SettingsDestinationState extends State<SettingsDestination>
             ),
           ),
           tiles: [
-            SettingsTile(
-              onPressed: null,
-              leading: Icon(MdiIcons.contentSaveCog),
-              title: const Text('Salvar histórico quando'),
-              value: SliderTheme(
-                data: const SliderThemeData(
-                  thumbShape: RoundSliderThumbShape(),
-                ),
-                child: Slider.adaptive(
-                  label: "${(_sliderValue * 100).toString()}%",
-                  value: _sliderValue,
-                  divisions: 8,
-                  onChangeEnd: hiveController.setHistoricSavePercent,
-                  onChanged: (value) {
-                    setStateIfMounted(() => _sliderValue = value);
-                  },
-                ),
-              ),
-            ),
+            // SettingsTile(
+            //   onPressed: null,
+            //   leading: Icon(MdiIcons.contentSaveCog),
+            //   title: const Text('Salvar histórico quando'),
+            //   value: SliderTheme(
+            //     data: const SliderThemeData(
+            //       thumbShape: RoundSliderThumbShape(),
+            //     ),
+            //     child: Slider.adaptive(
+            //       label: "${(_sliderValue * 100).toString()}%",
+            //       value: _sliderValue,
+            //       divisions: 8,
+            //       onChangeEnd: hiveController.setHistoricSavePercent,
+            //       onChanged: (value) {
+            //         setStateIfMounted(() => _sliderValue = value);
+            //       },
+            //     ),
+            //   ),
+            // ),
             SettingsTile.switchTile(
               onToggle: (value) {},
               initialValue: false,

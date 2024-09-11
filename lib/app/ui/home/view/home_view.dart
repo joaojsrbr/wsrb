@@ -13,7 +13,6 @@ import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
 import 'package:app_wsrb_jsr/app/utils/category_utils.dart';
 import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
 import 'package:content_library/content_library.dart';
-import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -209,16 +208,14 @@ class _HomeViewState extends State<HomeView>
           return Scaffold(
             body: BottomMenu(
               railMenuController: _bottomMenuController,
-              child: ExtendedNestedScrollView(
-                onlyOneScrollInBody: true,
+              child: NestedScrollView(
+                // onlyOneScrollInBody: true,
                 controller: _scrollController,
                 physics: _mainPhysics,
                 restorationId: 'home_scroll',
                 headerSliverBuilder: (context, innerBoxIsScrolled) {
                   return [
                     SliverAppBar(
-                      // pinned: true,
-                      // floating: true,
                       bottom: TabBar(
                         controller: _tabController,
                         dividerColor: (libraryService.notCompleted.isNotEmpty ||

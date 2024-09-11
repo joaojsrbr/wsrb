@@ -27,8 +27,9 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final content = ContentScope.contentOf(context);
+
     final downloadRelease = ContentScope.of(context).downloadRelease;
-    final Content content = ContentScope.contentOf(context);
     final DownloadService downloadService = context.watch<DownloadService>();
     final bool releasesIsLoading = ContentScope.releasesIsLoadingOf(context);
     final HiveController hiveController = context.watch<HiveController>();
@@ -463,7 +464,7 @@ class _ReleasePagination extends StatefulWidget {
 
 class _ReleasePaginationState extends State<_ReleasePagination>
     with AutomaticKeepAliveClientMixin {
-  late Content _content;
+  Content? _content;
 
   List<int> _totalPage = [];
   BoolList _selectChips = BoolList.empty();
@@ -481,7 +482,7 @@ class _ReleasePaginationState extends State<_ReleasePagination>
       _totalPage = List.generate(data.totalOfPages!, (index) => index + 1);
     } else {
       _totalPage = List.generate(
-        _content.releases.partition(20).length,
+        _content!.releases.partition(20).length,
         (index) => index + 1,
       );
     }
@@ -504,6 +505,9 @@ class _ReleasePaginationState extends State<_ReleasePagination>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
+    if (_content == null) return const SizedBox.shrink();
+
     final hiveController = context.watch<HiveController>();
     final setListIndex = ContentScope.of(context).setListIndex;
 

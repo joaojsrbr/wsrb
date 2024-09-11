@@ -27,6 +27,7 @@ class SharedAxisTransitionPageWrapper extends Page {
       reverseTransitionDuration:
           reverseTransitionDuration ?? const Duration(milliseconds: 650),
       settings: this,
+      fullscreenDialog: true,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return SharedAxisTransition(
           fillColor: Theme.of(context).cardColor,

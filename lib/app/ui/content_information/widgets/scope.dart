@@ -21,11 +21,11 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
     required this.releasesIsLoading,
   }) : super(child: Builder(builder: builder));
 
-  final ContentInformationArgs informationArgs;
+  final ContentInformationArgs? informationArgs;
   final bool releasesIsLoading;
   final bool isLoading;
   final TabController bottomTabController;
-  final Content content;
+  final Content? content;
   final ValueSetter<int> setListIndex;
   final int index;
   final Map<int, Releases> releases;
@@ -44,7 +44,9 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
       _of(context, ContentScopeAspect.ISLOADING).isLoading;
 
   static Content contentOf(BuildContext context) =>
-      _of(context, ContentScopeAspect.CONTENT).content;
+      _of(context, ContentScopeAspect.CONTENT).content ??
+      (ModalRoute.settingsOf(context)!.arguments as ContentInformationArgs)
+          .content;
 
   static int indexOf(BuildContext context) =>
       _of(context, ContentScopeAspect.LISTCHAPTERINDEX).index;
@@ -107,16 +109,16 @@ enum ContentTabBar {
 
   String getTitle(Content content) {
     return switch (content) {
-      Book _ when this == ContentTabBar.INFORMATION => 'Ler',
-      Anime _ when this == ContentTabBar.INFORMATION => 'Assistir',
+      Book _ when this == ContentTabBar.CONTENT => 'Ler',
+      Anime _ when this == ContentTabBar.CONTENT => 'Assistir',
       _ => 'Info',
     };
   }
 
   IconData getIconData(Content content) {
     return switch (content) {
-      Book _ when this == ContentTabBar.INFORMATION => MdiIcons.book,
-      Anime _ when this == ContentTabBar.INFORMATION => MdiIcons.play,
+      Book _ when this == ContentTabBar.CONTENT => MdiIcons.book,
+      Anime _ when this == ContentTabBar.CONTENT => MdiIcons.play,
       _ => MdiIcons.information,
     };
   }

@@ -37,9 +37,9 @@ final appRoutes = GoRouter(
           path: RouteName.CONTENTINFO.subRouter,
           pageBuilder: (context, state) {
             return SharedAxisTransitionPageWrapper(
-              restorationId: 'router.content_info',
-              // reverseTransitionDuration: const Duration(milliseconds: 850),
-              // transitionDuratio: const Duration(milliseconds: 850),
+              // restorationId: 'router.content_info',
+              reverseTransitionDuration: const Duration(milliseconds: 850),
+              transitionDuratio: const Duration(milliseconds: 850),
               arguments: state.extra,
               transitionKey: state.pageKey,
               screen: const RefContentInformationView(),

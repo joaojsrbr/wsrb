@@ -19,9 +19,10 @@ class _InformationDestinationState extends State<InformationDestination>
   bool _isOver100 = false;
   bool _isSelection = false;
   bool _expanded = false;
+  bool _isLoading = true;
   final Map<String, Widget> _contentInformation = {};
   final FocusNode _focusNode = FocusNode();
-  late Content _content;
+  Content? _content;
 
   @override
   bool get wantKeepAlive => true;
@@ -29,21 +30,22 @@ class _InformationDestinationState extends State<InformationDestination>
   @override
   void didChangeDependencies() {
     _content = ContentScope.contentOf(context);
+    _isLoading = ContentScope.isLoadingOf(context);
 
-    if (!_expanded) _isOver100 = (_content.sinopse ?? "").length > 100;
+    if (!_expanded) _isOver100 = (_content!.sinopse ?? "").length > 100;
 
     if (_isOver100 && !_expanded) {
-      _substring = "${_content.sinopse?.substring(0, 100)} ...";
+      _substring = "${_content!.sinopse?.substring(0, 100)} ...";
     }
 
-    if (_content.anilistMedia != null && mounted) {
+    if (_content?.anilistMedia != null && !_isLoading) {
       _getInformation();
     }
 
     super.didChangeDependencies();
   }
 
-  void _getInformation() {
+  void _getInformation() async {
     _contentInformation.clear();
     final Locale appLocale = Localizations.localeOf(context);
     final ThemeData themeData = Theme.of(context);
@@ -51,45 +53,45 @@ class _InformationDestinationState extends State<InformationDestination>
     Map<String, Widget> cache = {};
     final now = DateTime.now();
 
-    if (_content.anilistMedia?.startDate?.isEmpty != true) {
+    if (_content!.anilistMedia?.startDate?.isEmpty != true) {
       _contentInformation["Data de início"] = Text(
         key: ValueKey(DateTime(
-          _content.anilistMedia!.startDate!.year!,
-          _content.anilistMedia!.startDate!.month!,
-          _content.anilistMedia!.startDate!.day!,
+          _content!.anilistMedia!.startDate!.year!,
+          _content!.anilistMedia!.startDate!.month!,
+          _content!.anilistMedia!.startDate!.day!,
         ).toString()),
         DateFormat("d MMMM y", appLocale.toLanguageTag()).format(
           DateTime(
-            _content.anilistMedia!.startDate!.year!,
-            _content.anilistMedia!.startDate!.month!,
-            _content.anilistMedia!.startDate!.day!,
+            _content!.anilistMedia!.startDate!.year!,
+            _content!.anilistMedia!.startDate!.month!,
+            _content!.anilistMedia!.startDate!.day!,
           ),
         ),
       );
     }
-    if (_content.anilistMedia?.endDate?.isEmpty != true) {
+    if (_content!.anilistMedia?.endDate?.isEmpty != true) {
       cache["Data final"] = Text(
         key: ValueKey(DateTime(
-          _content.anilistMedia!.endDate!.year!,
-          _content.anilistMedia!.endDate!.month!,
-          _content.anilistMedia!.endDate!.day!,
+          _content!.anilistMedia!.endDate!.year!,
+          _content!.anilistMedia!.endDate!.month!,
+          _content!.anilistMedia!.endDate!.day!,
         ).toString()),
         DateFormat("d MMMM y", appLocale.toLanguageTag()).format(
           DateTime(
-            _content.anilistMedia!.endDate!.year!,
-            _content.anilistMedia!.endDate!.month!,
-            _content.anilistMedia!.endDate!.day!,
+            _content!.anilistMedia!.endDate!.year!,
+            _content!.anilistMedia!.endDate!.month!,
+            _content!.anilistMedia!.endDate!.day!,
           ),
         ),
       );
     }
-    if (_content.anilistMedia?.averageScore != null) {
+    if (_content!.anilistMedia?.averageScore != null) {
       cache["Pontuação"] = Text.rich(
-        key: ValueKey((_content.anilistMedia!.averageScore! / 10).toString()),
+        key: ValueKey((_content!.anilistMedia!.averageScore! / 10).toString()),
         TextSpan(
           children: [
             TextSpan(
-              text: (_content.anilistMedia!.averageScore! / 10).toString(),
+              text: (_content!.anilistMedia!.averageScore! / 10).toString(),
             ),
             const TextSpan(
               text: " / ",
@@ -101,57 +103,57 @@ class _InformationDestinationState extends State<InformationDestination>
         ),
       );
     }
-    if (_content.anilistMedia?.episodes != null) {
+    if (_content!.anilistMedia?.episodes != null) {
       cache["Total de episódios"] = Text(
-        key: ValueKey(_content.anilistMedia!.episodes.toString()),
-        _content.anilistMedia!.episodes.toString(),
+        key: ValueKey(_content!.anilistMedia!.episodes.toString()),
+        _content!.anilistMedia!.episodes.toString(),
       );
     }
-    if (_content.anilistMedia?.format != null) {
+    if (_content!.anilistMedia?.format != null) {
       cache["Formato"] = Text(
-        key: ValueKey(_content.anilistMedia!.format!.name),
-        _content.anilistMedia!.format!.name,
+        key: ValueKey(_content!.anilistMedia!.format!.name),
+        _content!.anilistMedia!.format!.name,
       );
     }
-    if (_content.anilistMedia?.status != null) {
+    if (_content!.anilistMedia?.status != null) {
       cache["Status"] = Text(
-        key: ValueKey(_content.anilistMedia!.status!.toString()),
-        _content.anilistMedia!.status!.toString(),
+        key: ValueKey(_content!.anilistMedia!.status!.toString()),
+        _content!.anilistMedia!.status!.toString(),
       );
     }
-    if (_content.anilistMedia?.popularity != null) {
+    if (_content!.anilistMedia?.popularity != null) {
       cache["Popularidade"] = Text(
-        key: ValueKey(_content.anilistMedia!.popularity!.toString()),
-        _content.anilistMedia!.popularity!.toString(),
+        key: ValueKey(_content!.anilistMedia!.popularity!.toString()),
+        _content!.anilistMedia!.popularity!.toString(),
       );
     }
-    if (_content.anilistMedia?.favourites != null) {
+    if (_content!.anilistMedia?.favourites != null) {
       cache["Favoritos"] = Text(
-        key: ValueKey(_content.anilistMedia!.favourites!.toString()),
-        _content.anilistMedia!.favourites!.toString(),
+        key: ValueKey(_content!.anilistMedia!.favourites!.toString()),
+        _content!.anilistMedia!.favourites!.toString(),
       );
     }
-    if (_content.anilistMedia?.season != null) {
+    if (_content!.anilistMedia?.season != null) {
       cache["Temporada"] = Text(
-        key: ValueKey("${_content.anilistMedia!.season!.name} ${now.year}"),
-        "${_content.anilistMedia!.season!.name} ${now.year}",
+        key: ValueKey("${_content!.anilistMedia!.season!.name} ${now.year}"),
+        "${_content!.anilistMedia!.season!.name} ${now.year}",
       );
     }
-    if (_content.anilistMedia?.title?.romaji != null) {
+    if (_content!.anilistMedia?.title?.romaji != null) {
       cache["Nome Romaji"] = GestureDetector(
         onLongPress: () async {
           copyToClipboard(
             context,
-            messageCopy: _content.anilistMedia!.title!.romaji!,
+            messageCopy: _content!.anilistMedia!.title!.romaji!,
             messageSnackBar: 'Copiado para a área de transferência!',
           );
           await Feedback.forLongPress(context);
         },
         child: Text(
-          key: ValueKey(_content.anilistMedia!.title!.romaji!),
-          _content.anilistMedia!.title!.romaji!.length > 20
-              ? "${_content.anilistMedia!.title!.romaji!.substring(0, 20)} ..."
-              : _content.anilistMedia!.title!.romaji!,
+          key: ValueKey(_content!.anilistMedia!.title!.romaji!),
+          _content!.anilistMedia!.title!.romaji!.length > 20
+              ? "${_content!.anilistMedia!.title!.romaji!.substring(0, 20)} ..."
+              : _content!.anilistMedia!.title!.romaji!,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.end,
           maxLines: 1,
@@ -189,7 +191,7 @@ class _InformationDestinationState extends State<InformationDestination>
         // shrinkWrap: true,
         // padding: const EdgeInsets.only(bottom: 8),
         children: [
-          if ((_content.sinopse ?? "").isNotEmpty)
+          if ((_content!.sinopse ?? "").isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
               child: Card.filled(
@@ -227,9 +229,9 @@ class _InformationDestinationState extends State<InformationDestination>
                               child: SelectableText(
                                 !_expanded
                                     ? _substring.isEmpty
-                                        ? (_content.sinopse ?? "")
+                                        ? (_content!.sinopse ?? "")
                                         : _substring
-                                    : (_content.sinopse ?? ""),
+                                    : (_content!.sinopse ?? ""),
                                 focusNode: _focusNode,
                                 onSelectionChanged: (selection, cause) {
                                   addPostFrameSetState(() {
@@ -264,7 +266,7 @@ class _InformationDestinationState extends State<InformationDestination>
                   right: 8,
                   left: 8,
                   bottom: 12,
-                  top: (_content.sinopse ?? "").isEmpty ? 8 : 0),
+                  top: (_content!.sinopse ?? "").isEmpty ? 8 : 0),
               child: Card.filled(
                 color: themeData.colorScheme.primary.withAlpha(10),
                 shape: RoundedRectangleBorder(
@@ -294,8 +296,8 @@ class _InformationDestinationState extends State<InformationDestination>
                 ),
               ),
             ),
-          if (_content.anilistMedia?.genres != null ||
-              _content.genres.isNotEmpty)
+          if (_content!.anilistMedia?.genres != null ||
+              _content!.genres.isNotEmpty)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -318,9 +320,9 @@ class _InformationDestinationState extends State<InformationDestination>
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: (_content.genres.isNotEmpty
-                            ? _content.genres.map((e) => e.label)
-                            : _content.anilistMedia?.genres ?? <String>[])
+                    children: (_content!.genres.isNotEmpty
+                            ? _content!.genres.map((e) => e.label)
+                            : _content!.anilistMedia?.genres ?? <String>[])
                         .map((e) => e.capitalize)
                         .map(
                           (e) => Card.filled(
@@ -342,7 +344,7 @@ class _InformationDestinationState extends State<InformationDestination>
                 ),
               ],
             ),
-          if (_content.anilistMedia?.characters?.nodes != null)
+          if (_content!.anilistMedia?.characters?.nodes != null)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -360,7 +362,7 @@ class _InformationDestinationState extends State<InformationDestination>
                   height: 160,
                   width: double.infinity,
                   child: Builder(builder: (context) {
-                    final list = _content.anilistMedia?.characters?.nodes
+                    final list = _content!.anilistMedia?.characters?.nodes
                         ?.unique((staff) => staff.name!.full!);
                     if (list == null) return const SizedBox.shrink();
                     return ListView.builder(
@@ -418,7 +420,7 @@ class _InformationDestinationState extends State<InformationDestination>
               ],
             ),
           const SizedBox(height: 8),
-          if (_content.anilistMedia?.staff?.nodes != null)
+          if (_content!.anilistMedia?.staff?.nodes != null)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -436,7 +438,7 @@ class _InformationDestinationState extends State<InformationDestination>
                   height: 160,
                   width: double.infinity,
                   child: Builder(builder: (context) {
-                    final list = _content.anilistMedia?.staff?.nodes
+                    final list = _content!.anilistMedia?.staff?.nodes
                         ?.unique((staff) => staff.name!.full!);
                     if (list == null) return const SizedBox.shrink();
                     return ListView.builder(
