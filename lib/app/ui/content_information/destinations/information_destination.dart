@@ -2,7 +2,6 @@ import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -20,7 +19,6 @@ class _InformationDestinationState extends State<InformationDestination>
   bool _isSelection = false;
   bool _expanded = false;
   bool _isLoading = true;
-  final Map<String, Widget> _contentInformation = {};
   final FocusNode _focusNode = FocusNode();
   Content? _content;
 
@@ -38,133 +36,7 @@ class _InformationDestinationState extends State<InformationDestination>
       _substring = "${_content!.sinopse?.substring(0, 100)} ...";
     }
 
-    if (_content?.anilistMedia != null && !_isLoading) {
-      _getInformation();
-    }
-
     super.didChangeDependencies();
-  }
-
-  void _getInformation() async {
-    _contentInformation.clear();
-    final Locale appLocale = Localizations.localeOf(context);
-    final ThemeData themeData = Theme.of(context);
-
-    Map<String, Widget> cache = {};
-    final now = DateTime.now();
-
-    if (_content!.anilistMedia?.startDate?.isEmpty != true) {
-      _contentInformation["Data de início"] = Text(
-        key: ValueKey(DateTime(
-          _content!.anilistMedia!.startDate!.year!,
-          _content!.anilistMedia!.startDate!.month!,
-          _content!.anilistMedia!.startDate!.day!,
-        ).toString()),
-        DateFormat("d MMMM y", appLocale.toLanguageTag()).format(
-          DateTime(
-            _content!.anilistMedia!.startDate!.year!,
-            _content!.anilistMedia!.startDate!.month!,
-            _content!.anilistMedia!.startDate!.day!,
-          ),
-        ),
-      );
-    }
-    if (_content!.anilistMedia?.endDate?.isEmpty != true) {
-      cache["Data final"] = Text(
-        key: ValueKey(DateTime(
-          _content!.anilistMedia!.endDate!.year!,
-          _content!.anilistMedia!.endDate!.month!,
-          _content!.anilistMedia!.endDate!.day!,
-        ).toString()),
-        DateFormat("d MMMM y", appLocale.toLanguageTag()).format(
-          DateTime(
-            _content!.anilistMedia!.endDate!.year!,
-            _content!.anilistMedia!.endDate!.month!,
-            _content!.anilistMedia!.endDate!.day!,
-          ),
-        ),
-      );
-    }
-    if (_content!.anilistMedia?.averageScore != null) {
-      cache["Pontuação"] = Text.rich(
-        key: ValueKey((_content!.anilistMedia!.averageScore! / 10).toString()),
-        TextSpan(
-          children: [
-            TextSpan(
-              text: (_content!.anilistMedia!.averageScore! / 10).toString(),
-            ),
-            const TextSpan(
-              text: " / ",
-              style: TextStyle(color: Colors.white),
-            ),
-            const TextSpan(text: "10", style: TextStyle(color: Colors.white)),
-          ],
-          style: TextStyle(color: themeData.colorScheme.primary),
-        ),
-      );
-    }
-    if (_content!.anilistMedia?.episodes != null) {
-      cache["Total de episódios"] = Text(
-        key: ValueKey(_content!.anilistMedia!.episodes.toString()),
-        _content!.anilistMedia!.episodes.toString(),
-      );
-    }
-    if (_content!.anilistMedia?.format != null) {
-      cache["Formato"] = Text(
-        key: ValueKey(_content!.anilistMedia!.format!.name),
-        _content!.anilistMedia!.format!.name,
-      );
-    }
-    if (_content!.anilistMedia?.status != null) {
-      cache["Status"] = Text(
-        key: ValueKey(_content!.anilistMedia!.status!.toString()),
-        _content!.anilistMedia!.status!.toString(),
-      );
-    }
-    if (_content!.anilistMedia?.popularity != null) {
-      cache["Popularidade"] = Text(
-        key: ValueKey(_content!.anilistMedia!.popularity!.toString()),
-        _content!.anilistMedia!.popularity!.toString(),
-      );
-    }
-    if (_content!.anilistMedia?.favourites != null) {
-      cache["Favoritos"] = Text(
-        key: ValueKey(_content!.anilistMedia!.favourites!.toString()),
-        _content!.anilistMedia!.favourites!.toString(),
-      );
-    }
-    if (_content!.anilistMedia?.season != null) {
-      cache["Temporada"] = Text(
-        key: ValueKey("${_content!.anilistMedia!.season!.name} ${now.year}"),
-        "${_content!.anilistMedia!.season!.name} ${now.year}",
-      );
-    }
-    if (_content!.anilistMedia?.title?.romaji != null) {
-      cache["Nome Romaji"] = GestureDetector(
-        onLongPress: () async {
-          copyToClipboard(
-            context,
-            messageCopy: _content!.anilistMedia!.title!.romaji!,
-            messageSnackBar: 'Copiado para a área de transferência!',
-          );
-          await Feedback.forLongPress(context);
-        },
-        child: Text(
-          key: ValueKey(_content!.anilistMedia!.title!.romaji!),
-          _content!.anilistMedia!.title!.romaji!.length > 20
-              ? "${_content!.anilistMedia!.title!.romaji!.substring(0, 20)} ..."
-              : _content!.anilistMedia!.title!.romaji!,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.end,
-          maxLines: 1,
-        ),
-      );
-    }
-
-    if (!mapEquals(cache, _contentInformation)) {
-      _contentInformation.clear();
-      _contentInformation.addEntries(cache.entries);
-    }
   }
 
   void _setExpanded() {
@@ -182,6 +54,9 @@ class _InformationDestinationState extends State<InformationDestination>
   Widget build(BuildContext context) {
     super.build(context);
     final ThemeData themeData = Theme.of(context);
+    final now = DateTime.now();
+
+    final Locale appLocale = Localizations.localeOf(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 8),
@@ -259,9 +134,8 @@ class _InformationDestinationState extends State<InformationDestination>
                 ),
               ),
             ),
-          if (_contentInformation.isNotEmpty)
+          if (_content!.anilistMedia != null)
             Padding(
-              key: ValueKey(_contentInformation.values.length),
               padding: EdgeInsets.only(
                   right: 8,
                   left: 8,
@@ -272,27 +146,133 @@ class _InformationDestinationState extends State<InformationDestination>
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8)),
                 child: Column(
-                  children:
-                      _contentInformation.entries.mapIndexed((index, entry) {
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        bottom: 8.0,
-                        top: index == 0 ? 8 : 0,
-                        right: 8,
-                        left: 8,
-                      ),
-                      child: DefaultTextStyle(
-                        style: themeData.textTheme.labelLarge!,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(entry.key),
-                            Flexible(child: entry.value),
-                          ],
+                  children: [
+                    if (_content!.anilistMedia?.startDate?.isEmpty != true)
+                      _Information(
+                        paddingTop: true,
+                        title: const Text('Data de início'),
+                        child: Text(
+                          DateFormat("d MMMM y", appLocale.toLanguageTag())
+                              .format(
+                            DateTime(
+                              _content!.anilistMedia!.startDate!.year!,
+                              _content!.anilistMedia!.startDate!.month!,
+                              _content!.anilistMedia!.startDate!.day!,
+                            ),
+                          ),
                         ),
                       ),
-                    );
-                  }).toList(),
+                    if (_content!.anilistMedia?.endDate?.isEmpty != true)
+                      _Information(
+                        paddingTop: false,
+                        title: const Text('Data final'),
+                        child: Text(
+                          DateFormat("d MMMM y", appLocale.toLanguageTag())
+                              .format(
+                            DateTime(
+                              _content!.anilistMedia!.endDate!.year!,
+                              _content!.anilistMedia!.endDate!.month!,
+                              _content!.anilistMedia!.endDate!.day!,
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (_content!.anilistMedia?.averageScore != null)
+                      _Information(
+                        paddingTop: false,
+                        title: const Text('Pontuação'),
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text:
+                                    (_content!.anilistMedia!.averageScore! / 10)
+                                        .toString(),
+                              ),
+                              const TextSpan(
+                                text: " / ",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              const TextSpan(
+                                  text: "10",
+                                  style: TextStyle(color: Colors.white)),
+                            ],
+                            style:
+                                TextStyle(color: themeData.colorScheme.primary),
+                          ),
+                        ),
+                      ),
+                    if (_content!.anilistMedia?.episodes != null)
+                      _Information(
+                        paddingTop: false,
+                        title: const Text('Total de episódios'),
+                        child: Text(
+                          _content!.anilistMedia!.episodes.toString(),
+                        ),
+                      ),
+                    if (_content!.anilistMedia?.format != null)
+                      _Information(
+                        paddingTop: false,
+                        title: const Text('Formato'),
+                        child: Text(_content!.anilistMedia!.format!.name),
+                      ),
+                    if (_content!.anilistMedia?.status != null)
+                      _Information(
+                        paddingTop: false,
+                        title: const Text('Status'),
+                        child: Text(_content!.anilistMedia!.status!.toString()),
+                      ),
+                    if (_content!.anilistMedia?.popularity != null)
+                      _Information(
+                        paddingTop: false,
+                        title: const Text('Popularidade'),
+                        child: Text(
+                          _content!.anilistMedia!.popularity!.toString(),
+                        ),
+                      ),
+                    if (_content!.anilistMedia?.favourites != null)
+                      _Information(
+                        paddingTop: false,
+                        title: const Text('Favoritos'),
+                        child: Text(
+                          _content!.anilistMedia!.favourites!.toString(),
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    if (_content!.anilistMedia?.season != null)
+                      _Information(
+                        paddingTop: false,
+                        title: const Text('Temporada'),
+                        child: Text(
+                          "${_content!.anilistMedia!.season!.name} ${now.year}",
+                        ),
+                      ),
+                    if (_content!.anilistMedia?.title?.romaji != null)
+                      _Information(
+                        paddingTop: false,
+                        title: const Text('Nome Romaji'),
+                        child: GestureDetector(
+                          onLongPress: () async {
+                            copyToClipboard(
+                              context,
+                              messageCopy:
+                                  _content!.anilistMedia!.title!.romaji!,
+                              messageSnackBar:
+                                  'Copiado para a área de transferência!',
+                            );
+                            await Feedback.forLongPress(context);
+                          },
+                          child: Text(
+                            _content!.anilistMedia!.title!.romaji!.length > 20
+                                ? "${_content!.anilistMedia!.title!.romaji!.substring(0, 20)} ..."
+                                : _content!.anilistMedia!.title!.romaji!,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.end,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -495,13 +475,13 @@ class _InformationDestinationState extends State<InformationDestination>
                 ),
               ],
             ),
-          if (_contentInformation.isEmpty)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text('Nenhum dado encontrado.'),
-              ),
-            )
+          // if (_contentInformation.isEmpty)
+          //   const Center(
+          //     child: Padding(
+          //       padding: EdgeInsets.all(8.0),
+          //       child: Text('Nenhum dado encontrado.'),
+          //     ),
+          //   )
         ],
       ),
     );
@@ -524,5 +504,36 @@ class _OverlayColor extends WidgetStateProperty<Color?> {
       return Colors.transparent;
     }
     return Colors.transparent;
+  }
+}
+
+class _Information extends StatelessWidget {
+  const _Information({
+    required this.child,
+    required this.title,
+    this.paddingTop = false,
+  });
+
+  final Widget child;
+  final Widget title;
+  final bool paddingTop;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: 8,
+        top: paddingTop ? 8 : 0,
+        right: 8,
+        left: 8,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          title,
+          child,
+        ],
+      ),
+    );
   }
 }

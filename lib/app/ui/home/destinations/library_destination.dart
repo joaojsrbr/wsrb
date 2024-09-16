@@ -152,7 +152,6 @@ class LibraryeDestinationState extends State<LibraryDestination>
         ),
         itemBuilder: (context, index) {
           return ItemContent.library(
-            key: ObjectKey(filter.elementAt(index)),
             content: filter.elementAt(index),
           );
         },

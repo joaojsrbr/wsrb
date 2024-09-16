@@ -154,6 +154,8 @@ class _ContentDestinationState extends State<ContentDestination>
             }
           }
         },
+        splashFactory: InkRipple.splashFactory,
+        overlayColor: _OverlayColor(content),
         child: ListTile(
           title: Text(
             content.title,
@@ -205,22 +207,33 @@ class _ContentDestinationState extends State<ContentDestination>
             child: Stack(
               fit: StackFit.expand,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: CachedNetworkImage(
-                    filterQuality: FilterQuality.medium,
-                    imageUrl: content.imageUrl,
-                    placeholder: (context, url) => const _Placeholder(),
-                    errorListener: customLog,
-                    maxWidthDiskCache: 200,
-                    maxHeightDiskCache: 150,
-                    fit: BoxFit.cover,
-                    alignment: FractionalOffset.center,
-                    errorWidget: (context, url, error) => const _Placeholder(),
-                    httpHeaders: {
-                      ...App.HEADERS,
-                      'Referer': '${hiveController.source.baseURL}/',
-                    },
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 350),
+                  decoration: BoxDecoration(
+                    borderRadius:
+                        BorderRadius.circular(8).add(BorderRadius.circular(2)),
+                    border: valueNotifierList.contains(content.stringID)
+                        ? Border.all(color: Colors.white, width: 1.5)
+                        : null,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      filterQuality: FilterQuality.medium,
+                      imageUrl: content.imageUrl,
+                      placeholder: (context, url) => const _Placeholder(),
+                      errorListener: customLog,
+                      maxWidthDiskCache: 200,
+                      maxHeightDiskCache: 150,
+                      fit: BoxFit.cover,
+                      alignment: FractionalOffset.center,
+                      errorWidget: (context, url, error) =>
+                          const _Placeholder(),
+                      httpHeaders: {
+                        ...App.HEADERS,
+                        'Referer': '${hiveController.source.baseURL}/',
+                      },
+                    ),
                   ),
                 ),
                 Material(
@@ -228,7 +241,15 @@ class _ContentDestinationState extends State<ContentDestination>
                   child: InkWell(
                     borderRadius: BorderRadius.circular(8),
                     onTap: () async {
+                      if (valueNotifierList.isNotEmpty) {
+                        valueNotifierList.toggle(content.stringID);
+                        customLog(
+                          'InkWell tapped title: ${content.title} - id: ${content.stringID}',
+                        );
+                        return;
+                      }
                       final appSnackBar = context.appSnackBar;
+
                       customLog(
                         'InkWell tapped title: ${content.title} - id: ${content.stringID}',
                       );
@@ -276,5 +297,29 @@ class _Placeholder extends StatelessWidget {
     return Card.filled(
       color: themeData.colorScheme.primary.withAlpha(10),
     );
+  }
+}
+
+class _OverlayColor extends WidgetStateProperty<Color?> {
+  _OverlayColor(this.content) {
+    if (content is Anime) {
+      _color = (content as Anime).isDublado ? Colors.blue : Colors.red;
+    }
+  }
+
+  Color? _color;
+
+  final Content content;
+
+  @override
+  Color? resolve(Set<WidgetState> states) {
+    if (states.contains(WidgetState.pressed)) {
+      return _color?.withOpacity(0.12);
+    } else if (states.contains(WidgetState.hovered)) {
+      return _color?.withOpacity(0.08);
+    } else if (states.contains(WidgetState.focused)) {
+      return Colors.transparent;
+    }
+    return Colors.transparent;
   }
 }

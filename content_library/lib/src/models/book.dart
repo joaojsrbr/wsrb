@@ -34,6 +34,7 @@ class Book extends Content {
     this.status,
     this.largeImage,
     this.mediumImage,
+    super.cached,
     this.artists = const [],
   }) : super(releases);
 
@@ -76,6 +77,7 @@ class Book extends Content {
           ? AnilistMedia.fromJson(map['anilistMedia'])
           : null,
       title: map['title'],
+      cached: map['cached'] ?? false,
       releases: map['releases'] is ChapterReleases
           ? map['releases']
           : ChapterReleases.from(
@@ -108,6 +110,7 @@ class Book extends Content {
     String? url,
     String? originalImage,
     Source? source,
+    bool? cached,
     List<Genre>? genres,
     List<String>? authors,
     List<String>? artists,
@@ -122,6 +125,7 @@ class Book extends Content {
   }) {
     return Book(
       releases: ChapterReleases.from(releases ?? this.releases),
+      cached: cached ?? this.cached,
       type: type ?? this.type,
       anilistMedia: anilistMedia ?? this.anilistMedia,
       extraLarge: extraLarge ?? this.extraLarge,

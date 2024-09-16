@@ -17,6 +17,8 @@ abstract class Content extends Equatable with MergeClass<Content> {
 
   final String? sinopse;
 
+  final bool cached;
+
   final Releases _releases;
 
   Releases get releases => _releases;
@@ -29,6 +31,7 @@ abstract class Content extends Equatable with MergeClass<Content> {
 
   const Content(
     this._releases, {
+    this.cached = false,
     this.genres = const [],
     required this.url,
     required this.title,
@@ -47,6 +50,7 @@ abstract class Content extends Equatable with MergeClass<Content> {
 
   Content copyWith({
     String? title,
+    bool? cached,
     List<Genre>? genres,
     String? sinopse,
     AnilistMedia? anilistMedia,
@@ -68,6 +72,7 @@ abstract class Content extends Equatable with MergeClass<Content> {
             anilistMedia != null ? AnilistMedia.toJson(anilistMedia!) : null,
         "releases": _releases.toMap,
         "url": url,
+        "cached": cached,
         "title": title,
         "sinopse": sinopse,
       };

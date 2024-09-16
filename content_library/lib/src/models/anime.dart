@@ -22,6 +22,7 @@ class Anime extends Content {
     this.isDublado = false,
     super.sinopse,
     super.genres,
+    super.cached,
   }) : super(releases);
 
   @override
@@ -52,6 +53,7 @@ class Anime extends Content {
     String? generateID,
     String? mediumImage,
     bool? isDublado,
+    bool? cached,
     Source? source,
     int? totalOfEpisodes,
     AnilistMedia? anilistMedia,
@@ -66,6 +68,7 @@ class Anime extends Content {
       totalOfPages: totalOfPages ?? this.totalOfPages,
       totalOfEpisodes: totalOfEpisodes ?? this.totalOfEpisodes,
       generateID: generateID ?? this.generateID,
+      cached: cached ?? this.cached,
       animeID: animeID ?? this.animeID,
       originalImage: originalImage ?? this.originalImage,
       mediumImage: mediumImage ?? this.mediumImage,
@@ -133,6 +136,7 @@ class Anime extends Content {
           ? AnilistMedia.fromJson(map['anilistMedia'])
           : null,
       title: map['title'],
+      cached: map['cached'] ?? false,
       url: map['url'],
       releases: map['releases'] is EpisodeReleases
           ? map['releases']

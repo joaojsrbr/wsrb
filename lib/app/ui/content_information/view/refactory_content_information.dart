@@ -38,12 +38,15 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     duration: Duration.zero,
   );
 
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
+
   Content? _content;
 
   bool _isLoading = true;
   bool _releasesIsLoading = false;
   int _index = 0;
-
+  late Completer _initialRefresh;
   final Map<int, Releases> _releases = {};
 
   ContentInformationArgs? _informationArgs;
@@ -63,6 +66,8 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
   void _onInit() async {
     if (!mounted) return;
 
+    _initialRefresh = Completer();
+
     final args = ModalRoute.settingsOf(context)?.arguments;
 
     if (args is String) {
@@ -80,7 +85,12 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
       contentCache = const Result.empty();
     }
 
-    final resultCotent = (contentCache is Success)
+    if (_content?.cached == false &&
+        !_libraryService.contains(content: _content)) {
+      _refreshIndicatorKey.currentState?.show();
+    }
+
+    final resultCotent = (contentCache is Success && _content!.cached == true)
         ? contentCache
         : await _repository.getData(_informationArgs!.content).timeout(
               const Duration(seconds: 5),
@@ -107,7 +117,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     Content data, [
     bool refresh = false,
     bool forceSaveCache = false,
-  ]) {
+  ]) async {
     // if(data is Anime && data.totalOfPages != null) {
     //     List.generate(data.totalOfPages!, (index) => )
     // }
@@ -129,17 +139,20 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
       _releases[_index] = data.releases;
     }
 
-    addPostFrameSetState(() {
-      _content = data.copyWith(releases: _releases[_index]);
+    setState(() {
+      _content = data.copyWith(
+        releases: _releases[_index],
+        cached: true,
+      );
       _isLoading = false;
     });
 
-    scheduleMicrotask(() async {
-      if ((await AutoCache.data.getJson(key: data.stringID)).data == null ||
-          forceSaveCache) {
-        AutoCache.data.saveJson(key: data.stringID, data: data.toJson());
-      }
-    });
+    if ((await AutoCache.data.getJson(key: data.stringID)).data == null ||
+        forceSaveCache ||
+        _content!.cached == true) {
+      AutoCache.data.saveJson(key: data.stringID, data: _content!.toJson());
+    }
+    _initialRefresh.complete();
   }
 
   void _handleSetListIndex(int index) async {
@@ -266,18 +279,26 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
       releasesIsLoading: _releasesIsLoading,
       builder: (context) => Scaffold(
         body: RefreshIndicator(
+          key: _refreshIndicatorKey,
           notificationPredicate: (notification) {
-            // with NestedScrollView local(depth == 2)
             if (notification is OverscrollNotification) {
               return notification.depth == 2;
             }
             return notification.depth == 0;
           },
           onRefresh: () async {
+            if (_content?.cached == false &&
+                !_libraryService.contains(content: _content)) {
+              _initialRefresh = Completer();
+              await _initialRefresh.future;
+              return;
+            }
+
+            if (_content == null) return;
             final appSnackBar = context.appSnackBar;
 
             await _repository
-                .getData(_informationArgs!.content)
+                .getData(_content!)
                 .timeout(
                   const Duration(seconds: 5),
                   onTimeout: () => Result.failure(
@@ -356,18 +377,16 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
             ],
             body: AnimatedSwitcher(
               duration: const Duration(milliseconds: 350),
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : TabBarView(
-                      physics: _isLoading
-                          ? const NeverScrollableScrollPhysics()
-                          : const PageScrollPhysics(),
-                      controller: _bottomTabController,
-                      children: const [
-                        InformationDestination(),
-                        ReleaseDestination(),
-                      ],
-                    ),
+              child: TabBarView(
+                physics: _isLoading
+                    ? const NeverScrollableScrollPhysics()
+                    : const PageScrollPhysics(),
+                controller: _bottomTabController,
+                children: const [
+                  ReleaseDestination(),
+                  InformationDestination(),
+                ],
+              ),
             ),
           ),
         ),

@@ -49,6 +49,7 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
             content.releases.length,
             (index) {
               final release = content.releases
+                  .sorted()
                   .reverse(hiveController.reverseContents)
                   .elementAt(index);
 
