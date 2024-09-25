@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:slugify/slugify.dart';
 import 'package:uuid/uuid.dart';
 
@@ -34,7 +35,7 @@ extension StringExtensions on String {
     return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
   }
 
-  Duration parseDuration() {
+  Duration get parseDuration {
     int hours = 0;
     int minutes = 0;
     int micros;
@@ -51,5 +52,12 @@ extension StringExtensions on String {
     } catch (_) {
       return Duration.zero;
     }
+  }
+
+  Color get fromHex {
+    final buffer = StringBuffer();
+    if (length == 6 || length == 7) buffer.write('ff');
+    buffer.write(replaceFirst('#', ''));
+    return Color(int.parse(buffer.toString(), radix: 16));
   }
 }

@@ -89,7 +89,7 @@ mixin PlayerAudioHandlerMixin
   @override
   void dispose() {
     _playerAudioHandler.setPlayerController = null;
-    _playerAudioHandler.stop();
+
     super.dispose();
   }
 }

@@ -33,6 +33,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
   late final LibraryController _libraryController;
   late final HistoricController _historicController;
   late final DownloadService _downloadService;
+  late final HistoryService _historyService;
 
   final Debouncer _changeTabBarIndex = Debouncer(
     duration: Duration.zero,
@@ -56,8 +57,9 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     super.initState();
     _bottomTabController = TabController(length: 2, vsync: this);
     _historicController = context.read<HistoricController>();
+    _historyService = HistoryService(_historicController);
     _libraryController = context.read<LibraryController>();
-    _libraryService = LibraryService(_libraryController, context.read());
+    _libraryService = context.read<LibraryService>();
     _downloadService = context.read<DownloadService>();
     _repository = context.read<ContentRepository>();
     scheduleMicrotask(_onInit);
@@ -93,11 +95,17 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     final resultCotent = (contentCache is Success && _content!.cached == true)
         ? contentCache
         : await _repository.getData(_informationArgs!.content).timeout(
-              const Duration(seconds: 5),
-              onTimeout: () => Result.failure(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              if (_informationArgs!.content.releases.length > 1 ||
+                  _content!.cached) {
+                return Result.success(_informationArgs!.content);
+              }
+              return Result.failure(
                 TimeoutException("Tempo excedido"),
-              ),
-            );
+              );
+            },
+          );
 
     resultCotent.fold(
       onError: navigationState.pop,
@@ -125,9 +133,10 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     _releases.clear();
 
     if (_releases.isEmpty && data is Anime) {
-      for (var data in _content!.releases) {
-        if (data is Episode && data.pageNumber != null) {
+      for (var data in data.releases) {
+        if (data.pageNumber != null) {
           customLog(data.pageNumber! - 1);
+
           if (_releases[data.pageNumber! - 1] == null) {
             _releases[data.pageNumber! - 1] = Releases()..add(data);
           } else {
@@ -144,6 +153,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
         releases: _releases[_index],
         cached: true,
       );
+      _releasesIsLoading = false;
       _isLoading = false;
     });
 
@@ -200,9 +210,6 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     final HistoricController historicController =
         context.read<HistoricController>();
 
-    final LibraryService libraryService =
-        LibraryService(libraryController, context.read());
-
     switch (release) {
       case Episode data when mounted && _content is Anime:
         await _downloadService.downloadReleaseVideoByHLS(
@@ -215,19 +222,26 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
               AnimeEntity animeEntity = _content!.toEntity() as AnimeEntity;
 
               final bAnimeEntity =
-                  libraryService.getContentEntityByStringID(_content!.stringID)
+                  _libraryService.getContentEntityByStringID(_content!.stringID)
                       as AnimeEntity?;
 
               if (bAnimeEntity != null) {
                 animeEntity = animeEntity.merge(bAnimeEntity) as AnimeEntity;
               }
 
-              animeEntity.episodes.add(data.toEntity(anime: _content as Anime));
+              final EpisodeEntity episodeEntity =
+                  _historicController.entities.firstWhere(
+                (entity2) => switch (entity2) {
+                  EpisodeEntity data => data.stringID.contains(data.stringID),
+                  _ => false,
+                },
+                orElse: () => data.toEntity(anime: _content as Anime),
+              ) as EpisodeEntity;
+
+              animeEntity.episodes.add(episodeEntity);
 
               await libraryController.add(contentEntity: animeEntity);
-              await historicController.add(
-                historyEntity: data.toEntity(anime: _content as Anime),
-              );
+              await historicController.add(historyEntity: episodeEntity);
             }
 
             switch (result) {
@@ -267,6 +281,8 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
 
     customLog('build');
 
+    final libraryService = context.watch<LibraryService>();
+
     return ContentScope(
       bottomTabController: _bottomTabController,
       index: _index,
@@ -287,9 +303,9 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
             return notification.depth == 0;
           },
           onRefresh: () async {
+            _initialRefresh = Completer();
             if (_content?.cached == false &&
                 !_libraryService.contains(content: _content)) {
-              _initialRefresh = Completer();
               await _initialRefresh.future;
               return;
             }
@@ -297,15 +313,18 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
             if (_content == null) return;
             final appSnackBar = context.appSnackBar;
 
-            await _repository
-                .getData(_content!)
-                .timeout(
-                  const Duration(seconds: 5),
-                  onTimeout: () => Result.failure(
-                    TimeoutException("Tempo excedido"),
-                  ),
-                )
-                .then((result) {
+            await _repository.getData(_content!).timeout(
+              const Duration(seconds: 5),
+              onTimeout: () {
+                if (_informationArgs!.content.releases.length > 1 ||
+                    _content!.cached) {
+                  return Result.success(_informationArgs!.content);
+                }
+                return Result.failure(
+                  TimeoutException("Tempo excedido"),
+                );
+              },
+            ).then((result) {
               result.fold(
                 onSuccess: (result) => _onSuccess(result, false, true),
                 onError: appSnackBar.onError,
@@ -314,7 +333,6 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
           },
           child: NestedScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            restorationId: 'content_scroll',
             key: const PageStorageKey("content_pageStorageKey"),
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
               SliverAppBar(
@@ -324,34 +342,28 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
                   collapseMode: CollapseMode.pin,
                 ),
                 actions: [
-                  Builder(builder: (context) {
-                    final libraryService = LibraryService(
-                      context.watch(),
-                      context.watch(),
-                    );
-                    return IconButton(
-                      onPressed: () {
-                        customLog(
-                            'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${_content!.title} - id: ${_content!.stringID}');
-                        if (libraryService.favoritesIDS
-                            .contains(_content!.stringID)) {
-                          _libraryController.remove(
-                              contentEntity: _content!.toEntity());
-                        } else {
-                          _libraryController.add(
-                            contentEntity: _content!.toEntity(isFavorite: true),
-                          );
-                        }
-                      },
-                      icon: FadeThroughTransitionSwitcher(
-                        enableSecondChild: libraryService.favoritesIDS.contains(
-                          _content?.stringID,
-                        ),
-                        secondChild: Icon(MdiIcons.heart, color: Colors.red),
-                        child: Icon(MdiIcons.heartOutline),
+                  IconButton(
+                    onPressed: () {
+                      customLog(
+                          'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${_content!.title} - id: ${_content!.stringID}');
+                      if (libraryService.favoritesIDS
+                          .contains(_content!.stringID)) {
+                        _libraryController.remove(
+                            contentEntity: _content!.toEntity());
+                      } else {
+                        _libraryController.add(
+                          contentEntity: _content!.toEntity(isFavorite: true),
+                        );
+                      }
+                    },
+                    icon: FadeThroughTransitionSwitcher(
+                      enableSecondChild: libraryService.favoritesIDS.contains(
+                        _content?.stringID,
                       ),
-                    );
-                  }),
+                      secondChild: Icon(MdiIcons.heart, color: Colors.red),
+                      child: Icon(MdiIcons.heartOutline),
+                    ),
+                  ),
                 ],
                 bottom: TabBar(
                   indicatorSize: TabBarIndicatorSize.tab,
@@ -423,7 +435,22 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
                 },
               )
               .nonNulls
-              .toList(),
+              .toList()
+            ..removeWhere(_historyService.entities.contains),
+          // ..removeWhere(
+          //   (entity) {
+
+          //     return _historicController.entities
+          //             .firstWhereOrNull((entity2) => switch (entity2) {
+          //                   EpisodeEntity data when entity is EpisodeEntity =>
+          //                     data.stringID.contains(entity.stringID),
+          //                   ChapterEntity data when entity is ChapterEntity =>
+          //                     data.stringID.contains(entity.stringID),
+          //                   _ => false,
+          //                 }) !=
+          //         null;
+          //   },
+          // ),
         )
             .whenComplete(() {
           if (entity != null) {

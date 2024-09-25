@@ -129,6 +129,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       ..withBannerImage()
       ..withGenres()
       ..withSynonyms()
+      ..withBannerImage()
       ..withMeanScore()
       ..withAverageScore()
       ..withPopularity()

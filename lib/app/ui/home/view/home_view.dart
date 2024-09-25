@@ -140,12 +140,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     return const FixedOverscrollBouncingScrollPhysics();
   }
 
-  static final _homeTabIcons = [
-    Icon(MdiIcons.home),
-    Icon(MdiIcons.library),
-    Icon(MdiIcons.cog),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final CategoryController categoryController =
@@ -165,10 +159,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         builder: (context) {
           final TabController tabController =
               HomeScope.of(context).tabController;
-          final LibraryService libraryService = LibraryService(
-            context.watch(),
-            context.watch(),
-          );
+          final LibraryService libraryService = context.watch<LibraryService>();
 
           return Scaffold(
             body: BottomMenu(
@@ -177,7 +168,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 // onlyOneScrollInBody: true,
                 controller: _scrollController,
                 physics: _mainPhysics,
-                restorationId: 'home_scroll',
                 headerSliverBuilder: (context, innerBoxIsScrolled) {
                   return [
                     SliverAppBar(
@@ -188,10 +178,11 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                 _tabController.index == 1
                             ? Colors.transparent
                             : null,
-                        tabs: List.generate(
-                          _tabController.length,
-                          (index) => Tab(icon: _homeTabIcons.elementAt(index)),
-                        ),
+                        tabs: [
+                          Tab(icon: Icon(MdiIcons.home)),
+                          Tab(icon: Icon(MdiIcons.library)),
+                          Tab(icon: Icon(MdiIcons.cog)),
+                        ],
                       ),
                       actions: [
                         if ([0, 1].contains(tabController.index))

@@ -40,7 +40,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
     _libraryController = context.read<LibraryController>()
       ..addListener(_setChildren);
 
-    _libraryService = LibraryService(_libraryController, context.read());
+    _libraryService = context.read<LibraryService>();
 
     _categoryController = context.read<CategoryController>()
       ..addListener(_setChildren);
@@ -171,7 +171,6 @@ class LibraryeDestinationState extends State<LibraryDestination>
       onNotification:
           subordinateLibraryTabController.scrollNotificationNextPage,
       child: TabBarView(
-        key: const PageStorageKey('library_page'),
         controller: subordinateLibraryTabController,
         children: _children,
       ),

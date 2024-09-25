@@ -13,4 +13,7 @@ abstract class ContentEntity extends Entity
 }
 
 abstract class HistoryEntity extends Entity
-    implements Comparable<HistoryEntity> {}
+    implements Comparable<HistoryEntity> {
+  double get percent;
+  bool get isComplete;
+}

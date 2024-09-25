@@ -102,7 +102,7 @@ class DownloadService extends ChangeNotifier {
                   id: -1,
                   releaseId: release.stringID,
                   isDownloading: false,
-                  videoDuration: duration?.parseDuration(),
+                  videoDuration: duration?.parseDuration,
                 );
                 downloadList.add(info);
                 completer.complete();

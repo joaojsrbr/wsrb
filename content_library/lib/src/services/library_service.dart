@@ -36,7 +36,7 @@ class LibraryService {
             (entity) => switch (entity) {
               AnimeEntity data => data.episodes.any((episode) =>
                   !episode.isComplete &&
-                  (episode.videoPercent > _hiveController.historicSavePercent)),
+                  (episode.percent > _hiveController.historicSavePercent)),
               BookEntity data => data.chapters.any((chapter) =>
                   !chapter.isComplete &&
                   (chapter.readPercent > _hiveController.historicSavePercent)),
@@ -50,7 +50,7 @@ class LibraryService {
       AnimeEntity data => data.episodes
           .where((episode) =>
               !episode.isComplete &&
-              (episode.videoPercent > _hiveController.historicSavePercent))
+              (episode.percent > _hiveController.historicSavePercent))
           .toList(),
       BookEntity data => data.chapters
           .where((episode) =>
@@ -134,23 +134,22 @@ class LibraryService {
   }
 
   bool contains({ContentEntity? contentEntity, Content? content}) {
-    bool result = false;
     if (content != null) {
       assert(contentEntity == null);
-      result = switch (content) {
+      return switch (content) {
         Anime data => favoritesIDS.contains(data.stringID),
         Book data => favoritesIDS.contains(data.stringID),
         _ => false,
       };
     } else if (contentEntity != null) {
       assert(content == null);
-      result = switch (contentEntity) {
+      return switch (contentEntity) {
         EpisodeEntity data => favoritesIDS.contains(data.stringID),
         ChapterEntity data => favoritesIDS.contains(data.stringID),
         _ => false,
       };
     }
-    return result;
+    return false;
   }
 
   String? _map(ContentEntity contentEntity) {

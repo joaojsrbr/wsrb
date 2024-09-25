@@ -16,7 +16,11 @@ class ChapterEntity extends HistoryEntity {
   DateTime? createdAt;
   DateTime? updatedAt;
   String url;
+  @override
   bool isComplete;
+
+  @override
+  double get percent => 0.0;
 
   @override
   List<Object?> get props => [

@@ -26,6 +26,7 @@ void _snackBar(context, String messageCopy, String? messageSnackBar) {
               'copiado para a área de transferência!',
     ),
     flushbarPosition: FlushbarPosition.TOP,
+    duration: const Duration(milliseconds: 1500),
   );
   // ScaffoldMessenger.of(context)
   //   ..clearSnackBars()

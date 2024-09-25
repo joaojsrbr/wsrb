@@ -5,11 +5,18 @@ import 'package:isar/isar.dart';
 
 part 'episode_entity.g.dart';
 
-@Collection(
-    ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'videoPercent'})
+@Collection(ignore: {
+  'props',
+  'imageUrl',
+  'stringify',
+  'hashCode',
+  'videoPercent',
+  'percent'
+})
 class EpisodeEntity extends HistoryEntity {
   int episodeDuration;
   int currentDuration;
+  @override
   bool isComplete;
   String? sinopse;
   int? numberEpisode;
@@ -26,7 +33,8 @@ class EpisodeEntity extends HistoryEntity {
   String? currentPositionBase64;
   String title;
 
-  double get videoPercent => (currentDuration / episodeDuration).abs();
+  @override
+  double get percent => (currentDuration / episodeDuration).abs();
 
   EpisodeEntity({
     this.currentDuration = 0,

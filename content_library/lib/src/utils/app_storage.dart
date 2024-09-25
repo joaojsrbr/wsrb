@@ -37,9 +37,6 @@ class AppStorage {
     final dirPath = '${AppStorage.DOWNLOAD_DIR.path}/${content.title.toID}';
     final filePath = '$dirPath/episodio_${release.number}.mp4';
     final file = File(filePath);
-    return switch (file.existsSync()) {
-      true => file,
-      false => null,
-    };
+    return file.existsSync() ? file : null;
   }
 }

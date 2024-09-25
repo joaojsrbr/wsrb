@@ -20,8 +20,7 @@ class HomeBottomOverlay extends StatelessWidget {
 
     if (valueNotifierList.isEmpty) return const SizedBox.shrink();
 
-    final LibraryService libraryService =
-        LibraryService(libraryController, context.watch());
+    final LibraryService libraryService = context.watch<LibraryService>();
 
     return SafeArea(
       top: false,

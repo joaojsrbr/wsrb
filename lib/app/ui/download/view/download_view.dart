@@ -317,10 +317,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                                         }
                                       : () async {
                                           final LibraryService libraryService =
-                                              LibraryService(
-                                            context.read(),
-                                            context.read(),
-                                          );
+                                              context.read<LibraryService>();
 
                                           final animeEntity = libraryService
                                               .entities

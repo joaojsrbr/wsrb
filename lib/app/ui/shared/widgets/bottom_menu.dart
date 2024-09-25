@@ -155,8 +155,7 @@ class _LibraryButtons extends StatelessWidget {
     final ContentRepository repository = context.read<ContentRepository>();
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
-    final LibraryService libraryService =
-        LibraryService(libraryController, context.watch());
+    final LibraryService libraryService = context.watch<LibraryService>();
 
     final TabController tabController = HomeScope.of(context).tabController;
 
@@ -251,7 +250,7 @@ class _LibraryButtons extends StatelessWidget {
           ),
           IconButton(
             onPressed: libraryService.favoritesIDS
-                    .any((id) => valueNotifierList.contains(id))
+                    .containsOneElement(valueNotifierList)
                 ? () {
                     CategoryUtils.selectCategory(context);
                   }

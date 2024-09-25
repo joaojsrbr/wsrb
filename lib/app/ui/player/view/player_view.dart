@@ -64,14 +64,15 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   late PlayerArgs _playerArgs = argument();
 
   late final ContentRepository _repository;
+  late final LibraryService _libraryService;
   late final HiveController _hiveController;
   late final LibraryController _libraryController;
   late final HistoricController _historicController;
   late final Timer _systemUIModeTimer;
 
-  final Debouncer _saveDataDebouncer = Debouncer(
-    duration: const Duration(milliseconds: 200),
-  );
+  // Debouncer _saveDataDebouncer = Debouncer(
+  //   duration: const Duration(milliseconds: 200),
+  // );
   Timer? _setContinueVideoTimer;
 
   bool get _hasNextEpisode {
@@ -104,6 +105,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _libraryService = context.read<LibraryService>();
     _hiveController = context.read<HiveController>();
     _repository = context.read<ContentRepository>();
     BoxFit.values
@@ -179,12 +181,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _getAllEpisodes() async {
-    if (_playerArgs.anime.releases.length <= 1 && _playerArgs.getAnimeData) {
+    if (_playerArgs.anime.releases.length <= 1 || _playerArgs.getAnimeData) {
       await _repository.getReleases(_playerArgs.anime, -1).then(
             (result) => result.fold(
               onSuccess: (data) {
                 _playerArgs = _playerArgs.copyWith(
-                  anime: _playerArgs.anime.merge(data as Anime),
+                  anime: data.merge(_playerArgs.anime) as Anime,
                 );
               },
             ),
@@ -428,14 +430,13 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   Future<void> _handleOnTapEpisode(Episode episode) async {
     if (episode.stringID.contains(_playerArgs.episode.stringID)) return;
-    await playerAudioHandler.stop();
+    await setSessionActive(false);
+    await _saveVideoPosition(playerAudioHandler.stop);
+
     _seekInVideoPosition.value = null;
     _overlayNextEpisode.value = null;
-    customLog('[$runtimeType][_handleOnTapEpisode()][${episode.title}]');
 
-    await _saveVideoPosition(() async {
-      await setSessionActive(false);
-    });
+    customLog('[$runtimeType][_handleOnTapEpisode()][${episode.title}]');
 
     final file = AppStorage.getReleaseFile(_playerArgs.anime, episode);
 
@@ -443,80 +444,77 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     if (file != null) data = FileVideoData(file: file);
 
-    ifMounted(() async {
-      setState(() {
-        _playerArgs = _playerArgs.copyWith(
-          episode: episode,
-          data: data,
-        );
-      });
-
-      await _getInitMainVideoData();
-      await _startPlayerController();
-      await _continueVideoByHistoricPosition();
+    // await playerAudioHandler.stop();
+    setStateIfMounted(() {
+      _playerArgs = _playerArgs.copyWith(
+        episode: episode,
+        data: data,
+      );
     });
+
+    await _getInitMainVideoData();
+    await _startPlayerController();
+    await _continueVideoByHistoricPosition();
   }
 
-  Future<void> _saveVideoPosition([void Function()? onSave]) async {
-    _saveDataDebouncer.cancel();
+  Future<void> _saveVideoPosition([Future<void> Function()? onSave]) async {
+    // _saveDataDebouncer.cancel();
     final currentPositionBase64 = await videoScreenshotBase64();
-    onSave?.call();
-    _saveDataDebouncer.call(() async {
-      if (_videoPercent < _hiveController.historicSavePercent) return;
 
-      final Duration position = player!.state.position;
+    if (_videoPercent < _hiveController.historicSavePercent) return;
 
-      final Duration duration = player!.state.duration;
+    final Duration position = player!.state.position;
 
-      final HistoryService historyService = HistoryService(_historicController);
+    final Duration duration = player!.state.duration;
 
-      final entity = historyService.entities.firstWhereOrNull((episode) =>
-              episode is EpisodeEntity &&
-              episode.animeStringID.contains(_playerArgs.anime.stringID))
-          as EpisodeEntity?;
+    final HistoryService historyService = HistoryService(_historicController);
 
-      bool isComplete = _videoPercent >= 0.85;
+    final entity = historyService.entities.firstWhereOrNull(
+      (episode) =>
+          episode is EpisodeEntity &&
+          episode.animeStringID.contains(_playerArgs.anime.stringID) &&
+          episode.stringID.contains(_playerArgs.episode.stringID),
+    ) as EpisodeEntity?;
 
-      final EpisodeEntity episodeEntity = EpisodeEntity(
-        currentDuration: position.inMicroseconds,
-        currentPositionBase64: currentPositionBase64,
-        title: _playerArgs.episode.title,
-        animeStringID: _playerArgs.anime.stringID,
-        generateID: _playerArgs.episode.generateID,
-        slugSerie: _playerArgs.episode.slugSerie,
-        url: _playerArgs.episode.url,
-        episodeDuration: duration.inMicroseconds,
-        thumbnail: _playerArgs.episode.thumbnail,
-        createdAt: entity?.createdAt ?? DateTime.now(),
-        updatedAt: DateTime.now(),
-        stringID: _playerArgs.episode.stringID,
-        isComplete: isComplete,
-        sinopse: _playerArgs.episode.sinopse,
-        numberEpisode: int.tryParse(_playerArgs.episode.number),
-      );
+    bool isComplete = _videoPercent >= 0.85;
 
-      customLog(
-          '[$runtimeType][_saveVideoPosition()][${episodeEntity.numberEpisode}]');
+    final EpisodeEntity episodeEntity = EpisodeEntity(
+      currentDuration: position.inMicroseconds,
+      currentPositionBase64: currentPositionBase64,
+      title: _playerArgs.episode.title,
+      animeStringID: _playerArgs.anime.stringID,
+      generateID: _playerArgs.episode.generateID,
+      slugSerie: _playerArgs.episode.slugSerie,
+      url: _playerArgs.episode.url,
+      episodeDuration: duration.inMicroseconds,
+      thumbnail: _playerArgs.episode.thumbnail,
+      createdAt: entity?.createdAt ?? DateTime.now(),
+      updatedAt: DateTime.now(),
+      stringID: _playerArgs.episode.stringID,
+      isComplete: isComplete,
+      sinopse: _playerArgs.episode.sinopse,
+      numberEpisode: int.tryParse(_playerArgs.episode.number),
+    );
 
-      final LibraryService libraryService =
-          LibraryService(_libraryController, _hiveController);
+    customLog(
+        '[$runtimeType][_saveVideoPosition()][${episodeEntity.numberEpisode}]');
 
-      AnimeEntity animeEntity = _playerArgs.anime.toEntity();
+    AnimeEntity animeEntity = _playerArgs.anime.toEntity();
 
-      final bAnimeEntity =
-          libraryService.getContentEntityByStringID(_playerArgs.anime.stringID)
-              as AnimeEntity?;
+    final bAnimeEntity = _libraryService
+        .getContentEntityByStringID(_playerArgs.anime.stringID) as AnimeEntity?;
 
-      if (bAnimeEntity != null) {
-        animeEntity = animeEntity.merge(bAnimeEntity) as AnimeEntity;
-      }
+    if (bAnimeEntity != null) {
+      animeEntity = animeEntity.merge(bAnimeEntity) as AnimeEntity;
+    }
 
-      animeEntity.episodes.add(episodeEntity);
+    animeEntity.episodes.add(episodeEntity);
 
-      await _libraryController.add(contentEntity: animeEntity);
+    await _libraryController.add(contentEntity: animeEntity);
 
-      await _historicController.add(historyEntity: episodeEntity);
-    });
+    await _historicController.add(historyEntity: episodeEntity);
+
+    await onSave?.call();
   }
 
   @override
@@ -560,7 +558,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     _lockPlayer.dispose();
     _reversedCurrentDuration.dispose();
     _overlayBoxFit.dispose();
-    _saveDataDebouncer.cancel();
+    // _saveDataDebouncer.cancel();
     _systemUIModeTimer.cancel();
     _setContinueVideoTimer?.cancel();
     _overlayNextEpisode.dispose();
@@ -572,10 +570,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       player?.pause();
       _saveVideoPosition(() async {
         await setSessionActive(false);
+        await playerAudioHandler.stop();
         await player?.dispose();
       });
     } else {
       player?.dispose();
+      playerAudioHandler.stop();
     }
   }
 }

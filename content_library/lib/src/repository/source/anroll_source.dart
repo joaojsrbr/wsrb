@@ -331,6 +331,7 @@ class AnrollSource extends RSource {
             'www.anroll.net${map['friendly_path'] ?? map['generic_path']}';
         final String originalImage =
             'https://static.anroll.net/images/animes/capas/$slugSerie.jpg';
+
         final String title = map['title'];
         final bool isDublado = title.toLowerCase().contains('dublado');
         final String animeID = (map['id']).toString();

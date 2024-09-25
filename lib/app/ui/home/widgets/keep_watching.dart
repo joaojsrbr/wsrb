@@ -29,7 +29,7 @@ class _KeepWatchingState extends State<KeepWatching> {
   void didChangeDependencies() {
     final TabController tabController = HomeScope.of(context).tabController;
 
-    _libraryService = LibraryService(context.watch(), context.watch());
+    _libraryService = context.watch<LibraryService>();
     _sortedByUpdateAt = (tabController.index == 0
             ? _libraryService.entities
             : _libraryService.favorites)
@@ -382,9 +382,9 @@ class _KeepWatchingState extends State<KeepWatching> {
                                         ],
                                       ),
                                     AnimatedBorderProgressIndicator(
-                                      value: data.videoPercent.isNaN
+                                      value: data.percent.isNaN
                                           ? 0.0
-                                          : data.videoPercent,
+                                          : data.percent,
                                       color:
                                           Theme.of(context).colorScheme.primary,
                                       strokeWidth: 4,

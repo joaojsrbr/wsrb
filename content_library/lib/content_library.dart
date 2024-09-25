@@ -20,6 +20,7 @@ export 'src/entities/entity.dart';
 export 'src/entities/episode_entity.dart';
 export 'src/exceptions/anime_exception.dart';
 export 'src/exceptions/book_exception.dart';
+export 'src/extensions/custom_extensions/color_extensions.dart';
 export 'src/extensions/custom_extensions/context_extensions.dart';
 export 'src/extensions/custom_extensions/entity_extensions.dart';
 export 'src/extensions/custom_extensions/list_extensions.dart';
