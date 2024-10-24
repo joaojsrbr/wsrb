@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:content_library/content_library.dart';
-
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
@@ -23,21 +22,19 @@ class LibraryController extends ChangeNotifier {
     super.dispose();
   }
 
-  Stream<dynamic> collectionChanged<T>() =>
-      _isarService.collection<T>().watchLazy();
-
   void _updateBookIsarLinks(data) async {
     Timer(const Duration(milliseconds: 350), () async {
-      final bookColetions =
-          await _isarService.collection<BookEntity>().where().findAll();
+      final bookColetions = await _isarService.collection<BookEntity>();
+
+      final bookEntities = await bookColetions.where().findAll();
 
       await Future.wait([
-        ...bookColetions.map((element) => element.chapters.load()),
+        ...bookEntities.map((element) => element.chapters.load()),
       ]);
 
       bool update = false;
 
-      for (var contentEntity in bookColetions) {
+      for (var contentEntity in bookEntities) {
         update = _entities.updateWhere(
             contentEntity,
             (element) => switch (element) {
@@ -56,16 +53,17 @@ class LibraryController extends ChangeNotifier {
 
   void _updateAnimeIsarLinks(data) async {
     Timer(const Duration(milliseconds: 350), () async {
-      final animeColetions =
-          await _isarService.collection<AnimeEntity>().where().findAll();
+      final animeColetions = await _isarService.collection<AnimeEntity>();
+
+      final animeEntities = await animeColetions.where().findAll();
 
       await Future.wait([
-        ...animeColetions.map((element) => element.episodes.load()),
+        ...animeEntities.map((element) => element.episodes.load()),
       ]);
 
       bool update = false;
 
-      for (var contentEntity in animeColetions) {
+      for (var contentEntity in animeEntities) {
         update = _entities.updateWhere(
             contentEntity,
             (element) => switch (element) {
@@ -85,25 +83,36 @@ class LibraryController extends ChangeNotifier {
   final List<ContentEntity> _entities = [];
 
   Future<void> start() async {
-    final animeColetions =
-        await _isarService.collection<AnimeEntity>().where().findAll();
+    final animeColetions = await _isarService.collection<AnimeEntity>();
 
-    final bookColetions =
-        await _isarService.collection<BookEntity>().where().findAll();
+    final bookColetions = await _isarService.collection<BookEntity>();
 
-    await Future.wait([
-      ...animeColetions.map((element) => element.episodes.load()),
-      ...bookColetions.map((element) => element.chapters.load()),
-    ]);
+    final episodeColetions = await _isarService.collection<EpisodeEntity>();
 
-    _entities.addAll(animeColetions);
-    _entities.addAll(bookColetions);
+    final entities = [
+      ...(await animeColetions.where().findAll()),
+      ...(await bookColetions.where().findAll()),
+    ];
+
+    await Future.wait(
+      entities
+          .map(
+            (entity) => switch (entity) {
+              AnimeEntity data => data.episodes.load(),
+              BookEntity data => data.chapters.load(),
+              _ => null,
+            },
+          )
+          .nonNulls,
+    );
+
+    _entities.addAll(entities);
 
     _subscriptions.addAll(
       [
-        collectionChanged<AnimeEntity>().listen(_updateAnimeIsarLinks),
-        collectionChanged<EpisodeEntity>().listen(_updateAnimeIsarLinks),
-        collectionChanged<BookEntity>().listen(_updateBookIsarLinks),
+        animeColetions.watchLazy().listen(_updateAnimeIsarLinks),
+        bookColetions.watchLazy().listen(_updateBookIsarLinks),
+        episodeColetions.watchLazy().listen(_updateAnimeIsarLinks),
       ],
     );
   }

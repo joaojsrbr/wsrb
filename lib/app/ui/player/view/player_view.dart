@@ -625,7 +625,7 @@ class _Content extends StatelessWidget {
             child: Column(
               children: [
                 SizedBox(
-                  height: sizeOf.height * .35,
+                  height: sizeOf.height * .40,
                   width: double.infinity,
                   child: PipWidget(
                     onPipAction: scope.onPipAction,

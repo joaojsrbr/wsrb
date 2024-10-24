@@ -9,11 +9,9 @@ class CategoryController extends ChangeNotifier {
   final IsarServiceImpl _isarService;
 
   CategoryController(this._isarService) {
-    Future.delayed(const Duration(seconds: 1), () {
-      _isarService
-          .collection<CategoryEntity>()
-          .watchLazy()
-          .listen((event) async {
+    Future.delayed(const Duration(seconds: 1), () async {
+      final collection = await _isarService.collection<CategoryEntity>();
+      collection.watchLazy().listen((event) async {
         await start();
         notifyListeners();
       });
@@ -65,9 +63,8 @@ class CategoryController extends ChangeNotifier {
       UnmodifiableListView(categories.map((e) => e.stringID).cast());
 
   Future<void> start() async {
-    final categoryColetions =
-        await _isarService.collection<CategoryEntity>().where().findAll();
+    final categoryColetions = await _isarService.collection<CategoryEntity>();
 
-    _categories = categoryColetions;
+    _categories = await categoryColetions.where().findAll();
   }
 }

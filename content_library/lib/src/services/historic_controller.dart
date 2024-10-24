@@ -8,10 +8,11 @@ class HistoricController extends ChangeNotifier {
   HistoricController(this._isarService);
 
   Future<void> start() async {
-    final episodes =
-        await _isarService.collection<EpisodeEntity>().where().findAll();
-    final chapters =
-        await _isarService.collection<ChapterEntity>().where().findAll();
+    final episodeCollections = await _isarService.collection<EpisodeEntity>();
+    final chaptersCollections = await _isarService.collection<ChapterEntity>();
+
+    final episodes = await episodeCollections.where().findAll();
+    final chapters = await chaptersCollections.where().findAll();
 
     _entities.addAll(episodes);
     _entities.addAll(chapters);
@@ -32,9 +33,6 @@ class HistoricController extends ChangeNotifier {
       _ => null,
     };
   }
-
-  Stream<dynamic> collectionChanged<T>() =>
-      _isarService.collection<T>().watchLazy();
 
   bool contains({
     HistoryEntity? historyEntity,

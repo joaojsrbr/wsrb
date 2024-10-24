@@ -131,26 +131,14 @@ class _ContentDestinationState extends State<ContentDestination>
               'InkWell tapped title: ${content.title} - id: ${content.stringID}',
             );
           } else {
-            if (content is Anime && content.releases.length == 1) {
+            if (content is Anime) {
               await context.push(
                 RouteName.PLAYER,
                 extra: PlayerArgs(
                   anime: content,
-                  episode: content.releases.first,
+                  episode: content.releases.last,
                 ),
               );
-            } else {
-              final result = await context.push(
-                RouteName.CONTENTINFO,
-                extra: ContentInformationArgs(
-                  content: content,
-                  getData: false,
-                ),
-              );
-
-              if (result != null) {
-                await appSnackBar.onError(result);
-              }
             }
           }
         },
@@ -166,37 +154,32 @@ class _ContentDestinationState extends State<ContentDestination>
           ),
           isThreeLine: false,
           dense: false,
-          subtitle: content.releases.length == 1
-              ? Row(
-                  children: [
-                    if (content.releases.length == 1) ...[
-                      Text(
-                        'Episódio ${content.releases.first.number}',
+          subtitle: Row(
+            children: [
+              Text(
+                'Episódio ${content.releases.last.number}',
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+              if (content is Anime) ...[
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      const TextSpan(text: ' - '),
+                      TextSpan(
+                        text: (content).isDublado ? 'DUB' : 'LEG',
                         style: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.normal,
+                          color:
+                              (content).isDublado ? Colors.green : Colors.blue,
                         ),
                       ),
                     ],
-                    if (content is Anime) ...[
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(text: ' - '),
-                            TextSpan(
-                              text: (content).isDublado ? 'DUB' : 'LEG',
-                              style: textTheme.titleSmall?.copyWith(
-                                color: (content).isDublado
-                                    ? Colors.green
-                                    : Colors.blue,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-                )
-              : null,
+                  ),
+                ),
+              ],
+            ],
+          ),
           minVerticalPadding: 0,
           minTileHeight: 68,
           visualDensity: const VisualDensity(vertical: 4, horizontal: -2),

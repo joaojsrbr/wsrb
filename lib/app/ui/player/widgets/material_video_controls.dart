@@ -1130,7 +1130,7 @@ class _BottomButtons extends StatelessWidget {
               child: Container(
                 width: 65,
                 padding: const EdgeInsets.only(
-                  right: 24,
+                  right: 30,
                 ),
                 child: IconButton(
                   visualDensity: const VisualDensity(vertical: -4),
