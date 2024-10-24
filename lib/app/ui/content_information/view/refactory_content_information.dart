@@ -7,6 +7,7 @@ import 'package:app_wsrb_jsr/app/ui/content_information/destinations/release_des
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/content_persistent_header.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:content_library/content_library.dart';
@@ -29,7 +30,9 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
   late final ContentRepository _repository;
   late final TabController _bottomTabController;
   // late final ConnectionChecker _connectionChecker;
+
   late final LibraryService _libraryService;
+  late final BottomMenuController<Release> _bottomMenuController;
   late final LibraryController _libraryController;
   late final HistoricController _historicController;
   late final DownloadService _downloadService;
@@ -55,6 +58,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
   @override
   void initState() {
     super.initState();
+    _bottomMenuController = BottomMenuController(minHeight: 70);
     _bottomTabController = TabController(length: 2, vsync: this);
     _historicController = context.read<HistoricController>();
     _historyService = HistoryService(_historicController);
@@ -149,10 +153,10 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     }
 
     setState(() {
-      _content = data.copyWith(
+      _content = _content?.merge(data.copyWith(
         releases: _releases[_index],
         cached: true,
-      );
+      ));
       _releasesIsLoading = false;
       _isLoading = false;
     });
@@ -226,7 +230,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
                       as AnimeEntity?;
 
               if (bAnimeEntity != null) {
-                animeEntity = animeEntity.merge(bAnimeEntity) as AnimeEntity;
+                animeEntity = bAnimeEntity.merge(animeEntity) as AnimeEntity;
               }
 
               final EpisodeEntity episodeEntity =
@@ -265,12 +269,24 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     }
   }
 
+  void _handleLongPressed(Release release) {
+    if (_content == null) return;
+    final indexOf = _content!.releases.indexOf(release);
+    customLog(indexOf);
+    _bottomMenuController.args = release;
+
+    _bottomMenuController.open(
+      onClose: () async {},
+    );
+  }
+
   @override
   void didChangeDependencies() {
-    final argsContent =
-        ModalRoute.settingsOf(context)?.arguments as ContentInformationArgs;
-
-    _content = argsContent.content;
+    if (_content == null) {
+      final argsContent =
+          ModalRoute.settingsOf(context)?.arguments as ContentInformationArgs;
+      _content = argsContent.content;
+    }
 
     super.didChangeDependencies();
   }
@@ -286,6 +302,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     return ContentScope(
       bottomTabController: _bottomTabController,
       index: _index,
+      onLongPressed: _handleLongPressed,
       informationArgs: _informationArgs,
       isLoading: _isLoading,
       setListIndex: _handleSetListIndex,
@@ -293,111 +310,123 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
       releases: _releases,
       content: _content,
       releasesIsLoading: _releasesIsLoading,
-      builder: (context) => Scaffold(
-        body: RefreshIndicator(
-          key: _refreshIndicatorKey,
-          notificationPredicate: (notification) {
-            if (notification is OverscrollNotification) {
-              return notification.depth == 2;
-            }
-            return notification.depth == 0;
-          },
-          onRefresh: () async {
-            _initialRefresh = Completer();
-            if (_content?.cached == false &&
-                !_libraryService.contains(content: _content)) {
-              await _initialRefresh.future;
-              return;
-            }
+      builder: (context) => BottomMenu(
+        isDismissible: true,
+        bottomMenuController: _bottomMenuController,
+        buttons: (context) {
+          return OverflowBar(
+            spacing: 8,
+            textDirection: Directionality.of(context),
+            overflowAlignment: OverflowBarAlignment.center,
+            children: const [],
+          );
+        },
+        child: Scaffold(
+          body: RefreshIndicator(
+            key: _refreshIndicatorKey,
+            notificationPredicate: (notification) {
+              if (notification is OverscrollNotification) {
+                return notification.depth == 2;
+              }
+              return notification.depth == 0;
+            },
+            onRefresh: () async {
+              _initialRefresh = Completer();
+              if (_content?.cached == false &&
+                  !_libraryService.contains(content: _content)) {
+                await _initialRefresh.future;
+                return;
+              }
 
-            if (_content == null) return;
-            final appSnackBar = context.appSnackBar;
+              if (_content == null) return;
+              final appSnackBar = context.appSnackBar;
 
-            await _repository.getData(_content!).timeout(
-              const Duration(seconds: 5),
-              onTimeout: () {
-                if (_informationArgs!.content.releases.length > 1 ||
-                    _content!.cached) {
-                  return Result.success(_informationArgs!.content);
-                }
-                return Result.failure(
-                  TimeoutException("Tempo excedido"),
+              await _repository.getData(_content!).timeout(
+                const Duration(seconds: 5),
+                onTimeout: () {
+                  if (_informationArgs!.content.releases.length > 1 ||
+                      _content!.cached) {
+                    return Result.success(_informationArgs!.content);
+                  }
+                  return Result.failure(
+                    TimeoutException("Tempo excedido"),
+                  );
+                },
+              ).then((result) {
+                result.fold(
+                  onSuccess: (result) => _onSuccess(result, false, true),
+                  onError: appSnackBar.onError,
                 );
-              },
-            ).then((result) {
-              result.fold(
-                onSuccess: (result) => _onSuccess(result, false, true),
-                onError: appSnackBar.onError,
-              );
-            });
-          },
-          child: NestedScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            key: const PageStorageKey("content_pageStorageKey"),
-            headerSliverBuilder: (context, innerBoxIsScrolled) => [
-              SliverAppBar(
-                expandedHeight: sizeOf.height * .40,
-                flexibleSpace: const FlexibleSpaceBar(
-                  background: ContentHeader(),
-                  collapseMode: CollapseMode.pin,
-                ),
-                actions: [
-                  IconButton(
-                    onPressed: () {
-                      customLog(
-                          'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${_content!.title} - id: ${_content!.stringID}');
-                      if (libraryService.favoritesIDS
-                          .contains(_content!.stringID)) {
-                        _libraryController.remove(
-                            contentEntity: _content!.toEntity());
-                      } else {
-                        _libraryController.add(
-                          contentEntity: _content!.toEntity(isFavorite: true),
-                        );
-                      }
-                    },
-                    icon: FadeThroughTransitionSwitcher(
-                      enableSecondChild: libraryService.favoritesIDS.contains(
-                        _content?.stringID,
-                      ),
-                      secondChild: Icon(MdiIcons.heart, color: Colors.red),
-                      child: Icon(MdiIcons.heartOutline),
-                    ),
+              });
+            },
+            child: NestedScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              key: const PageStorageKey("content_pageStorageKey"),
+              headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                SliverAppBar(
+                  expandedHeight: sizeOf.height * .40,
+                  flexibleSpace: const FlexibleSpaceBar(
+                    background: ContentHeader(),
+                    collapseMode: CollapseMode.pin,
                   ),
-                ],
-                bottom: TabBar(
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  tabAlignment: TabAlignment.fill,
-                  controller: _bottomTabController,
-                  tabs: ContentTabBar.values
-                      .map(
-                        (e) => Tab(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Icon(e.getIconData(_content!)),
-                              const SizedBox(width: 8),
-                              Center(child: Text(e.getTitle(_content!))),
-                            ],
-                          ),
+                  actions: [
+                    IconButton(
+                      onPressed: () {
+                        customLog(
+                            'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${_content!.title} - id: ${_content!.stringID}');
+                        if (libraryService.favoritesIDS
+                            .contains(_content!.stringID)) {
+                          _libraryController.remove(
+                              contentEntity: _content!.toEntity());
+                        } else {
+                          _libraryController.add(
+                            contentEntity: _content!.toEntity(isFavorite: true),
+                          );
+                        }
+                      },
+                      icon: FadeThroughTransitionSwitcher(
+                        enableSecondChild: libraryService.favoritesIDS.contains(
+                          _content?.stringID,
                         ),
-                      )
-                      .toList(),
+                        secondChild: Icon(MdiIcons.heart, color: Colors.red),
+                        child: Icon(MdiIcons.heartOutline),
+                      ),
+                    ),
+                  ],
+                  bottom: TabBar(
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    tabAlignment: TabAlignment.fill,
+                    controller: _bottomTabController,
+                    tabs: ContentTabBar.values
+                        .map(
+                          (e) => Tab(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Icon(e.getIconData(_content!)),
+                                const SizedBox(width: 8),
+                                Center(child: Text(e.getTitle(_content!))),
+                              ],
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
                 ),
-              ),
-            ],
-            body: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 350),
-              child: TabBarView(
-                physics: _isLoading
-                    ? const NeverScrollableScrollPhysics()
-                    : const PageScrollPhysics(),
-                controller: _bottomTabController,
-                children: const [
-                  ReleaseDestination(),
-                  InformationDestination(),
-                ],
+              ],
+              body: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 350),
+                child: TabBarView(
+                  physics: _isLoading
+                      ? const NeverScrollableScrollPhysics()
+                      : const PageScrollPhysics(),
+                  controller: _bottomTabController,
+                  children: const [
+                    ReleaseDestination(),
+                    InformationDestination(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -409,7 +438,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
   @override
   void dispose() {
     _bottomTabController.dispose();
-
+    // _bottomMenuController.dispose();
     _changeTabBarIndex.cancel();
     _saveData();
     super.dispose();

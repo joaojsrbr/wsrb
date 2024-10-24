@@ -163,7 +163,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
           return Scaffold(
             body: BottomMenu(
-              railMenuController: _bottomMenuController,
+              bottomMenuController: _bottomMenuController,
               child: NestedScrollView(
                 // onlyOneScrollInBody: true,
                 controller: _scrollController,

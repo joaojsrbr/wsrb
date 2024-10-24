@@ -34,7 +34,8 @@ class AppStorage {
   static final DOWNLOAD_DIR = Directory('${App.APP_DIRECTORY}/donwload');
 
   static File? getReleaseFile(Content content, Release release) {
-    final dirPath = '${AppStorage.DOWNLOAD_DIR.path}/${content.title.toID}';
+    final dirPath =
+        '${AppStorage.DOWNLOAD_DIR.path}/${content.source.label.capitalize}/${content.title.toID}';
     final filePath = '$dirPath/episodio_${release.number}.mp4';
     final file = File(filePath);
     return file.existsSync() ? file : null;

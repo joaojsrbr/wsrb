@@ -8,16 +8,18 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
-class BottomMenu extends StatefulWidget {
+class BottomMenu extends ImplicitlyAnimatedWidget {
   const BottomMenu({
     super.key,
     required this.child,
     this.buttons,
-    this.railMenuController,
-  });
+    this.isDismissible = false,
+    this.bottomMenuController,
+  }) : super(duration: const Duration(milliseconds: 350));
 
-  final BottomMenuController? railMenuController;
+  final BottomMenuController? bottomMenuController;
   final WidgetBuilder? buttons;
+  final bool isDismissible;
   final Widget child;
 
   static BottomMenuController? menuControllerMaybeOf(BuildContext context) {
@@ -29,15 +31,17 @@ class BottomMenu extends StatefulWidget {
   }
 
   @override
-  State<BottomMenu> createState() => _BottomMenuState();
+  ImplicitlyAnimatedWidgetState<BottomMenu> createState() => _BottomMenuState();
 }
 
-class _BottomMenuState extends State<BottomMenu> {
+class _BottomMenuState extends AnimatedWidgetBaseState<BottomMenu> {
   late final BottomMenuController _railMenuController;
 
   @override
   void initState() {
-    _railMenuController = (widget.railMenuController ?? BottomMenuController());
+    _railMenuController =
+        (widget.bottomMenuController ?? BottomMenuController());
+
     super.initState();
   }
 
@@ -53,14 +57,30 @@ class _BottomMenuState extends State<BottomMenu> {
             fit: StackFit.expand,
             children: [
               widget.child,
+              if (widget.isDismissible && railMenuController.isOpen)
+                AnimatedModalBarrier(
+                  barrierSemanticsDismissible: railMenuController.isOpen,
+                  color: animation.drive(
+                    ColorTween(
+                      begin: Colors.black54.withOpacity(0.0),
+                      end: Colors.black54,
+                    ).chain(
+                      CurveTween(curve: Curves.ease),
+                    ),
+                  ),
+                  onDismiss: railMenuController.close,
+                ),
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 350),
                 right: 0,
                 left: 0,
-                height: railMenuController.isOpen ? kToolbarHeight : 0,
+                height: railMenuController.isOpen
+                    ? railMenuController._menuSize?.height ?? kToolbarHeight
+                    : 0,
                 child: SizedBox(
                   width: double.infinity,
-                  height: kToolbarHeight,
+                  height:
+                      railMenuController._menuSize?.height ?? kToolbarHeight,
                   child: Card(
                     shape: const RoundedRectangleBorder(),
                     child: Align(
@@ -89,6 +109,9 @@ class _BottomMenuState extends State<BottomMenu> {
 
     super.dispose();
   }
+
+  @override
+  void forEachTween(TweenVisitor<dynamic> visitor) {}
 }
 
 class _BottomMenuControllerScope
@@ -115,23 +138,29 @@ class _BottomMenuControllerScope
   }
 }
 
-class BottomMenuController extends ChangeNotifier {
-  BottomMenuController({bool? opened, double minWidth = 50}) {
+class BottomMenuController<T> extends ChangeNotifier {
+  BottomMenuController({bool? opened, double minHeight = 50}) {
     _openMenu = opened ?? false;
-    _menuSize = Size.fromWidth(minWidth);
+    _menuSize = Size.fromHeight(minHeight);
   }
 
-  late Size _menuSize;
+  Size? _menuSize;
 
-  Size get menuSize => _menuSize;
+  T? args;
 
-  void open() {
+  Size? get menuSize => _menuSize;
+
+  void Function()? _onClose;
+
+  void open({void Function()? onClose}) {
     _openMenu = true;
+    _onClose = onClose;
     notifyListeners();
   }
 
   void close() {
     _openMenu = false;
+    _onClose?.call();
     notifyListeners();
   }
 

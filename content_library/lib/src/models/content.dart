@@ -29,11 +29,14 @@ abstract class Content extends Equatable with MergeClass<Content> {
 
   final String title;
 
+  final Source source;
+
   const Content(
     this._releases, {
     this.cached = false,
     this.genres = const [],
     required this.url,
+    required this.source,
     required this.title,
     this.sinopse,
     this.anilistMedia,
@@ -54,6 +57,7 @@ abstract class Content extends Equatable with MergeClass<Content> {
     List<Genre>? genres,
     String? sinopse,
     AnilistMedia? anilistMedia,
+    Source? source,
     String? url,
     Releases? releases,
   });
@@ -75,6 +79,7 @@ abstract class Content extends Equatable with MergeClass<Content> {
         "cached": cached,
         "title": title,
         "sinopse": sinopse,
+        "source": source.label,
       };
 
   @override

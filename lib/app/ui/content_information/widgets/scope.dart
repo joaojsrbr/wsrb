@@ -19,6 +19,7 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
     required this.content,
     required this.informationArgs,
     required this.releasesIsLoading,
+    required this.onLongPressed,
   }) : super(child: Builder(builder: builder));
 
   final ContentInformationArgs? informationArgs;
@@ -30,6 +31,7 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
   final int index;
   final Map<int, Releases> releases;
   final ValueSetter<Release> downloadRelease;
+  final void Function(Release release) onLongPressed;
 
   static ContentScope of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<ContentScope>()!;

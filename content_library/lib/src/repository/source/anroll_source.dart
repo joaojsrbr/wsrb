@@ -79,10 +79,10 @@ class AnrollSource extends RSource {
     if (content is! Anime) throw AnimeGetDataException();
 
     try {
-      Anime newAnime = await _getAnimeID(content);
+      String? animeID = (await _getAnimeID(content)).animeID;
 
       final episodesResponse = await contentRepository._dio.get(
-        'https://apiv3-prd.anroll.net/animes/${newAnime.animeID}/episodes?order=asc${page == -1 ? '' : '&page=$page'}',
+        'https://apiv3-prd.anroll.net/animes/$animeID/episodes?order=asc${page == -1 ? '' : '&page=$page'}',
       );
 
       final episodesList = episodesResponse.data['data'] as List;
@@ -117,11 +117,12 @@ class AnrollSource extends RSource {
           thumbnail: thumbnail,
         );
 
-        newAnime.releases.addOrUpdateWhere(episode, episode.isEqualStringID);
+        content.releases.addOrUpdateWhere(episode, episode.isEqualStringID);
       }
 
       return Result.success(
-        newAnime.copyWith(
+        content.copyWith(
+          animeID: animeID,
           totalOfPages: totalOfPages,
           totalOfEpisodes: totalOfEpisodes,
         ),
@@ -188,8 +189,8 @@ class AnrollSource extends RSource {
       }
 
       Future<void> getEpisodes() async {
-        await getReleases(newAnime, -1).then(
-            (result) => result.fold(onSuccess: (data) => newAnime = data));
+        await getReleases(newAnime, -1).then((result) =>
+            result.fold(onSuccess: (data) => newAnime = newAnime.merge(data)));
       }
 
       Future<void> getAniListData() async {

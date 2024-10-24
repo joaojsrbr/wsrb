@@ -22,8 +22,8 @@ class _FileData with EquatableMixin implements Comparable<_FileData> {
     required this.imageThumbnail,
   });
 
-  int get number {
-    return int.parse(file.path
+  int? get number {
+    return int.tryParse(file.path
         .split('/')[file.path.split('/').length - 1]
         .replaceAll('mp4', '')
         .replaceAll(RegExp(r'[^0-9]'), ''));
@@ -32,6 +32,13 @@ class _FileData with EquatableMixin implements Comparable<_FileData> {
   String get title {
     return file.path
         .split('/')[file.path.split('/').length - 2]
+        .replaceAll('_', " ")
+        .capitalize;
+  }
+
+  String get source {
+    return file.path
+        .split('/')[file.path.split('/').length - 3]
         .replaceAll('_', " ")
         .capitalize;
   }
@@ -71,6 +78,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
   );
 
   final List<_FileData> _files = [];
+  late final LibraryService _libraryService;
   late final BottomMenuController _bottomMenuController;
   final List<String> _fileSelected = [];
 
@@ -81,6 +89,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
   @override
   void initState() {
     _bottomMenuController = BottomMenuController();
+    _libraryService = context.read<LibraryService>();
     _downloadService = context.read<DownloadService>();
     scheduleMicrotask(_onInit);
     super.initState();
@@ -112,7 +121,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
     if (!_isLoading && _downloadService.downloadList.isEmpty) {
       setStateIfMounted(() => _isLoading = true);
     }
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 200));
     _setDirs();
     final tempPath = (await getTemporaryDirectory()).path;
 
@@ -133,8 +142,11 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
 
     _dirs
         .map((dir) {
-          final files =
-              (dir as Directory).listSync().where((file) => file.existsSync());
+          final files = (dir as Directory)
+              .listSync()
+              .map((dir) => (dir as Directory).listSync())
+              .flattened
+              .where((file) => file.existsSync());
 
           if (files.isEmpty && _isLoading) {
             setStateIfMounted(() => _isLoading = false);
@@ -144,33 +156,36 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
         .flattened
         .forEachIndexed((index, file) async {
           _FileData data = _FileData(file: file, imageThumbnail: "");
+          if (data.number != null &&
+              _libraryService.allDownIds.contains(data.title.toID)) {
+            final cacheDir =
+                Directory("$tempPath/${data.source}/${data.title.toUuID}");
+            final cacheFile = File("${cacheDir.path}/${data.number}.png");
 
-          final cacheDir = Directory("$tempPath/${data.title.toUuID}");
-          final cacheFile = File("${cacheDir.path}/${data.number}.png");
+            String? fileName = cacheFile.path;
 
-          String? fileName = cacheFile.path;
+            if (!cacheFile.existsSync()) {
+              if (!cacheDir.existsSync()) {
+                await cacheDir.create(recursive: true);
+              }
 
-          if (!cacheFile.existsSync()) {
-            if (!cacheDir.existsSync()) {
-              await cacheDir.create(recursive: true);
+              try {
+                fileName = await VideoThumbnail.thumbnailFile(
+                  video: file.path,
+                  maxWidth: 350,
+                  maxHeight: 200,
+                  thumbnailPath: cacheFile.path,
+                  imageFormat: ImageFormat.PNG,
+                  quality: 100,
+                );
+              } catch (_) {}
             }
-
-            try {
-              fileName = await VideoThumbnail.thumbnailFile(
-                video: file.path,
-                maxWidth: 350,
-                maxHeight: 200,
-                thumbnailPath: cacheFile.path,
-                imageFormat: ImageFormat.PNG,
-                quality: 100,
-              );
-            } catch (_) {}
+            data = data.copyWith(imageThumbnail: fileName);
+            _files
+              ..addOrUpdateWhere(data, (element) => element == data)
+              ..sort();
+            setStateIfMounted(() {});
           }
-          data = data.copyWith(imageThumbnail: fileName);
-          _files
-            ..addOrUpdateWhere(data, (element) => element == data)
-            ..sort();
-          setStateIfMounted(() {});
         });
 
     setStateIfMounted(() {
@@ -188,7 +203,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
           _onInit();
         },
         child: BottomMenu(
-          railMenuController: _bottomMenuController,
+          bottomMenuController: _bottomMenuController,
           buttons: (context) {
             return OverflowBar(
               spacing: 8,

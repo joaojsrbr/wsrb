@@ -9,7 +9,7 @@ class Anime extends Content {
     required super.title,
     super.anilistMedia,
     required EpisodeReleases releases,
-    required this.source,
+    required super.source,
     required this.originalImage,
     this.slugSerie,
     this.extraLarge,
@@ -30,7 +30,6 @@ class Anime extends Content {
 
   final String? generateID;
   final String? animeID;
-  final Source source;
   final String? extraLarge;
   final String originalImage;
   final String? largeImage;

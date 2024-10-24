@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'package:content_library/content_library.dart';
 
 class Book extends Content {
-  final Source source;
   final String? alternativeTitle;
   final List<String> authors;
   final List<String> artists;
@@ -21,7 +20,7 @@ class Book extends Content {
     super.anilistMedia,
     required ChapterReleases releases,
     required super.title,
-    required this.source,
+    required super.source,
     required this.originalImage,
     required super.url,
     super.genres,

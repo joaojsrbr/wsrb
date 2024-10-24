@@ -37,6 +37,13 @@ class DownloadService extends ChangeNotifier {
       await AppStorage.deleteFile(file.path, recursive: true);
     }
 
+    final allFiles = Directory(
+        '${AppStorage.DOWNLOAD_DIR.path}/${content.source.label.capitalize}/${content.title.toID}');
+
+    if (allFiles.listSync(recursive: true).isEmpty) {
+      allFiles.deleteSync();
+    }
+
     notifyListeners();
     return file != null;
   }
@@ -59,7 +66,7 @@ class DownloadService extends ChangeNotifier {
           if (selected.videoContent.contains('m3u8') ||
               content.source == Source.GOYABU) {
             final releaseDir = Directory(
-                '${AppStorage.DOWNLOAD_DIR.path}/${content.title.toID}');
+                '${AppStorage.DOWNLOAD_DIR.path}/${content.source.label.capitalize}/${content.title.toID}');
 
             if (!await releaseDir.exists()) {
               await releaseDir.create(recursive: true);

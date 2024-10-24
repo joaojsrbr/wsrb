@@ -97,16 +97,27 @@ class _ReleaseSubtitle extends StatelessWidget {
     final percent = historic?.isComplete == true
         ? 1.0
         : (historic?.percent.isNaN == true ? 0.0 : historic?.percent) ?? 0.0;
-    final downloadService = context.watch<DownloadService>();
 
-    final DownloadInfo? downloadInfo =
-        downloadService.downloadList.firstWhereOrNull(
-      (info) => info.releaseId.contains(release.stringID),
-    );
+    final DownloadInfo? downloadInfo = context.watch();
 
     if (downloadInfo?.isDownloading == true &&
         (downloadInfo?.speed ?? 0) > 0.0) {
-      return Text('speed: ${downloadInfo?.speed.toStringAsFixed(2)}');
+      return Text.rich(
+        TextSpan(
+          children: [
+            if (downloadInfo?.isDownloading == true &&
+                downloadInfo?.videoDuration != null &&
+                (downloadInfo?.time ?? 0) > 0.0)
+              TextSpan(
+                text:
+                    '${(((downloadInfo!.time * 100) / downloadInfo.videoDuration!.inMilliseconds)).ceil().toString()}%',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            TextSpan(
+                text: ' - speed: ${downloadInfo?.speed.toStringAsFixed(2)}'),
+          ],
+        ),
+      );
     } else if (episodeDuration != Duration.zero &&
         episodeCurrentDuration != Duration.zero &&
         percent > 0.0) {
@@ -152,14 +163,15 @@ class _ReleaseTrailing extends StatelessWidget {
 
     return IconButton(
       padding: EdgeInsets.zero,
-      onPressed: downloadInfo?.isDownloading == true && !downloaded
+      onPressed: downloadInfo?.isDownloading == true
           ? () async {
               final result = await showAdaptiveDialog(
                 context: context,
                 builder: (context) {
                   return AlertDialog(
                     title: Text(
-                        'Cancelar download do episódio ${release.number} ?'),
+                      'Cancelar download do episódio ${release.number} ?',
+                    ),
                     actionsAlignment: MainAxisAlignment.spaceBetween,
                     actions: [
                       TextButton(
@@ -197,7 +209,8 @@ class _ReleaseTrailing extends StatelessWidget {
                     builder: (context) {
                       return AlertDialog(
                         title: Text(
-                            'Deseja deletar o arquivo ${release.number} ?'),
+                          'Deseja deletar o episódio ${release.number} ?',
+                        ),
                         actionsAlignment: MainAxisAlignment.spaceBetween,
                         actions: [
                           TextButton(
@@ -227,55 +240,56 @@ class _ReleaseTrailing extends StatelessWidget {
                   downloadRelease(release);
                 },
       icon: downloadInfo?.isDownloading == true
-          ? downloadInfo?.videoDuration != null &&
-                  (downloadInfo?.time ?? 0) > 0.0
-              ? SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: TweenAnimationBuilder(
-                    curve: Curves.easeInOut,
-                    duration: Duration.zero,
-                    tween: Tween<double>(
-                      begin: 0.0,
-                      end: (((downloadInfo!.time * 100) /
-                              downloadInfo.videoDuration!.inMilliseconds) /
-                          100),
-                    ),
-                    builder: (
-                      context,
-                      value,
-                      child,
-                    ) {
-                      return Stack(
-                        children: [
-                          CircularProgressIndicator.adaptive(
-                            value: value,
-                            strokeAlign: -2,
-                            strokeWidth: 3,
-                          ),
-                          Center(
-                            child: Text(
-                              (value * 100).ceil().toString(),
-                              style: Theme.of(context).textTheme.labelSmall,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                )
-              : const SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: CircularProgressIndicator.adaptive(
-                    strokeAlign: -2,
-                    strokeWidth: 3,
-                  ),
-                )
+          ? Icon(
+              MdiIcons.close,
+              size: 28,
+              color: Colors.red,
+            )
+          // ? downloadInfo?.videoDuration != null &&
+          //         (downloadInfo?.time ?? 0) > 0.0
+          //     ? SizedBox(
+          //         width: 32,
+          //         height: 32,
+          //         child: TweenAnimationBuilder(
+          //           curve: Curves.easeInOut,
+          //           duration: Duration.zero,
+          //           tween: Tween<double>(
+          //             begin: 0.0,
+          //             end: (((downloadInfo!.time * 100) /
+          //                     downloadInfo.videoDuration!.inMilliseconds) /
+          //                 100),
+          //           ),
+          //           builder: (context, value, child) {
+          //             return Stack(
+          //               children: [
+          //                 // CircularProgressIndicator.adaptive(
+          //                 //   value: value,
+          //                 //   strokeAlign: -2,
+          //                 //   strokeWidth: 3,
+          //                 // ),
+          //                 Center(
+          //                   child: Text(
+          //                     "${(value * 100).ceil().toString()}%",
+          //                     style: Theme.of(context).textTheme.labelSmall,
+          //                   ),
+          //                 ),
+          //               ],
+          //             );
+          //           },
+          //         ),
+          //       )
+          //     : const SizedBox(
+          //         width: 32,
+          //         height: 32,
+          //         child: CircularProgressIndicator.adaptive(
+          //           strokeAlign: -2,
+          //           strokeWidth: 3,
+          //         ),
+          //       )
           : Icon(
-              MdiIcons.downloadCircle,
-              size: 32,
-              color: downloaded ? Colors.green : null,
+              MdiIcons.download,
+              size: 28,
+              color: downloaded ? Colors.blueAccent : null,
             ),
     );
   }
@@ -353,16 +367,17 @@ class _ReleaseLeading extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 const Card.filled(),
-                AnimatedBorderProgressIndicator(
-                  value: percent,
-                  color: historic?.isComplete == true
-                      ? Colors.green
-                      : content.anilistMedia?.coverImage?.color != null
-                          ? content.anilistMedia!.coverImage!.color!.fromHex
-                          : Colors.blue,
-                  strokeWidth: 6,
-                  borderRadius: 6,
-                ),
+                if (percent > 0.0)
+                  AnimatedBorderProgressIndicator(
+                    value: percent,
+                    color: historic?.isComplete == true
+                        ? Colors.green
+                        : content.anilistMedia?.coverImage?.color != null
+                            ? content.anilistMedia!.coverImage!.color!.fromHex
+                            : Colors.blue,
+                    strokeWidth: 6,
+                    borderRadius: 6,
+                  ),
               ],
             ),
     );
@@ -398,6 +413,8 @@ class ReleaseContent extends StatelessWidget {
             onDoubleTap: () => onDoubleTap(context),
             child: ListTile(
               dense: true,
+              onLongPress: () =>
+                  ContentScope.of(context).onLongPressed(release),
               isThreeLine: false,
               subtitle: _ReleaseSubtitle(release: release),
               horizontalTitleGap: 20,
@@ -419,7 +436,7 @@ class ReleaseContent extends StatelessWidget {
                   ?.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
               onTap: () => _listTitleOntap(context),
               minVerticalPadding: 0,
-              minTileHeight: 68,
+              minTileHeight: 76,
               visualDensity: const VisualDensity(vertical: 4, horizontal: -2),
               title: Text(
                 '${release.number}. ${release.title}',
@@ -485,7 +502,7 @@ class ReleaseContent extends StatelessWidget {
     final GoRouter goRouter = GoRouter.of(context);
 
     switch ((content, release)) {
-      case (Chapter data, Book content):
+      case (Book content, Chapter data):
         await goRouter.push(
           RouteName.READ,
           extra: ReadingViewArgs(
@@ -499,7 +516,7 @@ class ReleaseContent extends StatelessWidget {
           ),
         );
         break;
-      case (Episode data, Anime content):
+      case (Anime content, Episode data):
         final result = await _fileOrURL(release, releaseFile, context);
         if (result != null) {
           await goRouter.push(

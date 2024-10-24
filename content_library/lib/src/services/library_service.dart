@@ -7,6 +7,8 @@ class LibraryService {
 
   UnmodifiableListView<ContentEntity> get entities =>
       _libraryController.entities;
+  UnmodifiableListView<String> get allDownIds =>
+      UnmodifiableListView(_libraryController.entities.map(_map2).nonNulls);
 
   UnmodifiableListView<String> get favoritesIDS => UnmodifiableListView(entities
       .where((entity) => switch (entity) {
@@ -156,6 +158,14 @@ class LibraryService {
     return switch (contentEntity) {
       AnimeEntity data => data.stringID,
       BookEntity data => data.stringID,
+      _ => null,
+    };
+  }
+
+  String? _map2(ContentEntity contentEntity) {
+    return switch (contentEntity) {
+      AnimeEntity data => data.title.toID,
+      BookEntity data => data.title.toID,
       _ => null,
     };
   }

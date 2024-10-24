@@ -60,6 +60,7 @@ dependencies:
   flex_color_picker: ^3.5.1
   flutter_auto_cache: ^0.0.4
   loading_animation_widget: ^1.2.1
+  flutter_launcher_icons: ^0.14.1
 
 dev_dependencies:
   flutter_test:
@@ -75,6 +76,12 @@ flutter:
   assets:
     - assets/
   uses-material-design: true
+
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/saikai.png"
 
   # To add assets to your application, add an assets section, like this:
   # assets:

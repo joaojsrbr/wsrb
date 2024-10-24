@@ -192,21 +192,21 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
 
   @override
   void didChangeDependencies() {
-    _connectionDebouncer.call(() {
-      if (_connectionChecker.connectivityResult.isNotEmpty &&
-          _contentRepository.indicatorStatus !=
-              IndicatorStatus.fullScreenBusying) {
-        final refreshIndicatorState =
-            context.findAncestorWidgetOfExactType<RefreshIndicator>();
+    // _connectionDebouncer.call(() {
+    //   if (_connectionChecker.connectivityResult.isNotEmpty &&
+    //       _contentRepository.indicatorStatus !=
+    //           IndicatorStatus.fullScreenBusying) {
+    //     final refreshIndicatorState =
+    //         context.findAncestorWidgetOfExactType<RefreshIndicator>();
 
-        if (refreshIndicatorState != null) {
-          Timer(
-            const Duration(milliseconds: 400),
-            refreshIndicatorState.onRefresh,
-          );
-        }
-      }
-    });
+    //     if (refreshIndicatorState != null) {
+    //       Timer(
+    //         const Duration(milliseconds: 400),
+    //         refreshIndicatorState.onRefresh,
+    //       );
+    //     }
+    //   }
+    // });
     super.didChangeDependencies();
   }
 
