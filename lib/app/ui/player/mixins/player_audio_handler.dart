@@ -85,13 +85,6 @@ mixin PlayerAudioHandlerMixin
     //   case PipState.none:
     // }
   }
-
-  @override
-  void dispose() {
-    _playerAudioHandler.setPlayerController = null;
-
-    super.dispose();
-  }
 }
 
 abstract class PlayerAudioHandler extends BaseAudioHandler with SeekHandler {
@@ -109,12 +102,6 @@ abstract class PlayerAudioHandler extends BaseAudioHandler with SeekHandler {
 class _AudioPlayerHandler extends PlayerAudioHandler {
   @override
   Future<void> pause() async => await _player?.pause();
-
-  @override
-  Future<void> stop() async {
-    await _player?.stop();
-    await super.stop();
-  }
 
   @override
   Future<void> play() async => await _player?.play();

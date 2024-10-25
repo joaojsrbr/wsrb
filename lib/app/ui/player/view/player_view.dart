@@ -560,8 +560,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     _lockPlayer.dispose();
     _reversedCurrentDuration.dispose();
     _overlayBoxFit.dispose();
-    _openMenuInFullScreen.close();
-    // _saveDataDebouncer.cancel();
     _systemUIModeTimer.cancel();
     _setContinueVideoTimer?.cancel();
     _overlayNextEpisode.dispose();
@@ -572,13 +570,15 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     if (_mainVideoData != null) {
       player?.pause();
       _saveVideoPosition(() async {
-        await setSessionActive(false);
+        setSessionActive(false);
+        await player?.stop();
         await playerAudioHandler.stop();
-        await player?.dispose();
+        playerAudioHandler.setPlayerController = null;
       });
     } else {
-      player?.dispose();
       playerAudioHandler.stop();
+      player?.stop();
+      playerAudioHandler.setPlayerController = null;
     }
   }
 }
