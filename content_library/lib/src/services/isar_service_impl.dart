@@ -215,7 +215,7 @@ class IsarServiceImpl implements IsarService {
 
     // final dir = await getApplicationDocumentsDirectory();
 
-    _isar.complete(await Isar.open(
+    _isar.complete(Isar.open(
       [
         ...?schemas,
         BookEntitySchema,

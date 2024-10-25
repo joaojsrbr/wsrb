@@ -117,7 +117,7 @@ class _ContentDestinationState extends State<ContentDestination>
           }
         },
         onTap: () async {
-          final appSnackBar = context.appSnackBar;
+          // final appSnackBar = context.appSnackBar;
           final searchController = HomeScope.byKeyMaybeOf()?.searchController;
 
           if (searchController?.isOpen == true) {

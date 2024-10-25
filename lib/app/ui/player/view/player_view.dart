@@ -47,6 +47,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   final ValueNotifier<String?> _overlayNextEpisode = ValueNotifier(null);
   final ValueNotifier<String> _topTitle = ValueNotifier('');
   final ValueNotifier<bool> _lockPlayer = ValueNotifier(false);
+  final MenuController _openMenuInFullScreen = MenuController();
   final ValueNotifier<bool> _reversedCurrentDuration = ValueNotifier(false);
   final ValueNotifier<Duration?> _seekInVideoPosition = ValueNotifier(null);
 
@@ -523,6 +524,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       extendBodyBehindAppBar: true,
       extendBody: true,
       body: PlayerScope(
+        openMenuInFullScreen: _openMenuInFullScreen,
         draggableScrollableController: draggableScrollableController,
         onPipAction: onPipAction,
         onPipChange: onPipChange,
@@ -558,6 +560,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     _lockPlayer.dispose();
     _reversedCurrentDuration.dispose();
     _overlayBoxFit.dispose();
+    _openMenuInFullScreen.close();
     // _saveDataDebouncer.cancel();
     _systemUIModeTimer.cancel();
     _setContinueVideoTimer?.cancel();
@@ -853,3 +856,11 @@ class _PlayerStatus with EquatableMixin {
         completed.hashCode;
   }
 }
+
+// class OpenMenuEpisodes extends ValueNotifier<bool> {
+//   OpenMenuEpisodes(super.value);
+
+//   void toogle(bool value) {
+//     this.value = value;
+//   }
+// }

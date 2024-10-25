@@ -37,26 +37,24 @@ void main() async {
   final CategoryController categoryController =
       CategoryController(isarServiceImpl);
 
-  await isarServiceImpl.startDatabase(onStart: () async {
-    await Future.wait([
-      historicController.start(),
-      categoryController.start(),
-      libraryController.start(),
-    ]);
-  });
+  await isarServiceImpl.startDatabase();
 
   await Future.wait([
     PermissionUtils.manageExternalStorage(),
     themeController.loadAll(),
     hiveController.loadAll(),
+    historicController.start(),
+    categoryController.start(),
+    libraryController.start(),
     hiveServiceImpl.init(),
     AutoCacheInitializer.initialize(configuration: App.APP_CACHE_CONFIG),
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
     Workmanager().initialize(callbackDispatcher, isInDebugMode: true),
     hiveCacheServiceImpl.init(),
     PlayerAudioHandlerMixin.startPlayerAudio(),
-    connectionChecker.start(),
   ]);
+
+  connectionChecker.start();
 
   final ContentRepository contentRepository =
       ContentRepository(hiveController, dioClient);

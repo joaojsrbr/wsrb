@@ -252,6 +252,9 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
           setState(() {
             visible = false;
           });
+          final PlayerScope scope =
+              PlayerScope.of(PlayerView.videoStateKey.currentContext!);
+          scope.openMenuInFullScreen.close();
           unshiftSubtitle();
         }
       });
@@ -681,6 +684,15 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                   ),
                 ),
               ),
+              // if (isFullscreen(context))
+              //   ValueListenableBuilder(
+              //     valueListenable: scope.openMenuInFullScreen,
+              //     builder: (context, value, _) => AnimatedPositioned(
+              //       duration: const Duration(milliseconds: 350),
+              //       width: value ? 200 : 0,
+              //       child: const SizedBox.shrink(),
+              //     ),
+              //   ),
             ],
           ),
         ),
@@ -1059,7 +1071,7 @@ class _BottomButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     final PlayerScope scope =
         PlayerScope.of(PlayerView.videoStateKey.currentContext!);
-
+    // final hiveController = context.read<HiveController>();
     final fullscreen = isFullscreen(context);
 
     Widget buttons = Column(
@@ -1116,6 +1128,45 @@ class _BottomButtons extends StatelessWidget {
                 icon: Icon(MdiIcons.fitToScreen),
               ),
             ),
+            if (isFullscreen(context))
+              _LockWidget(
+                child: MenuAnchor(
+                  controller: scope.openMenuInFullScreen,
+                  menuChildren: scope.playerArgs.anime.releases
+                      .map(
+                        (episode) => MenuItemButton(
+                          onPressed: () async {
+                            customLog(
+                              'tapped name: ${episode.title} - id: ${episode.stringID}',
+                            );
+                            scope.onTapEpisode(episode);
+                          },
+                          child: ListTile(
+                            selected: episode.stringID
+                                .contains(scope.playerArgs.episode.stringID),
+                            titleTextStyle: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                    fontSize: 13, fontWeight: FontWeight.bold),
+                            title: Text(
+                              '${episode.number}. ${episode.title}',
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  child: IconButton(
+                    visualDensity: const VisualDensity(vertical: -4),
+                    padding: EdgeInsets.zero,
+                    onPressed: () {
+                      scope.openMenuInFullScreen.open();
+                    },
+                    iconSize: 22,
+                    icon: Icon(MdiIcons.menu),
+                  ),
+                ),
+              ),
             IconButton(
               visualDensity: const VisualDensity(vertical: -4),
               padding: EdgeInsets.zero,

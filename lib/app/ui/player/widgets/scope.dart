@@ -1,8 +1,8 @@
 // ignore_for_file: constant_identifier_names, library_private_types_in_public_api
 
 import 'package:android_pip/actions/pip_action.dart';
-import 'package:content_library/content_library.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
+import 'package:content_library/content_library.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -38,6 +38,7 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
     required this.isPipAvailable,
     required this.isPipActivated,
     required this.onPipAction,
+    required this.openMenuInFullScreen,
     required this.onPipChange,
     required this.draggableScrollableController,
   });
@@ -48,6 +49,7 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
   final bool isPipActivated;
   final VoidCallback enterInPip;
   final ValueNotifier<bool> lockPlayer;
+  final MenuController openMenuInFullScreen;
   final ValueNotifier<bool> reversedCurrentDuration;
   final ValueNotifier<String> topTitle;
   final ValueNotifier<String?> overlayBoxFit;
