@@ -252,9 +252,11 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
           setState(() {
             visible = false;
           });
-          final PlayerScope scope =
-              PlayerScope.of(PlayerView.videoStateKey.currentContext!);
-          scope.openMenuInFullScreen.close();
+
+          if (_playerScope.openMenuInFullScreen.isOpen) {
+            _playerScope.openMenuInFullScreen.close();
+          }
+
           unshiftSubtitle();
         }
       });
