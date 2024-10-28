@@ -458,7 +458,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     await _continueVideoByHistoricPosition();
   }
 
-  Future<void> _saveVideoPosition([Future<void> Function()? onSave]) async {
+  Future<void> _saveVideoPosition([void Function()? onSave]) async {
+    player?.pause();
+    if (_mainVideoData == null) return;
     // _saveDataDebouncer.cancel();
     final currentPositionBase64 = await videoScreenshotBase64();
 
@@ -515,7 +517,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     await _historicController.add(historyEntity: episodeEntity);
 
-    await onSave?.call();
+    onSave?.call();
   }
 
   @override
@@ -553,8 +555,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   @override
   void dispose() {
     customLog('[$runtimeType][dispose]');
-    super.dispose();
-
     _topTitle.dispose();
     _seekInVideoPosition.dispose();
     _lockPlayer.dispose();
@@ -566,20 +566,15 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     WidgetsBinding.instance.removeObserver(this);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    _saveVideoPosition(_disposePlayer);
+    super.dispose();
+  }
 
-    if (_mainVideoData != null) {
-      player?.pause();
-      _saveVideoPosition(() async {
-        setSessionActive(false);
-        await player?.stop();
-        await playerAudioHandler.stop();
-        playerAudioHandler.setPlayerController = null;
-      });
-    } else {
-      playerAudioHandler.stop();
-      player?.stop();
-      playerAudioHandler.setPlayerController = null;
-    }
+  void _disposePlayer() async {
+    await playerAudioHandler.stop();
+    player?.stop();
+    setSessionActive(false);
+    playerAudioHandler.setPlayerController = null;
   }
 }
 
