@@ -91,11 +91,12 @@ class _PlayerCustomOverlayState
       animation: _notifierChange,
       child: const SizedBox.shrink(),
       builder: (context, child) => _notifierChange.value != null
-          ? InkWell(
-              onTap: widget.onTap,
-              child: Card(
-                shape: defaultShape,
-                margin: EdgeInsets.zero,
+          ? Card(
+              shape: defaultShape,
+              margin: EdgeInsets.zero,
+              child: InkWell(
+                borderRadius: defaultShape.borderRadius as BorderRadius,
+                onTap: widget.onTap,
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Text(
