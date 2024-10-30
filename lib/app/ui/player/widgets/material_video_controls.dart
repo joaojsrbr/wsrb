@@ -4,6 +4,7 @@ import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/player/widgets/player_custom_overlay.dart';
 import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_popup.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -50,6 +51,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
 
   double _volumeValue = 0.0;
   bool _volumeIndicator = false;
+
   Timer? _volumeTimer;
   bool _volumeInterceptEventStream = false;
 
@@ -248,13 +250,13 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
       shiftSubtitle();
       _timer?.cancel();
       _timer = Timer(_theme(context).controlsHoverDuration, () {
-        if (mounted) {
+        if (mounted && !_playerScope.openMenuInFullScreen.value) {
           setState(() {
             visible = false;
           });
 
-          if (_playerScope.openMenuInFullScreen.isOpen) {
-            _playerScope.openMenuInFullScreen.close();
+          if (_playerScope.openMenuInFullScreen.value) {
+            _playerScope.openMenuInFullScreen.value = false;
           }
 
           unshiftSubtitle();
@@ -264,6 +266,8 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
       setState(() {
         visible = false;
       });
+      _playerScope.openMenuInFullScreen.value = false;
+
       unshiftSubtitle();
       _timer?.cancel();
     }
@@ -1119,8 +1123,6 @@ class _BottomButtons extends StatelessWidget {
                   icon: Icon(MdiIcons.pictureInPictureBottomRight),
                 ),
               ),
-            // OverflowBox(),
-            // SizedBox.expand(),
             _LockWidget(
               child: IconButton(
                 padding: EdgeInsets.zero,
@@ -1132,41 +1134,86 @@ class _BottomButtons extends StatelessWidget {
             ),
             if (isFullscreen(context))
               _LockWidget(
-                child: MenuAnchor(
-                  controller: scope.openMenuInFullScreen,
-                  menuChildren: scope.playerArgs.anime.releases
-                      .map(
-                        (episode) => MenuItemButton(
-                          onPressed: () async {
-                            customLog(
-                              'tapped name: ${episode.title} - id: ${episode.stringID}',
-                            );
-                            scope.onTapEpisode(episode);
-                          },
-                          child: ListTile(
-                            selected: episode.stringID
-                                .contains(scope.playerArgs.episode.stringID),
-                            titleTextStyle: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                    fontSize: 13, fontWeight: FontWeight.bold),
-                            title: Text(
-                              '${episode.number}. ${episode.title}',
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                  child: IconButton(
-                    visualDensity: const VisualDensity(vertical: -4),
-                    padding: EdgeInsets.zero,
-                    onPressed: () {
-                      scope.openMenuInFullScreen.open();
-                    },
-                    iconSize: 22,
-                    icon: Icon(MdiIcons.menu),
-                  ),
+                child: Stack(
+                  children: [
+                    IconButton(
+                      visualDensity: const VisualDensity(vertical: -4),
+                      padding: EdgeInsets.zero,
+                      onPressed: () {
+                        scope.openMenuInFullScreen.value =
+                            !scope.openMenuInFullScreen.value;
+                      },
+                      iconSize: 22,
+                      icon: Icon(MdiIcons.menu),
+                    ),
+                    ValueListenableBuilder(
+                        valueListenable: scope.openMenuInFullScreen,
+                        builder: (context, open, _) {
+                          return CustomPopup(
+                            height: MediaQuery.of(context).size.height / 1.4,
+                            width: 105,
+                            show: open,
+                            items: scope.playerArgs.anime.releases,
+                            builderFunction: (context, index, episode) {
+                              final cardTheme = CardTheme.of(context);
+
+                              final borderRadius =
+                                  ((cardTheme.shape as RoundedRectangleBorder?)
+                                      ?.borderRadius as BorderRadius?);
+
+                              return ListTile(
+                                titleAlignment: ListTileTitleAlignment.center,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: index == 0
+                                        ? borderRadius?.topLeft ??
+                                            const Radius.circular(8)
+                                        : Radius.zero,
+                                    topRight: index == 0
+                                        ? borderRadius?.topLeft ??
+                                            const Radius.circular(8)
+                                        : Radius.zero,
+                                    bottomLeft: index ==
+                                            scope.playerArgs.anime.releases
+                                                    .length -
+                                                1
+                                        ? borderRadius?.topLeft ??
+                                            const Radius.circular(8)
+                                        : Radius.zero,
+                                    bottomRight: index ==
+                                            scope.playerArgs.anime.releases
+                                                    .length -
+                                                1
+                                        ? borderRadius?.topLeft ??
+                                            const Radius.circular(8)
+                                        : Radius.zero,
+                                  ),
+                                ),
+                                onTap: () {
+                                  customLog(
+                                    'tapped name: ${episode.title} - id: ${episode.stringID}',
+                                  );
+                                  scope.onTapEpisode(episode);
+                                },
+                                onLongPress: () {
+                                  scope.openMenuInFullScreen.value = false;
+                                },
+                                selected: episode.stringID.contains(
+                                    scope.playerArgs.episode.stringID),
+                                titleTextStyle: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold),
+                                title: Text(
+                                  'Episódio ${episode.number}',
+                                ),
+                              );
+                            },
+                          );
+                        }),
+                  ],
                 ),
               ),
             IconButton(

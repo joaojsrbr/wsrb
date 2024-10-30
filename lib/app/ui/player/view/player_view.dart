@@ -47,7 +47,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   final ValueNotifier<String?> _overlayNextEpisode = ValueNotifier(null);
   final ValueNotifier<String> _topTitle = ValueNotifier('');
   final ValueNotifier<bool> _lockPlayer = ValueNotifier(false);
-  final MenuController _openMenuInFullScreen = MenuController();
+  final ValueNotifier<bool> _openMenuInFullScreen = ValueNotifier(false);
   final ValueNotifier<bool> _reversedCurrentDuration = ValueNotifier(false);
   final ValueNotifier<Duration?> _seekInVideoPosition = ValueNotifier(null);
 
@@ -156,14 +156,11 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _getInitMainVideoData() async {
-    if ((_playerArgs.data != null || !_playerArgs.getAnimeData) &&
-        _playerArgs.data != null) {
+    _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
+    if (_playerArgs.data != null || !_playerArgs.getAnimeData) {
       _mainVideoData = _playerArgs.data;
-      _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
       return;
     }
-
-    _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
 
     final state = Navigator.of(context);
     final result = await _repository.getContent(_playerArgs.episode);
@@ -454,6 +451,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     });
 
     await _getInitMainVideoData();
+    _openMenuInFullScreen.value = false;
     await _startPlayerController();
     await _continueVideoByHistoricPosition();
   }
@@ -557,6 +555,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     customLog('[$runtimeType][dispose]');
     _topTitle.dispose();
     _seekInVideoPosition.dispose();
+    _openMenuInFullScreen.dispose();
     _lockPlayer.dispose();
     _reversedCurrentDuration.dispose();
     _overlayBoxFit.dispose();
@@ -789,10 +788,16 @@ class _Content extends StatelessWidget {
 
     if (!isLoading) mainAxisAlignment = MainAxisAlignment.start;
 
-    return Column(
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: mainAxisAlignment,
-      children: children,
+    return MaterialVideoControlsTheme(
+      normal: const MaterialVideoControlsThemeData(),
+      fullscreen: const MaterialVideoControlsThemeData(
+        controlsTransitionDuration: Duration(milliseconds: 650),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: mainAxisAlignment,
+        children: children,
+      ),
     );
   }
 }

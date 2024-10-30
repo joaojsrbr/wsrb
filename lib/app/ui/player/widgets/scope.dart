@@ -49,7 +49,7 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
   final bool isPipActivated;
   final VoidCallback enterInPip;
   final ValueNotifier<bool> lockPlayer;
-  final MenuController openMenuInFullScreen;
+  final ValueNotifier<bool> openMenuInFullScreen;
   final ValueNotifier<bool> reversedCurrentDuration;
   final ValueNotifier<String> topTitle;
   final ValueNotifier<String?> overlayBoxFit;
