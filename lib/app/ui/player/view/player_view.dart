@@ -55,12 +55,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   VideoController? _videoController;
   bool _isLoading = true;
   BoxFit _activeFit = BoxFit.contain;
-  double _currentValueCircularAnimation = 0;
+  int _currentValueCircularAnimation = 0;
 
   final List<VideoData> data = [];
   final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
   final _PlayerStatus _status = _PlayerStatus();
-  final double _maxValueCircularAnimation = 1.0;
+  final int _maxValueCircularAnimation = 2;
 
   late PlayerArgs _playerArgs = argument();
 
@@ -135,7 +135,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _incrementCurrentCircularAnimation() async {
-    setStateIfMounted(() => _currentValueCircularAnimation += 0.5);
+    await Future.delayed(const Duration(milliseconds: 200));
+    setStateIfMounted(() => _currentValueCircularAnimation += 1);
   }
 
   @override
@@ -197,11 +198,14 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     await _getAllEpisodes().whenComplete(_incrementCurrentCircularAnimation);
 
+    _playerArgs = argument();
+
     await _getInitMainVideoData()
         .whenComplete(_incrementCurrentCircularAnimation);
 
     await _startPlayerController(true, _playerArgs.startPossition)
         .whenComplete(_incrementCurrentCircularAnimation);
+
     _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
 
     setStateIfMounted(() => _isLoading = false);
@@ -587,7 +591,7 @@ class _Content extends StatelessWidget {
     final BoxFit activeFit = PlayerScope.activeFitOf(context);
     final PlayerArgs playerArgs = PlayerScope.playerArgsOf(context);
     final VideoController? videoController = scope.videoController;
-    final double currentValueCircularAnimation =
+    final int currentValueCircularAnimation =
         PlayerScope.currentValueCircularAnimationOf(context);
     final HiveController hiveController = context.watch<HiveController>();
 
@@ -596,10 +600,12 @@ class _Content extends StatelessWidget {
     List<Widget> children = [];
 
     if (isLoading) {
+      customLog(
+          'progress: ${currentValueCircularAnimation / scope.maxValueCircularAnimation}');
       children.addAll([
         Center(
           child: TweenAnimationBuilder(
-            duration: const Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: 150),
             tween: Tween(
               begin: 0.0,
               end: currentValueCircularAnimation /

@@ -154,15 +154,15 @@ class FullScreenErrorWidget extends StatefulWidget {
 
 class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
   late final ContentRepository _contentRepository;
-  late final ConnectionChecker _connectionChecker;
+  // late final ConnectionChecker _connectionChecker;
   final Debouncer _debouncer = Debouncer();
-  final Debouncer _connectionDebouncer =
-      Debouncer(duration: const Duration(milliseconds: 200));
+  // final Debouncer _connectionDebouncer =
+  //     Debouncer(duration: const Duration(milliseconds: 200));
 
   @override
   void initState() {
     _contentRepository = context.read<ContentRepository>();
-    _connectionChecker = context.read<ConnectionChecker>();
+    // _connectionChecker = context.read<ConnectionChecker>();
     _contentRepository.clear();
     if (_contentRepository.indicatorStatus ==
         IndicatorStatus.fullScreenBusying) {

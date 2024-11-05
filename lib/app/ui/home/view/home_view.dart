@@ -5,9 +5,9 @@ import 'package:app_wsrb_jsr/app/ui/home/destinations/settings_destination.dart'
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_view_flexible_space.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/keep_watching.dart';
-import 'package:app_wsrb_jsr/app/ui/home/widgets/menu_button.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/menu_button.dart';
 import 'package:app_wsrb_jsr/app/utils/category_utils.dart';
 import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
 import 'package:content_library/content_library.dart';
