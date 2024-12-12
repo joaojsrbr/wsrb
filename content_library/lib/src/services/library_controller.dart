@@ -98,12 +98,13 @@ class LibraryController extends ChangeNotifier {
       entities
           .map(
             (entity) => switch (entity) {
-              AnimeEntity data => data.episodes.load(),
-              BookEntity data => data.chapters.load(),
+              AnimeEntity data => [data.episodes.load(), data.animeSkip.load()],
+              BookEntity data => [data.chapters.load()],
               _ => null,
             },
           )
-          .nonNulls,
+          .nonNulls
+          .flattened,
     );
 
     _entities.addAll(entities);

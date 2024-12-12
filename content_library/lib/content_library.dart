@@ -3,6 +3,8 @@ library content_library;
 export 'package:anilist_dart/anilist.dart';
 export 'package:collection/collection.dart';
 export 'package:connectivity_plus/connectivity_plus.dart';
+export 'package:content_library/src/repository/anime_skip_imp.dart';
+export 'package:content_library/src/services/graphql_api_client.dart';
 export 'package:dio/dio.dart';
 export 'package:hive/hive.dart';
 export 'package:loading_more_list/loading_more_list.dart';
@@ -41,6 +43,7 @@ export 'src/models/release.dart';
 // export 'src/loading_more_list_library.dart';
 
 export 'src/repository/content_repository.dart' show ContentRepository;
+export 'src/services/anime_skip_controller.dart';
 export 'src/services/anroll_login.dart';
 export 'src/services/category_controller.dart';
 export 'src/services/dio_client.dart';

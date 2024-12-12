@@ -120,6 +120,22 @@ class AnrollSource extends RSource {
         content.releases.addOrUpdateWhere(episode, episode.isEqualStringID);
       }
 
+      final title = content.anilistMedia?.title?.english ??
+          content.title
+              .replaceAll(RegExp(r'( - Dublado|dublado|Dublado)'), '')
+              .trim();
+
+      final result =
+          await contentRepository._animeSkipRepository.getTimeStampsByName(
+        search: title,
+      );
+
+      if (result is Success<List<AnimeSkip>>) {
+        final skip =
+            result.data.firstWhereOrNull((skip) => title.contains(skip.name));
+        customLog(skip);
+      }
+
       return Result.success(
         content.copyWith(
           animeID: animeID,
@@ -205,7 +221,8 @@ class AnrollSource extends RSource {
         }
       }
 
-      await Future.wait([getData(), getEpisodes(), getAniListData()]);
+      await getAniListData();
+      await Future.wait([getData(), getEpisodes()]);
 
       return Result.success(newAnime);
     } on DioException catch (_, __) {
@@ -315,7 +332,7 @@ class AnrollSource extends RSource {
   Future<Result<List<Anime>>> search(String query) async {
     try {
       final Response response = await contentRepository._dio.get(
-        'https://apiv3-prd.anroll.net/animes/search/data?q=$query',
+        'https://api-search.anroll.net/data?q=$query',
         responseType: ResponseType.json,
       );
 

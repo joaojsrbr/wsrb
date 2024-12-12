@@ -32,28 +32,33 @@ const ChapterEntitySchema = CollectionSchema(
       name: r'isComplete',
       type: IsarType.bool,
     ),
-    r'readPercent': PropertySchema(
+    r'percent': PropertySchema(
       id: 3,
+      name: r'percent',
+      type: IsarType.double,
+    ),
+    r'readPercent': PropertySchema(
+      id: 4,
       name: r'readPercent',
       type: IsarType.double,
     ),
     r'stringID': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'stringID',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'url',
       type: IsarType.string,
     )
@@ -108,11 +113,12 @@ void _chapterEntitySerialize(
   writer.writeString(offsets[0], object.animeStringID);
   writer.writeDateTime(offsets[1], object.createdAt);
   writer.writeBool(offsets[2], object.isComplete);
-  writer.writeDouble(offsets[3], object.readPercent);
-  writer.writeString(offsets[4], object.stringID);
-  writer.writeString(offsets[5], object.title);
-  writer.writeDateTime(offsets[6], object.updatedAt);
-  writer.writeString(offsets[7], object.url);
+  writer.writeDouble(offsets[3], object.percent);
+  writer.writeDouble(offsets[4], object.readPercent);
+  writer.writeString(offsets[5], object.stringID);
+  writer.writeString(offsets[6], object.title);
+  writer.writeDateTime(offsets[7], object.updatedAt);
+  writer.writeString(offsets[8], object.url);
 }
 
 ChapterEntity _chapterEntityDeserialize(
@@ -125,11 +131,11 @@ ChapterEntity _chapterEntityDeserialize(
     animeStringID: reader.readString(offsets[0]),
     createdAt: reader.readDateTimeOrNull(offsets[1]),
     isComplete: reader.readBoolOrNull(offsets[2]) ?? false,
-    readPercent: reader.readDouble(offsets[3]),
-    stringID: reader.readString(offsets[4]),
-    title: reader.readString(offsets[5]),
-    updatedAt: reader.readDateTimeOrNull(offsets[6]),
-    url: reader.readString(offsets[7]),
+    readPercent: reader.readDouble(offsets[4]),
+    stringID: reader.readString(offsets[5]),
+    title: reader.readString(offsets[6]),
+    updatedAt: reader.readDateTimeOrNull(offsets[7]),
+    url: reader.readString(offsets[8]),
   );
   object.id = id;
   return object;
@@ -151,12 +157,14 @@ P _chapterEntityDeserializeProp<P>(
     case 3:
       return (reader.readDouble(offset)) as P;
     case 4:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 5:
       return (reader.readString(offset)) as P;
     case 6:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 7:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 8:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -629,6 +637,72 @@ extension ChapterEntityQueryFilter
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isComplete',
         value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      percentEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'percent',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      percentGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'percent',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      percentLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'percent',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      percentBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'percent',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -1228,6 +1302,18 @@ extension ChapterEntityQuerySortBy
     });
   }
 
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> sortByPercent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'percent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> sortByPercentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'percent', Sort.desc);
+    });
+  }
+
   QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> sortByReadPercent() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'readPercent', Sort.asc);
@@ -1346,6 +1432,18 @@ extension ChapterEntityQuerySortThenBy
     });
   }
 
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> thenByPercent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'percent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> thenByPercentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'percent', Sort.desc);
+    });
+  }
+
   QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> thenByReadPercent() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'readPercent', Sort.asc);
@@ -1432,6 +1530,12 @@ extension ChapterEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ChapterEntity, ChapterEntity, QDistinct> distinctByPercent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'percent');
+    });
+  }
+
   QueryBuilder<ChapterEntity, ChapterEntity, QDistinct>
       distinctByReadPercent() {
     return QueryBuilder.apply(this, (query) {
@@ -1491,6 +1595,12 @@ extension ChapterEntityQueryProperty
   QueryBuilder<ChapterEntity, bool, QQueryOperations> isCompleteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isComplete');
+    });
+  }
+
+  QueryBuilder<ChapterEntity, double, QQueryOperations> percentProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'percent');
     });
   }
 

@@ -2,6 +2,8 @@
 import 'dart:convert';
 
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/entities/anime_skip_entity.dart';
+import 'package:content_library/src/models/anime_skip.dart';
 
 class Anime extends Content {
   const Anime({
@@ -16,6 +18,7 @@ class Anime extends Content {
     this.mediumImage,
     this.animeID,
     this.totalOfEpisodes,
+    this.animeSkip,
     this.totalOfPages,
     this.largeImage,
     this.generateID,
@@ -35,6 +38,7 @@ class Anime extends Content {
   final String? largeImage;
   final String? mediumImage;
   final String? slugSerie;
+  final AnimeSkip? animeSkip;
   final bool isDublado;
   final int? totalOfEpisodes;
   final int? totalOfPages;
@@ -59,8 +63,10 @@ class Anime extends Content {
     int? totalOfPages,
     String? sinopse,
     List<Genre>? genres,
+    AnimeSkip? animeSkip,
   }) {
     return Anime(
+      animeSkip: animeSkip ?? this.animeSkip,
       anilistMedia: anilistMedia ?? this.anilistMedia,
       source: source ?? this.source,
       genres: genres ?? this.genres,
@@ -118,6 +124,8 @@ class Anime extends Content {
       releases.map((episode) => episode.toEntity(anime: this)),
     );
 
+    content.animeSkip.value = animeSkip;
+
     return content;
   }
 
@@ -131,6 +139,9 @@ class Anime extends Content {
 
   factory Anime.fromMap(Map<String, dynamic> map) {
     return Anime(
+      animeSkip: map['animeSkip'] != null
+          ? AnimeSkipEntity.fromMap(map['animeSkip']).toObj
+          : null,
       anilistMedia: map['anilistMedia'] != null
           ? AnilistMedia.fromJson(map['anilistMedia'])
           : null,
@@ -167,6 +178,7 @@ class Anime extends Content {
         "genres": genres.map((e) => e.label).toList(),
         "generateID": generateID,
         "animeID": animeID,
+        'animeSkip': animeSkip?.toMap,
         "source": source.index,
         "extraLarge": extraLarge,
         "originalImage": originalImage,

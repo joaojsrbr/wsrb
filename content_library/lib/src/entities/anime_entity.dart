@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:anilist_dart/anilist.dart';
 import 'package:content_library/src/constants/source.dart';
+import 'package:content_library/src/entities/anime_skip_entity.dart';
 import 'package:content_library/src/entities/entity.dart';
 import 'package:content_library/src/entities/episode_entity.dart';
 import 'package:content_library/src/models/anime.dart';
@@ -24,6 +25,7 @@ class AnimeEntity extends ContentEntity {
   String get stringID => super.stringID;
 
   IsarLinks<EpisodeEntity> episodes = IsarLinks<EpisodeEntity>();
+  IsarLink<AnimeSkipEntity> animeSkip = IsarLink<AnimeSkipEntity>();
 
   String? anilistMedia;
   DateTime? createdAt;
@@ -77,6 +79,7 @@ class AnimeEntity extends ContentEntity {
         "totalOfEpisodes": totalOfEpisodes,
         "animeID": animeID,
         "episodes": episodes,
+        "animeSkipEntity": animeSkip.value?.toMap,
         "createdAt": createdAt?.toString(),
         "updatedAt": updatedAt?.toString(),
         "sinopse": sinopse,
@@ -111,6 +114,7 @@ class AnimeEntity extends ContentEntity {
         originalImage,
         extraLarge,
         largeImage,
+        animeSkip.value,
         mediumImage,
         generateID,
         totalOfEpisodes,
@@ -126,6 +130,7 @@ class AnimeEntity extends ContentEntity {
       animeID: animeID,
       title: title,
       generateID: generateID,
+      animeSkip: animeSkip.value?.toObj,
       totalOfEpisodes: totalOfEpisodes,
       slugSerie: slugSerie,
       source: source,
