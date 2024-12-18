@@ -11,9 +11,8 @@ import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
 
 @pragma('vm:entry-point')
-void main() async {
+void main(List<String> arguments) async {
   WidgetsFlutterBinding.ensureInitialized();
-
   MediaKit.ensureInitialized();
 
   final DioClient dioClient = DioClient();

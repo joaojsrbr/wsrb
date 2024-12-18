@@ -11,7 +11,7 @@
             "program": "lib/main.dart",
             "args": [
                 "--flavor", "Dev",
-                "--enable-experiment=macros"
+                // "--enable-experiment=macros"
             ],
         },
         {
@@ -21,7 +21,7 @@
             "program": "lib/main.dart",
             "args": [
                 "--flavor", "Demo",
-                "--enable-experiment=macros"
+                // "--enable-experiment=macros"
             ],
             "flutterMode": "profile"
         },
@@ -32,7 +32,7 @@
             "program": "lib/main.dart",
             "args": [
                 "--flavor", "Production",
-                "--enable-experiment=macros" 
+                // "--enable-experiment=macros" 
             ],
             "flutterMode": "release"
         },

@@ -3,7 +3,5 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   errors:
     no_wildcard_variable_uses: ignore
-  enable-experiment:
-    - macros
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

@@ -9,7 +9,7 @@ class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
   Releases();
 
   Releases.fromList(Iterable<Release> contents) {
-    _array = List.from(contents);
+    _array.addAll(contents.cast());
   }
 
   List<Map<String, dynamic>> get toMap {
@@ -20,7 +20,7 @@ class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
         }).toList();
   }
 
-  List<T> _array = [];
+  final List<T> _array = [];
 
   List<Releases> partition(int size) {
     return quiver

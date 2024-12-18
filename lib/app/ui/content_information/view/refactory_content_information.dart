@@ -74,80 +74,86 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
 
     _initialRefresh = Completer();
 
-    final args = ModalRoute.settingsOf(context)?.arguments;
-
-    if (args is String) {
-      _informationArgs = ContentInformationArgs.fromJson(args);
-    } else {
-      _informationArgs = args as ContentInformationArgs;
-    }
+    _informationArgs = await _parseArguments();
 
     _content = _informationArgs!.content;
 
-    final navigationState = Navigator.of(context);
+    // if (_content?.cached == false &&
+    //     !_libraryService.contains(content: _content)) {
+    // }
+    _refreshIndicatorKey.currentState?.show();
+
+    _loadContentData();
+  }
+
+  Future<ContentInformationArgs> _parseArguments() async {
+    final args = ModalRoute.settingsOf(context)?.arguments;
+    if (args is String) {
+      return ContentInformationArgs.fromJson(args);
+    } else {
+      return args as ContentInformationArgs;
+    }
+  }
+
+  Future<void> _loadContentData() async {
     Result<Content> contentCache = Result.success(_informationArgs!.content);
 
     if (_informationArgs!.content.releases.isEmpty) {
       contentCache = const Result.empty();
     }
 
-    if (_content?.cached == false &&
-        !_libraryService.contains(content: _content)) {
-      _refreshIndicatorKey.currentState?.show();
-    }
-
-    final resultCotent = (contentCache is Success && _content!.cached == true)
-        ? contentCache
-        : await _repository.getData(_informationArgs!.content).timeout(
+    if (_content?.cached == true) {
+      _handleResult(contentCache);
+    } else {
+      await _repository
+          .getData(_informationArgs!.content)
+          .timeout(
             const Duration(seconds: 5),
-            onTimeout: () {
-              if (_informationArgs!.content.releases.length > 1 ||
-                  _content!.cached) {
-                return Result.success(_informationArgs!.content);
-              }
-              return Result.failure(
-                TimeoutException("Tempo excedido"),
-              );
-            },
-          );
+            onTimeout: () => _handleTimeout(),
+          )
+          .then(_handleResult);
+    }
+  }
 
-    resultCotent.fold(
+  void _handleResult(Result<Content> result) {
+    final navigationState = Navigator.of(context);
+
+    result.fold(
       onError: navigationState.pop,
       onSuccess: _onSuccess,
     );
-
-    // if (contentCache is Success && _informationArgs.getData) {
-    //   addPostFrameCallback((timer) {
-    //     _repository.getData(_content).then((result) {
-    //       result.fold(onSuccess: _onSuccess);
-    //     });
-    //   });
-    // }
   }
 
-  void _onSuccess(
-    Content data, [
-    bool refresh = false,
-    bool forceSaveCache = false,
-  ]) async {
-    // if(data is Anime && data.totalOfPages != null) {
-    //     List.generate(data.totalOfPages!, (index) => )
-    // }
+  Result<Content> _handleTimeout() {
+    if (_informationArgs!.content.releases.length > 1 || _content!.cached) {
+      return Result.success(_informationArgs!.content);
+    }
+    return Result.failure(TimeoutException("Tempo excedido"));
+  }
 
+  void _handleSetListIndex(int index) async {
+    if (index == _index) return;
+
+    setState(() {
+      _index = index;
+      _releasesIsLoading = _releases[index] == null;
+    });
+
+    if (_releasesIsLoading) {
+      await _getReleases(_content!.copyWith(releases: Releases()));
+    } else {
+      setState(() {
+        _content = _content!.copyWith(releases: _releases[index]);
+      });
+    }
+  }
+
+  void _onSuccess(Content data,
+      [bool refresh = false, bool forceSaveCache = false]) async {
     _releases.clear();
 
-    if (_releases.isEmpty && data is Anime) {
-      for (var data in data.releases) {
-        if (data.pageNumber != null) {
-          customLog(data.pageNumber! - 1);
-
-          if (_releases[data.pageNumber! - 1] == null) {
-            _releases[data.pageNumber! - 1] = Releases()..add(data);
-          } else {
-            _releases[data.pageNumber! - 1]?.add(data);
-          }
-        }
-      }
+    if (data is Anime) {
+      _processAnimeReleases(data);
     } else {
       _releases[_index] = data.releases;
     }
@@ -161,30 +167,29 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
       _isLoading = false;
     });
 
-    if ((await AutoCache.data.getJson(key: data.stringID)).data == null ||
-        forceSaveCache ||
-        _content!.cached == true) {
+    if (await _shouldSaveCache(data, forceSaveCache)) {
       AutoCache.data.saveJson(key: data.stringID, data: _content!.toJson());
     }
+
     _initialRefresh.complete();
   }
 
-  void _handleSetListIndex(int index) async {
-    if (index == _index) return;
+  Future<bool> _shouldSaveCache(Content data, bool forceSaveCache) async {
+    return ((await AutoCache.data.getJson(key: data.stringID)).data == null ||
+        forceSaveCache ||
+        _content!.cached == true);
+  }
 
-    setStateIfMounted(() => _index = index);
-
-    final releases = _releases[index];
-
-    if (releases == null) {
-      setStateIfMounted(() => _releasesIsLoading = true);
-      await _getReleases(_content!.copyWith(releases: Releases()));
-      setStateIfMounted(() => _releasesIsLoading = false);
-    } else {
-      setStateIfMounted(() {
-        if (_releasesIsLoading) _releasesIsLoading = false;
-        _content = _content!.copyWith(releases: releases);
-      });
+  void _processAnimeReleases(Anime data) {
+    for (var release in data.releases) {
+      if (release.pageNumber != null) {
+        final pageIndex = release.pageNumber! - 1;
+        if (_releases[pageIndex] == null) {
+          _releases[pageIndex] = Releases()..add(release);
+        } else {
+          _releases[pageIndex]?.add(release);
+        }
+      }
     }
   }
 
@@ -438,7 +443,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
   @override
   void dispose() {
     _bottomTabController.dispose();
-    // _bottomMenuController.dispose();
+    _bottomMenuController.dispose();
     _changeTabBarIndex.cancel();
     _saveData();
     super.dispose();
