@@ -14,6 +14,7 @@ import 'package:app_wsrb_jsr/app/ui/player/mixins/player_screenshot_.dart';
 import 'package:app_wsrb_jsr/app/ui/player/widgets/material_video_controls.dart';
 import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_popup.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -21,8 +22,10 @@ import 'package:content_library/content_library.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions/duration.dart';
 import 'package:provider/provider.dart';
 
 class PlayerView extends StatefulWidget {
@@ -44,12 +47,15 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         PlayerAudioSessionMixin,
         PlayerScreenShotMixin {
   final ValueNotifier<String?> _overlayBoxFit = ValueNotifier(null);
+  final ValueNotifier<bool> _showAnimeSkip = ValueNotifier(false);
   final ValueNotifier<String?> _overlayNextEpisode = ValueNotifier(null);
   final ValueNotifier<String> _topTitle = ValueNotifier('');
   final ValueNotifier<bool> _lockPlayer = ValueNotifier(false);
   final ValueNotifier<bool> _openMenuInFullScreen = ValueNotifier(false);
   final ValueNotifier<bool> _reversedCurrentDuration = ValueNotifier(false);
   final ValueNotifier<Duration?> _seekInVideoPosition = ValueNotifier(null);
+  final ValueNotifier<AnimeTimeStamp?> _selectedAnimeTimeStamp =
+      ValueNotifier(null);
 
   Data? _mainVideoData;
   VideoController? _videoController;
@@ -324,6 +330,24 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
 
     if (_hasNextEpisode) _nextEpisode(position);
+    _animeSkipPosition(position);
+  }
+
+  void _animeSkipPosition(Duration position) {
+    final times = _playerArgs.times.reversed.toList();
+
+    final firstIndex = times.indexWhere(
+      (time) => position > time.atDuration,
+    );
+    if (firstIndex != -1) {
+      final first = times[firstIndex];
+      // final last = times.elementAtOrNull(firstIndex + 1);
+      if (_selectedAnimeTimeStamp.value != first) {
+        _selectedAnimeTimeStamp.value = first;
+
+        customLog(first.timeStampType);
+      }
+    }
   }
 
   Future<void> _handleSetFits() async {
@@ -522,12 +546,27 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     onSave?.call();
   }
 
+  void _handleClickSkipAnime(AnimeTimeStamp item) {
+    player?.seek(item.duration);
+  }
+
   @override
   Widget buildByArgument(BuildContext context, PlayerArgs argument) {
     return Scaffold(
       extendBodyBehindAppBar: true,
+      floatingActionButton: _playerArgs.times.isEmpty
+          ? null
+          : FloatingActionButton(
+              onPressed: () {
+                _showAnimeSkip.value = !_showAnimeSkip.value;
+              },
+              child: Icon(MdiIcons.timelapse),
+            ),
       extendBody: true,
       body: PlayerScope(
+        onClickSkipAnime: _handleClickSkipAnime,
+        selectedAnimeTimeStamp: _selectedAnimeTimeStamp,
+        showAnimeSkip: _showAnimeSkip,
         openMenuInFullScreen: _openMenuInFullScreen,
         draggableScrollableController: draggableScrollableController,
         onPipAction: onPipAction,
@@ -565,6 +604,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     _overlayBoxFit.dispose();
     _systemUIModeTimer.cancel();
     _setContinueVideoTimer?.cancel();
+    _selectedAnimeTimeStamp.dispose();
+    _selectedAnimeTimeStamp.dispose();
     _overlayNextEpisode.dispose();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     WidgetsBinding.instance.removeObserver(this);
@@ -681,104 +722,181 @@ class _Content extends StatelessWidget {
                         !playerArgs.forceEnterFullScreen))
                   Expanded(
                     flex: 1,
-                    child: ListView.separated(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.only(top: 18, bottom: 18),
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 10),
-                      itemCount: playerArgs.anime.releases.length,
-                      itemBuilder: (context, index) {
-                        final Episode episode =
-                            playerArgs.anime.releases.reversed.elementAt(index);
+                    child: ValueListenableBuilder(
+                      valueListenable: scope.showAnimeSkip,
+                      builder: (context, value, child) {
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: ListView.separated(
+                                physics: const BouncingScrollPhysics(),
+                                padding:
+                                    const EdgeInsets.only(top: 18, bottom: 18),
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(height: 10),
+                                itemCount: playerArgs.anime.releases.length,
+                                itemBuilder: (context, index) {
+                                  final Episode episode = playerArgs
+                                      .anime.releases.reversed
+                                      .elementAt(index);
 
-                        return ListTile(
-                          selected: episode.stringID
-                              .contains(playerArgs.episode.stringID),
-                          leading: SizedBox(
-                            width: 112,
-                            height: double.infinity,
-                            child: episode.thumbnail != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: CachedNetworkImage(
-                                      httpHeaders: {
-                                        ...App.HEADERS,
-                                        'Referer':
-                                            '${hiveController.source.baseURL}/',
-                                      },
-                                      imageUrl: episode.thumbnail!,
-                                      placeholder: (context, url) =>
-                                          const Card.filled(),
-                                      fit: BoxFit.cover,
-                                      maxWidthDiskCache: 300,
-                                      maxHeightDiskCache: 200,
+                                  return ListTile(
+                                    minLeadingWidth: value ? 0 : 112,
+                                    selected: episode.stringID
+                                        .contains(playerArgs.episode.stringID),
+                                    leading: value
+                                        ? null
+                                        : SizedBox(
+                                            width: 112,
+                                            height: double.infinity,
+                                            child: episode.thumbnail != null
+                                                ? ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                    child: CachedNetworkImage(
+                                                      httpHeaders: {
+                                                        ...App.HEADERS,
+                                                        'Referer':
+                                                            '${hiveController.source.baseURL}/',
+                                                      },
+                                                      imageUrl:
+                                                          episode.thumbnail!,
+                                                      placeholder: (context,
+                                                              url) =>
+                                                          const Card.filled(),
+                                                      fit: BoxFit.cover,
+                                                      maxWidthDiskCache: 300,
+                                                      maxHeightDiskCache: 200,
+                                                    ),
+                                                  )
+                                                : const Card.filled(),
+                                          ),
+                                    titleTextStyle: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold),
+                                    onTap: () async {
+                                      customLog(
+                                        'tapped name: ${episode.title} - id: ${episode.stringID}',
+                                      );
+                                      scope.onTapEpisode(episode);
+                                    },
+                                    onLongPress: episode.sinopse?.isNotEmpty ==
+                                            true
+                                        ? () {
+                                            showModalBottomSheet(
+                                              isScrollControlled: false,
+                                              isDismissible: true,
+                                              showDragHandle: true,
+                                              useRootNavigator: true,
+                                              context: context,
+                                              builder: (context) {
+                                                return Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  children: [
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        vertical: 12.0,
+                                                      ),
+                                                      child: Text(
+                                                        'Sinopse',
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .titleLarge
+                                                            ?.copyWith(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 16,
+                                                      ),
+                                                      child: Text(
+                                                        episode.sinopse!.trim(),
+                                                        textAlign:
+                                                            TextAlign.justify,
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .bodyMedium,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 30),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          }
+                                        : null,
+                                    visualDensity: VisualDensity(
+                                      vertical: value ? -4 : 2,
+                                      horizontal: -2,
                                     ),
-                                  )
-                                : const Card.filled(),
-                          ),
-                          titleTextStyle: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                  fontSize: 13, fontWeight: FontWeight.bold),
-                          onTap: () async {
-                            customLog(
-                              'tapped name: ${episode.title} - id: ${episode.stringID}',
-                            );
-                            scope.onTapEpisode(episode);
-                          },
-                          onLongPress: episode.sinopse?.isNotEmpty == true
-                              ? () {
-                                  showModalBottomSheet(
-                                    isScrollControlled: false,
-                                    isDismissible: true,
-                                    showDragHandle: true,
-                                    useRootNavigator: true,
-                                    context: context,
-                                    builder: (context) {
-                                      return Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 12.0,
-                                            ),
-                                            child: Text(
-                                              'Sinopse',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleLarge
-                                                  ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                            ),
+                                    title: Text(
+                                      '${episode.number}. ${episode.title}',
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            if (playerArgs.times.isNotEmpty)
+                              CustomPopup(
+                                duration: const Duration(milliseconds: 100),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(12),
+                                    bottomLeft: Radius.circular(12),
+                                  ),
+                                ),
+                                height: sizeOf.height,
+                                width: sizeOf.width / 2,
+                                show: value,
+                                items: playerArgs.times,
+                                builderFunction: (context, index, item) {
+                                  return ValueListenableBuilder(
+                                    valueListenable:
+                                        scope.selectedAnimeTimeStamp,
+                                    builder: (context, value, child) {
+                                      return ListTile(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.only(
+                                            topLeft: index == 0
+                                                ? Radius.circular(8)
+                                                : Radius.zero,
+                                            bottomLeft: index ==
+                                                    playerArgs.times.length - 1
+                                                ? Radius.circular(8)
+                                                : Radius.zero,
                                           ),
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                            ),
-                                            child: Text(
-                                              episode.sinopse!.trim(),
-                                              textAlign: TextAlign.justify,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 30),
-                                        ],
+                                        ),
+                                        onTap: () =>
+                                            scope.onClickSkipAnime.call(item),
+                                        selected: value?.id.contains(item.id) ??
+                                            false,
+                                        leading: Text(
+                                          Duration(microseconds: item.at)
+                                              .label(),
+                                        ),
+                                        title: Text(item.timeStampType.label),
+                                        visualDensity: const VisualDensity(
+                                          vertical: -4,
+                                          horizontal: -2,
+                                        ),
                                       );
                                     },
                                   );
-                                }
-                              : null,
-                          visualDensity:
-                              const VisualDensity(vertical: 2, horizontal: -2),
-                          title: Text(
-                            '${episode.number}. ${episode.title}',
-                          ),
+                                },
+                              )
+                          ],
                         );
                       },
                     ),

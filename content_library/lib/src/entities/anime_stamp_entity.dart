@@ -21,6 +21,7 @@ class AnimeTimeStampEntity {
   String id = "";
   String episodeId = "";
   String createdBy = "";
+  int absoluteNumber = 0;
   String updatedBy = "";
   DateTime createdAt = DateTime.now();
   DateTime updatedAt = DateTime.now();
@@ -31,6 +32,7 @@ class AnimeTimeStampEntity {
 
   AnimeTimeStamp get toObj {
     return AnimeTimeStamp(
+      absoluteNumber: absoluteNumber,
       id: id,
       episodeId: episodeId,
       at: at,
@@ -46,6 +48,7 @@ class AnimeTimeStampEntity {
     return <String, dynamic>{
       'at': at,
       'id': id,
+      'absoluteNumber': absoluteNumber,
       'episodeId': episodeId,
       'createdBy': createdBy,
       'updatedBy': updatedBy,
@@ -61,6 +64,7 @@ class AnimeTimeStampEntity {
     obj.episodeId = map['episodeId'] as String;
     obj.createdBy = map['createdBy'] as String;
     obj.updatedBy = map['updatedBy'] as String;
+    obj.absoluteNumber = map['absoluteNumber'] as int;
     obj.timeStampType =
         AnimeTimeStampType.values.elementAt(map['timeStampType']);
     return obj;

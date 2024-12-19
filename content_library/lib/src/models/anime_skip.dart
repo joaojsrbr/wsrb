@@ -52,9 +52,11 @@ class AnimeTimeStamp extends AnimeTimeStampEntity {
     required DateTime createdAt,
     required String updatedBy,
     required DateTime updatedAt,
+    required int absoluteNumber,
     required String createdBy,
     AnimeTimeStampType? animeTimeStampType,
   }) {
+    this.absoluteNumber = absoluteNumber;
     this.id = id;
     this.episodeId = episodeId;
     this.at = at;
@@ -80,6 +82,9 @@ class AnimeTimeStamp extends AnimeTimeStampEntity {
     double timestampInSeconds = double.parse(map['at'].toString());
 
     return AnimeTimeStamp(
+      absoluteNumber: int.tryParse(
+              (map['episode']['absoluteNumber'] ?? map['episode']['number'])) ??
+          0,
       id: map['id'],
       episodeId: episodeMap['id'],
       at: (timestampInSeconds * 1000000).toInt(),
@@ -89,6 +94,31 @@ class AnimeTimeStamp extends AnimeTimeStampEntity {
       createdBy: map['type']['createdBy']['username'],
       animeTimeStampType: timeStamp ?? AnimeTimeStampType.UNKNOWN,
     );
+  }
+
+  Duration get atDuration => Duration(microseconds: at);
+
+  AnimeTimeStamp copyWith(
+    String? id,
+    String? episodeId,
+    int? at,
+    DateTime? createdAt,
+    String? updatedBy,
+    DateTime? updatedAt,
+    int? absoluteNumber,
+    String? createdBy,
+    AnimeTimeStampType? animeTimeStampType,
+  ) {
+    return AnimeTimeStamp(
+      absoluteNumber: absoluteNumber ?? this.absoluteNumber,
+      id: id ?? this.id,
+      episodeId: episodeId ?? this.episodeId,
+      at: at ?? this.at,
+      createdAt: createdAt ?? this.createdAt,
+      updatedBy: updatedBy ?? this.updatedBy,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdBy: createdBy ?? this.createdBy,
+    )..timeStampType = animeTimeStampType ?? AnimeTimeStampType.UNKNOWN;
   }
 
   AnimeTimeStampEntity get toEntity => this;

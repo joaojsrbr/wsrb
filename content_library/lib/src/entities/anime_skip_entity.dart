@@ -1,7 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/entities/anime_stamp_entity.dart';
-import 'package:content_library/src/models/anime_skip.dart';
 import 'package:isar/isar.dart';
 
 part 'anime_skip_entity.g.dart';

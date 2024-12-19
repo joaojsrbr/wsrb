@@ -22,6 +22,11 @@ class AnimeSkipQuery {
                 id
                 createdAt
                 updatedAt
+                episode {
+                  name,
+                  number,
+                  absoluteNumber,
+                }
                 at
                 type{
                   createdBy {

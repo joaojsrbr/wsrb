@@ -9,10 +9,14 @@ class CustomPopup<E> extends StatefulWidget {
     required this.items,
     this.height,
     this.width,
+    this.duration,
+    this.shape,
     required this.builderFunction,
   });
 
   final bool show;
+  final Duration? duration;
+  final ShapeBorder? shape;
   final List<E> items;
   final Function(BuildContext context, int index, E item) builderFunction;
   final double? height;
@@ -71,15 +75,17 @@ class _CustomPopupState<E> extends State<CustomPopup<E>> {
         height: widget.show
             ? widget.height ?? MediaQuery.of(context).size.height / 1.4
             : 0,
-        duration: const Duration(milliseconds: 300),
+        duration: widget.duration ?? const Duration(milliseconds: 300),
         curve: Curves.fastOutSlowIn,
         child: Card(
           margin: EdgeInsets.zero,
+          shape: widget.shape,
           elevation: 3,
           child: MediaQuery.removePadding(
             context: context,
             removeTop: true,
             child: ListView.builder(
+              padding: EdgeInsets.zero,
               controller: _localController,
               scrollDirection: Axis.vertical,
               itemCount: widget.items.length,

@@ -295,7 +295,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
   Widget build(BuildContext context) {
     final sizeOf = MediaQuery.sizeOf(context);
 
-    customLog('build');
+    customLog('$widget[build]');
 
     final libraryService = context.watch<LibraryService>();
 

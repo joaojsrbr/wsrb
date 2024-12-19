@@ -47,9 +47,6 @@ Widget contentIndicatorBuilder(BuildContext context, IndicatorStatus status) {
     case IndicatorStatus.empty:
       widget = const _EmptyWidget();
       break;
-    default:
-      widget = const _DefaultWidget();
-      break;
   }
   return _StatusNotifier(
     status: status,
@@ -87,17 +84,17 @@ class _StatusNotifier extends InheritedWidget {
       status != oldWidget.status;
 }
 
-class _DefaultWidget extends StatelessWidget {
-  const _DefaultWidget();
-  @override
-  Widget build(BuildContext context) {
-    final isSliver =
-        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
-    Widget widget = const SizedBox.shrink();
-    if (isSliver) widget = SliverToBoxAdapter(child: widget);
-    return widget;
-  }
-}
+// class _DefaultWidget extends StatelessWidget {
+//   const _DefaultWidget();
+//   @override
+//   Widget build(BuildContext context) {
+//     final isSliver =
+//         context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+//     Widget widget = const SizedBox.shrink();
+//     if (isSliver) widget = SliverToBoxAdapter(child: widget);
+//     return widget;
+//   }
+// }
 
 class _EmptyWidget extends StatelessWidget {
   const _EmptyWidget();
