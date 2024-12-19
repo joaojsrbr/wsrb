@@ -9,7 +9,7 @@ final class Success<T extends Object> extends Result<T> {
 }
 
 final class Failure<T extends Object> extends Result<T> {
-  final Object error;
+  final Exception error;
   const Failure(this.error);
 }
 

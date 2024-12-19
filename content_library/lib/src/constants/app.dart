@@ -2,11 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_auto_cache/flutter_auto_cache.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class App {
   const App._();
 
   static const String NEOX_URL = 'https://nexoscans.com';
+
+  static const String ANIME_SKIP_API = 'https://api.anime-skip.com/graphql';
 
   static const String DEMON_SECT_URL = 'https://demonsect.com.br';
 
@@ -15,6 +18,8 @@ class App {
   static const String ANROLL_URL = 'https://www.anroll.net';
 
   static const String ANROLL_USER_URL = 'https://api-user.anroll.net';
+
+  static final String? ANIME_SKIP_API_KEY = dotenv.env['ANIME_SKIP_API_KEY'];
 
   static Map<String, String> HEADERS = {
     "user-agent":

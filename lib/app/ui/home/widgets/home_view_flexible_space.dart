@@ -50,7 +50,7 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
     }
 
     _searchDebouncer.cancel();
-    if (query.length >= 4) {
+    if (query.length >= 2) {
       _searchDebouncer.call(() {
         _searchContents(query);
       });

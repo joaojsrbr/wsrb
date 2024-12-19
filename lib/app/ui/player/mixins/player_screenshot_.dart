@@ -1,15 +1,16 @@
+import 'dart:convert';
+
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
-import 'dart:convert';
 
 mixin PlayerScreenShotMixin
     on
         SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs>,
         PlayerControllerMixin {
   Future<String?> videoScreenshotBase64() async {
-    final capture = await player!.screenshot();
+    final capture = await player?.screenshot();
     // final capture = await screenshotController.capture(
     //   pixelRatio: 0.5,
     // );

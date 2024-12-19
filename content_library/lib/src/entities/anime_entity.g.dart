@@ -140,6 +140,12 @@ const AnimeEntitySchema = CollectionSchema(
       name: r'episodes',
       target: r'EpisodeEntity',
       single: false,
+    ),
+    r'animeSkip': LinkSchema(
+      id: 3444031402569074064,
+      name: r'animeSkip',
+      target: r'AnimeSkipEntity',
+      single: true,
     )
   },
   embeddedSchemas: {},
@@ -339,7 +345,7 @@ Id _animeEntityGetId(AnimeEntity object) {
 }
 
 List<IsarLinkBase<dynamic>> _animeEntityGetLinks(AnimeEntity object) {
-  return [object.episodes];
+  return [object.episodes, object.animeSkip];
 }
 
 void _animeEntityAttach(
@@ -347,6 +353,8 @@ void _animeEntityAttach(
   object.id = id;
   object.episodes
       .attach(col, col.isar.collection<EpisodeEntity>(), r'episodes', id);
+  object.animeSkip
+      .attach(col, col.isar.collection<AnimeSkipEntity>(), r'animeSkip', id);
 }
 
 extension AnimeEntityByIndex on IsarCollection<AnimeEntity> {
@@ -2778,6 +2786,20 @@ extension AnimeEntityQueryLinks
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(
           r'episodes', lower, includeLower, upper, includeUpper);
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition> animeSkip(
+      FilterQuery<AnimeSkipEntity> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'animeSkip');
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
+      animeSkipIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'animeSkip', 0, true, 0, true);
     });
   }
 }

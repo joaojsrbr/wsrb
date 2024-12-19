@@ -7,6 +7,7 @@ import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_auto_cache/flutter_auto_cache.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
 
@@ -30,6 +31,13 @@ void main(List<String> arguments) async {
   final LibraryController libraryController =
       LibraryController(isarServiceImpl, hiveController);
 
+  final GraphQLApiClient graphQLApiClient = GraphQLApiClient();
+  final AnimeSkipRepository animeSkipRepository =
+      AnimeSkipRepository(graphQLApiClient);
+
+  final AnimeSkipController animeSkipController =
+      AnimeSkipController(isarServiceImpl);
+
   final HistoricController historicController =
       HistoricController(isarServiceImpl);
 
@@ -44,6 +52,7 @@ void main(List<String> arguments) async {
     hiveController.loadAll(),
     historicController.start(),
     categoryController.start(),
+    animeSkipController.start(),
     libraryController.start(),
     hiveServiceImpl.init(),
     AutoCacheInitializer.initialize(configuration: App.APP_CACHE_CONFIG),
@@ -52,10 +61,14 @@ void main(List<String> arguments) async {
     hiveCacheServiceImpl.init(),
     PlayerAudioHandlerMixin.startPlayerAudio(),
     connectionChecker.start(),
+    dotenv.load(fileName: "assets/.env"),
   ]);
 
-  final ContentRepository contentRepository =
-      ContentRepository(hiveController, dioClient);
+  final ContentRepository contentRepository = ContentRepository(
+    hiveController,
+    dioClient,
+    animeSkipRepository,
+  );
 
   runApp(
     MultiProvider(

@@ -7,6 +7,8 @@ import 'package:content_library/src/exceptions/anime_exception.dart';
 import 'package:content_library/src/exceptions/book_exception.dart';
 import 'package:content_library/src/extensions/custom_extensions/list_extensions.dart';
 import 'package:content_library/src/extensions/custom_extensions/string_extensions.dart';
+import 'package:content_library/src/models/anime_skip.dart';
+import 'package:content_library/src/repository/anime_skip_imp.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart' as ui;
 // import 'package:flutter_webview_plugin/flutter_webview_plugin.dart' as plugin;
@@ -52,10 +54,12 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   late final Subscriptions _subscriptions;
   late final List<RSource> _sources;
   final HiveController _hiveController;
+  final AnimeSkipRepository _animeSkipRepository;
 
   ContentRepository._internal(
     this._hiveController,
     this._dio,
+    this._animeSkipRepository,
   ) {
     _dio.addInterceptor(_DefaultAppHeadersInterceptor());
     _sources = [
@@ -79,8 +83,9 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
 
   bool get addMore => isSuccess && _hasMore;
 
-  factory ContentRepository(HiveController hiveController, DioClient dio) =>
-      _ContentRepositoryImp(hiveController, dio);
+  factory ContentRepository(HiveController hiveController, DioClient dio,
+          AnimeSkipRepository animeSkipRepository) =>
+      _ContentRepositoryImp(hiveController, dio, animeSkipRepository);
 
   RSource source(Source source) => _sources.firstWhere(
         (element) => source == element.source,
@@ -186,6 +191,7 @@ class _ContentRepositoryImp extends ContentRepository {
   _ContentRepositoryImp(
     super._hiveController,
     super.dio,
+    super._animeSkipRepository,
   ) : super._internal();
 
   @override

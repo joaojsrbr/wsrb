@@ -22,6 +22,7 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
     required super.child,
     required this.playerArgs,
     required this.isLoading,
+    required this.onClickSkipAnime,
     required this.videoController,
     required this.maxValueCircularAnimation,
     required this.currentValueCircularAnimation,
@@ -35,20 +36,28 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
     required this.enterInPip,
     required this.lockPlayer,
     required this.reversedCurrentDuration,
+    required this.showAnimeSkip,
     required this.isPipAvailable,
     required this.isPipActivated,
+    required this.selectedAnimeTimeStamp,
     required this.onPipAction,
     required this.openMenuInFullScreen,
+    required this.animationController,
     required this.onPipChange,
     required this.draggableScrollableController,
   });
+
+  final void Function(AnimeTimeStamp item) onClickSkipAnime;
   final DraggableScrollableController draggableScrollableController;
   final void Function(PipAction) onPipAction;
+  final AnimationController animationController;
   final void Function() onPipChange;
   final bool isPipAvailable;
   final bool isPipActivated;
   final VoidCallback enterInPip;
   final ValueNotifier<bool> lockPlayer;
+  final ValueNotifier<AnimeTimeStamp?> selectedAnimeTimeStamp;
+  final ValueNotifier<bool> showAnimeSkip;
   final ValueNotifier<bool> openMenuInFullScreen;
   final ValueNotifier<bool> reversedCurrentDuration;
   final ValueNotifier<String> topTitle;

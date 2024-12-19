@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/entities/anime_skip_entity.dart';
 import 'package:content_library/src/services/isar_service.dart';
 import 'package:isar/isar.dart';
 
@@ -46,6 +47,11 @@ class IsarServiceImpl implements IsarService {
             isSucess = true;
           }
 
+          break;
+        case AnimeSkipEntity data:
+          currentID = await isar.animeSkipEntitys.put(data);
+
+          isSucess = true;
           break;
         case CategoryEntity data:
           currentID = await isar.categoryEntitys.put(data);
@@ -223,6 +229,7 @@ class IsarServiceImpl implements IsarService {
         EpisodeEntitySchema,
         ChapterEntitySchema,
         CategoryEntitySchema,
+        AnimeSkipEntitySchema,
       ],
       maxSizeMiB: 2048,
       directory: isarPath,

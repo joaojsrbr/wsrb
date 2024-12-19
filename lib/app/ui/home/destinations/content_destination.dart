@@ -297,9 +297,9 @@ class _OverlayColor extends WidgetStateProperty<Color?> {
   @override
   Color? resolve(Set<WidgetState> states) {
     if (states.contains(WidgetState.pressed)) {
-      return _color?.withOpacity(0.12);
+      return _color?.withAlpha(36);
     } else if (states.contains(WidgetState.hovered)) {
-      return _color?.withOpacity(0.08);
+      return _color?.withAlpha(20);
     } else if (states.contains(WidgetState.focused)) {
       return Colors.transparent;
     }

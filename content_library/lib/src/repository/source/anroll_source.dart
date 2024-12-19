@@ -55,13 +55,12 @@ class AnrollSource extends RSource {
   }
 
   Future<Anime> _getAnimeID(Anime anime) async {
-    Anime newAnime = anime.copyWith();
-    if (newAnime.animeID == null) {
-      await contentRepository._dio
+    if (anime.animeID == null) {
+      return await contentRepository._dio
           .get("https://www.anroll.net/e/${anime.generateID}")
           .then(
         (response) {
-          newAnime = newAnime.copyWith(
+          return anime.copyWith(
             animeID: parse(response.data)
                 .querySelector('#anime_title a')
                 ?.attributes['href']
@@ -71,7 +70,7 @@ class AnrollSource extends RSource {
         },
       );
     }
-    return newAnime;
+    return anime;
   }
 
   @override
@@ -79,7 +78,7 @@ class AnrollSource extends RSource {
     if (content is! Anime) throw AnimeGetDataException();
 
     try {
-      String? animeID = (await _getAnimeID(content)).animeID;
+      String? animeID = content.animeID ?? (await _getAnimeID(content)).animeID;
 
       final episodesResponse = await contentRepository._dio.get(
         'https://apiv3-prd.anroll.net/animes/$animeID/episodes?order=asc${page == -1 ? '' : '&page=$page'}',
@@ -118,6 +117,22 @@ class AnrollSource extends RSource {
         );
 
         content.releases.addOrUpdateWhere(episode, episode.isEqualStringID);
+      }
+
+      if (content.animeSkip == null &&
+          content.anilistMedia?.title?.english != null) {
+        final title = content.anilistMedia!.title!.english!;
+
+        final result =
+            await contentRepository._animeSkipRepository.getTimeStampsByName(
+          search: title,
+        );
+
+        if (result is Success<List<AnimeSkip>>) {
+          final skip =
+              result.data.firstWhereOrNull((skip) => title.contains(skip.name));
+          content = content.copyWith(animeSkip: skip);
+        }
       }
 
       return Result.success(
@@ -205,7 +220,8 @@ class AnrollSource extends RSource {
         }
       }
 
-      await Future.wait([getData(), getEpisodes(), getAniListData()]);
+      await getAniListData();
+      await Future.wait([getData(), getEpisodes()]);
 
       return Result.success(newAnime);
     } on DioException catch (_, __) {
@@ -314,8 +330,17 @@ class AnrollSource extends RSource {
   @override
   Future<Result<List<Anime>>> search(String query) async {
     try {
+      final listByRepository = contentRepository
+          .where((anime) => anime.title.contains(query))
+          .toList()
+          .cast<Anime>();
+
+      if (listByRepository.isNotEmpty) {
+        return Result.success(listByRepository);
+      }
+
       final Response response = await contentRepository._dio.get(
-        'https://apiv3-prd.anroll.net/animes/search/data?q=$query',
+        'https://api-search.anroll.net/data?q=$query',
         responseType: ResponseType.json,
       );
 
