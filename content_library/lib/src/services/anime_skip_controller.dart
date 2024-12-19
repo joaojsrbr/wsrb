@@ -1,5 +1,4 @@
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/entities/anime_skip_entity.dart';
 import 'package:isar/isar.dart';
 
 class AnimeSkipController {

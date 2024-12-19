@@ -208,7 +208,7 @@ class NeoxSource extends RSource {
 
     try {
       final String subKey =
-          'page/${contentRepository.index}/?s&post_type=wp-manga&m_orderby=${contentRepository._hiveController.orderBy.label}';
+          'page/${contentRepository.index}/?s&post_type=wp-manga&m_orderby=${contentRepository._hiveController?.orderBy.label}';
 
       final String mainURL = '$BASE_URL/$subKey';
 

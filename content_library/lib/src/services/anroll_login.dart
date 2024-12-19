@@ -19,7 +19,9 @@ class AnrollLoginService {
 
   Future<bool> login(String email, String password) async {
     if (await checkLogin() case (bool result, int? id)
-        when (result && id != null)) return true;
+        when (result && id != null)) {
+      return true;
+    }
     try {
       final interceptor = _AnrollSaveTokenInterceptor(_hiveService);
       _dioClient.addInterceptor(interceptor);

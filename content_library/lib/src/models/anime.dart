@@ -2,8 +2,6 @@
 import 'dart:convert';
 
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/entities/anime_skip_entity.dart';
-import 'package:content_library/src/models/anime_skip.dart';
 
 class Anime extends Content {
   const Anime({

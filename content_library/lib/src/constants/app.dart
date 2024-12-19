@@ -15,6 +15,8 @@ class App {
 
   static const String GOYABU_URL = 'https://goyabu.to';
 
+  static const String SLIME_READ_URL = 'https://slimeread.com';
+
   static const String ANROLL_URL = 'https://www.anroll.net';
 
   static const String ANROLL_USER_URL = 'https://api-user.anroll.net';

@@ -53,13 +53,15 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   // late final JikanService _jikanService;
   late final Subscriptions _subscriptions;
   late final List<RSource> _sources;
-  final HiveController _hiveController;
+  final HiveController? _hiveController;
+  final Source? initialSource;
   final AnimeSkipRepository _animeSkipRepository;
 
   ContentRepository._internal(
     this._hiveController,
     this._dio,
     this._animeSkipRepository,
+    this.initialSource,
   ) {
     _dio.addInterceptor(_DefaultAppHeadersInterceptor());
     _sources = [
@@ -68,11 +70,14 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       AnrollSource(this),
       DemonSect(this),
     ];
-    _subscriptions = Subscriptions()
-      ..addAll([
-        _hiveController.watchBy('repository_source').listen(_listen),
-        _hiveController.watchBy('repository_order_by').listen(_listen),
-      ]);
+
+    if (_hiveController != null) {
+      _subscriptions = Subscriptions()
+        ..addAll([
+          _hiveController!.watchBy('repository_source').listen(_listen),
+          _hiveController!.watchBy('repository_order_by').listen(_listen),
+        ]);
+    }
   }
 
   void _listen(BoxEvent event) {
@@ -85,7 +90,11 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
 
   factory ContentRepository(HiveController hiveController, DioClient dio,
           AnimeSkipRepository animeSkipRepository) =>
-      _ContentRepositoryImp(hiveController, dio, animeSkipRepository);
+      _ContentRepositoryImp(hiveController, dio, animeSkipRepository, null);
+
+  factory ContentRepository.test(DioClient dio,
+          AnimeSkipRepository animeSkipRepository, Source initialSource) =>
+      _ContentRepositoryImp.test(animeSkipRepository, dio, initialSource);
 
   RSource source(Source source) => _sources.firstWhere(
         (element) => source == element.source,
@@ -166,9 +175,12 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
     }
   }
 
+  RSource get currentSource =>
+      source(_hiveController?.source ?? initialSource ?? Source.ANROLL);
+
   @override
   Future<bool> refresh([bool notifyStateChanged = false]) async {
-    index = source(_hiveController.source).initialIndex;
+    index = currentSource.initialIndex;
     isSuccess = false;
     _hasMore = false;
     forceRefresh = notifyStateChanged;
@@ -192,23 +204,29 @@ class _ContentRepositoryImp extends ContentRepository {
     super._hiveController,
     super.dio,
     super._animeSkipRepository,
+    super.initialSource,
   ) : super._internal();
+
+  factory _ContentRepositoryImp.test(AnimeSkipRepository animeSkipRepository,
+      DioClient dio, Source initialSource) {
+    return _ContentRepositoryImp(null, dio, animeSkipRepository, initialSource);
+  }
 
   @override
   Future<bool> loadData([bool isLoadMoreAction = false]) async =>
-      await source(_hiveController.source).loadData();
+      await currentSource.loadData();
 
   @override
   Future<Result<Content>> getData(Content content) async =>
-      await source(_hiveController.source).getData(content);
+      await currentSource.getData(content);
 
   @override
   Future<Result<List<Data>>> getContent(Release release) async =>
-      await source(_hiveController.source).getContent(release);
+      await currentSource.getContent(release);
 
   @override
   Future<Result<Content>> getReleases(Content content, int page) async =>
-      await source(_hiveController.source).getReleases(content, page);
+      await currentSource.getReleases(content, page);
 
   @override
   Future<void> searchContents(
