@@ -45,7 +45,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         PlayerSimplePipMixin,
         PlayerAudioHandlerMixin,
         PlayerAudioSessionMixin,
-        PlayerScreenShotMixin {
+        PlayerScreenShotMixin,
+        SingleTickerProviderStateMixin {
   final ValueNotifier<String?> _overlayBoxFit = ValueNotifier(null);
   final ValueNotifier<bool> _showAnimeSkip = ValueNotifier(false);
   final ValueNotifier<String?> _overlayNextEpisode = ValueNotifier(null);
@@ -69,7 +70,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   final int _maxValueCircularAnimation = 2;
 
   late PlayerArgs _playerArgs = argument();
-
+  late final AnimationController _animationController;
   late final ContentRepository _repository;
   late final LibraryService _libraryService;
   late final HiveController _hiveController;
@@ -115,6 +116,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     _libraryService = context.read<LibraryService>();
     _hiveController = context.read<HiveController>();
     _repository = context.read<ContentRepository>();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
     BoxFit.values
         .where((fit) => !(fit == BoxFit.none || fit == _activeFit))
         .forEach(_queueBoxFits.add);
@@ -554,7 +559,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   Widget buildByArgument(BuildContext context, PlayerArgs argument) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      floatingActionButton: _playerArgs.times.isEmpty
+      floatingActionButton: (mounted ? _playerArgs : argument).times.isEmpty
           ? null
           : FloatingActionButton(
               onPressed: () {
@@ -564,6 +569,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
             ),
       extendBody: true,
       body: PlayerScope(
+        animationController: _animationController,
         onClickSkipAnime: _handleClickSkipAnime,
         selectedAnimeTimeStamp: _selectedAnimeTimeStamp,
         showAnimeSkip: _showAnimeSkip,
@@ -605,7 +611,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     _systemUIModeTimer.cancel();
     _setContinueVideoTimer?.cancel();
     _selectedAnimeTimeStamp.dispose();
-    _selectedAnimeTimeStamp.dispose();
+    _animationController.dispose();
+    _showAnimeSkip.dispose();
     _overlayNextEpisode.dispose();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     WidgetsBinding.instance.removeObserver(this);

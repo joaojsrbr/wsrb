@@ -383,205 +383,228 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  Positioned.fill(
-                    child: GestureDetector(
-                      onTap: onTap,
-                      onDoubleTapDown: _lockPlayer ? null : _handleTapDown,
-                      // onLongPress: _handleLongPress,
-                      // onLongPressEnd: _handleLongPressEnd,
-                      onDoubleTap: _lockPlayer
-                          ? null
-                          : () {
-                              if (_tapPosition != null &&
-                                  _tapPosition!.dx >
-                                      MediaQuery.of(context).size.width / 2) {
-                                if ((!mount) ||
-                                    seekOnDoubleTapEnabledWhileControlsAreVisible) {
-                                  onDoubleTapSeekForward();
+                  if (isFullscreen(context) && value && mount)
+                    Positioned.fill(
+                      child: AnimatedModalBarrier(
+                        barrierSemanticsDismissible: value,
+                        color: CurvedAnimation(
+                          parent: scope.animationController,
+                          curve: Curves.ease,
+                        ).drive(
+                          ColorTween(
+                            begin: Colors.black54,
+                            end: Colors.black54,
+                          ).chain(
+                            CurveTween(curve: Curves.ease),
+                          ),
+                        ),
+                        onDismiss: () {
+                          scope.showAnimeSkip.value = false;
+                        },
+                      ),
+                    )
+                  else ...[
+                    Positioned.fill(
+                      child: GestureDetector(
+                        onTap: onTap,
+                        onDoubleTapDown: _lockPlayer ? null : _handleTapDown,
+                        // onLongPress: _handleLongPress,
+                        // onLongPressEnd: _handleLongPressEnd,
+                        onDoubleTap: _lockPlayer
+                            ? null
+                            : () {
+                                if (_tapPosition != null &&
+                                    _tapPosition!.dx >
+                                        MediaQuery.of(context).size.width / 2) {
+                                  if ((!mount) ||
+                                      seekOnDoubleTapEnabledWhileControlsAreVisible) {
+                                    onDoubleTapSeekForward();
+                                  }
+                                } else {
+                                  if ((!mount) ||
+                                      seekOnDoubleTapEnabledWhileControlsAreVisible) {
+                                    onDoubleTapSeekBackward();
+                                  }
                                 }
-                              } else {
-                                if ((!mount) ||
-                                    seekOnDoubleTapEnabledWhileControlsAreVisible) {
-                                  onDoubleTapSeekBackward();
+                              },
+                        onHorizontalDragUpdate: _lockPlayer
+                            ? null
+                            : (details) {
+                                if ((!mount)) {
+                                  onHorizontalDragUpdate(details);
                                 }
-                              }
-                            },
-                      onHorizontalDragUpdate: _lockPlayer
-                          ? null
-                          : (details) {
-                              if ((!mount)) {
-                                onHorizontalDragUpdate(details);
-                              }
-                            },
-                      onHorizontalDragEnd: _lockPlayer
-                          ? null
-                          : (details) {
-                              onHorizontalDragEnd();
-                            },
-                      onVerticalDragUpdate: _lockPlayer
-                          ? null
-                          : (details) async {
-                              final delta = details.delta.dy;
-                              final Offset position = details.localPosition;
+                              },
+                        onHorizontalDragEnd: _lockPlayer
+                            ? null
+                            : (details) {
+                                onHorizontalDragEnd();
+                              },
+                        onVerticalDragUpdate: _lockPlayer
+                            ? null
+                            : (details) async {
+                                final delta = details.delta.dy;
+                                final Offset position = details.localPosition;
 
-                              if (position.dx <=
-                                  MediaQuery.of(context).size.width / 2) {
-                                if (!mount) {
-                                  final brightness = _brightnessValue -
-                                      delta /
-                                          _theme(context)
-                                              .verticalGestureSensitivity;
-                                  final result = brightness.clamp(0.0, 1.0);
-                                  setBrightness(result);
+                                if (position.dx <=
+                                    MediaQuery.of(context).size.width / 2) {
+                                  if (!mount) {
+                                    final brightness = _brightnessValue -
+                                        delta /
+                                            _theme(context)
+                                                .verticalGestureSensitivity;
+                                    final result = brightness.clamp(0.0, 1.0);
+                                    setBrightness(result);
+                                  }
+                                } else {
+                                  if (!mount) {
+                                    final volume = _volumeValue -
+                                        delta /
+                                            _theme(context)
+                                                .verticalGestureSensitivity;
+                                    final result = volume.clamp(0.0, 1.0);
+                                    setVolume(result);
+                                  }
                                 }
-                              } else {
-                                if (!mount) {
-                                  final volume = _volumeValue -
-                                      delta /
-                                          _theme(context)
-                                              .verticalGestureSensitivity;
-                                  final result = volume.clamp(0.0, 1.0);
-                                  setVolume(result);
-                                }
-                              }
-                            },
-                      child: AnimatedOpacity(
-                        curve: Curves.easeInOut,
-                        opacity: visible ? 1.0 : 0.0,
-                        duration: _theme(context).controlsTransitionDuration,
-                        child: Container(
-                          padding: EdgeInsets.zero,
-                          color: _theme(context).backdropColor ??
-                              Colors.transparent,
+                              },
+                        child: AnimatedOpacity(
+                          curve: Curves.easeInOut,
+                          opacity: visible ? 1.0 : 0.0,
+                          duration: _theme(context).controlsTransitionDuration,
+                          child: Container(
+                            padding: EdgeInsets.zero,
+                            color: _theme(context).backdropColor ??
+                                Colors.transparent,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  if (!mount || seekOnDoubleTapEnabledWhileControlsAreVisible)
-                    if (_mountSeekBackwardButton || _mountSeekForwardButton)
-                      Positioned.fill(
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _mountSeekBackwardButton
-                                  ? TweenAnimationBuilder<double>(
-                                      tween: Tween<double>(
-                                        begin: 0.0,
-                                        end:
-                                            _hideSeekBackwardButton ? 0.0 : 1.0,
-                                      ),
-                                      duration:
-                                          const Duration(milliseconds: 200),
-                                      builder: (context, value, child) =>
-                                          Opacity(
-                                        opacity: value,
-                                        child: child,
-                                      ),
-                                      onEnd: () {
-                                        if (_hideSeekBackwardButton) {
-                                          setState(() {
-                                            _hideSeekBackwardButton = false;
-                                            _mountSeekBackwardButton = false;
-                                          });
-                                        }
-                                      },
-                                      child: _BackwardSeekIndicator(
-                                        onChanged: (value) {
-                                          _seekBarDeltaValueNotifier.value =
-                                              -value;
+                    if (!mount || seekOnDoubleTapEnabledWhileControlsAreVisible)
+                      if (_mountSeekBackwardButton || _mountSeekForwardButton)
+                        Positioned.fill(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _mountSeekBackwardButton
+                                    ? TweenAnimationBuilder<double>(
+                                        tween: Tween<double>(
+                                          begin: 0.0,
+                                          end: _hideSeekBackwardButton
+                                              ? 0.0
+                                              : 1.0,
+                                        ),
+                                        duration:
+                                            const Duration(milliseconds: 200),
+                                        builder: (context, value, child) =>
+                                            Opacity(
+                                          opacity: value,
+                                          child: child,
+                                        ),
+                                        onEnd: () {
+                                          if (_hideSeekBackwardButton) {
+                                            setState(() {
+                                              _hideSeekBackwardButton = false;
+                                              _mountSeekBackwardButton = false;
+                                            });
+                                          }
                                         },
-                                        onSubmitted: (value) {
-                                          setState(() {
-                                            _hideSeekBackwardButton = true;
-                                          });
-                                          var result = controller(context)
+                                        child: _BackwardSeekIndicator(
+                                          onChanged: (value) {
+                                            _seekBarDeltaValueNotifier.value =
+                                                -value;
+                                          },
+                                          onSubmitted: (value) {
+                                            setState(() {
+                                              _hideSeekBackwardButton = true;
+                                            });
+                                            var result = controller(context)
+                                                    .player
+                                                    .state
+                                                    .position -
+                                                value;
+                                            result = result.clamp(
+                                              Duration.zero,
+                                              controller(context)
                                                   .player
                                                   .state
-                                                  .position -
-                                              value;
-                                          result = result.clamp(
-                                            Duration.zero,
+                                                  .duration,
+                                            );
                                             controller(context)
                                                 .player
-                                                .state
-                                                .duration,
-                                          );
-                                          controller(context)
-                                              .player
-                                              .seek(result);
+                                                .seek(result);
+                                          },
+                                        ),
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
+                              Expanded(
+                                child: _mountSeekForwardButton
+                                    ? TweenAnimationBuilder<double>(
+                                        tween: Tween<double>(
+                                          begin: 0.0,
+                                          end: _hideSeekForwardButton
+                                              ? 0.0
+                                              : 1.0,
+                                        ),
+                                        duration:
+                                            const Duration(milliseconds: 200),
+                                        builder: (context, value, child) =>
+                                            Opacity(
+                                          opacity: value,
+                                          child: child,
+                                        ),
+                                        onEnd: () {
+                                          if (_hideSeekForwardButton) {
+                                            setState(() {
+                                              _hideSeekForwardButton = false;
+                                              _mountSeekForwardButton = false;
+                                            });
+                                          }
                                         },
-                                      ),
-                                    )
-                                  : const SizedBox.shrink(),
-                            ),
-                            Expanded(
-                              child: _mountSeekForwardButton
-                                  ? TweenAnimationBuilder<double>(
-                                      tween: Tween<double>(
-                                        begin: 0.0,
-                                        end: _hideSeekForwardButton ? 0.0 : 1.0,
-                                      ),
-                                      duration:
-                                          const Duration(milliseconds: 200),
-                                      builder: (context, value, child) =>
-                                          Opacity(
-                                        opacity: value,
-                                        child: child,
-                                      ),
-                                      onEnd: () {
-                                        if (_hideSeekForwardButton) {
-                                          setState(() {
-                                            _hideSeekForwardButton = false;
-                                            _mountSeekForwardButton = false;
-                                          });
-                                        }
-                                      },
-                                      child: _ForwardSeekIndicator(
-                                        onChanged: (value) {
-                                          _seekBarDeltaValueNotifier.value =
-                                              value;
-                                        },
-                                        onSubmitted: (value) {
-                                          setState(() {
-                                            _hideSeekForwardButton = true;
-                                          });
-                                          var result = controller(context)
+                                        child: _ForwardSeekIndicator(
+                                          onChanged: (value) {
+                                            _seekBarDeltaValueNotifier.value =
+                                                value;
+                                          },
+                                          onSubmitted: (value) {
+                                            setState(() {
+                                              _hideSeekForwardButton = true;
+                                            });
+                                            var result = controller(context)
+                                                    .player
+                                                    .state
+                                                    .position +
+                                                value;
+                                            result = result.clamp(
+                                              Duration.zero,
+                                              controller(context)
                                                   .player
                                                   .state
-                                                  .position +
-                                              value;
-                                          result = result.clamp(
-                                            Duration.zero,
+                                                  .duration,
+                                            );
                                             controller(context)
                                                 .player
-                                                .state
-                                                .duration,
-                                          );
-                                          controller(context)
-                                              .player
-                                              .seek(result);
-                                        },
-                                      ),
-                                    )
-                                  : const SizedBox.shrink(),
-                            ),
-                          ],
+                                                .seek(result);
+                                          },
+                                        ),
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                  ],
                   if (isFullscreen(context) &&
-                      scope.playerArgs.times.isNotEmpty)
+                      scope.playerArgs.times.isNotEmpty &&
+                      mount)
                     Align(
                       alignment: Alignment.centerRight,
                       child: CustomPopup(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(12),
-                            bottomLeft: Radius.circular(12),
-                          ),
-                        ),
                         duration: const Duration(milliseconds: 200),
-                        width: 180,
+                        width: 170,
                         show: value,
+                        paddingTop: true,
+                        shape: RoundedRectangleBorder(),
+                        height: MediaQuery.sizeOf(context).height,
                         items: scope.playerArgs.times,
                         builderFunction: (context, index, item) {
                           return ValueListenableBuilder(
@@ -1200,18 +1223,19 @@ class _BottomButtons extends StatelessWidget {
                   padding: WidgetStatePropertyAll(EdgeInsets.only(left: 10)),
                   visualDensity: VisualDensity(vertical: -4),
                 ),
-                onPressed: () {
+                onLongPress: () {
                   scope.showAnimeSkip.value = !scope.showAnimeSkip.value;
-                  Timer(const Duration(seconds: 20), () {
-                    scope.showAnimeSkip.value = false;
-                  });
+                  // Timer(const Duration(seconds: 20), () {
+                  //   scope.showAnimeSkip.value = false;
+                  // });
                 },
+                onPressed: () {},
                 child: ValueListenableBuilder(
                   valueListenable: scope.selectedAnimeTimeStamp,
                   builder: (context, value, child) => Text(
                     value?.timeStampType.label ?? '',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                   ),
                 ),

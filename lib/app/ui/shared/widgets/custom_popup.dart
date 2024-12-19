@@ -11,9 +11,10 @@ class CustomPopup<E> extends StatefulWidget {
     this.width,
     this.duration,
     this.shape,
+    this.paddingTop = false,
     required this.builderFunction,
   });
-
+  final bool paddingTop;
   final bool show;
   final Duration? duration;
   final ShapeBorder? shape;
@@ -68,6 +69,7 @@ class _CustomPopupState<E> extends State<CustomPopup<E>> {
 
   @override
   Widget build(BuildContext context) {
+    final padding = MediaQuery.paddingOf(context);
     return Offstage(
       offstage: !_delayShow,
       child: AnimatedContainer(
@@ -84,8 +86,16 @@ class _CustomPopupState<E> extends State<CustomPopup<E>> {
           child: MediaQuery.removePadding(
             context: context,
             removeTop: true,
+            removeLeft: true,
+            removeRight: true,
             child: ListView.builder(
-              padding: EdgeInsets.zero,
+              primary: false,
+              padding: EdgeInsets.only(
+                top: widget.paddingTop ? padding.top : 0,
+                right: 0,
+                left: 0,
+                bottom: 0,
+              ),
               controller: _localController,
               scrollDirection: Axis.vertical,
               itemCount: widget.items.length,

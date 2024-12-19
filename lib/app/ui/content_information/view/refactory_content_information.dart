@@ -342,7 +342,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
               final appSnackBar = context.appSnackBar;
 
               await _repository.getData(_content!).timeout(
-                const Duration(seconds: 5),
+                const Duration(seconds: 15),
                 onTimeout: () {
                   if (_informationArgs!.content.releases.length > 1 ||
                       _content!.cached) {
