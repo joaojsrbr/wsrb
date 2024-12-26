@@ -1,6 +1,4 @@
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/repository/anime_skip_imp.dart';
-import 'package:content_library/src/services/graphql_api_client.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 

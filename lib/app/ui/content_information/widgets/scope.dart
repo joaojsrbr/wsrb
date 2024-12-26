@@ -15,7 +15,6 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
     required this.setListIndex,
     required this.downloadRelease,
     required this.releases,
-    required this.bottomTabController,
     required this.content,
     required this.informationArgs,
     required this.releasesIsLoading,
@@ -25,7 +24,6 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
   final ContentInformationArgs? informationArgs;
   final bool releasesIsLoading;
   final bool isLoading;
-  final TabController bottomTabController;
   final Content? content;
   final ValueSetter<int> setListIndex;
   final int index;

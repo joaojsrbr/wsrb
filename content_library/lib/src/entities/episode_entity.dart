@@ -1,6 +1,5 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:content_library/src/entities/entity.dart';
-import 'package:content_library/src/models/episode.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first, must_be_immutable
+import 'package:content_library/content_library.dart';
 import 'package:isar/isar.dart';
 
 part 'episode_entity.g.dart';
@@ -55,6 +54,35 @@ class EpisodeEntity extends HistoryEntity {
     this.isComplete = false,
   });
 
+  factory EpisodeEntity.save({
+    bool isComplete = false,
+    required Episode episode,
+    required Anime anime,
+    Duration position = Duration.zero,
+    Duration duration = Duration.zero,
+    String? currentPositionBase64,
+    EpisodeEntity? entity,
+  }) {
+    return EpisodeEntity(
+      currentDuration: position.inMicroseconds,
+      currentPositionBase64: currentPositionBase64,
+      title: episode.title,
+      animeStringID: anime.stringID,
+      generateID: episode.generateID,
+      slugSerie: episode.slugSerie,
+      pageNumber: episode.pageNumber,
+      url: episode.url,
+      episodeDuration: duration.inMicroseconds,
+      thumbnail: episode.thumbnail,
+      createdAt: entity?.createdAt ?? DateTime.now(),
+      updatedAt: DateTime.now(),
+      stringID: episode.stringID,
+      isComplete: isComplete,
+      sinopse: episode.sinopse,
+      numberEpisode: int.tryParse(episode.number),
+    );
+  }
+
   @override
   List<Object?> get props => [
         episodeDuration,
@@ -98,10 +126,5 @@ class EpisodeEntity extends HistoryEntity {
       sinopse: sinopse,
       thumbnail: thumbnail,
     );
-  }
-
-  @override
-  String toString() {
-    return 'EpisodeEntity(episodeDuration: $episodeDuration, currentDuration: $currentDuration, isComplete: $isComplete, sinopse: $sinopse, numberEpisode: $numberEpisode, stringID: $stringID, animeStringID: $animeStringID, createdAt: $createdAt, updatedAt: $updatedAt, thumbnail: $thumbnail, slugSerie: $slugSerie, generateID: $generateID, url: $url, title: $title)';
   }
 }

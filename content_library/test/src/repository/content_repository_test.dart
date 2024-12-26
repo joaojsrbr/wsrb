@@ -6,19 +6,22 @@ import 'package:content_library/src/services/graphql_api_client.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('content repository ...', () async {
-    final DioClient client = DioClient();
-    final GraphQLApiClient graphQLApiClient = GraphQLApiClient();
-    final AnimeSkipRepository animeSkipRepository =
-        AnimeSkipRepository(graphQLApiClient);
-    final ContentRepository contentRepository = ContentRepository.test(
-      client,
-      animeSkipRepository,
-      Source.ANROLL,
-    );
+  test(
+    'content repository ...',
+    () async {
+      final DioClient client = DioClient();
+      final GraphQLApiClient graphQLApiClient = GraphQLApiClient();
+      final AnimeSkipRepository animeSkipRepository =
+          AnimeSkipRepository(graphQLApiClient);
+      final ContentRepository contentRepository = ContentRepository.test(
+        client,
+        animeSkipRepository,
+        Source.SLIMEREAD,
+      );
 
-    await contentRepository.loadMore();
+      await contentRepository.loadData();
 
-    animeSkipRepository;
-  });
+      animeSkipRepository;
+    },
+  );
 }

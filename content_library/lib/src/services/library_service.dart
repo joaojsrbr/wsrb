@@ -50,14 +50,10 @@ class LibraryService {
   Iterable<HistoryEntity>? getIsarLinks(ContentEntity element) {
     return switch (element) {
       AnimeEntity data => data.episodes
-          .where((episode) =>
-              !episode.isComplete &&
-              (episode.percent > _hiveController.historicSavePercent))
+          .where((episode) => !episode.isComplete && episode.percent > 0.0)
           .toList(),
       BookEntity data => data.chapters
-          .where((episode) =>
-              !episode.isComplete &&
-              (episode.readPercent > _hiveController.historicSavePercent))
+          .where((episode) => !episode.isComplete && episode.percent > 0.0)
           .toList(),
       _ => null
     };
@@ -127,12 +123,33 @@ class LibraryService {
   }
 
   ContentEntity? getContentEntityByStringID(String animeStringID) {
-    return entities.firstWhereOrNull((content) => switch (content) {
-          AnimeEntity data => data.stringID.contains(animeStringID) ||
-              data.animeID?.contains(animeStringID) == true,
-          BookEntity data => data.stringID.contains(animeStringID),
-          _ => false,
-        });
+    return entities.firstWhereOrNull(
+      (content) => _byStringID(content, animeStringID),
+    );
+  }
+
+  bool _byStringID(ContentEntity content, String animeStringID) {
+    return switch (content) {
+      AnimeEntity data => data.stringID.contains(animeStringID) ||
+          data.animeID?.contains(animeStringID) == true,
+      BookEntity data => data.stringID.contains(animeStringID),
+      _ => false,
+    };
+  }
+
+  Future<ContentEntity?> getContentEntityByStringIDAll(
+      String animeStringID) async {
+    final first = entities.firstWhereOrNull(
+      (content) => _byStringID(content, animeStringID),
+    );
+    switch (first) {
+      case AnimeEntity data:
+        await data.episodes.load();
+      case BookEntity data:
+        await data.chapters.load();
+    }
+
+    return first;
   }
 
   bool contains({ContentEntity? contentEntity, Content? content}) {

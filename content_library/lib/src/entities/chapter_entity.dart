@@ -1,3 +1,5 @@
+// ignore_for_file: must_be_immutable
+
 import 'package:content_library/src/entities/entity.dart';
 import 'package:content_library/src/models/chapter.dart';
 import 'package:isar/isar.dart';
@@ -10,7 +12,7 @@ class ChapterEntity extends HistoryEntity {
 
   @Index(replace: true, unique: true)
   String stringID;
-  String animeStringID;
+  String bookStringID;
   String title;
 
   DateTime? createdAt;
@@ -34,7 +36,7 @@ class ChapterEntity extends HistoryEntity {
   ChapterEntity({
     required this.readPercent,
     required this.stringID,
-    required this.animeStringID,
+    required this.bookStringID,
     required this.url,
     required this.title,
     this.createdAt,
@@ -55,7 +57,7 @@ class ChapterEntity extends HistoryEntity {
       read: isComplete,
       title: title,
       url: url,
-      animeStringID: animeStringID,
+      bookStringID: bookStringID,
     );
   }
 }

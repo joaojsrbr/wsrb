@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/entities/anime_skip_entity.dart';
 import 'package:content_library/src/services/isar_service.dart';
 import 'package:isar/isar.dart';
 
@@ -23,7 +22,7 @@ class IsarServiceImpl implements IsarService {
       switch (entity) {
         case ChapterEntity data:
           final bookEntity = await isar.bookEntitys.getByStringID(
-            data.animeStringID,
+            data.bookStringID,
           );
 
           if (bookEntity != null) {
@@ -48,16 +47,12 @@ class IsarServiceImpl implements IsarService {
           }
 
           break;
-        case AnimeSkipEntity data:
-          currentID = await isar.animeSkipEntitys.put(data);
-
-          isSucess = true;
-          break;
         case CategoryEntity data:
           currentID = await isar.categoryEntitys.put(data);
 
           isSucess = true;
           break;
+
         case AnimeEntity data:
           final animeEntity = await isar.animeEntitys.getByStringID(
             data.stringID,
@@ -69,7 +64,16 @@ class IsarServiceImpl implements IsarService {
           }
 
           data.updatedAt = DateTime.now();
+
           currentID = await isar.animeEntitys.putByStringID(data);
+          // await data.animeSkip.value!.times.save();
+          if (data.animeSkip.value != null) {
+            await isar.animeSkipEntitys.putByAnimeSkipId(data.animeSkip.value!);
+            await data.animeSkip.save();
+            // await isar.animeTimeStampEntitys.putAll(
+            //   data.animeSkip.value!.times.toList(),
+            // );
+          }
 
           isSucess = true;
           break;

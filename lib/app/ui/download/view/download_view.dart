@@ -112,8 +112,11 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
   void _setDirs() async {
     final result = AppStorage.getAllReleaseDir();
     if (result == null) return;
-    _dirs = result.sorted((dir1, dir2) =>
-        dir2.statSync().changed.compareTo(dir1.statSync().changed));
+
+    _dirs = result.sorted(
+      (dir1, dir2) =>
+          dir2.statSync().changed.compareTo(dir1.statSync().changed),
+    );
   }
 
   void _onInit() async {
@@ -196,7 +199,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(leading: BackButton()),
       body: RefreshIndicator(
         onRefresh: () async {
           await subscriptions.cancelAll();
@@ -244,7 +247,8 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
               Builder(builder: (context) {
                 return ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(
-                      parent: BouncingScrollPhysics()),
+                    parent: BouncingScrollPhysics(),
+                  ),
                   padding: const EdgeInsets.only(top: 8, right: 8, left: 8),
                   itemCount: _files.isNotEmpty ? _files.length : 1,
                   itemBuilder: (context, index) {

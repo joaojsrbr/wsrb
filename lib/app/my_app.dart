@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
     );
+    customLog('$this[build]');
 
     return MaterialApp.router(
       themeMode: themeController.themeMode,

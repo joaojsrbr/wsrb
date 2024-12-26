@@ -1,3 +1,5 @@
+// ignore_for_file: must_be_immutable
+
 import 'dart:convert';
 
 import 'package:anilist_dart/anilist.dart';
@@ -18,6 +20,7 @@ part 'anime_entity.g.dart';
   'hashCode',
   'toAnime',
   'map',
+  'aniList',
 })
 class AnimeEntity extends ContentEntity {
   @override
@@ -26,6 +29,12 @@ class AnimeEntity extends ContentEntity {
 
   IsarLinks<EpisodeEntity> episodes = IsarLinks<EpisodeEntity>();
   IsarLink<AnimeSkipEntity> animeSkip = IsarLink<AnimeSkipEntity>();
+
+  AnilistMedia? get aniList {
+    return anilistMedia != null
+        ? AnilistMedia.fromJson(jsonDecode(anilistMedia!))
+        : null;
+  }
 
   String? anilistMedia;
   DateTime? createdAt;
@@ -71,30 +80,6 @@ class AnimeEntity extends ContentEntity {
 
   String get imageUrl =>
       extraLarge ?? largeImage ?? mediumImage ?? originalImage;
-
-  @override
-  Map<String, dynamic> toMap() => {
-        "stringID": stringID,
-        "totalOfPages": totalOfPages,
-        "totalOfEpisodes": totalOfEpisodes,
-        "animeID": animeID,
-        "episodes": episodes,
-        "animeSkipEntity": animeSkip.value?.toMap,
-        "createdAt": createdAt?.toString(),
-        "updatedAt": updatedAt?.toString(),
-        "sinopse": sinopse,
-        "source": source,
-        "isDublado": isDublado,
-        "isFavorite": isFavorite,
-        "slugSerie": slugSerie,
-        "url": url,
-        "title": title,
-        "originalImage": originalImage,
-        "extraLarge": extraLarge,
-        "largeImage": largeImage,
-        "mediumImage": mediumImage,
-        "generateID": generateID,
-      };
 
   @override
   List<Object?> get props => [

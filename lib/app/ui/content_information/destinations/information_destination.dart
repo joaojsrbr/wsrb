@@ -137,10 +137,11 @@ class _InformationDestinationState extends State<InformationDestination>
           if (_content!.anilistMedia != null)
             Padding(
               padding: EdgeInsets.only(
-                  right: 8,
-                  left: 8,
-                  bottom: 12,
-                  top: (_content!.sinopse ?? "").isEmpty ? 8 : 0),
+                right: 8,
+                left: 8,
+                bottom: 12,
+                top: (_content!.sinopse ?? "").isEmpty ? 8 : 0,
+              ),
               child: Card.filled(
                 color: themeData.colorScheme.primary.withAlpha(10),
                 shape: RoundedRectangleBorder(

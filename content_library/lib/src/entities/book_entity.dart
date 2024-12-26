@@ -1,3 +1,5 @@
+// ignore_for_file: must_be_immutable
+
 import 'dart:convert';
 
 import 'package:anilist_dart/anilist.dart';
@@ -37,25 +39,6 @@ class BookEntity extends ContentEntity {
   String? extraLarge;
   String? largeImage;
   String? mediumImage;
-
-  @override
-  Map<String, dynamic> toMap() => {
-        "anilistMedia": anilistMedia,
-        "stringID": stringID,
-        "alternativeTitle": alternativeTitle,
-        "chapters": chapters,
-        "createdAt": createdAt.toString(),
-        "updatedAt": updatedAt.toString(),
-        "sinopse": sinopse,
-        "source": source,
-        "isFavorite": isFavorite,
-        "url": url,
-        "title": title,
-        "originalImage": originalImage,
-        "extraLarge": extraLarge,
-        "largeImage": largeImage,
-        "mediumImage": mediumImage,
-      };
 
   IsarLinks<ChapterEntity> chapters = IsarLinks<ChapterEntity>();
 

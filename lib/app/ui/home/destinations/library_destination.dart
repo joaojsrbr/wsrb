@@ -21,7 +21,6 @@ class LibraryeDestinationState extends State<LibraryDestination>
   @override
   bool get wantKeepAlive => true;
 
-  List<Widget> _children = [];
   final Debouncer _debouncer = Debouncer(
     duration: const Duration(milliseconds: 200),
   );
@@ -67,17 +66,15 @@ class LibraryeDestinationState extends State<LibraryDestination>
         .map((e) => e.getContent.toList())
         .toList();
 
-    _contents = [noCategories, ...yesCategories];
-
-    final List<Widget> newChildrens = [
-      buildGridView(noCategories),
-      ...yesCategories.mapIndexed((index, e) => buildGridView(e))
-    ];
+    // final List<Widget> newChildrens = [
+    //   buildGridView(noCategories),
+    //   ...yesCategories.mapIndexed((index, e) => buildGridView(e))
+    // ];
 
     // customLog(noCategories.length);
 
     setStateIfMounted(() {
-      _children = newChildrens;
+      _contents = [noCategories, ...yesCategories];
     });
   }
 
@@ -104,75 +101,82 @@ class LibraryeDestinationState extends State<LibraryDestination>
         HomeScope.of(context).subordinateLibraryTabController;
     if (text.isEmpty) {
       _debouncer.call(
-          () => subordinateLibraryTabController.animateTo(_initialIndex!));
+        () {
+          subordinateLibraryTabController.animateTo(_initialIndex!);
+          _initialIndex = null;
+        },
+      );
+
       return;
     }
-
-    _initialIndex ??= subordinateLibraryTabController.index;
 
     final index = _contents.indexWhere((list) =>
         list.any((content) => content.title.toLowerCase().contains(text)));
 
     if (index != -1 && index != subordinateLibraryTabController.index) {
+      _initialIndex = subordinateLibraryTabController.index;
       _debouncer.call(() => subordinateLibraryTabController.animateTo(index));
     }
   }
 
-  Widget buildGridView(List<Content> items) {
-    if (items.isEmpty) return const SizedBox.shrink();
-
-    return Builder(builder: (context) {
-      const gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
-        // maxCrossAxisExtent: 170,
-        crossAxisCount: 2,
-        childAspectRatio: 1,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        mainAxisExtent: 260,
-      );
-
-      final searchController = HomeScope.of(context).searchController;
-
-      final filter = searchController.text.isNotEmpty
-          ? items.where((content) => content.title
-              .toLowerCase()
-              .trim()
-              .contains(searchController.text.toLowerCase().trim()))
-          : items;
-
-      return GridView.builder(
-        itemCount: filter.length,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: gridDelegate,
-        padding: const EdgeInsets.only(
-          bottom: 40,
-          left: 8,
-          right: 8,
-          top: 12,
-        ),
-        itemBuilder: (context, index) {
-          return ItemContent.library(
-            content: filter.elementAt(index),
-          );
-        },
-      );
-    });
-  }
+  static const _gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
+    // maxCrossAxisExtent: 170,
+    crossAxisCount: 2,
+    childAspectRatio: 1,
+    crossAxisSpacing: 8,
+    mainAxisSpacing: 8,
+    mainAxisExtent: 160,
+  );
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    _setChildren();
+
+    // _setChildren();
+    customLog('$widget[build]');
 
     final SubordinateLibraryTabController subordinateLibraryTabController =
         HomeScope.of(context).subordinateLibraryTabController;
-
+    final searchController = HomeScope.of(context).searchController;
     return NotificationListener<ScrollNotification>(
       onNotification:
           subordinateLibraryTabController.scrollNotificationNextPage,
-      child: TabBarView(
-        controller: subordinateLibraryTabController,
-        children: _children,
+      child: ValueListenableBuilder(
+        valueListenable: searchController,
+        builder: (context, value, child) {
+          return TabBarView(
+            controller: subordinateLibraryTabController,
+            children: _contents.map(
+              (items) {
+                if (items.isEmpty) return const SizedBox.shrink();
+                final filter = value.text.isNotEmpty
+                    ? items.where((content) => content.title
+                        .toLowerCase()
+                        .trim()
+                        .contains(value.text.toLowerCase().trim()))
+                    : items;
+                if (filter.isEmpty) return const SizedBox.shrink();
+                return GridView.builder(
+                  itemCount: filter.length,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: _gridDelegate,
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.only(
+                    bottom: 40,
+                    left: 8,
+                    right: 8,
+                    top: 12,
+                  ),
+                  itemBuilder: (context, index) {
+                    return ItemContent.library(
+                      content: filter.elementAt(index),
+                    );
+                  },
+                );
+              },
+            ).toList(),
+          );
+        },
       ),
     );
   }

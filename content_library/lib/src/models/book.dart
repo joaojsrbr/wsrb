@@ -15,6 +15,9 @@ class Book extends Content {
   final String originalImage;
   final String? largeImage;
   final String? mediumImage;
+  final String? bookId;
+  final String? slugId;
+  final bool nsfw;
 
   const Book({
     super.anilistMedia,
@@ -27,6 +30,9 @@ class Book extends Content {
     this.alternativeTitle,
     super.sinopse,
     this.extraLarge,
+    this.nsfw = false,
+    this.bookId,
+    this.slugId,
     this.type,
     this.authors = const [],
     this.score,
@@ -57,6 +63,9 @@ class Book extends Content {
         'class': 'BOOK',
         "stringID": stringID,
         "source": source,
+        "bookId": bookId,
+        "nsfw": nsfw,
+        "slugId": slugId,
         "originalImage": originalImage,
         "genres": genres,
         "alternativeTitle": alternativeTitle,
@@ -76,6 +85,9 @@ class Book extends Content {
           ? AnilistMedia.fromJson(map['anilistMedia'])
           : null,
       title: map['title'],
+      bookId: map['bookId'],
+      nsfw: map['nsfw'],
+      slugId: map['slugId'],
       cached: map['cached'] ?? false,
       releases: map['releases'] is ChapterReleases
           ? map['releases']
@@ -107,6 +119,9 @@ class Book extends Content {
     Releases? releases,
     String? title,
     String? url,
+    bool? nsfw,
+    String? bookId,
+    String? slugId,
     String? originalImage,
     Source? source,
     bool? cached,
@@ -125,6 +140,9 @@ class Book extends Content {
     return Book(
       releases: ChapterReleases.from(releases ?? this.releases),
       cached: cached ?? this.cached,
+      bookId: bookId ?? this.bookId,
+      nsfw: nsfw ?? this.nsfw,
+      slugId: slugId ?? this.slugId,
       type: type ?? this.type,
       anilistMedia: anilistMedia ?? this.anilistMedia,
       extraLarge: extraLarge ?? this.extraLarge,
@@ -181,7 +199,4 @@ class Book extends Content {
 
     return book;
   }
-
-  @override
-  Book merge(Content other) => super.merge(other) as Book;
 }

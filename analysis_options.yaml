@@ -10,6 +10,12 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
+  exclude: [.history]
+  errors:
+    invalid_assignment: warning
+    missing_return: error
+    dead_code: info
+    todo: ignore
   enable-experiment:
     - macros
 

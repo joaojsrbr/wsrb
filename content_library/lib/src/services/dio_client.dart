@@ -76,7 +76,7 @@ class DioClient
 
   @override
   bool removeInterceptor(dio.Interceptor element) {
-    interceptors.removeWhere((element) => element is _DioStatus);
+    interceptors.removeWhere((a) => element.runtimeType == a.runtimeType);
     return true;
   }
 

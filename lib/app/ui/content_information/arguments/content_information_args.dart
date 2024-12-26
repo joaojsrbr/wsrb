@@ -8,13 +8,15 @@ class ContentInformationArgs extends Equatable {
   final Content content;
   final bool getData;
 
+  final bool isLibrary;
   const ContentInformationArgs({
     required this.content,
     this.getData = true,
+    this.isLibrary = false,
   });
 
   @override
-  List<Object?> get props => [content];
+  List<Object?> get props => [content, isLibrary];
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{

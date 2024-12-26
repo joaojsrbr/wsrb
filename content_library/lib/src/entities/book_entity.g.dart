@@ -268,12 +268,14 @@ const _BookEntitysourceEnumValueMap = {
   'NEOX_SCANS': 1,
   'DEMON_SECT': 2,
   'GOYABU': 3,
+  'SLIMEREAD': 4,
 };
 const _BookEntitysourceValueEnumMap = {
   0: Source.ANROLL,
   1: Source.NEOX_SCANS,
   2: Source.DEMON_SECT,
   3: Source.GOYABU,
+  4: Source.SLIMEREAD,
 };
 
 Id _bookEntityGetId(BookEntity object) {

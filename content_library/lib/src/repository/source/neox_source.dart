@@ -175,7 +175,7 @@ class NeoxSource extends RSource {
         if (url.isEmpty || title.isEmpty) continue;
 
         final chapter = Chapter(
-          animeStringID: book.stringID,
+          bookStringID: book.stringID,
           url: url,
           title: title,
         );

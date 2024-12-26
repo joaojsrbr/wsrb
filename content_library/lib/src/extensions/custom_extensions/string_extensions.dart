@@ -32,7 +32,9 @@ extension StringExtensions on String {
   Directory get toDir => Directory(this);
 
   String get capitalize {
-    return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
+    return length > 0
+        ? "${this[0].toUpperCase()}${substring(1).toLowerCase()}"
+        : this;
   }
 
   Duration get parseDuration {

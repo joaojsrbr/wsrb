@@ -6,7 +6,6 @@ import 'package:app_wsrb_jsr/app/ui/content_information/destinations/information
 import 'package:app_wsrb_jsr/app/ui/content_information/destinations/release_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/content_persistent_header.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
@@ -25,10 +24,9 @@ class RefContentInformationView extends StatefulWidget {
       _RefContentkInformationViewState();
 }
 
-class _RefContentkInformationViewState extends State<RefContentInformationView>
-    with SubscriptionsMixin, SingleTickerProviderStateMixin {
+class _RefContentkInformationViewState
+    extends State<RefContentInformationView> {
   late final ContentRepository _repository;
-  late final TabController _bottomTabController;
   // late final ConnectionChecker _connectionChecker;
 
   late final LibraryService _libraryService;
@@ -59,7 +57,6 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
   void initState() {
     super.initState();
     _bottomMenuController = BottomMenuController(minHeight: 70);
-    _bottomTabController = TabController(length: 2, vsync: this);
     _historicController = context.read<HistoricController>();
     _historyService = HistoryService(_historicController);
     _libraryController = context.read<LibraryController>();
@@ -81,7 +78,6 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     // if (_content?.cached == false &&
     //     !_libraryService.contains(content: _content)) {
     // }
-    _refreshIndicatorKey.currentState?.show();
 
     _loadContentData();
   }
@@ -102,13 +98,16 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
       contentCache = const Result.empty();
     }
 
-    if (_content?.cached == true) {
+    if (_content?.cached == true ||
+        _informationArgs?.isLibrary == true &&
+            _informationArgs?.content.releases.isNotEmpty == true) {
       _handleResult(contentCache);
     } else {
+      _refreshIndicatorKey.currentState?.show();
       await _repository
           .getData(_informationArgs!.content)
           .timeout(
-            const Duration(seconds: 5),
+            const Duration(minutes: 1),
             onTimeout: () => _handleTimeout(),
           )
           .then(_handleResult);
@@ -159,19 +158,19 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     }
 
     setState(() {
-      _content = _content?.merge(data.copyWith(
+      _content = data.copyWith(
         releases: _releases[_index],
         cached: true,
-      ));
+      );
       _releasesIsLoading = false;
       _isLoading = false;
     });
 
-    if (await _shouldSaveCache(data, forceSaveCache)) {
+    if (await _shouldSaveCache(data, forceSaveCache) &&
+        !_informationArgs!.isLibrary) {
       AutoCache.data.saveJson(key: data.stringID, data: _content!.toJson());
     }
-
-    _initialRefresh.complete();
+    if (!_initialRefresh.isCompleted) _initialRefresh.complete();
   }
 
   Future<bool> _shouldSaveCache(Content data, bool forceSaveCache) async {
@@ -228,15 +227,14 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
           statisticsCallback: (statistics) async {},
           onResult: (result) async {
             if (result is Success) {
-              AnimeEntity animeEntity = _content!.toEntity() as AnimeEntity;
-
-              final bAnimeEntity =
+              final animeEntity =
                   _libraryService.getContentEntityByStringID(_content!.stringID)
-                      as AnimeEntity?;
+                          as AnimeEntity? ??
+                      _content!.toEntity() as AnimeEntity;
 
-              if (bAnimeEntity != null) {
-                animeEntity = bAnimeEntity.merge(animeEntity) as AnimeEntity;
-              }
+              // if (bAnimeEntity != null) {
+              //   animeEntity = bAnimeEntity.merge(animeEntity) as AnimeEntity;
+              // }
 
               final EpisodeEntity episodeEntity =
                   _historicController.entities.firstWhere(
@@ -280,9 +278,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     customLog(indexOf);
     _bottomMenuController.args = release;
 
-    _bottomMenuController.open(
-      onClose: () async {},
-    );
+    _bottomMenuController.open();
   }
 
   @override
@@ -300,140 +296,153 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
   Widget build(BuildContext context) {
     final sizeOf = MediaQuery.sizeOf(context);
 
-    customLog('$widget[build]');
+    final themeData = Theme.of(context);
 
     final libraryService = context.watch<LibraryService>();
-
-    return ContentScope(
-      bottomTabController: _bottomTabController,
-      index: _index,
-      onLongPressed: _handleLongPressed,
-      informationArgs: _informationArgs,
-      isLoading: _isLoading,
-      setListIndex: _handleSetListIndex,
-      downloadRelease: _downloadRelease,
-      releases: _releases,
-      content: _content,
-      releasesIsLoading: _releasesIsLoading,
-      builder: (context) => BottomMenu(
-        isDismissible: true,
-        bottomMenuController: _bottomMenuController,
-        buttons: (context) {
-          return OverflowBar(
-            spacing: 8,
-            textDirection: Directionality.of(context),
-            overflowAlignment: OverflowBarAlignment.center,
-            children: const [],
-          );
-        },
-        child: Scaffold(
-          body: RefreshIndicator(
-            key: _refreshIndicatorKey,
-            notificationPredicate: (notification) {
-              if (notification is OverscrollNotification) {
-                return notification.depth == 2;
-              }
-              return notification.depth == 0;
+    final appSnackBar = context.appSnackBar;
+    customLog('$widget[build]');
+    return Theme(
+      data: ThemeData.dark(useMaterial3: true).copyWith(
+        cardTheme: themeData.cardTheme.copyWith(margin: EdgeInsets.zero),
+        colorScheme: _content?.anilistMedia?.coverImage?.color != null
+            ? ColorScheme.fromSeed(
+                seedColor: _content!.anilistMedia!.coverImage!.color!.fromHex,
+                brightness: themeData.brightness,
+              )
+            : null,
+      ),
+      child: DefaultTabController(
+        length: 2,
+        child: ContentScope(
+          index: _index,
+          onLongPressed: _handleLongPressed,
+          informationArgs: _informationArgs,
+          isLoading: _isLoading,
+          setListIndex: _handleSetListIndex,
+          downloadRelease: _downloadRelease,
+          releases: _releases,
+          content: _content,
+          releasesIsLoading: _releasesIsLoading,
+          builder: (context) => BottomMenu(
+            isDismissible: true,
+            bottomMenuController: _bottomMenuController,
+            buttons: (context) {
+              return OverflowBar(
+                spacing: 8,
+                overflowAlignment: OverflowBarAlignment.center,
+                children: const [],
+              );
             },
-            onRefresh: () async {
-              _initialRefresh = Completer();
-              if (_content?.cached == false &&
-                  !_libraryService.contains(content: _content)) {
-                await _initialRefresh.future;
-                return;
-              }
+            child: Builder(builder: (context) {
+              return Scaffold(
+                body: RefreshIndicator(
+                  key: _refreshIndicatorKey,
+                  notificationPredicate: (notification) {
+                    if (notification is OverscrollNotification) {
+                      return notification.depth == 2;
+                    }
+                    return notification.depth == 0;
+                  },
+                  onRefresh: () async {
+                    _initialRefresh = Completer();
+                    if (_content?.cached == false &&
+                        !_libraryService.contains(content: _content)) {
+                      await _initialRefresh.future;
+                      return;
+                    }
 
-              if (_content == null) return;
-              final appSnackBar = context.appSnackBar;
+                    if (_content == null) return;
 
-              await _repository.getData(_content!).timeout(
-                const Duration(seconds: 15),
-                onTimeout: () {
-                  if (_informationArgs!.content.releases.length > 1 ||
-                      _content!.cached) {
-                    return Result.success(_informationArgs!.content);
-                  }
-                  return Result.failure(
-                    TimeoutException("Tempo excedido"),
-                  );
-                },
-              ).then((result) {
-                result.fold(
-                  onSuccess: (result) => _onSuccess(result, false, true),
-                  onError: appSnackBar.onError,
-                );
-              });
-            },
-            child: NestedScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              key: const PageStorageKey("content_pageStorageKey"),
-              headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                SliverAppBar(
-                  expandedHeight: sizeOf.height * .40,
-                  flexibleSpace: const FlexibleSpaceBar(
-                    background: ContentHeader(),
-                    collapseMode: CollapseMode.pin,
-                  ),
-                  actions: [
-                    IconButton(
-                      onPressed: () {
-                        customLog(
-                            'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${_content!.title} - id: ${_content!.stringID}');
-                        if (libraryService.favoritesIDS
-                            .contains(_content!.stringID)) {
-                          _libraryController.remove(
-                              contentEntity: _content!.toEntity());
-                        } else {
-                          _libraryController.add(
-                            contentEntity: _content!.toEntity(isFavorite: true),
-                          );
+                    await _repository.getData(_content!).timeout(
+                      const Duration(seconds: 15),
+                      onTimeout: () {
+                        if (_informationArgs!.content.releases.length > 1 ||
+                            _content!.cached) {
+                          return Result.success(_informationArgs!.content);
                         }
+                        return Result.failure(
+                          TimeoutException("Tempo excedido"),
+                        );
                       },
-                      icon: FadeThroughTransitionSwitcher(
-                        enableSecondChild: libraryService.favoritesIDS.contains(
-                          _content?.stringID,
+                    ).then((result) {
+                      result.fold(
+                        onSuccess: (result) => _onSuccess(result, false, true),
+                        onError: appSnackBar.onError,
+                      );
+                    });
+                  },
+                  child: NestedScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                      SliverAppBar(
+                        expandedHeight: sizeOf.height * .40,
+                        flexibleSpace: const FlexibleSpaceBar(
+                          background: ContentHeader(),
+                          collapseMode: CollapseMode.pin,
                         ),
-                        secondChild: Icon(MdiIcons.heart, color: Colors.red),
-                        child: Icon(MdiIcons.heartOutline),
-                      ),
-                    ),
-                  ],
-                  bottom: TabBar(
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    tabAlignment: TabAlignment.fill,
-                    controller: _bottomTabController,
-                    tabs: ContentTabBar.values
-                        .map(
-                          (e) => Tab(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Icon(e.getIconData(_content!)),
-                                const SizedBox(width: 8),
-                                Center(child: Text(e.getTitle(_content!))),
-                              ],
+                        actions: [
+                          IconButton(
+                            onPressed: () async {
+                              customLog(
+                                  'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${_content!.title} - id: ${_content!.stringID}');
+                              if (libraryService.favoritesIDS
+                                  .contains(_content!.stringID)) {
+                                _libraryController.remove(
+                                    contentEntity: _content!.toEntity());
+                              } else {
+                                _libraryController.add(
+                                  contentEntity:
+                                      _content!.toEntity(isFavorite: true),
+                                );
+                              }
+                            },
+                            icon: FadeThroughTransitionSwitcher(
+                              enableSecondChild:
+                                  libraryService.favoritesIDS.contains(
+                                _content?.stringID,
+                              ),
+                              secondChild:
+                                  Icon(MdiIcons.heart, color: Colors.red),
+                              child: Icon(MdiIcons.heartOutline),
                             ),
                           ),
-                        )
-                        .toList(),
+                        ],
+                        bottom: TabBar(
+                          indicatorSize: TabBarIndicatorSize.tab,
+                          tabAlignment: TabAlignment.fill,
+                          tabs: ContentTabBar.values
+                              .map(
+                                (e) => Tab(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Icon(e.getIconData(_content!)),
+                                      const SizedBox(width: 8),
+                                      Center(
+                                          child: Text(e.getTitle(_content!))),
+                                    ],
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
+                    ],
+                    body: TabBarView(
+                      physics: _isLoading
+                          ? const NeverScrollableScrollPhysics()
+                          : const PageScrollPhysics(),
+                      children: const [
+                        ReleaseDestination(),
+                        InformationDestination(),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-              body: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 350),
-                child: TabBarView(
-                  physics: _isLoading
-                      ? const NeverScrollableScrollPhysics()
-                      : const PageScrollPhysics(),
-                  controller: _bottomTabController,
-                  children: const [
-                    ReleaseDestination(),
-                    InformationDestination(),
-                  ],
-                ),
-              ),
-            ),
+              );
+            }),
           ),
         ),
       ),
@@ -442,74 +451,39 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
 
   @override
   void dispose() {
-    _bottomTabController.dispose();
-    _bottomMenuController.dispose();
+    // _bottomMenuController.dispose();
     _changeTabBarIndex.cancel();
     _saveData();
     super.dispose();
   }
 
-  void _saveData() {
+  void _saveData() async {
     if (_libraryService.contains(content: _content)) {
-      ContentEntity contentEntity = _content!.toEntity();
+      final contentEntity = (await _libraryService
+          .getContentEntityByStringIDAll(_content!.stringID));
 
-      final entity =
-          _libraryService.getContentEntityByStringID(_content!.stringID);
+      final List<HistoryEntity> historyEntities = [];
 
-      if (_libraryService.favoritesIDS.contains(_content!.stringID) &&
-          !_informationArgs!.getData) {
-        _historicController
-            .addAll(
-          historyEntities: _content!.releases
-              .map(
-                (e) => switch (e) {
-                  Episode data => data.toEntity(anime: _content as Anime),
-                  Chapter data => data.toEntity(0.0, null, null),
-                  _ => null,
-                },
-              )
-              .nonNulls
-              .toList()
-            ..removeWhere(_historyService.entities.contains),
-          // ..removeWhere(
-          //   (entity) {
-
-          //     return _historicController.entities
-          //             .firstWhereOrNull((entity2) => switch (entity2) {
-          //                   EpisodeEntity data when entity is EpisodeEntity =>
-          //                     data.stringID.contains(entity.stringID),
-          //                   ChapterEntity data when entity is ChapterEntity =>
-          //                     data.stringID.contains(entity.stringID),
-          //                   _ => false,
-          //                 }) !=
-          //         null;
-          //   },
-          // ),
-        )
-            .whenComplete(() {
-          if (entity != null) {
-            contentEntity = contentEntity.merge(entity);
+      for (final episode in _content!.releases) {
+        final entity = switch (episode) {
+          Episode data => data.toEntity(anime: _content as Anime),
+          Chapter data => data.toEntity(0.0, null, null),
+          _ => null,
+        };
+        if (!_historicController.contains(release: episode) && entity != null) {
+          historyEntities.add(entity);
+          switch (contentEntity) {
+            case AnimeEntity data when entity is EpisodeEntity:
+              data.episodes.add(entity);
+            case BookEntity data when entity is ChapterEntity:
+              data.chapters.add(entity);
           }
-
-          _libraryController.add(
-            contentEntity: _content!.toEntity(
-              updatedAt: DateTime.now(),
-              isFavorite: true,
-            ),
-          );
-        });
-      } else {
-        if (entity != null) {
-          contentEntity = contentEntity.merge(entity);
         }
-
-        _libraryController.add(
-          contentEntity: _content!.toEntity(
-            updatedAt: DateTime.now(),
-            isFavorite: true,
-          ),
-        );
       }
+
+      await _historicController.addAll(historyEntities: historyEntities);
+
+      await _libraryController.add(contentEntity: contentEntity);
     }
   }
 }

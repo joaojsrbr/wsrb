@@ -31,7 +31,7 @@ class AppStorage {
     return await Directory(path).delete(recursive: recursive);
   }
 
-  static final DOWNLOAD_DIR = Directory('${App.APP_DIRECTORY}/donwload');
+  static final DOWNLOAD_DIR = Directory('${App.APP_DIRECTORY}/download');
 
   static File? getReleaseFile(Content content, Release release) {
     final dirPath =

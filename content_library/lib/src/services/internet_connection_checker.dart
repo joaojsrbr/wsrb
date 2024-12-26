@@ -15,7 +15,7 @@ class ConnectionChecker extends ChangeNotifier {
         _connectivityResult = result
             .where((connectivity) => connectivity != ConnectivityResult.vpn)
             .toList();
-        _hasConnection = await InternetConnectionChecker().hasConnection;
+        _hasConnection = await _internetConnectionChecker.hasConnection;
         notifyListeners();
       }),
       Connectivity()
@@ -27,7 +27,7 @@ class ConnectionChecker extends ChangeNotifier {
 
         if (_connectivityResult.contains(ConnectivityResult.wifi) ||
             _connectivityResult.contains(ConnectivityResult.mobile)) {
-          _hasConnection = await InternetConnectionChecker().hasConnection;
+          _hasConnection = await _internetConnectionChecker.hasConnection;
         } else {
           _hasConnection = false;
         }
@@ -52,7 +52,7 @@ class ConnectionChecker extends ChangeNotifier {
         .toList();
     if (_connectivityResult.contains(ConnectivityResult.wifi) ||
         _connectivityResult.contains(ConnectivityResult.mobile)) {
-      _hasConnection = await InternetConnectionChecker().hasConnection;
+      _hasConnection = await _internetConnectionChecker.hasConnection;
     } else {
       _hasConnection = false;
     }

@@ -189,35 +189,37 @@ class _CustomSearchAnchorState extends State<CustomSearchAnchor> {
 
   void _openView() {
     final NavigatorState navigator = Navigator.of(context);
-    navigator.push(_SearchViewRoute(
-      viewOnChanged: widget.viewOnChanged,
-      viewOnSubmitted: widget.viewOnSubmitted,
-      dividerWidget: widget.dividerWidget,
-      viewLeading: widget.viewLeading,
-      viewTrailing: widget.viewTrailing,
-      viewHintText: widget.viewHintText,
-      viewBackgroundColor: widget.viewBackgroundColor,
-      viewElevation: widget.viewElevation,
-      viewSurfaceTintColor: widget.viewSurfaceTintColor,
-      viewSide: widget.viewSide,
-      viewShape: widget.viewShape,
-      viewHeaderTextStyle: widget.headerTextStyle,
-      viewHeaderHintStyle: widget.headerHintStyle,
-      dividerColor: widget.dividerColor,
-      viewConstraints: widget.viewConstraints,
-      showFullScreenView: getShowFullScreenView(),
-      toggleVisibility: toggleVisibility,
-      textDirection: Directionality.of(context),
-      viewBuilder: widget.viewBuilder,
-      anchorKey: _anchorKey,
-      searchController: _searchController,
-      suggestionsBuilder: widget.suggestionsBuilder,
-      textCapitalization: widget.textCapitalization,
-      capturedThemes:
-          InheritedTheme.capture(from: context, to: navigator.context),
-      textInputAction: widget.textInputAction,
-      keyboardType: widget.keyboardType,
-    ));
+    navigator.push(
+      _SearchViewRoute(
+        viewOnChanged: widget.viewOnChanged,
+        viewOnSubmitted: widget.viewOnSubmitted,
+        dividerWidget: widget.dividerWidget,
+        viewLeading: widget.viewLeading,
+        viewTrailing: widget.viewTrailing,
+        viewHintText: widget.viewHintText,
+        viewBackgroundColor: widget.viewBackgroundColor,
+        viewElevation: widget.viewElevation,
+        viewSurfaceTintColor: widget.viewSurfaceTintColor,
+        viewSide: widget.viewSide,
+        viewShape: widget.viewShape,
+        viewHeaderTextStyle: widget.headerTextStyle,
+        viewHeaderHintStyle: widget.headerHintStyle,
+        dividerColor: widget.dividerColor,
+        viewConstraints: widget.viewConstraints,
+        showFullScreenView: getShowFullScreenView(),
+        toggleVisibility: toggleVisibility,
+        textDirection: Directionality.of(context),
+        viewBuilder: widget.viewBuilder,
+        anchorKey: _anchorKey,
+        searchController: _searchController,
+        suggestionsBuilder: widget.suggestionsBuilder,
+        textCapitalization: widget.textCapitalization,
+        capturedThemes:
+            InheritedTheme.capture(from: context, to: navigator.context),
+        textInputAction: widget.textInputAction,
+        keyboardType: widget.keyboardType,
+      ),
+    );
   }
 
   void _closeView(String? selectedText) {
@@ -708,11 +710,12 @@ class _ViewContentState extends State<_ViewContent> {
                           child: SizedBox(
                             height: 55,
                             child: CustomSearchBar(
-                              autoFocus: true,
+                              autoFocus: false,
                               constraints: widget.showFullScreenView
                                   ? BoxConstraints(
                                       minHeight: _SearchViewDefaultsM3
-                                          .fullScreenBarHeight)
+                                          .fullScreenBarHeight,
+                                    )
                                   : null,
                               leading: widget.viewLeading ?? defaultLeading,
                               trailing: widget.viewTrailing ?? defaultTrailing,
@@ -869,6 +872,12 @@ class CustomSearchController extends TextEditingController {
   void openView() {
     assert(isAttached);
     _anchor?._openView();
+  }
+
+  void unFocusKeyBoard() {
+    if (_anchor?.context.mounted == true) {
+      _anchor?.context.unFocusKeyBoard();
+    }
   }
 
   void closeView(String? selectedText) {
@@ -1132,6 +1141,9 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
               focusNode: _focusNode,
               onChanged: widget.onChanged,
               onSubmitted: onSubmitted,
+              // onEditingComplete: () {
+              //   onSubmitted(widget.controller?.text ?? '');
+              // },
               controller: widget.controller,
               contextMenuBuilder: (context, editableTextState) {
                 return AdaptiveTextSelectionToolbar.editable(

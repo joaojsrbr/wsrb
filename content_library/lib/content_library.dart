@@ -16,7 +16,6 @@ export 'src/constants/order.dart';
 export 'src/constants/source.dart';
 export 'src/entities/anime_entity.dart';
 export 'src/entities/anime_skip_entity.dart';
-export 'src/entities/anime_stamp_entity.dart';
 export 'src/entities/book_entity.dart';
 export 'src/entities/category_entity.dart';
 export 'src/entities/chapter_entity.dart';

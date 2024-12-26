@@ -1,7 +1,6 @@
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/home/destinations/content_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/home/destinations/library_destination.dart';
-import 'package:app_wsrb_jsr/app/ui/home/destinations/settings_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_view_flexible_space.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/keep_watching.dart';
@@ -11,6 +10,7 @@ import 'package:app_wsrb_jsr/app/ui/shared/widgets/menu_button.dart';
 import 'package:app_wsrb_jsr/app/utils/category_utils.dart';
 import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
 import 'package:content_library/content_library.dart';
+import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -39,7 +39,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    _tabController = TabController(vsync: this, length: 3)
+    _tabController = TabController(vsync: this, length: 2)
       ..addListener(_tabControllerListener);
 
     _scrollController = ScrollController()
@@ -144,6 +144,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final CategoryController categoryController =
         context.watch<CategoryController>();
+    customLog('$widget[build]');
 
     final HiveController hiveController = context.watch<HiveController>();
 
@@ -155,159 +156,224 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       searchController: _searchController,
       enabled: TickerMode.of(context),
       tabController: _tabController,
-      child: Builder(
-        builder: (context) {
-          final TabController tabController =
-              HomeScope.of(context).tabController;
-          final LibraryService libraryService = context.watch<LibraryService>();
+      builder: (context) {
+        final TabController tabController = HomeScope.of(context).tabController;
+        final LibraryService libraryService = context.watch<LibraryService>();
 
-          return Scaffold(
-            body: BottomMenu(
-              bottomMenuController: _bottomMenuController,
-              child: NestedScrollView(
-                // onlyOneScrollInBody: true,
-                controller: _scrollController,
-                physics: _mainPhysics,
-                headerSliverBuilder: (context, innerBoxIsScrolled) {
-                  return [
-                    SliverAppBar(
-                      bottom: TabBar(
-                        controller: _tabController,
-                        dividerColor: (libraryService.notCompleted.isNotEmpty ||
-                                    libraryService.completed.isEmpty) &&
-                                _tabController.index == 1
-                            ? Colors.transparent
-                            : null,
-                        tabs: [
-                          Tab(icon: Icon(MdiIcons.home)),
-                          Tab(icon: Icon(MdiIcons.library)),
-                          Tab(icon: Icon(MdiIcons.cog)),
-                        ],
-                      ),
-                      actions: [
-                        if ([0, 1].contains(tabController.index))
+        return Scaffold(
+          body: BottomMenu(
+            bottomMenuController: _bottomMenuController,
+            child: ExtendedNestedScrollView(
+              onlyOneScrollInBody: true,
+              controller: _scrollController,
+              physics: _mainPhysics,
+              headerSliverBuilder: (context, innerBoxIsScrolled) {
+                return [
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 150,
+                      child: AppBar(
+                        forceMaterialTransparency: true,
+                        bottom: TabBar(
+                          controller: _tabController,
+                          dividerColor:
+                              (libraryService.notCompleted.isNotEmpty ||
+                                          libraryService.completed.isEmpty) &&
+                                      _tabController.index == 1
+                                  ? Colors.transparent
+                                  : null,
+                          tabs: [
+                            Tab(icon: Icon(MdiIcons.home)),
+                            Tab(icon: Icon(MdiIcons.library))
+                          ],
+                        ),
+                        actions: [
+                          if ([0, 1].contains(tabController.index))
+                            Padding(
+                              padding: const EdgeInsets.only(right: 12),
+                              child: IconButton(
+                                visualDensity:
+                                    const VisualDensity(horizontal: -4),
+                                onPressed: () async {
+                                  if (await PermissionUtils
+                                          .manageExternalStorage() &&
+                                      context.mounted) {
+                                    context.push(RouteName.DOWNLOAD);
+                                  }
+                                },
+                                icon: Icon(MdiIcons.downloadBox),
+                              ),
+                            ),
+                          if (identical(tabController.index, 1))
+                            Padding(
+                              padding: const EdgeInsets.only(right: 12),
+                              child: IconButton(
+                                visualDensity:
+                                    const VisualDensity(horizontal: -4),
+                                onPressed: () =>
+                                    CategoryUtils.createCategory(context),
+                                icon: Icon(MdiIcons.tag),
+                              ),
+                            ),
                           Padding(
                             padding: const EdgeInsets.only(right: 12),
                             child: IconButton(
                               visualDensity:
                                   const VisualDensity(horizontal: -4),
-                              onPressed: () async {
-                                if (await PermissionUtils
-                                        .manageExternalStorage() &&
-                                    context.mounted) {
-                                  context.push(RouteName.DOWNLOAD);
-                                }
+                              onPressed: () {
+                                context.push(RouteName.SETTINGS);
+                                // Scaffold.maybeOf(context)?.openDrawer();
                               },
-                              icon: Icon(MdiIcons.downloadBox),
+                              icon: Icon(MdiIcons.cog),
                             ),
                           ),
-                        if (identical(tabController.index, 1))
-                          Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: IconButton(
-                              visualDensity:
-                                  const VisualDensity(horizontal: -4),
-                              onPressed: () =>
-                                  CategoryUtils.createCategory(context),
-                              icon: Icon(MdiIcons.tag),
-                            ),
-                          ),
-                      ],
-                      automaticallyImplyLeading: false,
-                      title: const HomeViewFlexibleSpace(),
+                        ],
+                        automaticallyImplyLeading: false,
+                        title: HomeViewFlexibleSpace(
+                          searchController: _searchController,
+                        ),
+                      ),
                     ),
-                    const KeepWatching(),
-                    SliverAnimatedPaintExtent(
-                      duration: const Duration(milliseconds: 350),
-                      child: SliverToBoxAdapter(
-                        child: identical(tabController.index, 1)
-                            ? TabBar(
-                                key: const ValueKey('tab_bar_library'),
-                                tabAlignment: TabAlignment.start,
-                                controller: _subordinateLibraryTabController,
-                                tabs: categoryController.categories.map<Widget>(
-                                  (CategoryEntity entity) {
-                                    return GestureDetector(
-                                      key: ValueKey(entity.title),
-                                      onLongPress: () {
-                                        CategoryUtils.createCategory(
-                                            context, entity);
-                                      },
-                                      child: Tab(
-                                        text: entity.title,
+                  ),
+                  // SliverAppBar(
+                  //   bottom: TabBar(
+                  //     controller: _tabController,
+                  //     dividerColor: (libraryService.notCompleted.isNotEmpty ||
+                  //                 libraryService.completed.isEmpty) &&
+                  //             _tabController.index == 1
+                  //         ? Colors.transparent
+                  //         : null,
+                  //     tabs: [
+                  //       Tab(icon: Icon(MdiIcons.home)),
+                  //       Tab(icon: Icon(MdiIcons.library))
+                  //     ],
+                  //   ),
+                  //   actions: [
+                  //     if ([0, 1].contains(tabController.index))
+                  //       Padding(
+                  //         padding: const EdgeInsets.only(right: 12),
+                  //         child: IconButton(
+                  //           visualDensity: const VisualDensity(horizontal: -4),
+                  //           onPressed: () async {
+                  //             if (await PermissionUtils
+                  //                     .manageExternalStorage() &&
+                  //                 context.mounted) {
+                  //               context.push(RouteName.DOWNLOAD);
+                  //             }
+                  //           },
+                  //           icon: Icon(MdiIcons.downloadBox),
+                  //         ),
+                  //       ),
+                  //     if (identical(tabController.index, 1))
+                  //       Padding(
+                  //         padding: const EdgeInsets.only(right: 12),
+                  //         child: IconButton(
+                  //           visualDensity: const VisualDensity(horizontal: -4),
+                  //           onPressed: () =>
+                  //               CategoryUtils.createCategory(context),
+                  //           icon: Icon(MdiIcons.tag),
+                  //         ),
+                  //       ),
+                  //     Padding(
+                  //       padding: const EdgeInsets.only(right: 12),
+                  //       child: IconButton(
+                  //         visualDensity: const VisualDensity(horizontal: -4),
+                  //         onPressed: () {
+                  //           context.push(RouteName.SETTINGS);
+                  //           // Scaffold.maybeOf(context)?.openDrawer();
+                  //         },
+                  //         icon: Icon(MdiIcons.cog),
+                  //       ),
+                  //     ),
+                  //   ],
+                  //   automaticallyImplyLeading: false,
+                  //   title: const HomeViewFlexibleSpace(),
+                  // ),
+                  const KeepWatching(),
+                  SliverAnimatedPaintExtent(
+                    duration: const Duration(milliseconds: 350),
+                    child: SliverToBoxAdapter(
+                      child: identical(tabController.index, 1)
+                          ? TabBar(
+                              tabAlignment: TabAlignment.start,
+                              controller: _subordinateLibraryTabController,
+                              tabs: categoryController.categories.map<Widget>(
+                                (CategoryEntity entity) {
+                                  return GestureDetector(
+                                    onLongPress: () {
+                                      CategoryUtils.createCategory(
+                                        context,
+                                        entity,
+                                      );
+                                    },
+                                    child: Tab(
+                                      text: entity.title,
+                                    ),
+                                  );
+                                },
+                              ).toList()
+                                ..insert(
+                                  0,
+                                  const Tab(text: 'Padrão'),
+                                ),
+                              isScrollable: true,
+                            )
+                          : SizedBox(
+                              width: double.infinity,
+                              height: _tabController.index == 0 ? 58 : 0,
+                              child: ListView(
+                                padding: tabController.index != 0
+                                    ? EdgeInsets.zero
+                                    : EdgeInsets.only(
+                                        right: 12,
+                                        top: 8,
                                       ),
-                                    );
-                                  },
-                                ).toList()
-                                  ..insert(
-                                    0,
-                                    const Tab(
-                                      text: 'Padrão',
-                                      key: ValueKey('Padrão'),
+                                physics: const BouncingScrollPhysics(),
+                                scrollDirection: Axis.horizontal,
+                                children: [
+                                  MenuButton(
+                                    data: Source.list,
+                                    onTap: hiveController.setSource,
+                                    enableSecondChild: tabController.index != 0,
+                                    enableMenuItem: (data) =>
+                                        !(hiveController.source == data),
+                                    child: Text(
+                                      hiveController.source.toString(),
                                     ),
                                   ),
-                                isScrollable: true,
-                              )
-                            : SizedBox(
-                                width: double.infinity,
-                                height: _tabController.index == 0 ? 58 : 0,
-                                child: ListView(
-                                  padding: tabController.index != 0
-                                      ? EdgeInsets.zero
-                                      : EdgeInsets.only(
-                                          right: 12,
-                                          top:
-                                              _tabController.index == 0 ? 8 : 8,
-                                        ),
-                                  physics: const BouncingScrollPhysics(),
-                                  scrollDirection: Axis.horizontal,
-                                  children: [
-                                    MenuButton(
-                                      data: Source.list,
-                                      onTap: hiveController.setSource,
-                                      enableSecondChild:
-                                          tabController.index != 0,
-                                      enableMenuItem: (data) =>
-                                          !(hiveController.source == data),
-                                      child: Text(
-                                        hiveController.source.toString(),
-                                      ),
+                                  MenuButton(
+                                    data: OrderBy.list,
+                                    onTap: hiveController.setOrderBy,
+                                    leadingMenuItem: (data) =>
+                                        Icon(data.iconData),
+                                    enableSecondChild:
+                                        Source.disableSourceMenuFilter(
+                                              hiveController.source,
+                                            ) ||
+                                            tabController.index != 0,
+                                    child: Text(
+                                      hiveController.orderBy.toString(),
                                     ),
-                                    MenuButton(
-                                      data: OrderBy.list,
-                                      onTap: hiveController.setOrderBy,
-                                      leadingMenuItem: (data) =>
-                                          Icon(data.iconData),
-                                      enableSecondChild:
-                                          Source.disableSourceMenuFilter(
-                                                hiveController.source,
-                                              ) ||
-                                              tabController.index != 0,
-                                      child: Text(
-                                        hiveController.orderBy.toString(),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                      ),
+                            ),
                     ),
-                  ];
-                },
-                body: TabBarView(
-                  physics: _tabPhysics,
-                  controller: _tabController,
-                  children: const [
-                    ContentDestination(),
-                    LibraryDestination(),
-                    SettingsDestination(),
-                  ],
-                ),
+                  ),
+                ];
+              },
+              body: TabBarView(
+                physics: _tabPhysics,
+                controller: _tabController,
+                children: const [
+                  ContentDestination(),
+                  LibraryDestination(),
+                ],
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 

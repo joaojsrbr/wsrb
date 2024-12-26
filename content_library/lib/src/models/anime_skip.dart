@@ -1,18 +1,21 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+// ignore_for_file: must_be_immutable, constant_identifier_names
+
+import 'dart:convert';
+
 import 'package:collection/collection.dart';
 import 'package:content_library/src/entities/anime_skip_entity.dart';
-import 'package:content_library/src/entities/anime_stamp_entity.dart';
 import 'package:content_library/src/extensions/custom_extensions/string_extensions.dart';
 
-class AnimeSkip extends AnimeSkipEntity {
-  AnimeSkip({
-    required String name,
-    required String animeSkipId,
-    required List<AnimeTimeStamp> times,
-  }) {
-    this.name = name;
-    this.animeSkipId = animeSkipId;
-    this.times = times;
-  }
+class AnimeSkip {
+  final String name;
+  final String animeSkipId;
+  final List<AnimeTimeStamp> times;
+  const AnimeSkip({
+    required this.name,
+    required this.animeSkipId,
+    this.times = const [],
+  });
 
   static AnimeSkip fromMapApi(dynamic map) {
     final times = (map['episodes'] as List)
@@ -32,40 +35,62 @@ class AnimeSkip extends AnimeSkipEntity {
     );
   }
 
-  // AnimeSkipEntity toEntity() {
-  //   final obj = AnimeSkipEntity();
-  //   final times = this.times;
+  Map<String, dynamic> get toMap {
+    return <String, dynamic>{
+      'name': name,
+      'animeSkipId': animeSkipId,
+      'times': times.map((e) => e.toMap).toList(),
+    };
+  }
 
-  //   obj.times = times;
-  //   obj.name = name;
-  //   obj.animeSkipId = animeSkipId;
-  //   return obj;
-  // }
-  AnimeSkipEntity get toEntity => this;
+  static AnimeSkip fromMap(Map<String, dynamic> map) {
+    return AnimeSkip(
+      name: map['name'] as String,
+      animeSkipId: map['animeSkipId'] as String,
+      times: (map['times'] as List)
+          .map((e) => AnimeTimeStamp.fromMap(e, map))
+          .toList(),
+    );
+  }
+
+  AnimeSkipEntity get toEntity {
+    final obj = AnimeSkipEntity(
+      animeSkipId: animeSkipId,
+      name: name,
+      times: jsonEncode(
+        times.map((skip) => skip.toMap).toList(),
+      ),
+    );
+
+    return obj;
+  }
 }
 
-class AnimeTimeStamp extends AnimeTimeStampEntity {
+class AnimeTimeStamp {
+  int at = 0;
+  String id = "";
+  String episodeId = "";
+  String createdBy = "";
+  int absoluteNumber = 0;
+  String updatedBy = "";
+  DateTime createdAt = DateTime.now();
+  DateTime updatedAt = DateTime.now();
+
+  AnimeTimeStampType timeStampType = AnimeTimeStampType.UNKNOWN;
+
+  Duration get duration => Duration(microseconds: at);
+
   AnimeTimeStamp({
-    required String id,
-    required String episodeId,
-    required int at,
-    required DateTime createdAt,
-    required String updatedBy,
-    required DateTime updatedAt,
-    required int absoluteNumber,
-    required String createdBy,
-    AnimeTimeStampType? animeTimeStampType,
-  }) {
-    this.absoluteNumber = absoluteNumber;
-    this.id = id;
-    this.episodeId = episodeId;
-    this.at = at;
-    this.createdAt = createdAt;
-    this.updatedBy = updatedBy;
-    this.updatedAt = updatedAt;
-    this.createdBy = createdBy;
-    timeStampType = animeTimeStampType ?? AnimeTimeStampType.UNKNOWN;
-  }
+    required this.id,
+    required this.episodeId,
+    required this.at,
+    required this.createdAt,
+    required this.updatedBy,
+    required this.updatedAt,
+    required this.absoluteNumber,
+    required this.createdBy,
+    this.timeStampType = AnimeTimeStampType.UNKNOWN,
+  });
 
   factory AnimeTimeStamp.fromMap(
     dynamic episodeMap,
@@ -92,7 +117,24 @@ class AnimeTimeStamp extends AnimeTimeStampEntity {
       updatedBy: map['type']['updatedBy']['username'],
       updatedAt: DateTime.parse(map['updatedAt']),
       createdBy: map['type']['createdBy']['username'],
-      animeTimeStampType: timeStamp ?? AnimeTimeStampType.UNKNOWN,
+      timeStampType: timeStamp ?? AnimeTimeStampType.UNKNOWN,
+    );
+  }
+
+  factory AnimeTimeStamp._fromMap2(
+    dynamic map,
+  ) {
+    return AnimeTimeStamp(
+      absoluteNumber: map['absoluteNumber'],
+      id: map['id'],
+      episodeId: map['episodeId'],
+      at: map['at'],
+      createdAt: DateTime.parse(map['createdAt']),
+      updatedBy: map['updatedBy'],
+      updatedAt: DateTime.parse(map['updatedAt']),
+      createdBy: map['createdBy'],
+      timeStampType:
+          AnimeTimeStampType.values.elementAt(map['animeTimeStampType']),
     );
   }
 
@@ -118,22 +160,40 @@ class AnimeTimeStamp extends AnimeTimeStampEntity {
       updatedBy: updatedBy ?? this.updatedBy,
       updatedAt: updatedAt ?? this.updatedAt,
       createdBy: createdBy ?? this.createdBy,
-    )..timeStampType = animeTimeStampType ?? AnimeTimeStampType.UNKNOWN;
+      timeStampType: animeTimeStampType ?? AnimeTimeStampType.UNKNOWN,
+    );
   }
 
-  AnimeTimeStampEntity get toEntity => this;
+  Map<String, dynamic> get toMap {
+    return <String, dynamic>{
+      'at': at,
+      'id': id,
+      'episodeId': episodeId,
+      'createdBy': createdBy,
+      'absoluteNumber': absoluteNumber,
+      'updatedBy': updatedBy,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+      'animeTimeStampType': timeStampType.index,
+    };
+  }
 
-  // AnimeTimeStampEntity toEntity() {
-  //   final obj = AnimeTimeStampEntity();
+  factory AnimeTimeStamp.fromJson(source) => AnimeTimeStamp._fromMap2(source);
+}
 
-  //   obj.id = id;
-  //   obj.episodeId = episodeId;
-  //   obj.at = at;
-  //   obj.createdAt = createdAt;
-  //   obj.updatedBy = updatedBy;
-  //   obj.updatedAt = updatedAt;
-  //   obj.createdBy = createdBy;
-  //   obj.timeStampType = timeStampType;
-  //   return obj;
-  // }
+enum AnimeTimeStampType {
+  CREDITS("Créditos"),
+  TITLE_CARD("Cartão De Título"),
+  CANON("Cânone"),
+  PREVIEW("Pré-visualização"),
+  INTRO("Abertura"),
+  NEW_INTRO("Nova Abertura"),
+  RECAP("Recapitulação"),
+  BRANDING("Marca"),
+  UNKNOWN("Desconhecido"),
+  MIXED_CREDITS("Créditos Mistos");
+
+  const AnimeTimeStampType(this.label);
+
+  final String label;
 }

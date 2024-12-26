@@ -4,12 +4,12 @@ import 'package:content_library/content_library.dart';
 
 class Chapter extends Release {
   final bool read;
-  final String animeStringID;
+  final String bookStringID;
 
   const Chapter({
     this.read = false,
     required super.url,
-    required this.animeStringID,
+    required this.bookStringID,
     required super.title,
   });
 
@@ -33,7 +33,7 @@ class Chapter extends Release {
         url,
         read,
         stringID,
-        animeStringID,
+        bookStringID,
       ];
 
   Map<String, dynamic> get toMap {
@@ -41,14 +41,14 @@ class Chapter extends Release {
       'title': title,
       'url': url,
       'read': read,
-      'animeStringID': animeStringID,
+      'bookStringID': bookStringID,
     };
   }
 
   factory Chapter.fromMap(Map<String, dynamic> map) {
     return Chapter(
       title: map['title'] as String,
-      animeStringID: map['animeStringID'] as String,
+      bookStringID: map['bookStringID'] as String,
       url: map['url'] as String,
       read: map['read'] as bool,
     );
@@ -63,7 +63,7 @@ class Chapter extends Release {
     return ChapterEntity(
       url: url,
       title: title,
-      animeStringID: animeStringID,
+      bookStringID: bookStringID,
       readPercent: readPercent,
       stringID: stringID,
       isComplete: isComplete,

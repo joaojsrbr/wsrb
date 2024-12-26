@@ -5,6 +5,7 @@ import 'package:app_wsrb_jsr/app/ui/content_information/view/refactory_content_i
 import 'package:app_wsrb_jsr/app/ui/download/view/download_view.dart';
 import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
+import 'package:app_wsrb_jsr/app/ui/settings/view/settings_view.dart';
 import 'package:content_library/content_library.dart';
 import 'package:go_router/go_router.dart';
 
@@ -15,6 +16,7 @@ class RouteName {
   static const String READ = '/read';
   static const String PLAYER = '/player';
   static const String DOWNLOAD = '/downloadView';
+  static const String SETTINGS = '/settings';
   // static const CATEGORY = '/category';
   // static const TEST = '/test';
 }
@@ -43,6 +45,19 @@ final appRoutes = GoRouter(
               arguments: state.extra,
               transitionKey: state.pageKey,
               screen: const RefContentInformationView(),
+            );
+          },
+        ),
+        GoRoute(
+          path: RouteName.SETTINGS.subRouter,
+          pageBuilder: (context, state) {
+            return SharedAxisTransitionPageWrapper(
+              // restorationId: 'router.content_info',
+              reverseTransitionDuration: const Duration(milliseconds: 850),
+              transitionDuratio: const Duration(milliseconds: 850),
+              arguments: state.extra,
+              transitionKey: state.pageKey,
+              screen: const SettingsView(),
             );
           },
         ),

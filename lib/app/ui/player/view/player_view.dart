@@ -169,7 +169,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   Future<void> _getInitMainVideoData() async {
     _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
-    if (_playerArgs.data != null || !_playerArgs.getAnimeData) {
+    if (_playerArgs.data != null && !_playerArgs.getAnimeData) {
       _mainVideoData = _playerArgs.data;
       return;
     }
@@ -196,7 +196,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
             (result) => result.fold(
               onSuccess: (data) {
                 _playerArgs = _playerArgs.copyWith(
-                  anime: data.merge(_playerArgs.anime) as Anime,
+                  anime: data as Anime,
                 );
               },
             ),
@@ -235,7 +235,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     playerAudioHandler.setPlayerController = this;
 
     if (onInit) {
-      setPlayer = Player(configuration: const PlayerConfiguration(pitch: true));
+      setPlayer = Player();
       _videoController = VideoController(
         player!,
         configuration: const VideoControllerConfiguration(),
@@ -273,13 +273,11 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     await Future.wait(futures);
 
-    // await _videoController?.waitUntilFirstFrameRendered;
-
-    if (!_playerArgs.getAnimeData && _playerArgs.forceEnterFullScreen) {
+    _videoController?.waitUntilFirstFrameRendered.whenComplete(() {
       addPostFrameCallback((time) {
         PlayerView.videoStateKey.currentState?.enterFullscreen();
       });
-    }
+    });
 
     playbackState.add(playbackState.value.copyWith
         .call(processingState: AudioProcessingState.ready));
@@ -495,6 +493,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     // _saveDataDebouncer.cancel();
     final currentPositionBase64 = await videoScreenshotBase64();
 
+    await playerAudioHandler.stop();
+    setSessionActive(false);
+    playerAudioHandler.setPlayerController = null;
+
     if (_videoPercent < _hiveController.historicSavePercent) return;
 
     final Duration position = player!.state.position;
@@ -512,35 +514,32 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     bool isComplete = _videoPercent >= 0.85;
 
-    final EpisodeEntity episodeEntity = EpisodeEntity(
-      currentDuration: position.inMicroseconds,
-      currentPositionBase64: currentPositionBase64,
-      title: _playerArgs.episode.title,
-      animeStringID: _playerArgs.anime.stringID,
-      generateID: _playerArgs.episode.generateID,
-      slugSerie: _playerArgs.episode.slugSerie,
-      url: _playerArgs.episode.url,
-      episodeDuration: duration.inMicroseconds,
-      thumbnail: _playerArgs.episode.thumbnail,
-      createdAt: entity?.createdAt ?? DateTime.now(),
-      updatedAt: DateTime.now(),
-      stringID: _playerArgs.episode.stringID,
+    final EpisodeEntity episodeEntity = EpisodeEntity.save(
+      anime: _playerArgs.anime,
       isComplete: isComplete,
-      sinopse: _playerArgs.episode.sinopse,
-      numberEpisode: int.tryParse(_playerArgs.episode.number),
+      episode: _playerArgs.episode,
+      currentPositionBase64: currentPositionBase64,
+      position: position,
+      duration: duration,
+      entity: entity,
     );
 
+    await player?.stop();
     customLog(
         '[$runtimeType][_saveVideoPosition()][${episodeEntity.numberEpisode}]');
 
-    AnimeEntity animeEntity = _playerArgs.anime.toEntity();
+    // AnimeEntity animeEntity = _playerArgs.anime.toEntity();
 
-    final bAnimeEntity = _libraryService
-        .getContentEntityByStringID(_playerArgs.anime.stringID) as AnimeEntity?;
+    final animeEntity =
+        (_libraryService.getContentEntityByStringID(_playerArgs.anime.stringID)
+                as AnimeEntity? ??
+            _playerArgs.anime.toEntity(createdAt: DateTime.now()));
 
-    if (bAnimeEntity != null) {
-      animeEntity = animeEntity.merge(bAnimeEntity) as AnimeEntity;
-    }
+    // if (bAnimeEntity != null) {
+    //   animeEntity = animeEntity.merge(bAnimeEntity) as AnimeEntity;
+    // }
+
+    animeEntity.animeSkip.value ??= _playerArgs.anime.animeSkip?.toEntity;
 
     animeEntity.episodes.add(episodeEntity);
 
@@ -617,15 +616,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     WidgetsBinding.instance.removeObserver(this);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    _saveVideoPosition(_disposePlayer);
+    _saveVideoPosition();
     super.dispose();
-  }
-
-  void _disposePlayer() async {
-    await playerAudioHandler.stop();
-    player?.stop();
-    setSessionActive(false);
-    playerAudioHandler.setPlayerController = null;
   }
 }
 
@@ -934,29 +926,44 @@ class _Content extends StatelessWidget {
 }
 
 class _PlayerStatus with EquatableMixin {
-  bool _playing = false;
-  Duration _position = Duration.zero;
-  Duration _duration = Duration.zero;
-  Duration _buffer = Duration.zero;
-  bool _completed = false;
+  final bool _playing;
+  final Duration _position;
+  final Duration _duration;
+  final Duration _buffer;
+  final bool _completed;
 
-  void setValue({
+  const _PlayerStatus({
+    bool playing = false,
+    Duration position = Duration.zero,
+    Duration duration = Duration.zero,
+    Duration buffer = Duration.zero,
+    bool completed = false,
+  })  : _playing = playing,
+        _position = position,
+        _duration = duration,
+        _buffer = buffer,
+        _completed = completed;
+
+  _PlayerStatus setValue({
     bool? playing,
     Duration? position,
     Duration? duration,
     Duration? buffer,
     bool? completed,
   }) {
-    _playing = playing ?? _playing;
-    _position = position ?? _position;
-    _duration = duration ?? _duration;
-    _buffer = buffer ?? _buffer;
-    _completed = completed ?? _completed;
+    final status = _PlayerStatus(
+      playing: playing ?? _playing,
+      position: position ?? _position,
+      duration: duration ?? _duration,
+      buffer: buffer ?? _buffer,
+      completed: completed ?? _completed,
+    );
+    // if (_position.inMilliseconds != position?.inMilliseconds &&
+    //     _position.inMilliseconds > 0) {
+    //   customLog(toString());
+    // }
 
-    if (toHashCode(playing, position, duration, buffer, completed) !=
-        hashCode) {
-      customLog(toString());
-    }
+    return status;
   }
 
   @override
@@ -972,26 +979,4 @@ class _PlayerStatus with EquatableMixin {
         _buffer,
         _completed,
       ];
-
-  int toHashCode(
-    bool? playing,
-    Duration? position,
-    Duration? duration,
-    Duration? buffer,
-    bool? completed,
-  ) {
-    return playing.hashCode ^
-        position.hashCode ^
-        duration.hashCode ^
-        buffer.hashCode ^
-        completed.hashCode;
-  }
 }
-
-// class OpenMenuEpisodes extends ValueNotifier<bool> {
-//   OpenMenuEpisodes(super.value);
-
-//   void toogle(bool value) {
-//     this.value = value;
-//   }
-// }

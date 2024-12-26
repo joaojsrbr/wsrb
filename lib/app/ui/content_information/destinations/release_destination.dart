@@ -330,9 +330,19 @@ class _ReleaseLeading extends StatelessWidget {
                       'Referer': '${hiveController.source.baseURL}/',
                     },
                     imageUrl: (release as Episode).thumbnail!,
-                    placeholder: (context, url) => const Card.filled(),
+                    placeholder: (context, url) => Card.filled(
+                      margin: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                     errorWidget: (context, url, error) {
-                      return const Card.filled();
+                      return Card.filled(
+                        margin: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      );
                     },
                     fit: BoxFit.cover,
                     maxWidthDiskCache: 200,
@@ -451,7 +461,9 @@ class ReleaseContent extends StatelessWidget {
 
   void onDoubleTap(BuildContext context) {
     if (!(release is Episode &&
-        (release as Episode).sinopse?.isNotEmpty == true)) return;
+        (release as Episode).sinopse?.isNotEmpty == true)) {
+      return;
+    }
     showModalBottomSheet(
       isScrollControlled: false,
       isDismissible: true,

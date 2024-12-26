@@ -98,8 +98,13 @@ class LibraryController extends ChangeNotifier {
       entities
           .map(
             (entity) => switch (entity) {
-              AnimeEntity data => [data.episodes.load(), data.animeSkip.load()],
-              BookEntity data => [data.chapters.load()],
+              AnimeEntity data => [
+                  data.episodes.load(),
+                  data.animeSkip.load(),
+                ],
+              BookEntity data => [
+                  data.chapters.load(),
+                ],
               _ => null,
             },
           )
@@ -178,6 +183,11 @@ class LibraryController extends ChangeNotifier {
     );
   }
 
+  void setDateTimeAndAdd(ContentEntity element) {
+    _setDateTime(element);
+    _addOrUpdate(element);
+  }
+
   Future<Result<(bool, List<int>?)>> addAll({
     List<ContentEntity>? contentEntities,
   }) async {
@@ -185,11 +195,6 @@ class LibraryController extends ChangeNotifier {
     final List<int> ids = [];
 
     final entities = contentEntities?.nonNulls.cast<ContentEntity>().toList();
-
-    void setDateTimeAndAdd(ContentEntity element) {
-      _setDateTime(element);
-      _addOrUpdate(element);
-    }
 
     entities?.forEach(setDateTimeAndAdd);
 

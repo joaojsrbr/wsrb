@@ -14,101 +14,105 @@ class ContentHeader extends StatelessWidget {
 
     final themeData = Theme.of(context);
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // Card(
-        //   color: themeData.colorScheme.surface,
-        // ),
-        // ImageFiltered(
-        //   imageFilter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-        //   child: CachedNetworkImage(
-        //     scale: 20,
-        //     filterQuality: FilterQuality.medium,
-        //     fit: BoxFit.cover,
-        //     placeholder: (context, url) {
-        //       return Card.filled(
-        //         color: themeData.colorScheme.primary.withAlpha(10),
-        //       );
-        //     },
-        //     imageUrl: content.anilistMedia!.bannerImage!,
-        //     httpHeaders: App.HEADERS,
-        //   ),
-        // ),
-        SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.only(left: 12),
-                height: 200,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: CachedNetworkImage(
-                        height: 200,
-                        width: 140,
-                        filterQuality: FilterQuality.medium,
-                        placeholder: (context, url) {
-                          return Card.filled(
-                            color: themeData.colorScheme.primary.withAlpha(10),
-                          );
-                        },
-                        fit: BoxFit.cover,
-                        memCacheHeight: 300,
-                        memCacheWidth: 200,
-                        imageUrl: content.imageUrl,
-                        httpHeaders: App.HEADERS,
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: 8,
-                          top: 8,
-                          right: 8,
-                          left: 12,
+    return Material(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Card(
+          //   color: themeData.colorScheme.surface,
+          // ),
+          // ImageFiltered(
+          //   imageFilter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+          //   child: CachedNetworkImage(
+          //     scale: 20,
+          //     filterQuality: FilterQuality.medium,
+          //     fit: BoxFit.cover,
+          //     placeholder: (context, url) {
+          //       return Card.filled(
+          //         color: themeData.colorScheme.primary.withAlpha(10),
+          //       );
+          //     },
+          //     imageUrl: content.anilistMedia!.bannerImage!,
+          //     httpHeaders: App.HEADERS,
+          //   ),
+          // ),
+          SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.only(left: 12),
+                  height: 200,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: CachedNetworkImage(
+                          height: 200,
+                          width: 140,
+                          filterQuality: FilterQuality.medium,
+                          placeholder: (context, url) {
+                            return Card.filled(
+                              color:
+                                  themeData.colorScheme.primary.withAlpha(10),
+                            );
+                          },
+                          fit: BoxFit.cover,
+                          memCacheHeight: 300,
+                          memCacheWidth: 200,
+                          imageUrl: content.imageUrl,
+                          httpHeaders: App.HEADERS,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            GestureDetector(
-                              onLongPress: () async {
-                                copyToClipboard(
-                                  context,
-                                  messageCopy: content.title,
-                                  messageSnackBar:
-                                      'Copiado para a área de transferência!',
-                                );
-                                await Feedback.forLongPress(context);
-                              },
-                              child: Text(
-                                content.title,
-                                maxLines: 3,
-                                textAlign: TextAlign.start,
-                                overflow: TextOverflow.ellipsis,
-                                style: themeData.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w600,
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: 8,
+                            top: 8,
+                            right: 8,
+                            left: 12,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              GestureDetector(
+                                onLongPress: () async {
+                                  copyToClipboard(
+                                    context,
+                                    messageCopy: content.title,
+                                    messageSnackBar:
+                                        'Copiado para a área de transferência!',
+                                  );
+                                  await Feedback.forLongPress(context);
+                                },
+                                child: Text(
+                                  content.title,
+                                  maxLines: 3,
+                                  textAlign: TextAlign.start,
+                                  overflow: TextOverflow.ellipsis,
+                                  style:
+                                      themeData.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-            ],
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

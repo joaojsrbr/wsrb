@@ -122,7 +122,7 @@ class Anime extends Content {
       releases.map((episode) => episode.toEntity(anime: this)),
     );
 
-    content.animeSkip.value = animeSkip;
+    content.animeSkip.value = animeSkip?.toEntity;
 
     return content;
   }
@@ -137,9 +137,8 @@ class Anime extends Content {
 
   factory Anime.fromMap(Map<String, dynamic> map) {
     return Anime(
-      animeSkip: map['animeSkip'] != null
-          ? AnimeSkipEntity.fromMap(map['animeSkip']).toObj
-          : null,
+      animeSkip:
+          map['animeSkip'] != null ? AnimeSkip.fromMap(map['animeSkip']) : null,
       anilistMedia: map['anilistMedia'] != null
           ? AnilistMedia.fromJson(map['anilistMedia'])
           : null,
@@ -187,7 +186,4 @@ class Anime extends Content {
         "totalOfEpisodes": totalOfEpisodes,
         "totalOfPages": totalOfPages,
       };
-
-  @override
-  Anime merge(Content other) => super.merge(other) as Anime;
 }

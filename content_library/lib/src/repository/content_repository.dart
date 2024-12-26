@@ -9,6 +9,7 @@ import 'package:content_library/src/extensions/custom_extensions/list_extensions
 import 'package:content_library/src/extensions/custom_extensions/string_extensions.dart';
 import 'package:content_library/src/models/anime_skip.dart';
 import 'package:content_library/src/repository/anime_skip_imp.dart';
+import 'package:content_library/src/repository/models/slime_read_response.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart' as ui;
 // import 'package:flutter_webview_plugin/flutter_webview_plugin.dart' as plugin;
@@ -41,6 +42,7 @@ part 'source/anroll_source.dart';
 part 'source/demon_sect_source.dart';
 part 'source/goyabu_source.dart';
 part 'source/neox_source.dart';
+part 'source/slime_read_source.dart';
 
 abstract class ContentRepository extends LoadingMoreBase<Content> {
   int index = 0;
@@ -67,6 +69,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
     _sources = [
       NeoxSource(this),
       GoyabuSource(this),
+      SlimeReadSource(this),
       AnrollSource(this),
       DemonSect(this),
     ];
@@ -242,7 +245,7 @@ class _ContentRepositoryImp extends ContentRepository {
     for (final future in futures) {
       try {
         await future;
-      } on Exception catch (_) {}
+      } catch (_) {}
     }
   }
 }

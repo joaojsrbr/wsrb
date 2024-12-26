@@ -1,10 +1,9 @@
 import 'dart:convert';
 
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/utils/object_utils.dart';
 import 'package:equatable/equatable.dart';
 
-abstract class Content extends Equatable with MergeClass<Content> {
+abstract class Content extends Equatable {
   String get imageUrl;
 
   String get stringID => title.toUuID;

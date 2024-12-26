@@ -34,43 +34,24 @@ class _ContentDestinationState extends State<ContentDestination>
   @override
   bool get wantKeepAlive => true;
 
+  Future<void> onRefresh() async {
+    if (!mounted) return;
+    final HomeScope scope = HomeScope.of(context);
+    final TabController tabController = scope.tabController;
+    if (tabController.index != 0) return;
+    await _contentRepository.refresh(true);
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
-
-    final HomeScope scope = HomeScope.of(context);
-    final TabController tabController = scope.tabController;
-
-    Future<void> onRefresh() async {
-      if (!mounted) return;
-      if (tabController.index != 0) return;
-      await _contentRepository.refresh(true);
-    }
+    customLog('$widget[build]');
 
     final ConnectionChecker connectionChecker =
         context.watch<ConnectionChecker>();
 
-    // customLog(railMenuController.isOpen);
-
     return RefreshIndicator(
       onRefresh: onRefresh,
-      // child: ListView.builder(
-      //   itemCount: Source.list.length,
-      //   itemBuilder: (context, index) {
-      //     final source = Source.list.elementAt(index);
-
-      //     return ListTile(
-      //       title: Text(source.label),
-      //       onLongPress: () {},
-      //       onTap: () {},
-      //       trailing: TextButton(
-      //         onPressed: () {},
-      //         child: const Text('Recentes'),
-      //       ),
-      //     );
-      //   },
-      // ),
-
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 350),
         child: connectionChecker.connectivityResult.isEmpty
@@ -89,7 +70,6 @@ class _ContentDestinationState extends State<ContentDestination>
                   itemBuilder: _itemBuilder,
                   sourceList: _contentRepository,
                 ),
-                key: const PageStorageKey("content_destination"),
               ),
       ),
     );
@@ -105,6 +85,10 @@ class _ContentDestinationState extends State<ContentDestination>
 
     final textTheme = themeData.textTheme;
 
+    final appSnackBar = context.appSnackBar;
+
+    final searchController = HomeScope.maybeOf(context)?.searchController;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: InkWell(
@@ -117,13 +101,9 @@ class _ContentDestinationState extends State<ContentDestination>
           }
         },
         onTap: () async {
-          // final appSnackBar = context.appSnackBar;
-          final searchController = HomeScope.byKeyMaybeOf()?.searchController;
-
-          if (searchController?.isOpen == true) {
-            // searchController?.closeView("");
+          if (searchController?.isAttached == true &&
+              searchController?.isOpen == true) {
             context.unFocusKeyBoard();
-            // searchController?.clear();
           }
           if (valueNotifierList.isNotEmpty) {
             valueNotifierList.toggle(content.stringID);
@@ -206,8 +186,8 @@ class _ContentDestinationState extends State<ContentDestination>
                       imageUrl: content.imageUrl,
                       placeholder: (context, url) => const _Placeholder(),
                       errorListener: customLog,
-                      maxWidthDiskCache: 200,
-                      maxHeightDiskCache: 150,
+                      memCacheWidth: 200,
+                      memCacheHeight: 150,
                       fit: BoxFit.cover,
                       alignment: FractionalOffset.center,
                       errorWidget: (context, url, error) =>
@@ -224,6 +204,10 @@ class _ContentDestinationState extends State<ContentDestination>
                   child: InkWell(
                     borderRadius: BorderRadius.circular(8),
                     onTap: () async {
+                      if (searchController?.isAttached == true &&
+                          searchController?.isOpen == true) {
+                        context.unFocusKeyBoard();
+                      }
                       if (valueNotifierList.isNotEmpty) {
                         valueNotifierList.toggle(content.stringID);
                         customLog(
@@ -231,7 +215,6 @@ class _ContentDestinationState extends State<ContentDestination>
                         );
                         return;
                       }
-                      final appSnackBar = context.appSnackBar;
 
                       customLog(
                         'InkWell tapped title: ${content.title} - id: ${content.stringID}',

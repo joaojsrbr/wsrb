@@ -11,8 +11,8 @@ enum Source implements _DisableEnum {
   ANROLL('Anroll', App.ANROLL_URL, 'Anroll', ContentType.ANIME),
   NEOX_SCANS('Neox Scans', App.NEOX_URL, 'Neox Scans', ContentType.BOOK),
   DEMON_SECT('Demon Sect', App.DEMON_SECT_URL, 'Demon Sect', ContentType.BOOK),
-  GOYABU('Goyabu', App.GOYABU_URL, 'Goyabu', ContentType.ANIME)
-  SLIMEREAD('SlimeRead');
+  GOYABU('Goyabu', App.GOYABU_URL, 'Goyabu', ContentType.ANIME),
+  SLIMEREAD('SlimeRead', App.SLIME_READ_URL, 'SlimeRead', ContentType.BOOK);
 
   static final Set<Source> _disableSource = {
     Source.NEOX_SCANS,

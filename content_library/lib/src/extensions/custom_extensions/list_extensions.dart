@@ -9,6 +9,12 @@ extension CustomIterable<E, Id> on Iterable<E> {
     list.retainWhere((x) => ids.add(id != null ? id(x) : x as Id));
     return list;
   }
+
+  List<E> getMax(int max) {
+    return max > length
+        ? toList().sublist(0, length)
+        : toList().sublist(0, max);
+  }
 }
 
 extension CustomListExtensions<E, Id> on List<E> {
@@ -18,6 +24,10 @@ extension CustomListExtensions<E, Id> on List<E> {
 
   List<E> reverse(bool reverse) {
     return reverse ? reversed.toList() : this;
+  }
+
+  List<E> getMax(int max) {
+    return max > length ? sublist(0, length) : sublist(0, max);
   }
 
   void addIfNoContains(E element, [bool Function(E)? test]) {

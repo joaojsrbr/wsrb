@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 class HomeScope extends InheritedNotifier<Listenable> {
   HomeScope({
-    required super.child,
+    super.key,
     required this.enabled,
     required this.tabController,
     required this.homeController,
@@ -13,18 +13,12 @@ class HomeScope extends InheritedNotifier<Listenable> {
     required this.bottomMenuController,
     required this.keepWatchingScrollController,
     required this.subordinateLibraryTabController,
+    required WidgetBuilder builder,
   }) : super(
-          notifier: Listenable.merge(
-            [
-              tabController,
-              searchController,
-              bottomMenuController,
-            ],
-          ),
-          key: _homeScopeKey,
+          notifier: Listenable.merge([tabController, bottomMenuController]),
+          child: Builder(builder: builder),
         );
 
-  static final GlobalKey _homeScopeKey = GlobalKey();
   final BottomMenuController bottomMenuController;
   final CustomSearchController searchController;
   final TabController tabController;
@@ -37,10 +31,6 @@ class HomeScope extends InheritedNotifier<Listenable> {
     return context.dependOnInheritedWidgetOfExactType<HomeScope>();
   }
 
-  static HomeScope? byKeyMaybeOf() {
-    return _homeScopeKey.currentWidget as HomeScope?;
-  }
-
   static HomeScope of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<HomeScope>()!;
   }
@@ -49,7 +39,7 @@ class HomeScope extends InheritedNotifier<Listenable> {
   bool updateShouldNotify(HomeScope oldWidget) {
     return enabled != oldWidget.enabled ||
         tabController.index != oldWidget.tabController.index ||
-        searchController.value != oldWidget.searchController.value ||
+        bottomMenuController.isOpen != oldWidget.bottomMenuController.isOpen ||
         subordinateLibraryTabController !=
             oldWidget.subordinateLibraryTabController;
   }

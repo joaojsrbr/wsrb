@@ -30,8 +30,7 @@ const AnimeSkipEntitySchema = CollectionSchema(
     r'times': PropertySchema(
       id: 2,
       name: r'times',
-      type: IsarType.objectList,
-      target: r'AnimeTimeStampEntity',
+      type: IsarType.string,
     )
   },
   estimateSize: _animeSkipEntityEstimateSize,
@@ -39,9 +38,23 @@ const AnimeSkipEntitySchema = CollectionSchema(
   deserialize: _animeSkipEntityDeserialize,
   deserializeProp: _animeSkipEntityDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'animeSkipId': IndexSchema(
+      id: 1848116262160277949,
+      name: r'animeSkipId',
+      unique: true,
+      replace: true,
+      properties: [
+        IndexPropertySchema(
+          name: r'animeSkipId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    )
+  },
   links: {},
-  embeddedSchemas: {r'AnimeTimeStampEntity': AnimeTimeStampEntitySchema},
+  embeddedSchemas: {},
   getId: _animeSkipEntityGetId,
   getLinks: _animeSkipEntityGetLinks,
   attach: _animeSkipEntityAttach,
@@ -57,14 +70,6 @@ int _animeSkipEntityEstimateSize(
   bytesCount += 3 + object.animeSkipId.length * 3;
   bytesCount += 3 + object.name.length * 3;
   bytesCount += 3 + object.times.length * 3;
-  {
-    final offsets = allOffsets[AnimeTimeStampEntity]!;
-    for (var i = 0; i < object.times.length; i++) {
-      final value = object.times[i];
-      bytesCount +=
-          AnimeTimeStampEntitySchema.estimateSize(value, offsets, allOffsets);
-    }
-  }
   return bytesCount;
 }
 
@@ -76,12 +81,7 @@ void _animeSkipEntitySerialize(
 ) {
   writer.writeString(offsets[0], object.animeSkipId);
   writer.writeString(offsets[1], object.name);
-  writer.writeObjectList<AnimeTimeStampEntity>(
-    offsets[2],
-    allOffsets,
-    AnimeTimeStampEntitySchema.serialize,
-    object.times,
-  );
+  writer.writeString(offsets[2], object.times);
 }
 
 AnimeSkipEntity _animeSkipEntityDeserialize(
@@ -90,17 +90,12 @@ AnimeSkipEntity _animeSkipEntityDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = AnimeSkipEntity();
-  object.animeSkipId = reader.readString(offsets[0]);
+  final object = AnimeSkipEntity(
+    animeSkipId: reader.readString(offsets[0]),
+    name: reader.readString(offsets[1]),
+    times: reader.readString(offsets[2]),
+  );
   object.id = id;
-  object.name = reader.readString(offsets[1]);
-  object.times = reader.readObjectList<AnimeTimeStampEntity>(
-        offsets[2],
-        AnimeTimeStampEntitySchema.deserialize,
-        allOffsets,
-        AnimeTimeStampEntity(),
-      ) ??
-      [];
   return object;
 }
 
@@ -116,13 +111,7 @@ P _animeSkipEntityDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readObjectList<AnimeTimeStampEntity>(
-            offset,
-            AnimeTimeStampEntitySchema.deserialize,
-            allOffsets,
-            AnimeTimeStampEntity(),
-          ) ??
-          []) as P;
+      return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -139,6 +128,63 @@ List<IsarLinkBase<dynamic>> _animeSkipEntityGetLinks(AnimeSkipEntity object) {
 void _animeSkipEntityAttach(
     IsarCollection<dynamic> col, Id id, AnimeSkipEntity object) {
   object.id = id;
+}
+
+extension AnimeSkipEntityByIndex on IsarCollection<AnimeSkipEntity> {
+  Future<AnimeSkipEntity?> getByAnimeSkipId(String animeSkipId) {
+    return getByIndex(r'animeSkipId', [animeSkipId]);
+  }
+
+  AnimeSkipEntity? getByAnimeSkipIdSync(String animeSkipId) {
+    return getByIndexSync(r'animeSkipId', [animeSkipId]);
+  }
+
+  Future<bool> deleteByAnimeSkipId(String animeSkipId) {
+    return deleteByIndex(r'animeSkipId', [animeSkipId]);
+  }
+
+  bool deleteByAnimeSkipIdSync(String animeSkipId) {
+    return deleteByIndexSync(r'animeSkipId', [animeSkipId]);
+  }
+
+  Future<List<AnimeSkipEntity?>> getAllByAnimeSkipId(
+      List<String> animeSkipIdValues) {
+    final values = animeSkipIdValues.map((e) => [e]).toList();
+    return getAllByIndex(r'animeSkipId', values);
+  }
+
+  List<AnimeSkipEntity?> getAllByAnimeSkipIdSync(
+      List<String> animeSkipIdValues) {
+    final values = animeSkipIdValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'animeSkipId', values);
+  }
+
+  Future<int> deleteAllByAnimeSkipId(List<String> animeSkipIdValues) {
+    final values = animeSkipIdValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'animeSkipId', values);
+  }
+
+  int deleteAllByAnimeSkipIdSync(List<String> animeSkipIdValues) {
+    final values = animeSkipIdValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'animeSkipId', values);
+  }
+
+  Future<Id> putByAnimeSkipId(AnimeSkipEntity object) {
+    return putByIndex(r'animeSkipId', object);
+  }
+
+  Id putByAnimeSkipIdSync(AnimeSkipEntity object, {bool saveLinks = true}) {
+    return putByIndexSync(r'animeSkipId', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllByAnimeSkipId(List<AnimeSkipEntity> objects) {
+    return putAllByIndex(r'animeSkipId', objects);
+  }
+
+  List<Id> putAllByAnimeSkipIdSync(List<AnimeSkipEntity> objects,
+      {bool saveLinks = true}) {
+    return putAllByIndexSync(r'animeSkipId', objects, saveLinks: saveLinks);
+  }
 }
 
 extension AnimeSkipEntityQueryWhereSort
@@ -217,6 +263,51 @@ extension AnimeSkipEntityQueryWhere
         upper: upperId,
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterWhereClause>
+      animeSkipIdEqualTo(String animeSkipId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'animeSkipId',
+        value: [animeSkipId],
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterWhereClause>
+      animeSkipIdNotEqualTo(String animeSkipId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'animeSkipId',
+              lower: [],
+              upper: [animeSkipId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'animeSkipId',
+              lower: [animeSkipId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'animeSkipId',
+              lower: [animeSkipId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'animeSkipId',
+              lower: [],
+              upper: [animeSkipId],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }
@@ -552,104 +643,144 @@ extension AnimeSkipEntityQueryFilter
   }
 
   QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterFilterCondition>
-      timesLengthEqualTo(int length) {
+      timesEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'times',
-        length,
-        true,
-        length,
-        true,
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'times',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterFilterCondition>
+      timesGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'times',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterFilterCondition>
+      timesLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'times',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterFilterCondition>
+      timesBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'times',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterFilterCondition>
+      timesStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'times',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterFilterCondition>
+      timesEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'times',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterFilterCondition>
+      timesContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'times',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterFilterCondition>
+      timesMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'times',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterFilterCondition>
       timesIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'times',
-        0,
-        true,
-        0,
-        true,
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'times',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterFilterCondition>
       timesIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'times',
-        0,
-        false,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterFilterCondition>
-      timesLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'times',
-        0,
-        true,
-        length,
-        include,
-      );
-    });
-  }
-
-  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterFilterCondition>
-      timesLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'times',
-        length,
-        include,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterFilterCondition>
-      timesLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'times',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'times',
+        value: '',
+      ));
     });
   }
 }
 
 extension AnimeSkipEntityQueryObject
-    on QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QFilterCondition> {
-  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterFilterCondition>
-      timesElement(FilterQuery<AnimeTimeStampEntity> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'times');
-    });
-  }
-}
+    on QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QFilterCondition> {}
 
 extension AnimeSkipEntityQueryLinks
     on QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QFilterCondition> {}
@@ -680,6 +811,19 @@ extension AnimeSkipEntityQuerySortBy
       sortByNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterSortBy> sortByTimes() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'times', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterSortBy>
+      sortByTimesDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'times', Sort.desc);
     });
   }
 }
@@ -724,6 +868,19 @@ extension AnimeSkipEntityQuerySortThenBy
       return query.addSortBy(r'name', Sort.desc);
     });
   }
+
+  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterSortBy> thenByTimes() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'times', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QAfterSortBy>
+      thenByTimesDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'times', Sort.desc);
+    });
+  }
 }
 
 extension AnimeSkipEntityQueryWhereDistinct
@@ -739,6 +896,13 @@ extension AnimeSkipEntityQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<AnimeSkipEntity, AnimeSkipEntity, QDistinct> distinctByTimes(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'times', caseSensitive: caseSensitive);
     });
   }
 }
@@ -764,8 +928,7 @@ extension AnimeSkipEntityQueryProperty
     });
   }
 
-  QueryBuilder<AnimeSkipEntity, List<AnimeTimeStampEntity>, QQueryOperations>
-      timesProperty() {
+  QueryBuilder<AnimeSkipEntity, String, QQueryOperations> timesProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'times');
     });

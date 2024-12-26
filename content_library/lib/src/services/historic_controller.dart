@@ -119,6 +119,11 @@ class HistoricController extends ChangeNotifier {
     }
   }
 
+  void setDateTimeAndAdd(HistoryEntity element) {
+    _setDateTime(element);
+    _addOrUpdate(element);
+  }
+
   Future<Result<(bool, List<int>?)>> addAll({
     List<HistoryEntity>? historyEntities,
   }) async {
@@ -126,11 +131,6 @@ class HistoricController extends ChangeNotifier {
     final List<int> ids = [];
 
     final entities = historyEntities?.nonNulls.cast<HistoryEntity>().toList();
-
-    void setDateTimeAndAdd(HistoryEntity element) {
-      _setDateTime(element);
-      _addOrUpdate(element);
-    }
 
     entities?.forEach(setDateTimeAndAdd);
 

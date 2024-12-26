@@ -62,7 +62,7 @@ class _BottomMenuState extends AnimatedWidgetBaseState<BottomMenu> {
                   barrierSemanticsDismissible: railMenuController.isOpen,
                   color: animation.drive(
                     ColorTween(
-                      begin: Colors.black54.withOpacity(0.0),
+                      begin: Colors.black54,
                       end: Colors.black54,
                     ).chain(
                       CurveTween(curve: Curves.ease),
@@ -83,6 +83,7 @@ class _BottomMenuState extends AnimatedWidgetBaseState<BottomMenu> {
                       railMenuController._menuSize?.height ?? kToolbarHeight,
                   child: Card(
                     shape: const RoundedRectangleBorder(),
+                    margin: EdgeInsets.zero,
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Padding(

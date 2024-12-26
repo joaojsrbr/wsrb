@@ -1,3 +1,5 @@
+// ignore_for_file: must_be_immutable
+
 import 'package:content_library/src/entities/entity.dart';
 import 'package:isar/isar.dart';
 import 'package:uuid/uuid.dart';
@@ -16,7 +18,7 @@ class CategoryEntity extends Entity {
   DateTime? updatedAt;
 
   @Index(replace: true, unique: true)
-  String get stringID => const Uuid().v5(Uuid.NAMESPACE_URL, title);
+  String get stringID => const Uuid().v5(Namespace.url.value, title);
 
   CategoryEntity({
     required this.title,
