@@ -218,6 +218,8 @@ class _RefContentkInformationViewState
     final HistoricController historicController =
         context.read<HistoricController>();
 
+    final HistoryService historyService = HistoryService(historicController);
+
     switch (release) {
       case Episode data when mounted && _content is Anime:
         await _downloadService.downloadReleaseVideoByHLS(
@@ -227,21 +229,17 @@ class _RefContentkInformationViewState
           statisticsCallback: (statistics) async {},
           onResult: (result) async {
             if (result is Success) {
-              final animeEntity =
-                  _libraryService.getContentEntityByStringID(_content!.stringID)
-                          as AnimeEntity? ??
-                      _content!.toEntity() as AnimeEntity;
+              final AnimeEntity animeEntity =
+                  _libraryService.getContentEntityByStringID(
+                _content!.stringID,
+                orElse: () => (_content! as Anime).toEntity(
+                  createdAt: DateTime.now(),
+                ),
+              );
 
-              // if (bAnimeEntity != null) {
-              //   animeEntity = bAnimeEntity.merge(animeEntity) as AnimeEntity;
-              // }
-
-              final EpisodeEntity episodeEntity =
-                  _historicController.entities.firstWhere(
-                (entity2) => switch (entity2) {
-                  EpisodeEntity data => data.stringID.contains(data.stringID),
-                  _ => false,
-                },
+              final EpisodeEntity episodeEntity = historyService.getHistoric(
+                release: data,
+                content: _content,
                 orElse: () => data.toEntity(anime: _content as Anime),
               ) as EpisodeEntity;
 
@@ -260,7 +258,10 @@ class _RefContentkInformationViewState
               case Failure _:
                 break;
               case Success _:
-                customLog('Terminou');
+                localContext?.appSnackBar.show(
+                  Text('Baixado com sucesso: ${data.title}'),
+                );
+
                 break;
               case Empty _:
                 break;
@@ -299,8 +300,11 @@ class _RefContentkInformationViewState
     final themeData = Theme.of(context);
 
     final libraryService = context.watch<LibraryService>();
+
     final appSnackBar = context.appSnackBar;
+
     customLog('$widget[build]');
+
     return Theme(
       data: ThemeData.dark(useMaterial3: true).copyWith(
         cardTheme: themeData.cardTheme.copyWith(margin: EdgeInsets.zero),
@@ -388,11 +392,13 @@ class _RefContentkInformationViewState
                               if (libraryService.favoritesIDS
                                   .contains(_content!.stringID)) {
                                 _libraryController.remove(
-                                    contentEntity: _content!.toEntity());
+                                  contentEntity: _content!.toEntity(),
+                                );
                               } else {
                                 _libraryController.add(
-                                  contentEntity:
-                                      _content!.toEntity(isFavorite: true),
+                                  contentEntity: _content!.toEntity(
+                                    isFavorite: true,
+                                  ),
                                 );
                               }
                             },
@@ -401,8 +407,10 @@ class _RefContentkInformationViewState
                                   libraryService.favoritesIDS.contains(
                                 _content?.stringID,
                               ),
-                              secondChild:
-                                  Icon(MdiIcons.heart, color: Colors.red),
+                              secondChild: Icon(
+                                MdiIcons.heart,
+                                color: Colors.red,
+                              ),
                               child: Icon(MdiIcons.heartOutline),
                             ),
                           ),

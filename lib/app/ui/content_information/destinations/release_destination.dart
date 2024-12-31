@@ -88,7 +88,9 @@ class _ReleaseSubtitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final historyService = HistoryService(context.watch());
 
-    final historic = historyService.getHistoric(release: release);
+    final HistoryEntity? historic = historyService.getHistoric(
+      release: release,
+    );
     final themeData = Theme.of(context);
 
     final episodeDuration = (historic?.epdToDuration ?? Duration.zero);

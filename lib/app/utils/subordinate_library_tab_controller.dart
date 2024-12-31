@@ -10,22 +10,23 @@ class SubordinateLibraryTabController extends TabController {
 
   PageController? _parent;
 
-  set setParent(PageController? pageView) {
-    _parent?.removeListener(_pageListener);
-    _parent = pageView;
-    _parent?.addListener(_pageListener);
+  set parent(PageController? pageView) {
+    if (_parent != pageView) {
+      _parent?.removeListener(_pageListener);
+      _parent = pageView;
+      _parent?.addListener(_pageListener);
+    }
   }
 
   void _pageListener() {
     setIgnorePointer(false);
   }
 
-  void setIgnorePointer([bool? active]) {
-    _parent?.position.context.setIgnorePointer(active ?? true);
+  void setIgnorePointer([bool active = true]) {
+    _parent?.position.context.setIgnorePointer(active);
   }
 
-  bool scrollNotificationNextPage(ScrollNotification notification) {
-    // const horizontalDirections = {AxisDirection.right, AxisDirection.left};
+  bool handleScrollNotification(ScrollNotification notification) {
     const verticalDirections = {AxisDirection.down, AxisDirection.up};
     final axisDirection = notification.metrics.axisDirection;
 
@@ -34,15 +35,15 @@ class SubordinateLibraryTabController extends TabController {
       return false;
     }
 
-    if (notification is ScrollUpdateNotification) setIgnorePointer(false);
-    if (notification is OverscrollNotification) {
-      final ScrollMetrics metrics = notification.metrics;
-      final double pixels = metrics.pixels.roundToDouble();
-      final double maxScrollExtent = metrics.maxScrollExtent.roundToDouble();
-      final double minScrollExtent = metrics.minScrollExtent;
-      if (pixels == minScrollExtent) {
-        setIgnorePointer(true);
-      } else if (pixels == maxScrollExtent) {
+    if (notification is ScrollUpdateNotification) {
+      setIgnorePointer(false);
+    } else if (notification is OverscrollNotification) {
+      final metrics = notification.metrics;
+      final pixels = metrics.pixels.roundToDouble();
+      final maxScrollExtent = metrics.maxScrollExtent.roundToDouble();
+      final minScrollExtent = metrics.minScrollExtent;
+
+      if (pixels == minScrollExtent || pixels == maxScrollExtent) {
         setIgnorePointer(true);
       }
     }
@@ -67,7 +68,7 @@ class SubordinateLibraryTabController extends TabController {
       initialIndex: initialIndex ?? index,
     );
 
-    newTabController.setParent = _parent;
+    newTabController.parent = _parent;
 
     dispose();
     return newTabController;

@@ -122,10 +122,19 @@ class LibraryService {
     };
   }
 
-  ContentEntity? getContentEntityByStringID(String animeStringID) {
+  T getContentEntityByStringID<T extends ContentEntity>(
+    String animeStringID, {
+    T Function()? orElse,
+  }) {
+    if (orElse != null) {
+      return entities.firstWhere(
+        (content) => _byStringID(content, animeStringID),
+        orElse: orElse,
+      ) as T;
+    }
     return entities.firstWhereOrNull(
       (content) => _byStringID(content, animeStringID),
-    );
+    ) as T;
   }
 
   bool _byStringID(ContentEntity content, String animeStringID) {

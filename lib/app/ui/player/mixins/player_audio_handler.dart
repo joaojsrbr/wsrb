@@ -93,6 +93,7 @@ abstract class PlayerAudioHandler extends BaseAudioHandler with SeekHandler {
   Player? get _player => _controller?.player;
 
   set setPlayerController(PlayerAudioHandlerMixin? controller) {
+    _player?.dispose();
     _controller = controller;
   }
 

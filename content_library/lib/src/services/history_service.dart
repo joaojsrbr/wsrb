@@ -14,15 +14,33 @@ class HistoryService {
   UnmodifiableListView<ChapterEntity> get chapterHistoric =>
       UnmodifiableListView(entities.whereType<ChapterEntity>());
 
-  HistoryEntity? getHistoric({Release? release}) {
+  T? getHistoric<T extends HistoryEntity>({
+    Release? release,
+    Content? content,
+    T Function()? orElse,
+  }) {
+    if (orElse != null) {
+      return entities.firstWhere(
+        (e) => switch (e) {
+          ChapterEntity data => data.stringID.contains(release?.stringID ?? ""),
+          EpisodeEntity data =>
+            data.stringID.contains(release?.stringID ?? "") &&
+                int.tryParse(release?.number ?? "") == data.numberEpisode &&
+                data.animeStringID.contains(content?.stringID ?? ""),
+          _ => false,
+        },
+        orElse: orElse,
+      ) as T?;
+    }
     return entities.firstWhereOrNull(
       (e) => switch (e) {
         ChapterEntity data => data.stringID.contains(release?.stringID ?? ""),
         EpisodeEntity data => data.stringID.contains(release?.stringID ?? "") &&
-            int.tryParse(release?.number ?? "") == data.numberEpisode,
+            int.tryParse(release?.number ?? "") == data.numberEpisode &&
+            data.animeStringID.contains(content?.stringID ?? ""),
         _ => false,
       },
-    );
+    ) as T?;
   }
 
   UnmodifiableListView<HistoryEntity> get entities =>

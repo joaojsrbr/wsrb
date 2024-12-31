@@ -11,6 +11,7 @@ import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_session.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_pip.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_screenshot_.dart';
+import 'package:app_wsrb_jsr/app/ui/player/mixins/player_status.dart';
 import 'package:app_wsrb_jsr/app/ui/player/widgets/material_video_controls.dart';
 import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
@@ -19,7 +20,6 @@ import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
-import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -46,7 +46,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         PlayerAudioHandlerMixin,
         PlayerAudioSessionMixin,
         PlayerScreenShotMixin,
-        SingleTickerProviderStateMixin {
+        SingleTickerProviderStateMixin,
+        PlayerStatusShotMixin {
   final ValueNotifier<String?> _overlayBoxFit = ValueNotifier(null);
   final ValueNotifier<bool> _showAnimeSkip = ValueNotifier(false);
   final ValueNotifier<String?> _overlayNextEpisode = ValueNotifier(null);
@@ -66,7 +67,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   final List<VideoData> data = [];
   final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
-  final _PlayerStatus _status = _PlayerStatus();
   final int _maxValueCircularAnimation = 2;
 
   late PlayerArgs _playerArgs = argument();
@@ -84,11 +84,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   Timer? _setContinueVideoTimer;
 
   bool get _hasNextEpisode {
-    if (!_playerArgs.getAnimeData || _playerArgs.anime.releases.isEmpty) {
-      return false;
-    }
+    // if (!_playerArgs.getAnimeData || _playerArgs.anime.releases.isEmpty) {
+    //   return false;
+    // }
     return _playerArgs.anime.releases.last.stringID !=
-        _playerArgs.episode.stringID;
+            _playerArgs.episode.stringID &&
+        (!_playerArgs.getAnimeData || _playerArgs.anime.releases.isEmpty);
   }
 
   bool get _playing => player?.state.playing ?? false;
@@ -136,7 +137,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   void _setEnabledSystemUIMode(Timer timer) {
-    if (player == null) return;
+    if (player == null && !mounted) return;
 
     if (_playing && !player!.state.completed) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
@@ -243,7 +244,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
 
     List<Future> futures = [
-      player!.setAudioDevice(AudioDevice.auto()),
+      // player!.setAudioDevice(AudioDevice.auto()),
       _registerListeners(false),
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive)
     ];
@@ -273,18 +274,18 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     await Future.wait(futures);
 
-    _videoController?.waitUntilFirstFrameRendered.whenComplete(() {
-      addPostFrameCallback((time) {
+    if (_playerArgs.forceEnterFullScreen) {
+      _videoController?.waitUntilFirstFrameRendered.whenComplete(() {
         PlayerView.videoStateKey.currentState?.enterFullscreen();
       });
-    });
+    }
 
     playbackState.add(playbackState.value.copyWith
         .call(processingState: AudioProcessingState.ready));
   }
 
   void _completedListener(bool completed) {
-    _status.setValue(completed: completed);
+    status.setValue(completed: completed);
     if (completed) {
       _saveVideoPosition();
       final playbackState = playerAudioHandler.playbackState;
@@ -309,22 +310,22 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   void _bufferListener(Duration buffer) {
-    _status.setValue(buffer: buffer);
+    status.setValue(buffer: buffer);
   }
 
   void _playingListener(bool playing) async {
     setSessionActive(playing);
-    _status.setValue(playing: playing);
+    status.setValue(playing: playing);
     await AndroidPIP().setIsPlaying(playing);
   }
 
   void _durationListener(Duration duration) {
-    _status.setValue(duration: duration);
+    status.setValue(duration: duration);
     if (duration != Duration.zero) setPlayerMedia(_playerArgs);
   }
 
   void _positionListener(Duration position) {
-    _status.setValue(position: position);
+    status.setValue(position: position);
     playerAudioHandler.setPlaybackState(player!.state);
 
     if (_seekInVideoPosition.value != null) {
@@ -460,7 +461,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   Future<void> _handleOnTapEpisode(Episode episode) async {
     if (episode.stringID.contains(_playerArgs.episode.stringID)) return;
     await setSessionActive(false);
-    await _saveVideoPosition(playerAudioHandler.stop);
+    await _saveVideoPosition();
 
     _seekInVideoPosition.value = null;
     _overlayNextEpisode.value = null;
@@ -492,10 +493,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     if (_mainVideoData == null) return;
     // _saveDataDebouncer.cancel();
     final currentPositionBase64 = await videoScreenshotBase64();
-
+    await setSessionActive(false);
     await playerAudioHandler.stop();
-    setSessionActive(false);
-    playerAudioHandler.setPlayerController = null;
 
     if (_videoPercent < _hiveController.historicSavePercent) return;
 
@@ -504,13 +503,16 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     final Duration duration = player!.state.duration;
 
     final HistoryService historyService = HistoryService(_historicController);
-
-    final entity = historyService.entities.firstWhereOrNull(
-      (episode) =>
-          episode is EpisodeEntity &&
-          episode.animeStringID.contains(_playerArgs.anime.stringID) &&
-          episode.stringID.contains(_playerArgs.episode.stringID),
-    ) as EpisodeEntity?;
+    final EpisodeEntity? entity = historyService.getHistoric(
+      release: _playerArgs.episode,
+      content: _playerArgs.anime,
+    );
+    // final entity = historyService.entities.firstWhereOrNull(
+    //   (episode) =>
+    //       episode is EpisodeEntity &&
+    //       episode.animeStringID.contains(_playerArgs.anime.stringID) &&
+    //       episode.stringID.contains(_playerArgs.episode.stringID),
+    // ) as EpisodeEntity?;
 
     bool isComplete = _videoPercent >= 0.85;
 
@@ -525,29 +527,24 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     );
 
     await player?.stop();
+    if (onSave != null) {
+      onSave();
+      playerAudioHandler.setPlayerController = null;
+    }
+
     customLog(
         '[$runtimeType][_saveVideoPosition()][${episodeEntity.numberEpisode}]');
 
-    // AnimeEntity animeEntity = _playerArgs.anime.toEntity();
-
-    final animeEntity =
-        (_libraryService.getContentEntityByStringID(_playerArgs.anime.stringID)
-                as AnimeEntity? ??
-            _playerArgs.anime.toEntity(createdAt: DateTime.now()));
-
-    // if (bAnimeEntity != null) {
-    //   animeEntity = animeEntity.merge(bAnimeEntity) as AnimeEntity;
-    // }
+    final AnimeEntity animeEntity = _libraryService.getContentEntityByStringID(
+      _playerArgs.anime.stringID,
+      orElse: () => _playerArgs.anime.toEntity(createdAt: DateTime.now()),
+    );
 
     animeEntity.animeSkip.value ??= _playerArgs.anime.animeSkip?.toEntity;
-
     animeEntity.episodes.add(episodeEntity);
 
     await _libraryController.add(contentEntity: animeEntity);
-
     await _historicController.add(historyEntity: episodeEntity);
-
-    onSave?.call();
   }
 
   void _handleClickSkipAnime(AnimeTimeStamp item) {
@@ -616,7 +613,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     WidgetsBinding.instance.removeObserver(this);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    _saveVideoPosition();
+    _saveVideoPosition(player?.dispose);
     super.dispose();
   }
 }
@@ -923,60 +920,4 @@ class _Content extends StatelessWidget {
       ),
     );
   }
-}
-
-class _PlayerStatus with EquatableMixin {
-  final bool _playing;
-  final Duration _position;
-  final Duration _duration;
-  final Duration _buffer;
-  final bool _completed;
-
-  const _PlayerStatus({
-    bool playing = false,
-    Duration position = Duration.zero,
-    Duration duration = Duration.zero,
-    Duration buffer = Duration.zero,
-    bool completed = false,
-  })  : _playing = playing,
-        _position = position,
-        _duration = duration,
-        _buffer = buffer,
-        _completed = completed;
-
-  _PlayerStatus setValue({
-    bool? playing,
-    Duration? position,
-    Duration? duration,
-    Duration? buffer,
-    bool? completed,
-  }) {
-    final status = _PlayerStatus(
-      playing: playing ?? _playing,
-      position: position ?? _position,
-      duration: duration ?? _duration,
-      buffer: buffer ?? _buffer,
-      completed: completed ?? _completed,
-    );
-    // if (_position.inMilliseconds != position?.inMilliseconds &&
-    //     _position.inMilliseconds > 0) {
-    //   customLog(toString());
-    // }
-
-    return status;
-  }
-
-  @override
-  String toString() {
-    return '_PlayerStatus(playing: $_playing, position: $_position, duration: $_duration, buffer: $_buffer, completed: $_completed)';
-  }
-
-  @override
-  List<Object?> get props => [
-        _playing,
-        _position,
-        _duration,
-        _buffer,
-        _completed,
-      ];
 }

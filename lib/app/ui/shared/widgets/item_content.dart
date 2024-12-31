@@ -1,10 +1,12 @@
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
+import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_auto_cache/flutter_auto_cache.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +14,7 @@ import 'package:provider/provider.dart';
 class ItemContent extends StatelessWidget {
   final bool _isLibrary;
   final bool _isSearch;
+  final bool _isContent;
   final double? width;
   final double? height;
   final Content content;
@@ -24,7 +27,8 @@ class ItemContent extends StatelessWidget {
     this.onTap,
     this.height,
   })  : _isSearch = false,
-        _isLibrary = false;
+        _isLibrary = false,
+        _isContent = false;
 
   const ItemContent.library({
     super.key,
@@ -33,7 +37,8 @@ class ItemContent extends StatelessWidget {
     this.onTap,
     this.height,
   })  : _isSearch = false,
-        _isLibrary = true;
+        _isLibrary = true,
+        _isContent = false;
 
   const ItemContent.search({
     super.key,
@@ -42,7 +47,17 @@ class ItemContent extends StatelessWidget {
     this.onTap,
     this.height,
   })  : _isSearch = true,
-        _isLibrary = false;
+        _isLibrary = false,
+        _isContent = false;
+  const ItemContent.content({
+    super.key,
+    required this.content,
+    this.width,
+    this.onTap,
+    this.height,
+  })  : _isSearch = false,
+        _isLibrary = false,
+        _isContent = true;
 
   static ItemContent? maybeOf(BuildContext context) {
     return context.findAncestorWidgetOfExactType<ItemContent>();
@@ -54,23 +69,8 @@ class ItemContent extends StatelessWidget {
 
   static final BorderRadius _borderRadius = BorderRadius.circular(8);
 
-  static final _OverlayColor _overlayColor = _OverlayColor();
-
   @override
   Widget build(BuildContext context) {
-    final appSnackBar = context.appSnackBar;
-
-    final memCacheHeight = _isLibrary
-        ? 300
-        : _isSearch
-            ? 350
-            : 200;
-    final memCacheWidth = _isLibrary
-        ? 500
-        : _isSearch
-            ? 300
-            : 300;
-
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
 
@@ -78,7 +78,194 @@ class ItemContent extends StatelessWidget {
 
     final ThemeData themeData = Theme.of(context);
 
+    final searchController = HomeScope.maybeOf(context)?.searchController;
+
+    final content = this.content;
+
+    final _OverlayColor overlayColor = _OverlayColor(content);
+
     final textTheme = themeData.textTheme;
+
+    final appSnackBar = context.appSnackBar;
+
+    // final memCacheHeight = 300;
+    // final memCacheWidth = 350;
+
+    final memCacheHeight = _isLibrary || _isSearch
+        ? 400
+        : _isContent
+            ? 150
+            : 300;
+    final memCacheWidth = _isLibrary || _isSearch
+        ? 450
+        : _isContent
+            ? 200
+            : 300;
+
+    if (_isContent) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: InkWell(
+          onLongPress: () {
+            if (valueNotifierList.isEmpty) {
+              customLog(
+                'InkWell long tapped title: ${content.title} - id: ${content.stringID}',
+              );
+              valueNotifierList.toggle(content.stringID);
+            }
+          },
+          onTap: () async {
+            if (searchController?.isAttached == true &&
+                searchController?.isOpen == true) {
+              context.unFocusKeyBoard();
+            }
+            if (valueNotifierList.isNotEmpty) {
+              valueNotifierList.toggle(content.stringID);
+              customLog(
+                'InkWell tapped title: ${content.title} - id: ${content.stringID}',
+              );
+            } else {
+              if (content is Anime) {
+                await context.push(
+                  RouteName.PLAYER,
+                  extra: PlayerArgs(
+                    anime: content,
+                    episode: content.releases.last,
+                  ),
+                );
+              }
+            }
+          },
+          splashFactory: InkRipple.splashFactory,
+          overlayColor: _OverlayColor(content),
+          child: ListTile(
+            title: Text(
+              content.title,
+              maxLines: 2,
+              style: textTheme.titleMedium!,
+              textAlign: TextAlign.start,
+              overflow: TextOverflow.ellipsis,
+            ),
+            isThreeLine: false,
+            dense: false,
+            subtitle: Row(
+              children: [
+                Text(
+                  'Episódio ${content.releases.last.number}',
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+                if (content is Anime) ...[
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        const TextSpan(text: ' - '),
+                        TextSpan(
+                          text: (content).isDublado ? 'DUB' : 'LEG',
+                          style: textTheme.titleSmall?.copyWith(
+                            color: (content).isDublado
+                                ? Colors.green
+                                : Colors.blue,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            minVerticalPadding: 0,
+            minTileHeight: 68,
+            visualDensity: const VisualDensity(vertical: 4, horizontal: -2),
+            leading: Container(
+              margin: const EdgeInsets.only(top: 3, bottom: 3),
+              width: 100,
+              height: double.infinity,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 350),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8)
+                          .add(BorderRadius.circular(2)),
+                      border: valueNotifierList.contains(content.stringID)
+                          ? Border.all(color: Colors.white, width: 1.5)
+                          : null,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: CachedNetworkImage(
+                        filterQuality: FilterQuality.medium,
+                        imageUrl: content.imageUrl,
+                        placeholder: (context, url) => const _Placeholder(),
+                        errorListener: customLog,
+                        memCacheWidth: memCacheWidth,
+                        memCacheHeight: memCacheHeight,
+                        fit: BoxFit.cover,
+                        alignment: FractionalOffset.center,
+                        errorWidget: (context, url, error) =>
+                            const _Placeholder(),
+                        httpHeaders: {
+                          ...App.HEADERS,
+                          'Referer': '${hiveController.source.baseURL}/',
+                        },
+                      ),
+                    ),
+                  ),
+                  Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () async {
+                        if (searchController?.isAttached == true &&
+                            searchController?.isOpen == true) {
+                          context.unFocusKeyBoard();
+                        }
+                        if (valueNotifierList.isNotEmpty) {
+                          valueNotifierList.toggle(content.stringID);
+                          customLog(
+                            'InkWell tapped title: ${content.title} - id: ${content.stringID}',
+                          );
+                          return;
+                        }
+
+                        customLog(
+                          'InkWell tapped title: ${content.title} - id: ${content.stringID}',
+                        );
+
+                        final cache = await AutoCache.data.getJson(
+                          key: content.stringID,
+                        );
+                        final cacheContent = switch (content) {
+                          Anime _ when cache.data != null =>
+                            Anime.fromMap(cache.data!),
+                          Book _ when cache.data != null =>
+                            Book.fromMap(cache.data!),
+                          _ => null,
+                        };
+                        if (context.mounted) {
+                          final result = await context.push(
+                            RouteName.CONTENTINFO,
+                            extra: ContentInformationArgs(
+                              content: cacheContent ?? content,
+                            ),
+                          );
+                          if (result != null) {
+                            await appSnackBar.onError(result);
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return AnimatedContainer(
       // key: ObjectKey(widget.content),
@@ -102,15 +289,11 @@ class ItemContent extends StatelessWidget {
                 return LinearGradient(
                   begin: Alignment.center,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black54.withAlpha(90),
-                  ],
+                  colors: [Colors.transparent, Colors.black54.withAlpha(90)],
                   stops: const [0.0, .9],
                 ).createShader(bounds);
               },
               child: CachedNetworkImage(
-                filterQuality: FilterQuality.medium,
                 imageUrl: content.imageUrl,
                 placeholder: (context, url) => const _Placeholder(),
                 errorListener: customLog,
@@ -151,11 +334,9 @@ class ItemContent extends StatelessWidget {
                             ],
                             if (content is Anime) ...[
                               TextSpan(
-                                text: (content as Anime).isDublado
-                                    ? 'DUB'
-                                    : 'LEG',
+                                text: content.isDublado ? 'DUB' : 'LEG',
                                 style: TextStyle(
-                                  color: (content as Anime).isDublado
+                                  color: content.isDublado
                                       ? Colors.green
                                       : Colors.blue,
                                 ),
@@ -188,7 +369,7 @@ class ItemContent extends StatelessWidget {
               borderRadius: ItemContent._borderRadius,
               child: InkWell(
                 borderRadius: ItemContent._borderRadius,
-                overlayColor: ItemContent._overlayColor,
+                overlayColor: overlayColor,
                 onLongPress: _isSearch
                     ? null
                     : () {
@@ -213,12 +394,11 @@ class ItemContent extends StatelessWidget {
                         content.releases.length == 1 &&
                         !_isLibrary &&
                         !_isSearch) {
-                      final anime = content as Anime;
                       await context.push(
                         RouteName.PLAYER,
                         extra: PlayerArgs(
-                          anime: anime,
-                          episode: anime.releases.first,
+                          anime: content,
+                          episode: content.releases.first,
                         ),
                       );
                     } else {
@@ -262,9 +442,7 @@ class ItemContent extends StatelessWidget {
                           }
                         }
                       : null,
-                  style: ButtonStyle(
-                    overlayColor: ItemContent._overlayColor,
-                  ),
+                  style: ButtonStyle(overlayColor: overlayColor),
                   visualDensity: const VisualDensity(
                     horizontal: -2,
                     vertical: -2,
@@ -281,22 +459,6 @@ class ItemContent extends StatelessWidget {
   }
 }
 
-class _OverlayColor extends WidgetStateProperty<Color?> {
-  _OverlayColor();
-
-  @override
-  Color? resolve(Set<WidgetState> states) {
-    if (states.contains(WidgetState.pressed)) {
-      return Colors.blue.withAlpha(30);
-    } else if (states.contains(WidgetState.hovered)) {
-      return Colors.blue.withAlpha(20);
-    } else if (states.contains(WidgetState.focused)) {
-      return Colors.transparent;
-    }
-    return Colors.transparent;
-  }
-}
-
 class _Placeholder extends StatelessWidget {
   const _Placeholder();
 
@@ -306,5 +468,29 @@ class _Placeholder extends StatelessWidget {
     return Card.filled(
       color: themeData.colorScheme.primary.withAlpha(10),
     );
+  }
+}
+
+class _OverlayColor extends WidgetStateProperty<Color?> {
+  _OverlayColor(this.content) {
+    if (content is Anime) {
+      _color = (content as Anime).isDublado ? Colors.blue : Colors.red;
+    }
+  }
+
+  Color? _color;
+
+  final Content content;
+
+  @override
+  Color? resolve(Set<WidgetState> states) {
+    if (states.contains(WidgetState.pressed)) {
+      return _color?.withAlpha(36);
+    } else if (states.contains(WidgetState.hovered)) {
+      return _color?.withAlpha(20);
+    } else if (states.contains(WidgetState.focused)) {
+      return Colors.transparent;
+    }
+    return Colors.transparent;
   }
 }
