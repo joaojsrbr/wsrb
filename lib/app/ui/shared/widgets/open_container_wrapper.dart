@@ -27,9 +27,11 @@ class OpenContainerWrapper<T> extends OpenContainer<T> {
     super.closedElevation,
   }) : super(
           closedShape: RoundedRectangleBorder(
-              borderRadius: borderRadius ?? BorderRadius.circular(0)),
+            borderRadius: borderRadius ?? BorderRadius.zero,
+          ),
           openShape: RoundedRectangleBorder(
-              borderRadius: borderRadius ?? BorderRadius.circular(0)),
+            borderRadius: borderRadius ?? BorderRadius.zero,
+          ),
           closedBuilder: (context, action) {
             return _OpenContainerInherited(
               action: action,

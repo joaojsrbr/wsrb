@@ -81,6 +81,7 @@ void main(List<String> arguments) async {
         ChangeNotifierProvider(create: (context) => libraryController),
         ChangeNotifierProvider(create: (context) => categoryController),
         ChangeNotifierProvider(create: (context) => historicController),
+        ChangeNotifierProvider(create: (context) => animeSkipController),
         ChangeNotifierProvider(create: (context) => valueNotifierList),
         ChangeNotifierProvider(create: (context) => DownloadService()),
         Provider(

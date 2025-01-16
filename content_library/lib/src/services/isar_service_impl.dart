@@ -45,10 +45,18 @@ class IsarServiceImpl implements IsarService {
             await animeEntity.episodes.save();
             isSucess = true;
           }
+          // currentID = await isar.episodeEntitys.putByStringID(data);
+
+          // isSucess = true;
 
           break;
         case CategoryEntity data:
           currentID = await isar.categoryEntitys.put(data);
+
+          isSucess = true;
+          break;
+        case AnimeSkipEntity data:
+          currentID = await isar.animeSkipEntitys.putByAnimeSkipId(data);
 
           isSucess = true;
           break;
@@ -68,12 +76,18 @@ class IsarServiceImpl implements IsarService {
           currentID = await isar.animeEntitys.putByStringID(data);
           // await data.animeSkip.value!.times.save();
           if (data.animeSkip.value != null) {
-            await isar.animeSkipEntitys.putByAnimeSkipId(data.animeSkip.value!);
+            // await isar.animeSkipEntitys.putByAnimeSkipId(data.animeSkip.value!);
             await data.animeSkip.save();
             // await isar.animeTimeStampEntitys.putAll(
             //   data.animeSkip.value!.times.toList(),
             // );
           }
+
+          // if (!data.episodes.isLoaded) {
+          //   await data.episodes.save();
+          // } else {
+          //   await data.episodes.load();
+          // }
 
           isSucess = true;
           break;
@@ -135,7 +149,7 @@ class IsarServiceImpl implements IsarService {
     List<int> ids = [];
     bool isSucess = false;
 
-    if (entities != null) {
+    if (entities != null && entities.isNotEmpty) {
       final futures = await Future.wait(entities.map((e) => add(entity: e)));
       futures
           .map((e) => e.fold(onSuccess: (data) => data.$2))

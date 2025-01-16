@@ -40,11 +40,9 @@ class PlayerArgs with EquatableMixin {
 
   List<AnimeTimeStamp> get times {
     return (anime.animeSkip?.times ?? [])
-        .where((skip) =>
-            skip.absoluteNumber ==
-            int.parse(
-              episode.number,
-            ))
+        .where(
+          (skip) => skip.absoluteNumber == int.parse(episode.number),
+        )
         .toList()
         .cast();
   }

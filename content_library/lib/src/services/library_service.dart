@@ -87,6 +87,19 @@ class LibraryService {
           .map(_map)
           .nonNulls);
 
+  CategoryEntity? getContentByStringId(
+    CategoryController categoryController,
+    Content? content,
+  ) {
+    return switch (content) {
+      AnimeEntity data => categoryController.categories
+          .firstWhereOrNull((category) => category.ids.contains(data.stringID)),
+      BookEntity data => categoryController.categories
+          .firstWhereOrNull((category) => category.ids.contains(data.stringID)),
+      _ => null,
+    };
+  }
+
   List<Entity> byCategories(
     CategoryController categoryController, [
     bool noCategory = false,
@@ -151,12 +164,12 @@ class LibraryService {
     final first = entities.firstWhereOrNull(
       (content) => _byStringID(content, animeStringID),
     );
-    switch (first) {
-      case AnimeEntity data:
-        await data.episodes.load();
-      case BookEntity data:
-        await data.chapters.load();
-    }
+    // switch (first) {
+    //   case AnimeEntity data:
+    //     await data.episodes.load();
+    //   case BookEntity data:
+    //     await data.chapters.load();
+    // }
 
     return first;
   }

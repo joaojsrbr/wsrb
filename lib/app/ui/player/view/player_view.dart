@@ -75,6 +75,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   late final LibraryService _libraryService;
   late final HiveController _hiveController;
   late final LibraryController _libraryController;
+  late final AnimeSkipController _animeSkipController;
   late final HistoricController _historicController;
   late final Timer _systemUIModeTimer;
 
@@ -116,6 +117,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     WidgetsBinding.instance.addObserver(this);
     _libraryService = context.read<LibraryService>();
     _hiveController = context.read<HiveController>();
+    _animeSkipController = context.read<AnimeSkipController>();
     _repository = context.read<ContentRepository>();
     _animationController = AnimationController(
       vsync: this,
@@ -209,8 +211,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     await pipStart();
 
     await _getAllEpisodes().whenComplete(_incrementCurrentCircularAnimation);
-
-    _playerArgs = argument();
 
     await _getInitMainVideoData()
         .whenComplete(_incrementCurrentCircularAnimation);
@@ -488,7 +488,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     await _continueVideoByHistoricPosition();
   }
 
-  Future<void> _saveVideoPosition([void Function()? onSave]) async {
+  Future<void> _saveVideoPosition([Future<void> Function()? onSave]) async {
     player?.pause();
     if (_mainVideoData == null) return;
     // _saveDataDebouncer.cancel();
@@ -527,8 +527,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     );
 
     await player?.stop();
+
     if (onSave != null) {
-      onSave();
+      await onSave();
       playerAudioHandler.setPlayerController = null;
     }
 
@@ -542,7 +543,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     animeEntity.animeSkip.value ??= _playerArgs.anime.animeSkip?.toEntity;
     animeEntity.episodes.add(episodeEntity);
-
+    if (animeEntity.animeSkip.value != null) {
+      await _animeSkipController.save(animeEntity.animeSkip.value!);
+    }
     await _libraryController.add(contentEntity: animeEntity);
     await _historicController.add(historyEntity: episodeEntity);
   }

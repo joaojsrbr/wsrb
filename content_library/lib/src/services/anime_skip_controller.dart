@@ -1,7 +1,8 @@
 import 'package:content_library/content_library.dart';
+import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 
-class AnimeSkipController {
+class AnimeSkipController extends ChangeNotifier {
   final IsarServiceImpl _isarService;
 
   AnimeSkipController(this._isarService);
@@ -17,20 +18,15 @@ class AnimeSkipController {
     _entities.addAll(animeskips);
   }
 
-  Future<Result<(bool, int?)>> save(AnimeEntity animeEntity) async {
-    if (animeEntity.animeSkip.value == null) {
-      return Result.failure(Exception('animeEntity.animeSkip.value == null'));
-    }
-
+  Future<Result<(bool, int?)>> save(AnimeSkipEntity animeSkipEntity) async {
     final result = await _isarService.add(
-      entity: animeEntity.animeSkip.value,
+      entity: animeSkipEntity,
     );
 
-    await animeEntity.animeSkip.save();
-
-    if (!_entities.contains(animeEntity.animeSkip.value)) {
-      _entities.add(animeEntity.animeSkip.value!);
+    if (!_entities.contains(animeSkipEntity)) {
+      _entities.add(animeSkipEntity);
     }
+    notifyListeners();
 
     return result;
   }

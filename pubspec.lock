@@ -39,6 +39,13 @@ packages:
       url: "https://github.com/joaojsrbr/anilist_dart"
     source: git
     version: "1.0.0"
+  animated_category:
+    dependency: "direct main"
+    description:
+      path: "../animated_category"
+      relative: true
+    source: path
+    version: "0.0.3+1"
   animations:
     dependency: "direct main"
     description:

@@ -10,10 +10,10 @@ class SubordinateLibraryTabController extends TabController {
 
   PageController? _parent;
 
-  set parent(PageController? pageView) {
-    if (_parent != pageView) {
+  void parent(BuildContext context) {
+    if (context.mounted) {
       _parent?.removeListener(_pageListener);
-      _parent = pageView;
+      _parent = context.findAncestorWidgetOfExactType<PageView>()?.controller;
       _parent?.addListener(_pageListener);
     }
   }
@@ -68,7 +68,7 @@ class SubordinateLibraryTabController extends TabController {
       initialIndex: initialIndex ?? index,
     );
 
-    newTabController.parent = _parent;
+    newTabController._parent = _parent;
 
     dispose();
     return newTabController;

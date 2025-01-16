@@ -71,26 +71,23 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   void _startTabController([bool dispose = true]) {
     int length = 1 + _categoryController.categories.length;
 
-    SubordinateLibraryTabController newTabController;
-
     if (dispose) {
       setStateIfMounted(() {
-        newTabController = _subordinateLibraryTabController.copyWithAndDispose(
+        _subordinateLibraryTabController =
+            _subordinateLibraryTabController.copyWithAndDispose(
           length: length,
           vsync: this,
           initialIndex: _subordinateLibraryTabController.index > length - 1
               ? _subordinateLibraryTabController.index - 1
               : _subordinateLibraryTabController.index,
         );
-        _subordinateLibraryTabController = newTabController;
       });
     } else {
-      newTabController = SubordinateLibraryTabController(
+      _subordinateLibraryTabController = SubordinateLibraryTabController(
         vsync: this,
         initialIndex: 0,
         length: length,
       );
-      _subordinateLibraryTabController = newTabController;
     }
   }
 
@@ -122,8 +119,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     });
   }
 
-  set setScroll(bool enable) {
-    if (enable == _disableScroll) return;
+  void disableScroll(bool enable) {
     setStateIfMounted(() => _disableScroll = enable);
   }
 

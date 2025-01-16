@@ -35,6 +35,7 @@ class _RefContentkInformationViewState
   late final HistoricController _historicController;
   late final DownloadService _downloadService;
   late final HistoryService _historyService;
+  late final AnimeSkipController _animeSkipController;
 
   final Debouncer _changeTabBarIndex = Debouncer(
     duration: Duration.zero,
@@ -60,6 +61,7 @@ class _RefContentkInformationViewState
     _historicController = context.read<HistoricController>();
     _historyService = HistoryService(_historicController);
     _libraryController = context.read<LibraryController>();
+    _animeSkipController = context.read<AnimeSkipController>();
     _libraryService = context.read<LibraryService>();
     _downloadService = context.read<DownloadService>();
     _repository = context.read<ContentRepository>();
@@ -166,18 +168,17 @@ class _RefContentkInformationViewState
       _isLoading = false;
     });
 
-    if (await _shouldSaveCache(data, forceSaveCache) &&
-        !_informationArgs!.isLibrary) {
+    if (!_informationArgs!.isLibrary) {
       AutoCache.data.saveJson(key: data.stringID, data: _content!.toJson());
     }
     if (!_initialRefresh.isCompleted) _initialRefresh.complete();
   }
 
-  Future<bool> _shouldSaveCache(Content data, bool forceSaveCache) async {
-    return ((await AutoCache.data.getJson(key: data.stringID)).data == null ||
-        forceSaveCache ||
-        _content!.cached == true);
-  }
+  // Future<bool> _shouldSaveCache(Content data, bool forceSaveCache) async {
+  //   return ((await AutoCache.data.getJson(key: data.stringID)).data == null ||
+  //       forceSaveCache ||
+  //       _content!.cached == true);
+  // }
 
   void _processAnimeReleases(Anime data) {
     for (var release in data.releases) {
@@ -395,11 +396,7 @@ class _RefContentkInformationViewState
                                   contentEntity: _content!.toEntity(),
                                 );
                               } else {
-                                _libraryController.add(
-                                  contentEntity: _content!.toEntity(
-                                    isFavorite: true,
-                                  ),
-                                );
+                                _saveData(_content);
                               }
                             },
                             icon: FadeThroughTransitionSwitcher(
@@ -465,16 +462,25 @@ class _RefContentkInformationViewState
     super.dispose();
   }
 
-  void _saveData() async {
-    if (_libraryService.contains(content: _content)) {
-      final contentEntity = (await _libraryService
-          .getContentEntityByStringIDAll(_content!.stringID));
+  void _saveData([Content? otherData]) async {
+    if (otherData != null ||
+        _libraryService.contains(content: otherData ?? _content)) {
+      ContentEntity? contentEntity =
+          await _libraryService.getContentEntityByStringIDAll(
+        otherData?.stringID ?? _content!.stringID,
+      );
+
+      contentEntity ??= otherData?.toEntity(
+        createdAt: DateTime.now(),
+        isFavorite: true,
+      );
 
       final List<HistoryEntity> historyEntities = [];
 
-      for (final episode in _content!.releases) {
+      for (final episode in (otherData ?? _content)!.releases) {
         final entity = switch (episode) {
-          Episode data => data.toEntity(anime: _content as Anime),
+          Episode data =>
+            data.toEntity(anime: (otherData ?? _content) as Anime),
           Chapter data => data.toEntity(0.0, null, null),
           _ => null,
         };
@@ -489,9 +495,13 @@ class _RefContentkInformationViewState
         }
       }
 
-      await _historicController.addAll(historyEntities: historyEntities);
-
+      if (contentEntity case AnimeEntity data
+          when data.animeSkip.value != null) {
+        await _animeSkipController.save(data.animeSkip.value!);
+      }
       await _libraryController.add(contentEntity: contentEntity);
+
+      await _historicController.addAll(historyEntities: historyEntities);
     }
   }
 }

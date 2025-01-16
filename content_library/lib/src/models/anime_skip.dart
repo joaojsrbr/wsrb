@@ -96,27 +96,32 @@ class AnimeTimeStamp {
     dynamic episodeMap,
     dynamic map,
   ) {
-    final timeStamp = AnimeTimeStampType.values.firstWhereOrNull((time) {
-      return map['type']['name']
-          .toString()
-          .toID
-          .toUpperCase()
-          .contains(time.name.toUpperCase());
-    });
-
-    double timestampInSeconds = double.parse(map['at'].toString());
+    final timeStamp = episodeMap['animeTimeStampType'] != null
+        ? AnimeTimeStampType.values.elementAt(episodeMap['animeTimeStampType'])
+        : AnimeTimeStampType.values.firstWhereOrNull((time) {
+            return map['type']['name']
+                .toString()
+                .toID
+                .toUpperCase()
+                .contains(time.name.toUpperCase());
+          });
 
     return AnimeTimeStamp(
-      absoluteNumber: int.tryParse(
-              (map['episode']['absoluteNumber'] ?? map['episode']['number'])) ??
+      absoluteNumber: int.tryParse(((episodeMap['absoluteNumber'] ??
+                  map['episode']['absoluteNumber'] ??
+                  map['episode']['number']))
+              .toString()) ??
           0,
-      id: map['id'],
-      episodeId: episodeMap['id'],
-      at: (timestampInSeconds * 1000000).toInt(),
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedBy: map['type']['updatedBy']['username'],
-      updatedAt: DateTime.parse(map['updatedAt']),
-      createdBy: map['type']['createdBy']['username'],
+      id: map['id'] ?? episodeMap['episodeId'],
+      episodeId: episodeMap['episodeId'] ?? episodeMap['id'],
+      at: episodeMap['at'] ??
+          (double.parse(map['at'].toString()) * 1000000).toInt(),
+      createdAt: DateTime.parse(episodeMap['createdAt'] ?? map['createdAt']),
+      updatedBy:
+          episodeMap['updatedBy'] ?? map['type']['updatedBy']['username'],
+      updatedAt: DateTime.parse(episodeMap['updatedAt'] ?? map['updatedAt']),
+      createdBy:
+          episodeMap['createdBy'] ?? map['type']['createdBy']['username'],
       timeStampType: timeStamp ?? AnimeTimeStampType.UNKNOWN,
     );
   }
@@ -166,7 +171,7 @@ class AnimeTimeStamp {
 
   Map<String, dynamic> get toMap {
     return <String, dynamic>{
-      'at': at,
+      'at': atDuration.inMicroseconds,
       'id': id,
       'episodeId': episodeId,
       'createdBy': createdBy,

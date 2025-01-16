@@ -22,65 +22,102 @@ class LibraryController extends ChangeNotifier {
     super.dispose();
   }
 
-  void _updateBookIsarLinks(data) async {
-    Timer(const Duration(milliseconds: 350), () async {
-      final bookColetions = await _isarService.collection<BookEntity>();
+  // void _updateBookIsarLinks(data) async {
+  //   Timer(const Duration(milliseconds: 350), () async {
+  //     final bookColetions = await _isarService.collection<BookEntity>();
 
-      final bookEntities = await bookColetions.where().findAll();
+  //     final bookEntities = await bookColetions.where().findAll();
 
-      await Future.wait([
-        ...bookEntities.map((element) => element.chapters.load()),
-      ]);
+  //     await Future.wait([
+  //       ...bookEntities.map((element) => element.chapters.load()),
+  //     ]);
 
-      bool update = false;
+  //     bool update = false;
 
-      for (var contentEntity in bookEntities) {
-        update = _entities.updateWhere(
-            contentEntity,
-            (element) => switch (element) {
-                  BookEntity data =>
-                    data.stringID.contains(contentEntity.stringID),
-                  _ => false,
-                });
-      }
+  //     for (var contentEntity in bookEntities) {
+  //       update = _entities.updateWhere(
+  //           contentEntity,
+  //           (element) => switch (element) {
+  //                 BookEntity data =>
+  //                   data.stringID.contains(contentEntity.stringID),
+  //                 _ => false,
+  //               });
+  //     }
 
-      if (update) {
-        _updateDebouncer.cancel();
-        _updateDebouncer.call(notifyListeners);
-      }
-    });
-  }
+  //     if (update) {
+  //       _updateDebouncer.cancel();
+  //       _updateDebouncer.call(notifyListeners);
+  //     }
+  //   });
+  // }
 
-  void _updateAnimeIsarLinks(data) async {
-    Timer(const Duration(milliseconds: 350), () async {
-      final animeColetions = await _isarService.collection<AnimeEntity>();
+  // void _updateAnimeIsarLinks(data) async {
+  //   Timer(const Duration(milliseconds: 350), () async {
+  //     final animeColetions = await _isarService.collection<AnimeEntity>();
 
-      final animeEntities = await animeColetions.where().findAll();
+  //     final animeEntities = await animeColetions.where().findAll();
 
-      await Future.wait([
-        ...animeEntities.map((element) => element.episodes.load()),
-      ]);
+  //     await Future.wait([
+  //       ...animeEntities.map((element) => element.episodes.load()),
+  //     ]);
 
-      bool update = false;
+  //     bool update = false;
 
-      for (var contentEntity in animeEntities) {
-        update = _entities.updateWhere(
-            contentEntity,
-            (element) => switch (element) {
-                  AnimeEntity data =>
-                    data.stringID.contains(contentEntity.stringID),
-                  _ => false,
-                });
-      }
+  //     for (var contentEntity in animeEntities) {
+  //       update = _entities.updateWhere(
+  //           contentEntity,
+  //           (element) => switch (element) {
+  //                 AnimeEntity data =>
+  //                   data.stringID.contains(contentEntity.stringID),
+  //                 _ => false,
+  //               });
+  //     }
 
-      if (update) {
-        _updateDebouncer.cancel();
-        _updateDebouncer.call(notifyListeners);
-      }
-    });
-  }
+  //     if (update) {
+  //       _updateDebouncer.cancel();
+  //       _updateDebouncer.call(notifyListeners);
+  //     }
+  //   });
+  // }
 
   final List<ContentEntity> _entities = [];
+
+  void _updateAll(data) async {
+    final animeColetions = await _isarService.collection<AnimeEntity>();
+
+    final bookColetions = await _isarService.collection<BookEntity>();
+
+    // final episodeColetions = await _isarService.collection<EpisodeEntity>();
+
+    final entities = [
+      ...(await animeColetions.where().findAll()),
+      ...(await bookColetions.where().findAll()),
+    ];
+
+    await Future.wait(
+      entities
+          .map(
+            (entity) => switch (entity) {
+              AnimeEntity data => [
+                  data.episodes.load(),
+                  data.animeSkip.load(),
+                ],
+              BookEntity data => [
+                  data.chapters.load(),
+                ],
+              _ => null,
+            },
+          )
+          .nonNulls
+          .flattened,
+    );
+
+    _entities
+      ..clear()
+      ..addAll(entities);
+    _updateDebouncer.cancel();
+    _updateDebouncer.call(notifyListeners);
+  }
 
   Future<void> start() async {
     final animeColetions = await _isarService.collection<AnimeEntity>();
@@ -116,9 +153,9 @@ class LibraryController extends ChangeNotifier {
 
     _subscriptions.addAll(
       [
-        animeColetions.watchLazy().listen(_updateAnimeIsarLinks),
-        bookColetions.watchLazy().listen(_updateBookIsarLinks),
-        episodeColetions.watchLazy().listen(_updateAnimeIsarLinks),
+        animeColetions.watchLazy().listen(_updateAll),
+        bookColetions.watchLazy().listen(_updateAll),
+        episodeColetions.watchLazy().listen(_updateAll),
       ],
     );
   }

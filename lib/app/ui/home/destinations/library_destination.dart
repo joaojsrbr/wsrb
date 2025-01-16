@@ -48,8 +48,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
       final libraryTabController =
           HomeScope.of(context).subordinateLibraryTabController;
 
-      libraryTabController.setParent =
-          context.findAncestorWidgetOfExactType<PageView>()?.controller;
+      libraryTabController.parent(context);
     });
 
     _setChildren();
@@ -134,16 +133,93 @@ class LibraryeDestinationState extends State<LibraryDestination>
 
     // _setChildren();
     customLog('$widget[build]');
-
     final SubordinateLibraryTabController subordinateLibraryTabController =
         HomeScope.of(context).subordinateLibraryTabController;
     final searchController = HomeScope.of(context).searchController;
     return NotificationListener<ScrollNotification>(
-      onNotification:
-          subordinateLibraryTabController.scrollNotificationNextPage,
+      onNotification: subordinateLibraryTabController.handleScrollNotification,
       child: ValueListenableBuilder(
         valueListenable: searchController,
         builder: (context, value, child) {
+          // return LayoutBuilder(
+          //   builder: (context, constraints) {
+          //     return AnimatedCategory(
+          //       startSize: 150,
+          //       deltaSizeFirstTap: 100,
+          //       deltaSizeSecondTap: 100,
+          //       columnNumber: 2,
+          //       onTapItemSelected: (item, expand) async {
+          //         // item.width = constraints.maxWidth;
+          //         // item.height = constraints.maxHeight;
+          //         // setState(() {});
+          //         // OpenContainerWrapper.action(item.widgetKey.currentContext!);
+
+          //         // final result = await Navigator.push(
+          //         //   context,
+          //         //   _CustomPopupRoute(
+          //         //     constraints: constraints,
+          //         //     data: item.data,
+          //         //   ),
+          //         // );
+
+          //         final category = _libraryService.getContentByStringId(
+          //           _categoryController,
+          //           item.data.firstOrNull,
+          //         );
+
+          //         await showModalBottomSheet(
+          //           context: context,
+          //           constraints: constraints,
+          //           scrollControlDisabledMaxHeightRatio: 0.80,
+          //           builder: (context) {
+          //             return Material(
+          //               child: Padding(
+          //                 padding: EdgeInsets.symmetric(vertical: 12),
+          //                 child: Scaffold(
+          //                   primary: false,
+          //                   appBar: AppBar(
+          //                     title: Text(category?.title ?? 'Padrão'),
+          //                   ),
+          //                 ),
+          //               ),
+          //             );
+          //           },
+          //         );
+
+          //         expand(true);
+          //       },
+          //       itemBorderRadius: BorderRadius.circular(8),
+          //       items: _contents,
+          //       childBuilder: (item) {
+          //         final category = _libraryService.getContentByStringId(
+          //           _categoryController,
+          //           item.data.firstOrNull,
+          //         );
+
+          //         if (item.data.isEmpty) return const SizedBox.shrink();
+
+          //         return Card.filled(
+          //           margin: EdgeInsets.zero,
+          //           child: InkWell(
+          //             key: item.widgetKey,
+          //             borderRadius: BorderRadius.circular(8),
+          //             onTap: item.onTap,
+          //             onLongPress: item.onLongPress,
+          //             child: Stack(
+          //               fit: StackFit.expand,
+          //               children: [
+          //                 Center(
+          //                   child: Text(category?.title ?? 'Padrão'),
+          //                 ),
+
+          //               ],
+          //             ),
+          //           ),
+          //         );
+          //       },
+          //     );
+          //   },
+          // );
           return TabBarView(
             controller: subordinateLibraryTabController,
             children: _contents.map(
@@ -189,3 +265,65 @@ class LibraryeDestinationState extends State<LibraryDestination>
     super.dispose();
   }
 }
+
+// class _CustomPopupRoute extends PopupRoute {
+//   _CustomPopupRoute({
+//     required this.data,
+//     required this.constraints,
+//   });
+
+//   final List<Content> data;
+//   final BoxConstraints constraints;
+
+//   @override
+//   Color? get barrierColor => Colors.black54;
+
+//   @override
+//   bool get barrierDismissible => true;
+
+//   @override
+//   String? get barrierLabel => 'test';
+
+//   @override
+//   Widget buildPage(
+//     BuildContext context,
+//     Animation<double> animation,
+//     Animation<double> secondaryAnimation,
+//   ) {
+//     return Hero(
+//       tag: data,
+//       child: ConstrainedBox(
+//         constraints: constraints,
+//         child: Scaffold(
+//           appBar: AppBar(),
+//         ),
+//       ),
+//     );
+//   }
+
+//   @override
+//   Widget buildTransitions(
+//     BuildContext context,
+//     Animation<double> animation,
+//     Animation<double> secondaryAnimation,
+//     Widget child,
+//   ) {
+//     return Align(
+//       alignment: Alignment.bottomCenter,
+//       child: Material(
+//         type: MaterialType.transparency,
+//         child: child,
+//       ),
+//     );
+//     // return Align(
+//     //   alignment: Alignment.bottomCenter,
+//     //   child: FractionalTranslation(
+//     //     translation: _offsetTween.evaluate(_animation!),
+//     //     child: child,
+//     //   ),
+//     // );
+//   }
+
+//   @override
+//   Duration get transitionDuration => const Duration(milliseconds: 350);
+// }
