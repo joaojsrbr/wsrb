@@ -901,11 +901,17 @@ class _MaterialSeekBarState extends State<_MaterialSeekBar> {
 
   @override
   Widget build(BuildContext context) {
-    bool disableSlider = duration.inMilliseconds == 0;
+    bool disableSlider = duration.inMilliseconds == 0 ||
+        position.inMilliseconds.toDouble() > duration.inMilliseconds.toDouble();
     bool disableBufferSlider =
         buffer.inMilliseconds > duration.inMilliseconds.toDouble();
 
     final lockPlayer = widget.state._lockPlayer;
+
+    final value = disableSlider ? 0.0 : position.inMilliseconds.toDouble();
+
+    // customLog(duration.inMilliseconds);
+    // customLog(value);
 
     return SliderTheme(
       data: const SliderThemeData(
@@ -920,9 +926,10 @@ class _MaterialSeekBarState extends State<_MaterialSeekBar> {
           child: Slider.adaptive(
             divisions: null,
             label: position.label(),
-            secondaryTrackValue:
-                disableBufferSlider ? null : buffer.inMilliseconds.toDouble(),
-            value: disableSlider ? 0.0 : position.inMilliseconds.toDouble(),
+            secondaryTrackValue: disableBufferSlider || value == 0.0
+                ? null
+                : buffer.inMilliseconds.toDouble(),
+            value: value,
             max: disableSlider ? 1.0 : duration.inMilliseconds.toDouble(),
             onChangeStart: lockPlayer || disableSlider ? null : _onChangeStart,
             onChangeEnd: lockPlayer || disableSlider ? null : _onChangeEnd,

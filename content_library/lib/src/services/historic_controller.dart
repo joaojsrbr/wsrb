@@ -18,6 +18,16 @@ class HistoricController extends ChangeNotifier {
     _entities.addAll(chapters);
   }
 
+  T? getHistoryEntityByID<T extends HistoryEntity>(List<String> ids) {
+    final entity = entities.firstWhereOrNull((entity) => switch (entity) {
+          EpisodeEntity data =>
+            ids.containsOneElement([data.stringID, data.animeStringID]),
+          _ => false,
+        });
+
+    return entity is T ? entity : null;
+  }
+
   final List<HistoryEntity> _entities = [];
 
   UnmodifiableListView<HistoryEntity> get entities =>

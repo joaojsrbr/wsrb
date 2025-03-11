@@ -66,6 +66,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   int _currentValueCircularAnimation = 0;
 
   final List<VideoData> data = [];
+  final Debouncer _nextEpisodeDebouncer =
+      Debouncer(duration: Duration(milliseconds: 200));
   final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
   final int _maxValueCircularAnimation = 2;
 
@@ -85,12 +87,15 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   Timer? _setContinueVideoTimer;
 
   bool get _hasNextEpisode {
-    // if (!_playerArgs.getAnimeData || _playerArgs.anime.releases.isEmpty) {
-    //   return false;
-    // }
+    if (!_playerArgs.getAnimeData || _playerArgs.anime.releases.isEmpty) {
+      return false;
+    }
+
+    // final position = _playerArgs.anime.releases.indexWhere(
+    //     (episode) => episode.number.contains(_playerArgs.episode.number));
+
     return _playerArgs.anime.releases.last.stringID !=
-            _playerArgs.episode.stringID &&
-        (!_playerArgs.getAnimeData || _playerArgs.anime.releases.isEmpty);
+        _playerArgs.episode.stringID;
   }
 
   bool get _playing => player?.state.playing ?? false;
@@ -244,7 +249,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
 
     List<Future> futures = [
-      // player!.setAudioDevice(AudioDevice.auto()),
+      player!.setAudioDevice(AudioDevice.auto()),
       _registerListeners(false),
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive)
     ];
@@ -373,8 +378,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   void _nextEpisode(Duration position) async {
     final maxPosition = player!.state.duration;
-    final positionActiveOverlay = maxPosition - const Duration(seconds: 90);
-    final diff = player!.state.duration - position;
+    final positionActiveOverlay = maxPosition - const Duration(seconds: 120);
+    final diff = maxPosition - position;
 
     if (position >= positionActiveOverlay &&
         !diff.inSeconds.isNegative &&
@@ -383,10 +388,13 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       final indexOf =
           _playerArgs.anime.releases.indexOf(_playerArgs.episode) + 1;
       final nextEpisode = _playerArgs.anime.releases[indexOf];
+
       _overlayNextEpisode.value =
           'Episódio ${nextEpisode.number} - ${diff.inSeconds}';
     } else if (_overlayNextEpisode.value != null) {
-      _overlayNextEpisode.value = null;
+      _nextEpisodeDebouncer.call(() {
+        _overlayNextEpisode.value = null;
+      });
     }
   }
 
@@ -484,13 +492,20 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     await _getInitMainVideoData();
     _openMenuInFullScreen.value = false;
-    await _startPlayerController();
+    await _startPlayerController(false);
     await _continueVideoByHistoricPosition();
   }
 
-  Future<void> _saveVideoPosition([Future<void> Function()? onSave]) async {
+  Future<void> _saveVideoPosition([
+    Future<void> Function()? onSave,
+    // bool stop = false,
+  ]) async {
     player?.pause();
-    if (_mainVideoData == null) return;
+    if (_mainVideoData == null ||
+        player?.state.duration.inMilliseconds == 0.0) {
+      return;
+    }
+
     // _saveDataDebouncer.cancel();
     final currentPositionBase64 = await videoScreenshotBase64();
     await setSessionActive(false);
@@ -507,7 +522,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       release: _playerArgs.episode,
       content: _playerArgs.anime,
     );
-    // final entity = historyService.entities.firstWhereOrNull(
+
+    // if (entity != null && entity.currentDuration > position.inMilliseconds) {
+    //   return;
+    // }
+
+    // final entity = _historicController.entities.firstWhereOrNull(
     //   (episode) =>
     //       episode is EpisodeEntity &&
     //       episode.animeStringID.contains(_playerArgs.anime.stringID) &&
@@ -526,6 +546,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       entity: entity,
     );
 
+    // if (stop)
     await player?.stop();
 
     if (onSave != null) {
@@ -548,6 +569,11 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
     await _libraryController.add(contentEntity: animeEntity);
     await _historicController.add(historyEntity: episodeEntity);
+
+    if (_hasNextEpisode) {
+      _overlayNextEpisode.value = null;
+      Timer(Duration(seconds: 2), _handleOnTapEpisodeInOverlay);
+    }
   }
 
   void _handleClickSkipAnime(AnimeTimeStamp item) {
@@ -611,6 +637,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     _setContinueVideoTimer?.cancel();
     _selectedAnimeTimeStamp.dispose();
     _animationController.dispose();
+    _nextEpisodeDebouncer.cancel();
     _showAnimeSkip.dispose();
     _overlayNextEpisode.dispose();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
