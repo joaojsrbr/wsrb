@@ -1,8 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
-import 'dart:convert';
-
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/entities/anilist_media.dart';
 
 class Book extends Content {
   final String? alternativeTitle;
@@ -82,7 +81,7 @@ class Book extends Content {
   factory Book.fromMap(Map<String, dynamic> map) {
     return Book(
       anilistMedia: map['anilistMedia'] != null
-          ? AnilistMedia.fromJson(map['anilistMedia'])
+          ? AniListMedia.fromJson(map['anilistMedia'])
           : null,
       title: map['title'],
       bookId: map['bookId'],
@@ -115,7 +114,7 @@ class Book extends Content {
 
   @override
   Book copyWith({
-    AnilistMedia? anilistMedia,
+    AniListMedia? anilistMedia,
     Releases? releases,
     String? title,
     String? url,
@@ -170,9 +169,7 @@ class Book extends Content {
   }) {
     final book = BookEntity(
       sinopse: sinopse,
-      anilistMedia: anilistMedia != null
-          ? jsonEncode(AnilistMedia.toJson(anilistMedia!))
-          : null,
+      anilistMedia: anilistMedia,
       stringID: stringID,
       createdAt: createdAt,
       updatedAt: updatedAt,

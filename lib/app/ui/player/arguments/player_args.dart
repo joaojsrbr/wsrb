@@ -31,7 +31,7 @@ class PlayerArgs with EquatableMixin {
     return PlayerArgs(
       forceEnterFullScreen: forceEnterFullScreen ?? this.forceEnterFullScreen,
       getAnimeData: getAnimeData ?? this.getAnimeData,
-      data: data,
+      data: data ?? this.data,
       episode: episode ?? this.episode,
       anime: anime ?? this.anime,
       startPossition: startPossition ?? this.startPossition,

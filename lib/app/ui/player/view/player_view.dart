@@ -65,7 +65,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   BoxFit _activeFit = BoxFit.contain;
   int _currentValueCircularAnimation = 0;
 
-  final List<VideoData> data = [];
+  final List<Data> data = [];
   final Debouncer _nextEpisodeDebouncer =
       Debouncer(duration: Duration(milliseconds: 200));
   final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
@@ -78,6 +78,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   late final HiveController _hiveController;
   late final LibraryController _libraryController;
   late final AnimeSkipController _animeSkipController;
+  late final HistoryService _historyService;
   late final HistoricController _historicController;
   late final Timer _systemUIModeTimer;
 
@@ -132,7 +133,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         .where((fit) => !(fit == BoxFit.none || fit == _activeFit))
         .forEach(_queueBoxFits.add);
     _historicController = context.read<HistoricController>();
-
+    _historyService = HistoryService(_historicController);
     _libraryController = context.read<LibraryController>();
 
     _systemUIModeTimer = Timer.periodic(
@@ -169,29 +170,41 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         _saveVideoPosition();
       case AppLifecycleState.inactive:
       case AppLifecycleState.resumed:
+        _resumed();
       case AppLifecycleState.detached:
     }
 
     super.didChangeAppLifecycleState(state);
   }
 
+  void _resumed() async {
+    isPipActivated = await AndroidPIP.isPipActivated;
+    setStateIfMounted(() {});
+  }
+
   Future<void> _getInitMainVideoData() async {
     _topTitle.value = 'Episódio ${_playerArgs.episode.number}';
-    if (_playerArgs.data != null && !_playerArgs.getAnimeData) {
-      _mainVideoData = _playerArgs.data;
-      return;
-    }
+    // if (!_playerArgs.getAnimeData || _playerArgs.data != null) {
+    //   _mainVideoData = _playerArgs.data;
+    //   return;
+    // }
 
     final state = Navigator.of(context);
-    final result = await _repository.getContent(_playerArgs.episode);
+
+    final result = _playerArgs.data != null
+        ? Result.success([_playerArgs.data])
+        : await _repository.getContent(_playerArgs.episode);
 
     result.fold(
       onSuccess: (data) {
-        if (data.first is! VideoData) state.pop();
+        if (![VideoData, FileVideoData].contains(data.first.runtimeType)) {
+          state.pop();
+          return;
+        }
 
         setStateIfMounted(() {
           data.forEach(this.data.cast().addIfNoContains);
-          _mainVideoData = data.first as VideoData;
+          _mainVideoData = data.first;
         });
       },
       onError: state.pop,
@@ -399,13 +412,18 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _continueVideoByHistoricPosition() async {
-    final entity = _historicController.entities
-        .firstWhereOrNull((entity) => switch (entity) {
-              EpisodeEntity data =>
-                data.stringID.contains(_playerArgs.episode.stringID) &&
-                    data.animeStringID.contains(_playerArgs.anime.stringID),
-              _ => false,
-            }) as EpisodeEntity?;
+    // final entity = _historicController.entities
+    //     .firstWhereOrNull((entity) => switch (entity) {
+    //           EpisodeEntity data =>
+    //             data.stringID.contains(_playerArgs.episode.stringID) &&
+    //                 data.animeStringID.contains(_playerArgs.anime.stringID),
+    //           _ => false,
+    //         }) as EpisodeEntity?;
+
+    final entity = _historyService.getHistoric<EpisodeEntity>(
+      release: _playerArgs.episode,
+      content: _playerArgs.anime,
+    );
 
     if (entity == null) return;
 
@@ -414,11 +432,11 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     if (entity.currentDuration == 0) return;
 
-    final GlobalKey anchor = GlobalKey();
+    final GlobalKey dialogAnchor = GlobalKey();
 
     _setContinueVideoTimer = Timer(const Duration(seconds: 5), () {
-      if (anchor.currentContext != null) {
-        Navigator.of(anchor.currentContext!).pop();
+      if (dialogAnchor.currentContext != null) {
+        Navigator.of(dialogAnchor.currentContext!).pop();
       }
     });
 
@@ -426,7 +444,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       context: context,
       builder: (context) {
         return AlertDialog.adaptive(
-          key: anchor,
+          key: dialogAnchor,
           title: const Text('Continuar de onde parou?'),
           actionsAlignment: MainAxisAlignment.spaceBetween,
           actions: [
@@ -502,12 +520,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   ]) async {
     player?.pause();
     if (_mainVideoData == null ||
-        player?.state.duration.inMilliseconds == 0.0) {
+        player?.state.duration.inMicroseconds == 0.0) {
       return;
     }
 
     // _saveDataDebouncer.cancel();
-    final currentPositionBase64 = await videoScreenshotBase64();
+    final currentPositionBytearray = await videoScreenshotBase64();
     await setSessionActive(false);
     await playerAudioHandler.stop();
 
@@ -517,8 +535,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     final Duration duration = player!.state.duration;
 
-    final HistoryService historyService = HistoryService(_historicController);
-    final EpisodeEntity? entity = historyService.getHistoric(
+    // final HistoryService historyService = HistoryService(_historicController);
+    final EpisodeEntity? entity = _historyService.getHistoric(
       release: _playerArgs.episode,
       content: _playerArgs.anime,
     );
@@ -540,7 +558,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       anime: _playerArgs.anime,
       isComplete: isComplete,
       episode: _playerArgs.episode,
-      currentPositionBase64: currentPositionBase64,
+      currentPositionBytearray: currentPositionBytearray,
       position: position,
       duration: duration,
       entity: entity,
@@ -570,10 +588,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     await _libraryController.add(contentEntity: animeEntity);
     await _historicController.add(historyEntity: episodeEntity);
 
-    if (_hasNextEpisode) {
-      _overlayNextEpisode.value = null;
-      Timer(Duration(seconds: 2), _handleOnTapEpisodeInOverlay);
-    }
+    // if (_hasNextEpisode) {
+    //   _overlayNextEpisode.value = null;
+    //   Timer(Duration(seconds: 2), _handleOnTapEpisodeInOverlay);
+    // }
   }
 
   void _handleClickSkipAnime(AnimeTimeStamp item) {
@@ -695,12 +713,16 @@ class _Content extends StatelessWidget {
             child: Column(
               children: [
                 SizedBox(
-                  height: sizeOf.height * .40,
+                  height: scope.isPipActivated
+                      ? sizeOf.height
+                      : sizeOf.height * .40,
                   width: double.infinity,
                   child: PipWidget(
                     onPipAction: scope.onPipAction,
                     onPipEntered: scope.onPipChange,
-                    onPipExited: scope.onPipChange,
+                    onPipExited: () {
+                      scope.onPipChange();
+                    },
                     pipLayout: PipActionsLayout.media_only_pause,
                     pipChild: Video(
                       aspectRatio: 16 / 9,
@@ -874,7 +896,8 @@ class _Content extends StatelessWidget {
                                 },
                               ),
                             ),
-                            if (playerArgs.times.isNotEmpty)
+                            if (playerArgs.times.isNotEmpty &&
+                                !scope.isPipActivated)
                               CustomPopup(
                                 duration: const Duration(milliseconds: 100),
                                 shape: RoundedRectangleBorder(

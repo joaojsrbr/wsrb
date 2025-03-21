@@ -356,6 +356,17 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                             ),
                     ),
                   ),
+
+                  // SliverToBoxAdapter(
+                  //   child: SizedBox(
+                  //     height: 360,
+                  //     child: MobkitCalendarWidget(
+                  //       mobkitCalendarController: MobkitCalendarController(),
+                  //       config: getConfig(MobkitCalendarViewType.daily),
+                  //       onSelectionChange: (models, datetime) {},
+                  //     ),
+                  //   ),
+                  // ),
                 ];
               },
               body: TabBarView(

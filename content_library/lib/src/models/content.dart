@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/entities/anilist_media.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class Content extends Equatable {
@@ -24,7 +25,7 @@ abstract class Content extends Equatable {
 
   final List<Genre> genres;
 
-  final AnilistMedia? anilistMedia;
+  final AniListMedia? anilistMedia;
 
   final String title;
 
@@ -55,7 +56,7 @@ abstract class Content extends Equatable {
     bool? cached,
     List<Genre>? genres,
     String? sinopse,
-    AnilistMedia? anilistMedia,
+    AniListMedia? anilistMedia,
     Source? source,
     String? url,
     Releases? releases,
@@ -71,8 +72,7 @@ abstract class Content extends Equatable {
   });
 
   Map<String, dynamic> toJson() => {
-        "anilistMedia":
-            anilistMedia != null ? AnilistMedia.toJson(anilistMedia!) : null,
+        "anilistMedia": anilistMedia?.toJson(),
         "releases": _releases.toMap,
         "url": url,
         "cached": cached,

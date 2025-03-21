@@ -20,7 +20,8 @@ const AnimeEntitySchema = CollectionSchema(
     r'anilistMedia': PropertySchema(
       id: 0,
       name: r'anilistMedia',
-      type: IsarType.string,
+      type: IsarType.object,
+      target: r'AniListMedia',
     ),
     r'animeID': PropertySchema(
       id: 1,
@@ -148,7 +149,20 @@ const AnimeEntitySchema = CollectionSchema(
       single: true,
     )
   },
-  embeddedSchemas: {},
+  embeddedSchemas: {
+    r'AniListMedia': AniListMediaSchema,
+    r'Title': TitleSchema,
+    r'Date': DateSchema,
+    r'Trailer': TrailerSchema,
+    r'CoverImage': CoverImageSchema,
+    r'Tag': TagSchema,
+    r'Character': CharacterSchema,
+    r'CharacterName': CharacterNameSchema,
+    r'CharacterImage': CharacterImageSchema,
+    r'Staff': StaffSchema,
+    r'StaffName': StaffNameSchema,
+    r'StaffImage': StaffImageSchema
+  },
   getId: _animeEntityGetId,
   getLinks: _animeEntityGetLinks,
   attach: _animeEntityAttach,
@@ -164,7 +178,9 @@ int _animeEntityEstimateSize(
   {
     final value = object.anilistMedia;
     if (value != null) {
-      bytesCount += 3 + value.length * 3;
+      bytesCount += 3 +
+          AniListMediaSchema.estimateSize(
+              value, allOffsets[AniListMedia]!, allOffsets);
     }
   }
   {
@@ -222,7 +238,12 @@ void _animeEntitySerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.anilistMedia);
+  writer.writeObject<AniListMedia>(
+    offsets[0],
+    allOffsets,
+    AniListMediaSchema.serialize,
+    object.anilistMedia,
+  );
   writer.writeString(offsets[1], object.animeID);
   writer.writeDateTime(offsets[2], object.createdAt);
   writer.writeString(offsets[3], object.extraLarge);
@@ -250,7 +271,11 @@ AnimeEntity _animeEntityDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = AnimeEntity(
-    anilistMedia: reader.readStringOrNull(offsets[0]),
+    anilistMedia: reader.readObjectOrNull<AniListMedia>(
+      offsets[0],
+      AniListMediaSchema.deserialize,
+      allOffsets,
+    ),
     animeID: reader.readStringOrNull(offsets[1]),
     createdAt: reader.readDateTimeOrNull(offsets[2]),
     extraLarge: reader.readStringOrNull(offsets[3]),
@@ -284,7 +309,11 @@ P _animeEntityDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readObjectOrNull<AniListMedia>(
+        offset,
+        AniListMediaSchema.deserialize,
+        allOffsets,
+      )) as P;
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
@@ -553,142 +582,6 @@ extension AnimeEntityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'anilistMedia',
-      ));
-    });
-  }
-
-  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
-      anilistMediaEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'anilistMedia',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
-      anilistMediaGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'anilistMedia',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
-      anilistMediaLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'anilistMedia',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
-      anilistMediaBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'anilistMedia',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
-      anilistMediaStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'anilistMedia',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
-      anilistMediaEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'anilistMedia',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
-      anilistMediaContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'anilistMedia',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
-      anilistMediaMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'anilistMedia',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
-      anilistMediaIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'anilistMedia',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition>
-      anilistMediaIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'anilistMedia',
-        value: '',
       ));
     });
   }
@@ -2726,7 +2619,14 @@ extension AnimeEntityQueryFilter
 }
 
 extension AnimeEntityQueryObject
-    on QueryBuilder<AnimeEntity, AnimeEntity, QFilterCondition> {}
+    on QueryBuilder<AnimeEntity, AnimeEntity, QFilterCondition> {
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition> anilistMedia(
+      FilterQuery<AniListMedia> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'anilistMedia');
+    });
+  }
+}
 
 extension AnimeEntityQueryLinks
     on QueryBuilder<AnimeEntity, AnimeEntity, QFilterCondition> {
@@ -2808,19 +2708,6 @@ extension AnimeEntityQueryLinks
 
 extension AnimeEntityQuerySortBy
     on QueryBuilder<AnimeEntity, AnimeEntity, QSortBy> {
-  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> sortByAnilistMedia() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'anilistMedia', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy>
-      sortByAnilistMediaDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'anilistMedia', Sort.desc);
-    });
-  }
-
   QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> sortByAnimeID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'animeID', Sort.asc);
@@ -3043,19 +2930,6 @@ extension AnimeEntityQuerySortBy
 
 extension AnimeEntityQuerySortThenBy
     on QueryBuilder<AnimeEntity, AnimeEntity, QSortThenBy> {
-  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> thenByAnilistMedia() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'anilistMedia', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy>
-      thenByAnilistMediaDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'anilistMedia', Sort.desc);
-    });
-  }
-
   QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> thenByAnimeID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'animeID', Sort.asc);
@@ -3290,13 +3164,6 @@ extension AnimeEntityQuerySortThenBy
 
 extension AnimeEntityQueryWhereDistinct
     on QueryBuilder<AnimeEntity, AnimeEntity, QDistinct> {
-  QueryBuilder<AnimeEntity, AnimeEntity, QDistinct> distinctByAnilistMedia(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'anilistMedia', caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<AnimeEntity, AnimeEntity, QDistinct> distinctByAnimeID(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -3427,7 +3294,8 @@ extension AnimeEntityQueryProperty
     });
   }
 
-  QueryBuilder<AnimeEntity, String?, QQueryOperations> anilistMediaProperty() {
+  QueryBuilder<AnimeEntity, AniListMedia?, QQueryOperations>
+      anilistMediaProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'anilistMedia');
     });

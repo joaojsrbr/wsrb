@@ -1,9 +1,7 @@
 // ignore_for_file: must_be_immutable
 
-import 'dart:convert';
-
-import 'package:anilist_dart/anilist.dart';
 import 'package:content_library/src/constants/source.dart';
+import 'package:content_library/src/entities/anilist_media.dart';
 import 'package:content_library/src/entities/anime_skip_entity.dart';
 import 'package:content_library/src/entities/entity.dart';
 import 'package:content_library/src/entities/episode_entity.dart';
@@ -23,20 +21,16 @@ part 'anime_entity.g.dart';
   'aniList',
 })
 class AnimeEntity extends ContentEntity {
-  @override
-  @Index(replace: true, unique: true)
-  String get stringID => super.stringID;
-
   IsarLinks<EpisodeEntity> episodes = IsarLinks<EpisodeEntity>();
   IsarLink<AnimeSkipEntity> animeSkip = IsarLink<AnimeSkipEntity>();
 
-  AnilistMedia? get aniList {
-    return anilistMedia != null
-        ? AnilistMedia.fromJson(jsonDecode(anilistMedia!))
-        : null;
-  }
+  // AnilistMedia? get aniList {
+  //   return anilistMedia != null
+  //       ? AnilistMedia.fromJson(jsonDecode(anilistMedia!))
+  //       : null;
+  // }
 
-  String? anilistMedia;
+  AniListMedia? anilistMedia;
   DateTime? createdAt;
   String? animeID;
   DateTime? updatedAt;
@@ -107,9 +101,7 @@ class AnimeEntity extends ContentEntity {
 
   Anime get toAnime {
     return Anime(
-      anilistMedia: anilistMedia != null
-          ? AnilistMedia.fromJson(jsonDecode(anilistMedia!))
-          : null,
+      anilistMedia: anilistMedia,
       url: url,
       totalOfPages: totalOfPages,
       animeID: animeID,

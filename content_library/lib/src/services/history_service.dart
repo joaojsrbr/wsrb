@@ -19,28 +19,17 @@ class HistoryService {
     Content? content,
     T Function()? orElse,
   }) {
-    if (orElse != null) {
-      return entities.firstWhere(
-        (e) => switch (e) {
-          ChapterEntity data => data.stringID.contains(release?.stringID ?? ""),
-          EpisodeEntity data =>
-            data.stringID.contains(release?.stringID ?? "") &&
-                int.tryParse(release?.number ?? "") == data.numberEpisode &&
-                data.animeStringID.contains(content?.stringID ?? ""),
-          _ => false,
-        },
-        orElse: orElse,
-      ) as T?;
-    }
-    return entities.firstWhereOrNull(
-      (e) => switch (e) {
+    bool matchesEntity(HistoryEntity e) {
+      return switch (e) {
         ChapterEntity data => data.stringID.contains(release?.stringID ?? ""),
         EpisodeEntity data => data.stringID.contains(release?.stringID ?? "") &&
             int.tryParse(release?.number ?? "") == data.numberEpisode &&
-            data.animeStringID.contains(content?.stringID ?? ""),
+            (content == null || data.animeStringID.contains(content.stringID)),
         _ => false,
-      },
-    ) as T?;
+      };
+    }
+
+    return entities.firstWhereOrNull(matchesEntity) as T? ?? orElse?.call();
   }
 
   UnmodifiableListView<HistoryEntity> get entities =>

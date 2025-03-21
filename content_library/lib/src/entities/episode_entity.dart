@@ -29,7 +29,7 @@ class EpisodeEntity extends HistoryEntity {
   String? slugSerie;
   String? generateID;
   String url;
-  String? currentPositionBase64;
+  List<int>? currentPositionBytearray;
   String title;
 
   @override
@@ -46,7 +46,7 @@ class EpisodeEntity extends HistoryEntity {
     required this.url,
     this.slugSerie,
     this.pageNumber,
-    this.currentPositionBase64,
+    this.currentPositionBytearray,
     this.generateID,
     this.createdAt,
     this.thumbnail,
@@ -60,12 +60,12 @@ class EpisodeEntity extends HistoryEntity {
     required Anime anime,
     Duration position = Duration.zero,
     Duration duration = Duration.zero,
-    String? currentPositionBase64,
+    List<int>? currentPositionBytearray,
     EpisodeEntity? entity,
   }) {
     return EpisodeEntity(
       currentDuration: position.inMicroseconds,
-      currentPositionBase64: currentPositionBase64,
+      currentPositionBytearray: currentPositionBytearray,
       title: episode.title,
       animeStringID: anime.stringID,
       generateID: episode.generateID,
@@ -88,7 +88,7 @@ class EpisodeEntity extends HistoryEntity {
         episodeDuration,
         thumbnail,
         animeStringID,
-        currentPositionBase64,
+        currentPositionBytearray,
         pageNumber,
         currentDuration,
         isComplete,

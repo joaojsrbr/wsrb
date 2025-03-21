@@ -96,23 +96,25 @@ class _RefContentkInformationViewState
   Future<void> _loadContentData() async {
     Result<Content> contentCache = Result.success(_informationArgs!.content);
 
+    Future<void> getData() async {
+      await _repository
+          .getData(_informationArgs!.content)
+          .timeout(const Duration(minutes: 1), onTimeout: _handleTimeout)
+          .then(_handleResult);
+    }
+
     if (_informationArgs!.content.releases.isEmpty) {
       contentCache = const Result.empty();
     }
 
+    _refreshIndicatorKey.currentState?.show();
     if (_content?.cached == true ||
         _informationArgs?.isLibrary == true &&
             _informationArgs?.content.releases.isNotEmpty == true) {
       _handleResult(contentCache);
+      await getData();
     } else {
-      _refreshIndicatorKey.currentState?.show();
-      await _repository
-          .getData(_informationArgs!.content)
-          .timeout(
-            const Duration(minutes: 1),
-            onTimeout: () => _handleTimeout(),
-          )
-          .then(_handleResult);
+      await getData();
     }
   }
 
@@ -152,6 +154,11 @@ class _RefContentkInformationViewState
   void _onSuccess(Content data,
       [bool refresh = false, bool forceSaveCache = false]) async {
     _releases.clear();
+
+    if (_content?.releases.length == data.releases.length && !refresh) {
+      if (!_initialRefresh.isCompleted) _initialRefresh.complete();
+      return;
+    }
 
     if (data is Anime) {
       _processAnimeReleases(data);
@@ -261,6 +268,7 @@ class _RefContentkInformationViewState
               case Success _:
                 localContext?.appSnackBar.show(
                   Text('Baixado com sucesso: ${data.title}'),
+                  duration: Duration(seconds: 5),
                 );
 
                 break;
@@ -305,17 +313,23 @@ class _RefContentkInformationViewState
     final appSnackBar = context.appSnackBar;
 
     customLog('$widget[build]');
+    // FlexThemeData.dark(colors: FlexSchemeColor.from(primary: _content!.anilistMedia!.coverImage!.color!.fromHex));
 
     return Theme(
-      data: ThemeData.dark(useMaterial3: true).copyWith(
-        cardTheme: themeData.cardTheme.copyWith(margin: EdgeInsets.zero),
-        colorScheme: _content?.anilistMedia?.coverImage?.color != null
-            ? ColorScheme.fromSeed(
-                seedColor: _content!.anilistMedia!.coverImage!.color!.fromHex,
-                brightness: themeData.brightness,
-              )
-            : null,
-      ),
+      data: themeData,
+      // data: FlexThemeData.dark(
+      //   darkIsTrueBlack: false,
+      //   colors: FlexSchemeColor.from(
+      //     primary: _content!.anilistMedia!.coverImage!.color!.fromHex,
+      //   ),
+      //   tones: FlexTones.material(themeData.brightness),
+      // colorScheme: _content?.anilistMedia?.coverImage?.color != null
+      //     ? ColorScheme.fromSeed(
+      //         seedColor: _content!.anilistMedia!.coverImage!.color!.fromHex,
+      //         brightness: themeData.brightness,
+      //       )
+      //     : null,
+      // ),
       child: DefaultTabController(
         length: 2,
         child: ContentScope(

@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:anilist_dart/anilist.dart';
 import 'package:collection/collection.dart';
+import 'package:content_library/src/entities/anilist_media.dart';
 import 'package:content_library/src/exceptions/anime_exception.dart';
 import 'package:content_library/src/exceptions/book_exception.dart';
 import 'package:content_library/src/extensions/custom_extensions/list_extensions.dart';

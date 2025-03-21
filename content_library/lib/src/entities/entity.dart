@@ -8,6 +8,7 @@ abstract class Entity with EquatableMixin {
 }
 
 abstract class ContentEntity extends Entity {
+  @Index(replace: true, unique: true)
   final String stringID;
   ContentEntity({required this.stringID});
 }

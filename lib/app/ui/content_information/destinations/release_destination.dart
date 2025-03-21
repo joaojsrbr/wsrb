@@ -310,6 +310,8 @@ class _ReleaseLeading extends StatelessWidget {
   Widget build(BuildContext context) {
     final HistoryService historyService = HistoryService(context.watch());
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     final historic = historyService.getHistoric(release: release);
 
     final percent = historic?.isComplete == true
@@ -317,6 +319,10 @@ class _ReleaseLeading extends StatelessWidget {
         : (historic?.percent.isNaN == true ? 0.0 : historic?.percent) ?? 0.0;
 
     final hiveController = context.watch<HiveController>();
+
+    final color = historic?.isComplete == true
+        ? colorScheme.primary
+        : colorScheme.secondary;
 
     return SizedBox(
       width: 110,
@@ -352,6 +358,40 @@ class _ReleaseLeading extends StatelessWidget {
                   ),
                 );
 
+                // video == null
+                //     ? Colors.grey
+                //     : video is VideoData
+                //         ? colorScheme.primary
+                //         : colorScheme.secondaryContainer;
+
+                final DownloadInfo? downloadInfo = context.watch();
+
+                if (downloadInfo?.isDownloading == true &&
+                    downloadInfo?.videoDuration != null &&
+                    (downloadInfo?.time ?? 0) > 0.0) {
+                  final percent = ((downloadInfo!.time * 100) /
+                      downloadInfo.videoDuration!.inMilliseconds);
+
+                  customLog(percent);
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      container,
+                      AnimatedBorderProgressIndicator(
+                        value: percent / 100,
+                        color: color,
+                        strokeWidth: 2,
+                        borderRadius: 6,
+                      ),
+                    ],
+                  );
+                }
+                // TextSpan(
+                //   text:
+                //       '${(((downloadInfo!.time * 100) / downloadInfo.videoDuration!.inMilliseconds)).ceil().toString()}%',
+                //   style: Theme.of(context).textTheme.labelSmall,
+                // ),
+
                 if (percent > 0.0) {
                   return Stack(
                     fit: StackFit.expand,
@@ -359,12 +399,7 @@ class _ReleaseLeading extends StatelessWidget {
                       container,
                       AnimatedBorderProgressIndicator(
                         value: percent,
-                        color: historic?.isComplete == true
-                            ? Colors.green
-                            : content.anilistMedia?.coverImage?.color != null
-                                ? content
-                                    .anilistMedia!.coverImage!.color!.fromHex
-                                : Colors.blue,
+                        color: color,
                         strokeWidth: 2,
                         borderRadius: 6,
                       ),
@@ -382,11 +417,7 @@ class _ReleaseLeading extends StatelessWidget {
                 if (percent > 0.0)
                   AnimatedBorderProgressIndicator(
                     value: percent,
-                    color: historic?.isComplete == true
-                        ? Colors.green
-                        : content.anilistMedia?.coverImage?.color != null
-                            ? content.anilistMedia!.coverImage!.color!.fromHex
-                            : Colors.blue,
+                    color: color,
                     strokeWidth: 6,
                     borderRadius: 6,
                   ),
@@ -553,6 +584,8 @@ class ReleaseContent extends StatelessWidget {
   ) async {
     final repository = context.read<ContentRepository>();
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     final data = (await repository.getContent(release))
         .fold(onSuccess: (success) => success)
         ?.nonNulls
@@ -594,6 +627,11 @@ class ReleaseContent extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(data.length, (index) {
                       final video = data[index];
+                      final color = video == null
+                          ? Colors.grey
+                          : video is VideoData
+                              ? colorScheme.primary
+                              : colorScheme.primaryContainer;
                       return Container(
                         height: 70,
                         width: 120,
@@ -604,11 +642,7 @@ class ReleaseContent extends StatelessWidget {
                             DecoratedBox(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
-                                color: video == null
-                                    ? Colors.grey
-                                    : video is VideoData
-                                        ? Colors.blue
-                                        : Colors.green,
+                                color: color,
                               ),
                             ),
                             Center(

@@ -156,9 +156,9 @@ class _InformationDestinationState extends State<InformationDestination>
                           DateFormat("d MMMM y", appLocale.toLanguageTag())
                               .format(
                             DateTime(
-                              _content!.anilistMedia!.startDate!.year!,
-                              _content!.anilistMedia!.startDate!.month!,
-                              _content!.anilistMedia!.startDate!.day!,
+                              _content!.anilistMedia!.startDate!.year,
+                              _content!.anilistMedia!.startDate!.month,
+                              _content!.anilistMedia!.startDate!.day,
                             ),
                           ),
                         ),
@@ -171,9 +171,9 @@ class _InformationDestinationState extends State<InformationDestination>
                           DateFormat("d MMMM y", appLocale.toLanguageTag())
                               .format(
                             DateTime(
-                              _content!.anilistMedia!.endDate!.year!,
-                              _content!.anilistMedia!.endDate!.month!,
-                              _content!.anilistMedia!.endDate!.day!,
+                              _content!.anilistMedia!.endDate!.year,
+                              _content!.anilistMedia!.endDate!.month,
+                              _content!.anilistMedia!.endDate!.day,
                             ),
                           ),
                         ),
@@ -195,8 +195,9 @@ class _InformationDestinationState extends State<InformationDestination>
                                 style: TextStyle(color: Colors.white),
                               ),
                               const TextSpan(
-                                  text: "10",
-                                  style: TextStyle(color: Colors.white)),
+                                text: "10",
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ],
                             style:
                                 TextStyle(color: themeData.colorScheme.primary),
@@ -215,7 +216,7 @@ class _InformationDestinationState extends State<InformationDestination>
                       _Information(
                         paddingTop: false,
                         title: const Text('Formato'),
-                        child: Text(_content!.anilistMedia!.format!.name),
+                        child: Text(_content!.anilistMedia!.format!),
                       ),
                     if (_content!.anilistMedia?.status != null)
                       _Information(
@@ -245,7 +246,7 @@ class _InformationDestinationState extends State<InformationDestination>
                         paddingTop: false,
                         title: const Text('Temporada'),
                         child: Text(
-                          "${_content!.anilistMedia!.season!.name} ${now.year}",
+                          "${_content!.anilistMedia!.season!} ${now.year}",
                         ),
                       ),
                     if (_content!.anilistMedia?.title?.romaji != null)
@@ -325,7 +326,7 @@ class _InformationDestinationState extends State<InformationDestination>
                 ),
               ],
             ),
-          if (_content!.anilistMedia?.characters?.nodes != null)
+          if (_content!.anilistMedia?.characters != null)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -343,8 +344,8 @@ class _InformationDestinationState extends State<InformationDestination>
                   height: 160,
                   width: double.infinity,
                   child: Builder(builder: (context) {
-                    final list = _content!.anilistMedia?.characters?.nodes
-                        ?.unique((staff) => staff.name!.full!);
+                    final list = _content!.anilistMedia?.characters
+                        .unique((staff) => staff.name!.full!);
                     if (list == null) return const SizedBox.shrink();
                     return ListView.builder(
                       itemCount: list.length,
@@ -401,7 +402,7 @@ class _InformationDestinationState extends State<InformationDestination>
               ],
             ),
           const SizedBox(height: 8),
-          if (_content!.anilistMedia?.staff?.nodes != null)
+          if (_content!.anilistMedia?.staff != null)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -419,8 +420,8 @@ class _InformationDestinationState extends State<InformationDestination>
                   height: 160,
                   width: double.infinity,
                   child: Builder(builder: (context) {
-                    final list = _content!.anilistMedia?.staff?.nodes
-                        ?.unique((staff) => staff.name!.full!);
+                    final list = _content!.anilistMedia?.staff
+                        .unique((staff) => staff.name!.full!);
                     if (list == null) return const SizedBox.shrink();
                     return ListView.builder(
                       itemCount: list.length,

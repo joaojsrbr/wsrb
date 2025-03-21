@@ -1,7 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:convert';
-
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/entities/anilist_media.dart';
 
 class Anime extends Content {
   const Anime({
@@ -57,7 +56,7 @@ class Anime extends Content {
     bool? cached,
     Source? source,
     int? totalOfEpisodes,
-    AnilistMedia? anilistMedia,
+    AniListMedia? anilistMedia,
     int? totalOfPages,
     String? sinopse,
     List<Genre>? genres,
@@ -94,9 +93,7 @@ class Anime extends Content {
   }) {
     final content = AnimeEntity(
       totalOfPages: totalOfPages,
-      anilistMedia: anilistMedia != null
-          ? jsonEncode(AnilistMedia.toJson(anilistMedia!))
-          : null,
+      anilistMedia: anilistMedia,
       totalOfEpisodes: totalOfEpisodes,
       source: source,
       animeID: animeID,
@@ -140,7 +137,7 @@ class Anime extends Content {
       animeSkip:
           map['animeSkip'] != null ? AnimeSkip.fromMap(map['animeSkip']) : null,
       anilistMedia: map['anilistMedia'] != null
-          ? AnilistMedia.fromJson(map['anilistMedia'])
+          ? AniListMedia.fromJson(map['anilistMedia'])
           : null,
       title: map['title'],
       cached: map['cached'] ?? false,

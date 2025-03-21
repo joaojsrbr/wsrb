@@ -213,7 +213,9 @@ class AnrollSource extends RSource {
 
         if (anilistMedia != null) {
           newAnime = newAnime.copyWith(
-            anilistMedia: anilistMedia,
+            anilistMedia: AniListMedia.fromJson(
+              AnilistMedia.toJson(anilistMedia),
+            ),
             largeImage: anilistMedia.coverImage?.large,
             mediumImage: anilistMedia.coverImage?.medium,
           );

@@ -25,7 +25,8 @@ const BookEntitySchema = CollectionSchema(
     r'anilistMedia': PropertySchema(
       id: 1,
       name: r'anilistMedia',
-      type: IsarType.string,
+      type: IsarType.object,
+      target: r'AniListMedia',
     ),
     r'createdAt': PropertySchema(
       id: 2,
@@ -117,7 +118,20 @@ const BookEntitySchema = CollectionSchema(
       single: false,
     )
   },
-  embeddedSchemas: {},
+  embeddedSchemas: {
+    r'AniListMedia': AniListMediaSchema,
+    r'Title': TitleSchema,
+    r'Date': DateSchema,
+    r'Trailer': TrailerSchema,
+    r'CoverImage': CoverImageSchema,
+    r'Tag': TagSchema,
+    r'Character': CharacterSchema,
+    r'CharacterName': CharacterNameSchema,
+    r'CharacterImage': CharacterImageSchema,
+    r'Staff': StaffSchema,
+    r'StaffName': StaffNameSchema,
+    r'StaffImage': StaffImageSchema
+  },
   getId: _bookEntityGetId,
   getLinks: _bookEntityGetLinks,
   attach: _bookEntityAttach,
@@ -139,7 +153,9 @@ int _bookEntityEstimateSize(
   {
     final value = object.anilistMedia;
     if (value != null) {
-      bytesCount += 3 + value.length * 3;
+      bytesCount += 3 +
+          AniListMediaSchema.estimateSize(
+              value, allOffsets[AniListMedia]!, allOffsets);
     }
   }
   {
@@ -180,7 +196,12 @@ void _bookEntitySerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.alternativeTitle);
-  writer.writeString(offsets[1], object.anilistMedia);
+  writer.writeObject<AniListMedia>(
+    offsets[1],
+    allOffsets,
+    AniListMediaSchema.serialize,
+    object.anilistMedia,
+  );
   writer.writeDateTime(offsets[2], object.createdAt);
   writer.writeString(offsets[3], object.extraLarge);
   writer.writeBool(offsets[4], object.isFavorite);
@@ -203,7 +224,11 @@ BookEntity _bookEntityDeserialize(
 ) {
   final object = BookEntity(
     alternativeTitle: reader.readStringOrNull(offsets[0]),
-    anilistMedia: reader.readStringOrNull(offsets[1]),
+    anilistMedia: reader.readObjectOrNull<AniListMedia>(
+      offsets[1],
+      AniListMediaSchema.deserialize,
+      allOffsets,
+    ),
     createdAt: reader.readDateTimeOrNull(offsets[2]),
     extraLarge: reader.readStringOrNull(offsets[3]),
     isFavorite: reader.readBoolOrNull(offsets[4]) ?? false,
@@ -232,7 +257,11 @@ P _bookEntityDeserializeProp<P>(
     case 0:
       return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readObjectOrNull<AniListMedia>(
+        offset,
+        AniListMediaSchema.deserialize,
+        allOffsets,
+      )) as P;
     case 2:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
@@ -639,142 +668,6 @@ extension BookEntityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'anilistMedia',
-      ));
-    });
-  }
-
-  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
-      anilistMediaEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'anilistMedia',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
-      anilistMediaGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'anilistMedia',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
-      anilistMediaLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'anilistMedia',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
-      anilistMediaBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'anilistMedia',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
-      anilistMediaStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'anilistMedia',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
-      anilistMediaEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'anilistMedia',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
-      anilistMediaContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'anilistMedia',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
-      anilistMediaMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'anilistMedia',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
-      anilistMediaIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'anilistMedia',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
-      anilistMediaIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'anilistMedia',
-        value: '',
       ));
     });
   }
@@ -2181,7 +2074,14 @@ extension BookEntityQueryFilter
 }
 
 extension BookEntityQueryObject
-    on QueryBuilder<BookEntity, BookEntity, QFilterCondition> {}
+    on QueryBuilder<BookEntity, BookEntity, QFilterCondition> {
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition> anilistMedia(
+      FilterQuery<AniListMedia> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'anilistMedia');
+    });
+  }
+}
 
 extension BookEntityQueryLinks
     on QueryBuilder<BookEntity, BookEntity, QFilterCondition> {
@@ -2259,18 +2159,6 @@ extension BookEntityQuerySortBy
       sortByAlternativeTitleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'alternativeTitle', Sort.desc);
-    });
-  }
-
-  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> sortByAnilistMedia() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'anilistMedia', Sort.asc);
-    });
-  }
-
-  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> sortByAnilistMediaDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'anilistMedia', Sort.desc);
     });
   }
 
@@ -2431,18 +2319,6 @@ extension BookEntityQuerySortThenBy
       thenByAlternativeTitleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'alternativeTitle', Sort.desc);
-    });
-  }
-
-  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> thenByAnilistMedia() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'anilistMedia', Sort.asc);
-    });
-  }
-
-  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> thenByAnilistMediaDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'anilistMedia', Sort.desc);
     });
   }
 
@@ -2613,13 +2489,6 @@ extension BookEntityQueryWhereDistinct
     });
   }
 
-  QueryBuilder<BookEntity, BookEntity, QDistinct> distinctByAnilistMedia(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'anilistMedia', caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<BookEntity, BookEntity, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
@@ -2717,7 +2586,8 @@ extension BookEntityQueryProperty
     });
   }
 
-  QueryBuilder<BookEntity, String?, QQueryOperations> anilistMediaProperty() {
+  QueryBuilder<BookEntity, AniListMedia?, QQueryOperations>
+      anilistMediaProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'anilistMedia');
     });

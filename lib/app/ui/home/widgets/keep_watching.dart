@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
@@ -135,10 +133,10 @@ class _Content extends StatelessWidget {
                                 stops: const [0.00, 1.0],
                               ).createShader(bounds);
                             },
-                            child: data.currentPositionBase64 != null
+                            child: data.currentPositionBytearray != null
                                 ? _Image(
-                                    currentPositionBase64:
-                                        data.currentPositionBase64!,
+                                    currentPositionBytearray:
+                                        data.currentPositionBytearray!,
                                   )
                                 : data.thumbnail != null
                                     ? CachedNetworkImage(
@@ -220,7 +218,8 @@ class _Content extends StatelessWidget {
                             ),
                           AnimatedBorderProgressIndicator(
                             value: data.percent.isNaN ? 0.0 : data.percent,
-                            color: anime?.aniList?.coverImage?.color?.fromHex ??
+                            color: anime?.anilistMedia?.coverImage?.color
+                                    ?.fromHex ??
                                 Theme.of(context).colorScheme.primary,
                             strokeWidth: 4,
                             borderRadius: 12,
@@ -265,9 +264,9 @@ class _Content extends StatelessWidget {
 }
 
 class _Image extends StatefulWidget {
-  const _Image({required this.currentPositionBase64});
+  const _Image({required this.currentPositionBytearray});
 
-  final String currentPositionBase64;
+  final List<int> currentPositionBytearray;
 
   @override
   State<_Image> createState() => _ImageState();
@@ -279,18 +278,20 @@ class _ImageState extends State<_Image> {
 
   static final ImageProvider _placeHolder = const ResizeImage(
     App.IMAGE_BLACK,
-    width: 300,
-    height: 150,
+    width: 350,
+    height: 200,
   );
 
   @override
   void initState() {
-    _currentPositionUint8List = base64.decode(widget.currentPositionBase64);
+    _currentPositionUint8List = Uint8List.fromList(
+      widget.currentPositionBytearray,
+    );
 
     _memoryImage = ResizeImage(
       MemoryImage(_currentPositionUint8List),
-      width: 300,
-      height: 150,
+      width: 350,
+      height: 200,
     );
 
     // scheduleMicrotask(_precacheImage);
@@ -304,12 +305,15 @@ class _ImageState extends State<_Image> {
 
   @override
   void didUpdateWidget(covariant _Image oldWidget) {
-    if (widget.currentPositionBase64 != oldWidget.currentPositionBase64) {
-      _currentPositionUint8List = base64.decode(widget.currentPositionBase64);
+    if (!listEquals(
+        widget.currentPositionBytearray, oldWidget.currentPositionBytearray)) {
+      _currentPositionUint8List = Uint8List.fromList(
+        widget.currentPositionBytearray,
+      );
       _memoryImage = ResizeImage(
         MemoryImage(_currentPositionUint8List),
-        width: 300,
-        height: 150,
+        width: 350,
+        height: 200,
       );
     }
     super.didUpdateWidget(oldWidget);

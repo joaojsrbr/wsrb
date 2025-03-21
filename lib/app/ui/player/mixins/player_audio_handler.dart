@@ -8,6 +8,7 @@ import 'package:app_wsrb_jsr/app/ui/player/mixins/player_pip.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 
@@ -48,6 +49,8 @@ mixin PlayerAudioHandlerMixin
 
   @override
   void onPipAction(PipAction pipAction) {
+    customLog("onPipAction[$pipAction]");
+
     switch (pipAction) {
       case PipAction.play:
         playerAudioHandler.play();
@@ -62,11 +65,14 @@ mixin PlayerAudioHandlerMixin
   }
 
   void handleEnterInPip() async {
-    await draggableScrollableController.animateTo(
-      1.0,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.ease,
-    );
+    if (draggableScrollableController.isAttached) {
+      await draggableScrollableController.animateTo(
+        1.0,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.ease,
+      );
+    }
+
     setState(() => isPipActivated = true);
     WidgetsBinding.instance.addPostFrameCallback((timer) {
       AndroidPIP().enterPipMode(seamlessResize: true);

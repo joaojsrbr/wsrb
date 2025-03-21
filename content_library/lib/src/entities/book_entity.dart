@@ -1,9 +1,7 @@
 // ignore_for_file: must_be_immutable
 
-import 'dart:convert';
-
-import 'package:anilist_dart/anilist.dart';
 import 'package:content_library/src/constants/source.dart';
+import 'package:content_library/src/entities/anilist_media.dart';
 import 'package:content_library/src/entities/chapter_entity.dart';
 import 'package:content_library/src/entities/entity.dart';
 import 'package:content_library/src/models/book.dart';
@@ -21,10 +19,7 @@ part 'book_entity.g.dart';
   'map',
 })
 class BookEntity extends ContentEntity {
-  @override
-  @Index(replace: true, unique: true)
-  String get stringID => super.stringID;
-  String? anilistMedia;
+  AniListMedia? anilistMedia;
   String title;
   String url;
   DateTime? createdAt;
@@ -82,9 +77,7 @@ class BookEntity extends ContentEntity {
 
   Book get toBook {
     return Book(
-      anilistMedia: anilistMedia != null
-          ? AnilistMedia.fromJson(jsonDecode(anilistMedia!))
-          : null,
+      anilistMedia: anilistMedia,
       sinopse: sinopse,
       source: source,
       url: url,
