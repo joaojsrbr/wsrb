@@ -44,6 +44,10 @@ class _InformationDestinationState extends State<InformationDestination>
     setState(() => _expanded = !_expanded);
   }
 
+  bool _checkData(Date? date) {
+    return ![true, null].contains(date?.isEmpty);
+  }
+
   @override
   void dispose() {
     _focusNode.dispose();
@@ -148,7 +152,7 @@ class _InformationDestinationState extends State<InformationDestination>
                     borderRadius: BorderRadius.circular(8)),
                 child: Column(
                   children: [
-                    if (_content!.anilistMedia?.startDate?.isEmpty != true)
+                    if (_checkData(_content!.anilistMedia?.startDate))
                       _Information(
                         paddingTop: true,
                         title: const Text('Data de início'),
@@ -163,7 +167,7 @@ class _InformationDestinationState extends State<InformationDestination>
                           ),
                         ),
                       ),
-                    if (_content!.anilistMedia?.endDate?.isEmpty != true)
+                    if (_checkData(_content?.anilistMedia?.endDate))
                       _Information(
                         paddingTop: false,
                         title: const Text('Data final'),

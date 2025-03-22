@@ -14,6 +14,7 @@ export 'package:workmanager/workmanager.dart';
 export 'src/constants/app.dart';
 export 'src/constants/order.dart';
 export 'src/constants/source.dart';
+export 'src/entities/anilist_media.dart';
 export 'src/entities/anime_entity.dart';
 export 'src/entities/anime_skip_entity.dart';
 export 'src/entities/book_entity.dart';

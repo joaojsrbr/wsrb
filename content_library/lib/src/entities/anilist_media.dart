@@ -34,51 +34,63 @@ class AniListMedia {
   List<Character> characters = const [];
   List<Staff> staff = const [];
 
-  static AniListMedia fromJson(Map<String, dynamic> json) {
+  AniListMedia();
+
+  factory AniListMedia.fromJson(Map<String, dynamic> json) {
     return AniListMedia()
-      ..idMal = json['idMal']
-      ..title = json['title'] != null ? Title.fromJson(json['title']) : null
-      ..type = json['type']
-      ..format = json['format']
-      ..status = json['status']
-      ..description = json['description']
-      ..startDate = (json['startDate'] as Map).isNotEmpty
-          ? Date.fromJson(json['startDate'])
+      ..idMal = json['idMal'] as int?
+      ..title = json['title'] != null
+          ? Title.fromJson(json['title'] as Map<String, dynamic>)
           : null
-      ..endDate = (json['endDate'] as Map).isNotEmpty
-          ? Date.fromJson(json['endDate'])
-          : null
-      ..season = json['season']
-      ..episodes = json['episodes']
-      ..countryOfOrigin = json['countryOfOrigin']
-      ..isLicensed = json['isLicensed']
-      ..source = json['source']
-      ..hashtag = json['hashtag']
-      ..trailer = (json['trailer'] as Map).isNotEmpty
-          ? Trailer.fromJson(json['trailer'])
-          : null
-      ..updatedAt = json['updatedAt']
-      ..coverImage = (json['coverImage'] as Map).isNotEmpty
-          ? CoverImage.fromJson(json['coverImage'])
-          : null
-      ..genres = List<String>.from(json['genres'] ?? [])
-      ..synonyms = List<String>.from(json['synonyms'] ?? [])
-      ..averageScore = json['averageScore']
-      ..meanScore = json['meanScore']
-      ..popularity = json['popularity']
-      ..isLocked = json['isLocked']
-      ..trending = json['trending']
-      ..favourites = json['favourites']
+      ..type = json['type'] as String?
+      ..format = json['format'] as String?
+      ..status = json['status'] as String?
+      ..description = json['description'] as String?
+      ..startDate =
+          (json['startDate'] is Map && (json['startDate'] as Map).isNotEmpty)
+              ? Date.fromJson(json['startDate'] as Map<String, dynamic>)
+              : null
+      ..endDate =
+          (json['endDate'] is Map && (json['endDate'] as Map).isNotEmpty)
+              ? Date.fromJson(json['endDate'] as Map<String, dynamic>)
+              : null
+      ..season = json['season'] as String?
+      ..episodes = json['episodes'] as int?
+      ..countryOfOrigin = json['countryOfOrigin'] as String?
+      ..isLicensed = json['isLicensed'] as bool?
+      ..source = json['source'] as String?
+      ..hashtag = json['hashtag'] as String?
+      ..trailer =
+          (json['trailer'] is Map && (json['trailer'] as Map).isNotEmpty)
+              ? Trailer.fromJson(json['trailer'] as Map<String, dynamic>)
+              : null
+      ..updatedAt = json['updatedAt'] as int?
+      ..coverImage =
+          (json['coverImage'] is Map && (json['coverImage'] as Map).isNotEmpty)
+              ? CoverImage.fromJson(json['coverImage'] as Map<String, dynamic>)
+              : null
+      ..genres = List<String>.from(json['genres'] as List? ?? [])
+      ..synonyms = List<String>.from(json['synonyms'] as List? ?? [])
+      ..averageScore = json['averageScore'] as int?
+      ..meanScore = json['meanScore'] as int?
+      ..popularity = json['popularity'] as int?
+      ..isLocked = json['isLocked'] as bool?
+      ..trending = json['trending'] as int?
+      ..favourites = json['favourites'] as int?
       ..tags = (json['tags'] as List<dynamic>?)
-              ?.map((e) => Tag.fromJson(e))
+              ?.map((e) => Tag.fromJson(e as Map<String, dynamic>))
               .toList() ??
           []
-      ..characters = (json['characters']['nodes'] as List<dynamic>?)
-              ?.map((e) => Character.fromJson(e))
+      ..characters = ((json['characters'] is List)
+                  ? json['characters'] as List?
+                  : (json['characters']?['nodes'] as List?))
+              ?.map((e) => Character.fromJson(e as Map<String, dynamic>))
               .toList() ??
           []
-      ..staff = (json['staff']['nodes'] as List<dynamic>?)
-              ?.map((e) => Staff.fromJson(e))
+      ..staff = ((json['staff'] is List)
+                  ? json['staff'] as List?
+                  : (json['staff']?['nodes'] as List?))
+              ?.map((e) => Staff.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [];
   }
@@ -123,7 +135,9 @@ class Title {
   String? english;
   String? native;
 
-  static Title fromJson(Map<String, dynamic> json) {
+  Title();
+
+  factory Title.fromJson(Map<String, dynamic> json) {
     return Title()
       ..romaji = json['romaji']
       ..english = json['english']
@@ -147,7 +161,9 @@ class Date {
 
   bool get isEmpty => year == -1 && month == -1 && day == -1;
 
-  static Date fromJson(Map<String, dynamic> json) {
+  Date();
+
+  factory Date.fromJson(Map<String, dynamic> json) {
     return Date()
       ..year = json['year']
       ..month = json['month']
@@ -169,7 +185,9 @@ class Trailer {
   String? site;
   String? thumbnail;
 
-  static Trailer fromJson(Map<String, dynamic> json) {
+  Trailer();
+
+  factory Trailer.fromJson(Map<String, dynamic> json) {
     return Trailer()
       ..id = json['id']
       ..site = json['site']
@@ -192,7 +210,9 @@ class CoverImage {
   String? medium;
   String? color;
 
-  static CoverImage fromJson(Map<String, dynamic> json) {
+  CoverImage();
+
+  factory CoverImage.fromJson(Map<String, dynamic> json) {
     return CoverImage()
       ..extraLarge = json['extraLarge']
       ..large = json['large']
@@ -217,7 +237,7 @@ class Tag {
 
   Tag();
 
-  static Tag fromJson(Map<String, dynamic> json) {
+  factory Tag.fromJson(Map<String, dynamic> json) {
     return Tag()
       ..id = json['id']
       ..name = json['name'];
@@ -239,7 +259,9 @@ class Character {
   CharacterName? name;
   CharacterImage? image;
 
-  static Character fromJson(Map<String, dynamic> json) {
+  Character();
+
+  factory Character.fromJson(Map<String, dynamic> json) {
     return Character()
       ..name = (json['name'] as Map).isNotEmpty
           ? CharacterName.fromJson(json['name'])
@@ -266,7 +288,7 @@ class CharacterName {
 
   CharacterName();
 
-  static CharacterName fromJson(Map<String, dynamic> json) {
+  factory CharacterName.fromJson(Map<String, dynamic> json) {
     return CharacterName()
       ..first = json['first']
       ..full = json['full']
@@ -289,7 +311,9 @@ class CharacterImage {
   String? large;
   String? medium;
 
-  static CharacterImage fromJson(Map<String, dynamic> json) {
+  CharacterImage();
+
+  factory CharacterImage.fromJson(Map<String, dynamic> json) {
     return CharacterImage()
       ..large = json['large']
       ..medium = json['medium'];
@@ -308,7 +332,9 @@ class Staff {
   StaffName? name;
   StaffImage? image;
 
-  static Staff fromJson(Map<String, dynamic> json) {
+  Staff();
+
+  factory Staff.fromJson(Map<String, dynamic> json) {
     return Staff()
       ..name = (json['name'] as Map).isNotEmpty
           ? StaffName.fromJson(json['name'])
@@ -334,7 +360,9 @@ class StaffName {
   String? native;
   List<String> alternative = const [];
 
-  static StaffName fromJson(Map<String, dynamic> json) {
+  StaffName();
+
+  factory StaffName.fromJson(Map<String, dynamic> json) {
     return StaffName()
       ..first = json['first']
       ..last = json['last']
@@ -359,7 +387,9 @@ class StaffImage {
   String? large;
   String? medium;
 
-  static StaffImage fromJson(Map<String, dynamic> json) {
+  StaffImage();
+
+  factory StaffImage.fromJson(Map<String, dynamic> json) {
     return StaffImage()
       ..large = json['large']
       ..medium = json['medium'];
