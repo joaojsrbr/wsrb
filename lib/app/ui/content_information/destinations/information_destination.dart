@@ -181,6 +181,12 @@ class _InformationDestinationState extends State<InformationDestination>
                             ),
                           ),
                         ),
+                      )
+                    else if (_checkData(_content!.anilistMedia?.startDate))
+                      _Information(
+                        paddingTop: false,
+                        title: const Text('Data final'),
+                        child: Text("RELEASING"),
                       ),
                     if (_content!.anilistMedia?.averageScore != null)
                       _Information(
