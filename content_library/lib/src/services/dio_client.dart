@@ -53,6 +53,8 @@ class DioClient
     implements IHttpService<dio.ResponseType, dio.Response, dio.Interceptor> {
   late final dio.Dio _dio;
 
+  dio.Dio get client => _dio;
+
   DioClient._internal([dio.BaseOptions? options]) {
     _dio = dio.Dio(
       options,

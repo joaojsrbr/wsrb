@@ -8,16 +8,22 @@ Future<void> copyToClipboard(
   required String messageCopy,
   bool snackBar = true,
   String? messageSnackBar,
+  Duration duration = const Duration(seconds: 2),
 }) async {
   final ClipboardData data = ClipboardData(text: messageCopy);
   await Clipboard.setData(data).whenComplete(() {
     if (snackBar && context.mounted) {
-      _snackBar(context, messageCopy, messageSnackBar);
+      _snackBar(context, messageCopy, messageSnackBar, duration);
     }
   });
 }
 
-void _snackBar(context, String messageCopy, String? messageSnackBar) {
+void _snackBar(
+  context,
+  String messageCopy,
+  String? messageSnackBar,
+  Duration duration,
+) {
   final AppSnackBar snackBar = AppSnackBar(context);
   snackBar.show(
     Text(
@@ -26,7 +32,7 @@ void _snackBar(context, String messageCopy, String? messageSnackBar) {
               'copiado para a área de transferência!',
     ),
     flushbarPosition: FlushbarPosition.TOP,
-    duration: const Duration(milliseconds: 1500),
+    duration: duration,
   );
   // ScaffoldMessenger.of(context)
   //   ..clearSnackBars()

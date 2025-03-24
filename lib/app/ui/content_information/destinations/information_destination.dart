@@ -18,7 +18,7 @@ class _InformationDestinationState extends State<InformationDestination>
   bool _isOver100 = false;
   bool _isSelection = false;
   bool _expanded = false;
-  bool _isLoading = true;
+  // bool _isLoading = true;
   final FocusNode _focusNode = FocusNode();
   Content? _content;
 
@@ -28,7 +28,7 @@ class _InformationDestinationState extends State<InformationDestination>
   @override
   void didChangeDependencies() {
     _content = ContentScope.contentOf(context);
-    _isLoading = ContentScope.isLoadingOf(context);
+    // _isLoading = ContentScope.isLoadingOf(context);
 
     if (!_expanded) _isOver100 = (_content!.sinopse ?? "").length > 100;
 
@@ -62,6 +62,8 @@ class _InformationDestinationState extends State<InformationDestination>
 
     final Locale appLocale = Localizations.localeOf(context);
 
+    final String sinopse = _content?.sinopse ?? "";
+
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 8),
       physics: const NeverScrollableScrollPhysics(),
@@ -70,7 +72,7 @@ class _InformationDestinationState extends State<InformationDestination>
         // shrinkWrap: true,
         // padding: const EdgeInsets.only(bottom: 8),
         children: [
-          if ((_content!.sinopse ?? "").isNotEmpty)
+          if (sinopse.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
               child: Card.filled(
@@ -81,9 +83,7 @@ class _InformationDestinationState extends State<InformationDestination>
                 child: InkWell(
                   overlayColor: _OverlayColor(context),
                   borderRadius: BorderRadius.circular(8),
-                  onLongPress: () {
-                    _focusNode.requestFocus();
-                  },
+                  onLongPress: _focusNode.requestFocus,
                   onTap: _substring.isEmpty ? null : _setExpanded,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -108,9 +108,9 @@ class _InformationDestinationState extends State<InformationDestination>
                               child: SelectableText(
                                 !_expanded
                                     ? _substring.isEmpty
-                                        ? (_content!.sinopse ?? "")
+                                        ? sinopse
                                         : _substring
-                                    : (_content!.sinopse ?? ""),
+                                    : sinopse,
                                 focusNode: _focusNode,
                                 onSelectionChanged: (selection, cause) {
                                   addPostFrameSetState(() {
@@ -144,7 +144,7 @@ class _InformationDestinationState extends State<InformationDestination>
                 right: 8,
                 left: 8,
                 bottom: 12,
-                top: (_content!.sinopse ?? "").isEmpty ? 8 : 0,
+                top: sinopse.isEmpty ? 8 : 0,
               ),
               child: Card.filled(
                 color: themeData.colorScheme.primary.withAlpha(10),
@@ -265,14 +265,16 @@ class _InformationDestinationState extends State<InformationDestination>
                         title: const Text('Nome Romaji'),
                         child: GestureDetector(
                           onLongPress: () async {
-                            copyToClipboard(
+                            await copyToClipboard(
                               context,
                               messageCopy:
                                   _content!.anilistMedia!.title!.romaji!,
                               messageSnackBar:
                                   'Copiado para a área de transferência!',
                             );
-                            await Feedback.forLongPress(context);
+                            if (context.mounted) {
+                              await Feedback.forLongPress(context);
+                            }
                           },
                           child: Text(
                             _content!.anilistMedia!.title!.romaji!.length > 20

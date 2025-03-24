@@ -1,6 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/entities/anilist_media.dart';
 
 class Anime extends Content {
   const Anime({
@@ -11,6 +10,7 @@ class Anime extends Content {
     required super.source,
     required this.originalImage,
     this.slugSerie,
+    this.buildId,
     this.extraLarge,
     this.mediumImage,
     this.animeID,
@@ -29,6 +29,7 @@ class Anime extends Content {
   EpisodeReleases get releases => super.releases as EpisodeReleases;
 
   final String? generateID;
+  final String? buildId;
   final String? animeID;
   final String? extraLarge;
   final String originalImage;
@@ -44,6 +45,7 @@ class Anime extends Content {
   Anime copyWith({
     Releases? releases,
     String? title,
+    String? buildId,
     String? url,
     String? animeID,
     String? slugSerie,
@@ -64,6 +66,7 @@ class Anime extends Content {
   }) {
     return Anime(
       animeSkip: animeSkip ?? this.animeSkip,
+      buildId: buildId ?? this.buildId,
       anilistMedia: anilistMedia ?? this.anilistMedia,
       source: source ?? this.source,
       genres: genres ?? this.genres,

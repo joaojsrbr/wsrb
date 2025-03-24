@@ -94,28 +94,32 @@ class _RefContentkInformationViewState
   }
 
   Future<void> _loadContentData() async {
-    Result<Content> contentCache = Result.success(_informationArgs!.content);
-
-    Future<void> getData() async {
-      await _repository
-          .getData(_informationArgs!.content)
-          .timeout(const Duration(minutes: 1), onTimeout: _handleTimeout)
-          .then(_handleResult);
-    }
-
-    if (_informationArgs!.content.releases.isEmpty) {
-      contentCache = const Result.empty();
-    }
-
     _refreshIndicatorKey.currentState?.show();
-    if (_content?.cached == true ||
-        _informationArgs?.isLibrary == true &&
-            _informationArgs?.content.releases.isNotEmpty == true) {
-      _handleResult(contentCache);
-      await getData();
-    } else {
-      await getData();
-    }
+
+    // Result<Content> contentCache = Result.success(_informationArgs!.content);
+
+    // Future<void> getData() async {
+    //   await _repository
+    //       .getData(_informationArgs!.content)
+    //       .timeout(const Duration(minutes: 1), onTimeout: _handleTimeout)
+    //       .then(_handleResult);
+    // }
+
+    // if (_informationArgs!.content.releases.isEmpty) {
+    //   contentCache = const Result.empty();
+    // }
+
+    // _refreshIndicatorKey.currentState?.show();
+
+    // if (_content?.cached == true ||
+    //     _informationArgs?.isLibrary == true &&
+    //         _informationArgs?.content.releases.isNotEmpty == true) {
+    //   _handleResult(contentCache);
+    //   await Future.delayed(const Duration(seconds: 5));
+    //   if (mounted) await getData();
+    // } else {
+    //   await getData();
+    // }
   }
 
   void _handleResult(Result<Content> result) {
@@ -157,6 +161,7 @@ class _RefContentkInformationViewState
 
     if (_content?.releases.length == data.releases.length && !refresh) {
       if (!_initialRefresh.isCompleted) _initialRefresh.complete();
+      _isLoading = false;
       return;
     }
 
@@ -363,32 +368,64 @@ class _RefContentkInformationViewState
                     return notification.depth == 0;
                   },
                   onRefresh: () async {
-                    _initialRefresh = Completer();
-                    if (_content?.cached == false &&
-                        !_libraryService.contains(content: _content)) {
-                      await _initialRefresh.future;
-                      return;
+                    // if (!_enableRefreshIndicator) return;
+                    setState(() {
+                      _isLoading = true;
+                    });
+
+                    Result<Content> contentCache =
+                        Result.success(_informationArgs!.content);
+
+                    Future<void> getData() async {
+                      await _repository
+                          .getData(_informationArgs!.content)
+                          .timeout(const Duration(minutes: 1),
+                              onTimeout: _handleTimeout)
+                          .then(_handleResult);
                     }
 
-                    if (_content == null) return;
+                    if (_informationArgs!.content.releases.isEmpty) {
+                      contentCache = const Result.empty();
+                    }
 
-                    await _repository.getData(_content!).timeout(
-                      const Duration(seconds: 15),
-                      onTimeout: () {
-                        if (_informationArgs!.content.releases.length > 1 ||
-                            _content!.cached) {
-                          return Result.success(_informationArgs!.content);
-                        }
-                        return Result.failure(
-                          TimeoutException("Tempo excedido"),
-                        );
-                      },
-                    ).then((result) {
-                      result.fold(
-                        onSuccess: (result) => _onSuccess(result, false, true),
-                        onError: appSnackBar.onError,
-                      );
-                    });
+                    if (_content?.cached == true ||
+                        _informationArgs?.isLibrary == true &&
+                            _informationArgs?.content.releases.isNotEmpty ==
+                                true) {
+                      _handleResult(contentCache);
+                      await Future.delayed(const Duration(seconds: 3));
+                      if (mounted) await getData();
+                    } else {
+                      await getData();
+                    }
+
+                    // customLog(_content?.cached == true);
+                    // _initialRefresh = Completer();
+                    // if (_content?.cached == false &&
+                    //     !_libraryService.contains(content: _content)) {
+                    //   await _initialRefresh.future;
+                    //   return;
+                    // }
+
+                    // if (_content == null) return;
+
+                    // await _repository.getData(_content!).timeout(
+                    //   const Duration(seconds: 15),
+                    //   onTimeout: () {
+                    //     if (_informationArgs!.content.releases.length > 1 ||
+                    //         _content!.cached) {
+                    //       return Result.success(_informationArgs!.content);
+                    //     }
+                    //     return Result.failure(
+                    //       TimeoutException("Tempo excedido"),
+                    //     );
+                    //   },
+                    // ).then((result) {
+                    //   result.fold(
+                    //     onSuccess: (result) => _onSuccess(result, false, true),
+                    //     onError: appSnackBar.onError,
+                    //   );
+                    // });
                   },
                   child: NestedScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),

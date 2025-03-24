@@ -125,7 +125,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       ..withName()
       ..withImage();
 
-    final request = AnilistMediaRequest()
+    final request = AnilistMediaRequest(client: _dio.client)
       ..withIdMal()
       ..withTitle()
       ..withType()
@@ -173,7 +173,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
                     : AnilistMediaType.MANGA),
           );
       return animeMedia;
-    } on Exception catch (e) {
+    } catch (e) {
       customLog(e.toString());
       return null;
     }

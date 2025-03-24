@@ -37,7 +37,7 @@ dependencies:
   # gql: ^1.0.0+1
   flutter_dotenv: ^5.2.1
   intl: ^0.19.0
-  reflectable: ^4.0.5
+  # reflectable: ^4.0.5
   anilist_dart:
     git: https://github.com/joaojsrbr/anilist_dart
   # dio_proxy_adapter:
@@ -50,9 +50,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  isar_generator: ^3.1.0+1
+  isar_generator: ^3.1.0
   build_runner: any
-  flutter_lints: ^3.0.1
+  flutter_lints: ^5.0.0
   analyzer: ^5.13.0
 
 # For information on the generic Dart part of this file, see the

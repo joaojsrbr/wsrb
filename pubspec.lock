@@ -35,10 +35,10 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "6870707e05b741b686123ada5e18e4f523ab0f0f"
+      resolved-ref: ccdb4d726b22112eb98ed9e9e07851bb50541ad0
       url: "https://github.com/joaojsrbr/anilist_dart"
     source: git
-    version: "1.0.0"
+    version: "1.0.1"
   animated_category:
     dependency: "direct main"
     description:
