@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:content_library/content_library.dart';
 import 'package:content_library/src/services/isar_service.dart';
+import 'package:content_library/src/utils/elapsed.dart';
 import 'package:isar/isar.dart';
 
 class IsarServiceImpl implements IsarService {
@@ -229,6 +230,7 @@ class IsarServiceImpl implements IsarService {
     List<CollectionSchema<dynamic>>? schemas,
     bool inspector = true,
   }) async {
+    final Elapsed elapsed = Elapsed()..start();
     String isarPath = (await getApplicationDocumentsDirectory()).path;
 
     // if (kDebugMode) {
@@ -238,8 +240,7 @@ class IsarServiceImpl implements IsarService {
     // }
 
     // final dir = await getApplicationDocumentsDirectory();
-
-    _isar.complete(Isar.open(
+    final isar = await Isar.open(
       [
         ...?schemas,
         BookEntitySchema,
@@ -252,7 +253,10 @@ class IsarServiceImpl implements IsarService {
       maxSizeMiB: 2048,
       directory: isarPath,
       inspector: inspector,
-    ));
+    );
+    elapsed.printAndStop(runtimeType.toString());
+
+    _isar.complete(isar);
 
     await onStart?.call();
   }

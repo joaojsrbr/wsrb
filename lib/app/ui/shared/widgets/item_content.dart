@@ -92,12 +92,12 @@ class ItemContent extends StatelessWidget {
     // final memCacheWidth = 350;
 
     final memCacheHeight = _isLibrary || _isSearch
-        ? 400
+        ? 450
         : _isContent
             ? 150
             : 300;
     final memCacheWidth = _isLibrary || _isSearch
-        ? 450
+        ? 600
         : _isContent
             ? 200
             : 300;
@@ -289,7 +289,7 @@ class ItemContent extends StatelessWidget {
                 return LinearGradient(
                   begin: Alignment.center,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.black54.withAlpha(90)],
+                  colors: [Colors.transparent, Colors.black54.withAlpha(140)],
                   stops: const [0.0, .9],
                 ).createShader(bounds);
               },

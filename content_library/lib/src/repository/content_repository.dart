@@ -125,6 +125,12 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       ..withName()
       ..withImage();
 
+    final title = content.title
+        .replaceAll(' - Dublado', '')
+        .replaceAll('dublado', '')
+        .replaceAll('Dublado', '')
+        .trim();
+
     final request = AnilistMediaRequest(client: _dio.client)
       ..withIdMal()
       ..withTitle()
@@ -158,22 +164,19 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       ..withTagsName()
       ..withCharcters(AnilistSubquery(page: 1, perPage: 5, charSelect))
       ..withStaff(AnilistSubquery(page: 1, perPage: 5, staffSelect))
-      // ..queryType(
-      //     content is Anime ? AnilistMediaType.ANIME : AnilistMediaType.MANGA)
-      ..querySearch(content.title
-          .replaceAll(' - Dublado', '')
-          .replaceAll('dublado', '')
-          .replaceAll('Dublado', '')
-          .trim());
+      ..queryType(
+          content is Anime ? AnilistMediaType.ANIME : AnilistMediaType.MANGA)
+      ..querySearch(title);
 
     try {
-      final animeMedia = (await request.list(2, 1)).results?.firstWhereOrNull(
-            (media) =>
-                media.type ==
-                (content is Anime
-                    ? AnilistMediaType.ANIME
-                    : AnilistMediaType.MANGA),
-          );
+      final results = (await request.list(2, 1)).results;
+      final animeMedia = results?.firstWhereOrNull(
+        (media) =>
+            media.type ==
+            (content is Anime
+                ? AnilistMediaType.ANIME
+                : AnilistMediaType.MANGA),
+      );
       return animeMedia;
     } catch (e) {
       customLog(e.toString());

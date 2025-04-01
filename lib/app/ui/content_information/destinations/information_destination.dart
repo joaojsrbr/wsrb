@@ -64,7 +64,7 @@ class _InformationDestinationState extends State<InformationDestination>
 
     final String sinopse = _content?.sinopse ?? "";
 
-    final bool noContent = (_content?.sinopse ?? "").isEmpty &&
+    final bool noContent = sinopse.isEmpty &&
         _content?.anilistMedia == null &&
         (_content?.anilistMedia?.genres == null ||
             (_content?.genres.isEmpty ?? false)) &&
@@ -218,28 +218,30 @@ class _InformationDestinationState extends State<InformationDestination>
                             _Information(
                               paddingTop: false,
                               title: const Text('Pontuação'),
-                              child: Text.rich(
-                                TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: (_content!
-                                                  .anilistMedia!.averageScore! /
-                                              10)
-                                          .toString(),
+                              child: Builder(builder: (context) {
+                                final averageScore =
+                                    (_content!.anilistMedia!.averageScore! /
+                                        10);
+                                return Text.rich(
+                                  TextSpan(
+                                    children: [
+                                      TextSpan(text: averageScore.toString()),
+                                      const TextSpan(
+                                        text: " / ",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      const TextSpan(
+                                        text: "10",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ],
+                                    style: TextStyle(
+                                      color: _content!.anilistMedia!
+                                          .getScoreColor(themeData.colorScheme),
                                     ),
-                                    const TextSpan(
-                                      text: " / ",
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                    const TextSpan(
-                                      text: "10",
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ],
-                                  style: TextStyle(
-                                      color: themeData.colorScheme.primary),
-                                ),
-                              ),
+                                  ),
+                                );
+                              }),
                             ),
                           if (_content!.anilistMedia?.episodes != null)
                             _Information(
@@ -371,6 +373,7 @@ class _InformationDestinationState extends State<InformationDestination>
                       ),
                     ],
                   ),
+
                 if (_content!.anilistMedia?.characters != null)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -389,8 +392,7 @@ class _InformationDestinationState extends State<InformationDestination>
                         height: 160,
                         width: double.infinity,
                         child: Builder(builder: (context) {
-                          final list = _content!.anilistMedia?.characters
-                              .unique((staff) => staff.name!.full!);
+                          final list = _content!.anilistMedia?.characters;
                           if (list == null) return const SizedBox.shrink();
                           return ListView.builder(
                             itemCount: list.length,
@@ -469,8 +471,7 @@ class _InformationDestinationState extends State<InformationDestination>
                         height: 160,
                         width: double.infinity,
                         child: Builder(builder: (context) {
-                          final list = _content!.anilistMedia?.staff
-                              .unique((staff) => staff.name!.full!);
+                          final list = _content!.anilistMedia?.staff;
                           if (list == null) return const SizedBox.shrink();
                           return ListView.builder(
                             itemCount: list.length,
@@ -536,6 +537,56 @@ class _InformationDestinationState extends State<InformationDestination>
                 //       child: Text('Nenhum dado encontrado.'),
                 //     ),
                 //   )
+                if (_content!.anilistMedia?.tags != null &&
+                    _content!.anilistMedia?.tags.isNotEmpty == true) ...[
+                  const SizedBox(height: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 12, bottom: 8),
+                        child: Text(
+                          'Tags',
+                          style: themeData.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          right: 12,
+                          left: 12,
+                          bottom: 12,
+                        ),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: (_content!.anilistMedia?.tags.getMax(5))!
+                              .map((e) => e.name!.capitalize)
+                              .map(
+                                (e) => Card.filled(
+                                  color: themeData.colorScheme.primary
+                                      .withAlpha(10),
+                                  margin: EdgeInsets.zero,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      e,
+                                      style: themeData.textTheme.labelLarge
+                                          ?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           );

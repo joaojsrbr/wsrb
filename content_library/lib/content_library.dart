@@ -63,6 +63,7 @@ export 'src/services/theme_controller.dart';
 export 'src/utils/app_storage.dart';
 export 'src/utils/custom_log.dart';
 export 'src/utils/debouncer.dart';
+export 'src/utils/elapsed.dart';
 export 'src/utils/permission.dart';
 export 'src/utils/releases.dart';
 export 'src/utils/result.dart';

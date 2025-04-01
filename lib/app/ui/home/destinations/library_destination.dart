@@ -121,10 +121,10 @@ class LibraryeDestinationState extends State<LibraryDestination>
   static const _gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
     // maxCrossAxisExtent: 170,
     crossAxisCount: 2,
-    childAspectRatio: 1,
+    childAspectRatio: 0.4,
     crossAxisSpacing: 8,
     mainAxisSpacing: 8,
-    mainAxisExtent: 160,
+    mainAxisExtent: 220,
   );
 
   @override

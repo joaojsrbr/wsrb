@@ -248,6 +248,10 @@ class AnrollSource extends RSource {
 
         if (anilistMedia != null) {
           newAnime = newAnime.copyWith(
+            sinopse:
+                newAnime.sinopse?.isEmpty == true || newAnime.sinopse == null
+                    ? anilistMedia.description
+                    : null,
             anilistMedia: AniListMedia.fromJson(
               AnilistMedia.toJson(anilistMedia),
             ),
@@ -259,7 +263,6 @@ class AnrollSource extends RSource {
 
       await data();
       await getAniListData();
-
       await getEpisodes();
 
       return Result.success(newAnime);

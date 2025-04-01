@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
 part 'anilist_media.g.dart';
@@ -22,6 +23,7 @@ class AniListMedia {
   Trailer? trailer;
   int? updatedAt;
   CoverImage? coverImage;
+  CoverImage? bannerImage;
   List<String> genres = const [];
   List<String> synonyms = const [];
   int? averageScore;
@@ -69,6 +71,14 @@ class AniListMedia {
           (json['coverImage'] is Map && (json['coverImage'] as Map).isNotEmpty)
               ? CoverImage.fromJson(json['coverImage'] as Map<String, dynamic>)
               : null
+      ..bannerImage = (json['bannerImage'] is Map &&
+              (json['bannerImage'] as Map).isNotEmpty)
+          ? BannerImage.fromJson(json['bannerImage'] as Map<String, dynamic>)
+          : (json['bannerImage'] is String)
+              ? (BannerImage()
+                ..extraLarge = json['bannerImage']
+                ..isBanner = true)
+              : null
       ..genres = List<String>.from(json['genres'] as List? ?? [])
       ..synonyms = List<String>.from(json['synonyms'] as List? ?? [])
       ..averageScore = json['averageScore'] as int?
@@ -95,6 +105,17 @@ class AniListMedia {
           [];
   }
 
+  Color getScoreColor(ColorScheme colorScheme) {
+    final score = (averageScore ?? 0) / 10;
+    if (score >= 8.0) {
+      return Colors.green;
+    } else if (score >= 5.0) {
+      return Colors.yellow;
+    } else {
+      return Colors.red;
+    }
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'idMal': idMal,
@@ -114,6 +135,7 @@ class AniListMedia {
       'trailer': trailer?.toJson(),
       'updatedAt': updatedAt,
       'coverImage': coverImage?.toJson(),
+      'bannerImage': bannerImage?.toJson(),
       'genres': genres,
       'synonyms': synonyms,
       'averageScore': averageScore,
@@ -126,6 +148,22 @@ class AniListMedia {
       'characters': characters.map((e) => e.toJson()).toList(),
       'staff': staff.map((e) => e.toJson()).toList(),
     };
+  }
+}
+
+@Embedded(ignore: {"toJson", "fromJson"})
+class BannerImage extends CoverImage {
+  bool isBanner = false;
+
+  BannerImage();
+
+  factory BannerImage.fromJson(Map<String, dynamic> json) {
+    return BannerImage()
+      ..extraLarge = json['extraLarge']
+      ..isBanner = json['isBanner'] ?? false
+      ..large = json['large']
+      ..medium = json['medium']
+      ..color = json['color'];
   }
 }
 

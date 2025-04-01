@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/utils/elapsed.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
@@ -120,6 +121,8 @@ class LibraryController extends ChangeNotifier {
   }
 
   Future<void> start() async {
+    final Elapsed elapsed = Elapsed()..start();
+
     final animeColetions = await _isarService.collection<AnimeEntity>();
 
     final bookColetions = await _isarService.collection<BookEntity>();
@@ -158,6 +161,8 @@ class LibraryController extends ChangeNotifier {
         episodeColetions.watchLazy().listen(_updateAll),
       ],
     );
+
+    elapsed.printAndStop(runtimeType.toString());
   }
 
   UnmodifiableListView<ContentEntity> get entities =>

@@ -1,4 +1,5 @@
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/utils/elapsed.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 
@@ -10,12 +11,15 @@ class AnimeSkipController extends ChangeNotifier {
   final List<AnimeSkipEntity> _entities = [];
 
   Future<void> start() async {
+    final Elapsed elapsed = Elapsed()..start();
+
     final animeSkipCollections =
         await _isarService.collection<AnimeSkipEntity>();
 
     final animeskips = await animeSkipCollections.where().findAll();
 
     _entities.addAll(animeskips);
+    elapsed.printAndStop(runtimeType.toString());
   }
 
   Future<Result<(bool, int?)>> save(AnimeSkipEntity animeSkipEntity) async {

@@ -27,7 +27,7 @@ void main(List<String> arguments) async {
   // late final AnrollLoginService anrollLoginService;
   final ThemeController themeController = ThemeController(hiveServiceImpl);
 
-  final HiveCacheServiceImpl hiveCacheServiceImpl = HiveCacheServiceImpl();
+  // final HiveCacheServiceImpl hiveCacheServiceImpl = HiveCacheServiceImpl();
   final LibraryController libraryController =
       LibraryController(isarServiceImpl, hiveController);
 
@@ -44,25 +44,36 @@ void main(List<String> arguments) async {
   final CategoryController categoryController =
       CategoryController(isarServiceImpl);
 
+  // Start Isar
   await isarServiceImpl.startDatabase();
-
   await Future.wait([
-    PermissionUtils.manageExternalStorage(),
-    themeController.loadAll(),
-    hiveController.loadAll(),
     historicController.start(),
     categoryController.start(),
     animeSkipController.start(),
     libraryController.start(),
-    hiveServiceImpl.init(),
+  ]);
+
+  // Start Hive
+  await hiveServiceImpl.init();
+  await Future.wait([
+    themeController.loadAll(),
+    hiveController.loadAll(),
+  ]);
+  // final Elapsed elapsed = Elapsed()..start();
+
+  connectionChecker.start();
+
+  await Future.wait([
+    PermissionUtils.manageExternalStorage(),
     AutoCacheInitializer.initialize(configuration: App.APP_CACHE_CONFIG),
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
-    Workmanager().initialize(callbackDispatcher, isInDebugMode: true),
-    hiveCacheServiceImpl.init(),
+    // Workmanager().initialize(callbackDispatcher),
+    // hiveCacheServiceImpl.init(),
     PlayerAudioHandlerMixin.startPlayerAudio(),
-    connectionChecker.start(),
     dotenv.load(fileName: "assets/.env"),
   ]);
+
+  // elapsed.printAndStop('MAIN');
 
   final ContentRepository contentRepository = ContentRepository(
     hiveController,

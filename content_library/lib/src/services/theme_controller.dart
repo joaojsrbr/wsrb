@@ -1,4 +1,5 @@
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/utils/elapsed.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -61,6 +62,7 @@ class ThemeController extends ChangeNotifier {
   }
 
   Future<void> loadAll() async {
+    final Elapsed elapsed = Elapsed()..start();
     final result = await Future.wait([
       _hiveService.load(
         _defaultValueThemeMode.key,
@@ -80,6 +82,7 @@ class ThemeController extends ChangeNotifier {
     _systemThemeMode = result.elementAt(1) as bool;
     _appColor = result.elementAt(2) as Color;
     await _getSystemColorScheme();
+    elapsed.printAndStop(runtimeType.toString());
   }
 
   // ColorScheme get _lightScheme => MaterialTheme.lightScheme();

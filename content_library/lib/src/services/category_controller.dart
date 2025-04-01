@@ -1,4 +1,5 @@
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/utils/elapsed.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
@@ -63,8 +64,11 @@ class CategoryController extends ChangeNotifier {
       UnmodifiableListView(categories.map((e) => e.stringID).cast());
 
   Future<void> start() async {
+    final Elapsed elapsed = Elapsed()..start();
+
     final categoryColetions = await _isarService.collection<CategoryEntity>();
 
     _categories = await categoryColetions.where().findAll();
+    elapsed.printAndStop(runtimeType.toString());
   }
 }

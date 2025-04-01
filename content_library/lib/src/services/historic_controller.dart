@@ -1,4 +1,5 @@
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/utils/elapsed.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
@@ -8,6 +9,8 @@ class HistoricController extends ChangeNotifier {
   HistoricController(this._isarService);
 
   Future<void> start() async {
+    final Elapsed elapsed = Elapsed()..start();
+
     final episodeCollections = await _isarService.collection<EpisodeEntity>();
     final chaptersCollections = await _isarService.collection<ChapterEntity>();
 
@@ -16,6 +19,7 @@ class HistoricController extends ChangeNotifier {
 
     _entities.addAll(episodes);
     _entities.addAll(chapters);
+    elapsed.printAndStop(runtimeType.toString());
   }
 
   T? getHistoryEntityByID<T extends HistoryEntity>(List<String> ids) {

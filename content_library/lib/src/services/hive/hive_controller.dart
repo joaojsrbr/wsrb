@@ -1,4 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:content_library/src/utils/elapsed.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
@@ -80,6 +81,8 @@ class HiveController extends ChangeNotifier {
   }
 
   Future<void> loadAll() async {
+    final Elapsed elapsed = Elapsed()..start();
+
     final result = await Future.wait([
       _hiveService.load(
         _defaultValueReverseContent.key,
@@ -108,6 +111,7 @@ class HiveController extends ChangeNotifier {
     _source = result.getElementAt<Source>(2);
     _connectivityResult = result.getElementAt<ConnectivityResult>(3);
     _historicSavePercent = result.getElementAt<double>(4);
+    elapsed.printAndStop(runtimeType.toString());
   }
 }
 

@@ -94,6 +94,13 @@ class _RefContentkInformationViewState
   }
 
   Future<void> _loadContentData() async {
+    if (_informationArgs?.isLibrary == true) {
+      setStateIfMounted(() {
+        _isLoading = false;
+        _releasesIsLoading = false;
+      });
+      return;
+    }
     _refreshIndicatorKey.currentState?.show();
 
     // Result<Content> contentCache = Result.success(_informationArgs!.content);
@@ -159,6 +166,15 @@ class _RefContentkInformationViewState
       [bool refresh = false, bool forceSaveCache = false]) async {
     _releases.clear();
 
+    setState(() {
+      _content = data.copyWith(
+        releases: _releases[_index],
+        cached: true,
+      );
+      _releasesIsLoading = false;
+      _isLoading = false;
+    });
+
     if (_content?.releases.length == data.releases.length && !refresh) {
       if (!_initialRefresh.isCompleted) _initialRefresh.complete();
       _isLoading = false;
@@ -170,15 +186,6 @@ class _RefContentkInformationViewState
     } else {
       _releases[_index] = data.releases;
     }
-
-    setState(() {
-      _content = data.copyWith(
-        releases: _releases[_index],
-        cached: true,
-      );
-      _releasesIsLoading = false;
-      _isLoading = false;
-    });
 
     if (!_informationArgs!.isLibrary) {
       AutoCache.data.saveJson(key: data.stringID, data: _content!.toJson());
@@ -381,8 +388,8 @@ class _RefContentkInformationViewState
                       _isLoading = true;
                     });
 
-                    Result<Content> contentCache =
-                        Result.success(_informationArgs!.content);
+                    // Result<Content> contentCache =
+                    //     Result.success(_informationArgs!.content);
 
                     Future<void> getData() async {
                       await _repository
@@ -392,20 +399,19 @@ class _RefContentkInformationViewState
                           .then(_handleResult);
                     }
 
-                    if (_informationArgs!.content.releases.isEmpty) {
-                      contentCache = const Result.empty();
-                    }
+                    // if (_informationArgs!.content.releases.isEmpty) {
+                    //   contentCache = const Result.empty();
+                    // }
 
-                    if (_content?.cached == true ||
-                        _informationArgs?.isLibrary == true &&
-                            _informationArgs?.content.releases.isNotEmpty ==
-                                true) {
-                      _handleResult(contentCache);
-                      await Future.delayed(const Duration(seconds: 3));
-                      if (mounted) await getData();
-                    } else {
-                      await getData();
-                    }
+                    // if (_content?.cached == true ||
+                    //     _informationArgs?.isLibrary == true &&
+                    //         _informationArgs?.content.releases.isNotEmpty ==
+                    //             true) {
+                    //   await getData();
+                    //   // _handleResult(contentCache);
+                    // } else {
+                    // }
+                    await getData();
 
                     // customLog(_content?.cached == true);
                     // _initialRefresh = Completer();
@@ -559,8 +565,14 @@ class _RefContentkInformationViewState
       );
 
       contentEntity = switch (contentEntity) {
-        AnimeEntity data => data..isFavorite = true,
-        BookEntity data => data..isFavorite = true,
+        AnimeEntity data => data
+          ..isFavorite = true
+          ..anilistMedia = ((otherData ?? _content)?.toEntity() as AnimeEntity?)
+              ?.anilistMedia,
+        BookEntity data => data
+          ..isFavorite = true
+          ..anilistMedia = ((otherData ?? _content)?.toEntity() as BookEntity?)
+              ?.anilistMedia,
         _ => throw UnimplementedError(),
       };
 
@@ -582,7 +594,7 @@ class _RefContentkInformationViewState
           },
         );
 
-        if (entity != null) {
+        if (entity != null && entity.id < 0) {
           historyEntities.add(entity);
           switch (contentEntity) {
             case AnimeEntity data when entity is EpisodeEntity:

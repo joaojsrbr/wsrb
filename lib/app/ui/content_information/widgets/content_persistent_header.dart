@@ -2,6 +2,7 @@ import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import 'scope.dart';
 
@@ -18,11 +19,12 @@ class ContentHeader extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Card(
-          //   color: themeData.colorScheme.surface,
-          // ),
+          // if (content.anilistMedia?.bannerImage?.extraLarge != null)
+          //   Card(
+          //     color: themeData.colorScheme.surface,
+          //   ),
           // ImageFiltered(
-          //   imageFilter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+          //   imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 8),
           //   child: CachedNetworkImage(
           //     scale: 20,
           //     filterQuality: FilterQuality.medium,
@@ -32,7 +34,7 @@ class ContentHeader extends StatelessWidget {
           //         color: themeData.colorScheme.primary.withAlpha(10),
           //       );
           //     },
-          //     imageUrl: content.anilistMedia!.bannerImage!,
+          //     imageUrl: content.anilistMedia!.bannerImage!.extraLarge ?? "",
           //     httpHeaders: App.HEADERS,
           //   ),
           // ),
@@ -100,6 +102,55 @@ class ContentHeader extends StatelessWidget {
                                   ),
                                 ),
                               ),
+                              if (content.anilistMedia?.averageScore != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Row(
+                                    spacing: 4,
+                                    children: [
+                                      if (content.anilistMedia?.favourites !=
+                                          null) ...[
+                                        Icon(
+                                          MdiIcons.heart,
+                                          color: Colors.red,
+                                          size: 18,
+                                        ),
+                                        Text(
+                                          content.anilistMedia?.favourites
+                                                  .toString() ??
+                                              "",
+                                          textAlign: TextAlign.start,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: themeData.textTheme.titleSmall
+                                              ?.copyWith(
+                                            color: Colors.red,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 2),
+                                      ],
+                                      Icon(
+                                        MdiIcons.star,
+                                        color: Colors.yellow,
+                                        size: 18,
+                                      ),
+                                      Text(
+                                        (content.anilistMedia!.averageScore! /
+                                                10)
+                                            .toString(),
+                                        textAlign: TextAlign.start,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: themeData.textTheme.titleSmall
+                                            ?.copyWith(
+                                          color: content.anilistMedia!
+                                              .getScoreColor(
+                                                  themeData.colorScheme),
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                             ],
                           ),
                         ),
