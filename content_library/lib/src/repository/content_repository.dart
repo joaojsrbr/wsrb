@@ -158,6 +158,8 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       ..withTagsName()
       ..withCharcters(AnilistSubquery(page: 1, perPage: 5, charSelect))
       ..withStaff(AnilistSubquery(page: 1, perPage: 5, staffSelect))
+      // ..queryType(
+      //     content is Anime ? AnilistMediaType.ANIME : AnilistMediaType.MANGA)
       ..querySearch(content.title
           .replaceAll(' - Dublado', '')
           .replaceAll('dublado', '')

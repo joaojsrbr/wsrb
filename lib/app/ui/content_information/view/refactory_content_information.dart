@@ -307,6 +307,14 @@ class _RefContentkInformationViewState
     super.didChangeDependencies();
   }
 
+  bool get noContent =>
+      (_content?.sinopse ?? "").isEmpty &&
+      _content?.anilistMedia == null &&
+      (_content?.anilistMedia?.genres == null ||
+          (_content?.genres.isEmpty ?? false)) &&
+      _content?.anilistMedia?.characters == null &&
+      _content?.anilistMedia?.staff == null;
+
   @override
   Widget build(BuildContext context) {
     final sizeOf = MediaQuery.sizeOf(context);
@@ -315,7 +323,7 @@ class _RefContentkInformationViewState
 
     final libraryService = context.watch<LibraryService>();
 
-    final appSnackBar = context.appSnackBar;
+    // final appSnackBar = context.appSnackBar;
 
     customLog('$widget[build]');
     // FlexThemeData.dark(colors: FlexSchemeColor.from(primary: _content!.anilistMedia!.coverImage!.color!.fromHex));
@@ -466,28 +474,52 @@ class _RefContentkInformationViewState
                         bottom: TabBar(
                           indicatorSize: TabBarIndicatorSize.tab,
                           tabAlignment: TabAlignment.fill,
-                          tabs: ContentTabBar.values
-                              .map(
-                                (e) => Tab(
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Icon(e.getIconData(_content!)),
-                                      const SizedBox(width: 8),
-                                      Center(
-                                          child: Text(e.getTitle(_content!))),
-                                    ],
-                                  ),
+                          enableFeedback: true,
+                          onTap: (index) {
+                            final data = ContentTabBar.values.elementAt(index);
+                            final disable =
+                                noContent && data == ContentTabBar.INFORMATION;
+                            if (disable) {
+                              DefaultTabController.maybeOf(context)
+                                  ?.animateTo(0);
+                            }
+                          },
+                          tabs: ContentTabBar.values.map(
+                            (data) {
+                              final disable = noContent &&
+                                  data == ContentTabBar.INFORMATION;
+                              return Tab(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      data.getIconData(_content!),
+                                      color: disable
+                                          ? themeData.disabledColor
+                                          : null,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Center(
+                                      child: Text(
+                                        data.getTitle(_content!),
+                                        style: TextStyle(
+                                          color: disable
+                                              ? themeData.disabledColor
+                                              : null,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              )
-                              .toList(),
+                              );
+                            },
+                          ).toList(),
                         ),
                       ),
                     ],
                     body: TabBarView(
-                      physics: _isLoading
+                      physics: _isLoading || noContent
                           ? const NeverScrollableScrollPhysics()
                           : const PageScrollPhysics(),
                       children: const [
@@ -526,16 +558,31 @@ class _RefContentkInformationViewState
         isFavorite: true,
       );
 
+      contentEntity = switch (contentEntity) {
+        AnimeEntity data => data..isFavorite = true,
+        BookEntity data => data..isFavorite = true,
+        _ => throw UnimplementedError(),
+      };
+
       final List<HistoryEntity> historyEntities = [];
 
+      // final HistoryService historyService = HistoryService(_historicController);
+
       for (final episode in (otherData ?? _content)!.releases) {
-        final entity = switch (episode) {
-          Episode data =>
-            data.toEntity(anime: (otherData ?? _content) as Anime),
-          Chapter data => data.toEntity(0.0, null, null),
-          _ => null,
-        };
-        if (!_historicController.contains(release: episode) && entity != null) {
+        final entity = _historyService.getHistoric<HistoryEntity>(
+          release: episode,
+          orElse: () {
+            return switch (episode) {
+              Episode data => data.toEntity(
+                  anime: (otherData ?? _content) as Anime,
+                ),
+              Chapter data => data.toEntity(0.0, null, null),
+              _ => throw UnimplementedError(),
+            };
+          },
+        );
+
+        if (entity != null) {
           historyEntities.add(entity);
           switch (contentEntity) {
             case AnimeEntity data when entity is EpisodeEntity:

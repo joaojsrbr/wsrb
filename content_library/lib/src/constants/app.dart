@@ -33,7 +33,7 @@ class App {
     dataCacheOptions: DataCacheOptions(
       substitutionPolicy: SubstitutionPolicies.lru,
       invalidationMethod: TTLInvalidationMethod(
-        maxDuration: Duration(days: 7),
+        maxDuration: Duration(days: 2),
       ),
     ),
   );

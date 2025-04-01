@@ -16,6 +16,7 @@ import 'package:app_wsrb_jsr/app/ui/player/widgets/material_video_controls.dart'
 import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_popup.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/switcher_widget.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -191,8 +192,11 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     final state = Navigator.of(context);
 
-    final result = _playerArgs.data != null
-        ? Result.success([_playerArgs.data])
+    final file =
+        AppStorage.getReleaseFile(_playerArgs.anime, _playerArgs.episode);
+
+    final result = file != null
+        ? Result.success([FileVideoData(file: file)])
         : await _repository.getContent(_playerArgs.episode);
 
     result.fold(
@@ -205,6 +209,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         setStateIfMounted(() {
           data.forEach(this.data.cast().addIfNoContains);
           _mainVideoData = data.first;
+          _playerArgs = _playerArgs.copyWith(data: _mainVideoData);
         });
       },
       onError: state.pop,
@@ -292,11 +297,21 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     await Future.wait(futures);
 
-    if (_playerArgs.forceEnterFullScreen) {
-      _videoController?.waitUntilFirstFrameRendered.whenComplete(() {
-        PlayerView.videoStateKey.currentState?.enterFullscreen();
-      });
-    }
+    await _videoController?.waitUntilFirstFrameRendered.whenComplete(
+      () {
+        if (_playerArgs.forceEnterFullScreen) {
+          Future.delayed(const Duration(milliseconds: 500),
+              () => PlayerView.videoStateKey.currentState?.enterFullscreen());
+        }
+      },
+    );
+
+    // if (_playerArgs.forceEnterFullScreen) {
+    //   Future.delayed(
+    //     const Duration(seconds: 1),
+    //     () => PlayerView.videoStateKey.currentState?.enterFullscreen(),
+    //   );
+    // }
 
     playbackState.add(playbackState.value.copyWith
         .call(processingState: AudioProcessingState.ready));
@@ -490,23 +505,23 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     await _saveVideoPosition();
 
     _seekInVideoPosition.value = null;
+    _playerArgs = _playerArgs.copyWith(
+      data: null,
+      episode: episode,
+    );
     _overlayNextEpisode.value = null;
 
     customLog('[$runtimeType][_handleOnTapEpisode()][${episode.title}]');
 
-    final file = AppStorage.getReleaseFile(_playerArgs.anime, episode);
+    // final file = AppStorage.getReleaseFile(_playerArgs.anime, episode);
 
-    Data? data;
+    // Data? data;
 
-    if (file != null) data = FileVideoData(file: file);
+    // if (file != null) data = FileVideoData(file: file);
 
     // await playerAudioHandler.stop();
-    setStateIfMounted(() {
-      _playerArgs = _playerArgs.copyWith(
-        episode: episode,
-        data: data,
-      );
-    });
+    // _playerArgs = _playerArgs.copyWith(episode: episode);
+    setStateIfMounted(() {});
 
     await _getInitMainVideoData();
     _openMenuInFullScreen.value = false;
@@ -772,7 +787,7 @@ class _Content extends StatelessWidget {
                     flex: 1,
                     child: ValueListenableBuilder(
                       valueListenable: scope.showAnimeSkip,
-                      builder: (context, value, child) {
+                      builder: (context, open, child) {
                         return Row(
                           children: [
                             Expanded(
@@ -788,20 +803,58 @@ class _Content extends StatelessWidget {
                                       .anime.releases.reversed
                                       .elementAt(index);
 
+                                  // return Container(
+                                  //   child: Stack(
+                                  //     children: [
+                                  //       Align(
+                                  //         alignment: Alignment.center,
+                                  //         child: Text("here"),
+                                  //       ),
+                                  //       Align(
+                                  //         alignment: Alignment.center,
+                                  //         child: TweenAnimationBuilder(
+                                  //           tween: Tween<double>(
+                                  //             begin: 0,
+                                  //             end: 25,
+                                  //           ),
+                                  //           duration:
+                                  //               Duration(milliseconds: 1000),
+                                  //           builder: (context, double? i,
+                                  //               Widget? child) {
+                                  //             return CustomPaint(
+                                  //               size: Size(30, 0),
+                                  //               painter: LinePainter(
+                                  //                   screenWidth: i,
+                                  //                   screenHeight: 0),
+                                  //             );
+                                  //           },
+                                  //         ),
+                                  //       )
+                                  //     ],
+                                  //   ),
+                                  // );
+
                                   return ListTile(
-                                    minLeadingWidth: value ? 0 : 112,
+                                    minLeadingWidth: open ? 0 : 112,
                                     selected: episode.stringID
                                         .contains(playerArgs.episode.stringID),
-                                    leading: value
-                                        ? null
-                                        : SizedBox(
-                                            width: 112,
+                                    leading: AnimatedSize(
+                                      duration: const Duration(
+                                        milliseconds: 250,
+                                      ),
+                                      child: SwitcherWidget(
+                                        index: open ? 1 : 2,
+                                        children: [
+                                          SizedBox.shrink(),
+                                          SizedBox(
+                                            width: open ? 0 : 112,
                                             height: double.infinity,
                                             child: episode.thumbnail != null
                                                 ? ClipRRect(
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                            8),
+                                                      8,
+                                                    ),
                                                     child: CachedNetworkImage(
                                                       httpHeaders: {
                                                         ...App.HEADERS,
@@ -820,6 +873,9 @@ class _Content extends StatelessWidget {
                                                   )
                                                 : const Card.filled(),
                                           ),
+                                        ],
+                                      ),
+                                    ),
                                     titleTextStyle: Theme.of(context)
                                         .textTheme
                                         .titleMedium
@@ -859,9 +915,10 @@ class _Content extends StatelessWidget {
                                                             .textTheme
                                                             .titleLarge
                                                             ?.copyWith(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
                                                       ),
                                                     ),
                                                     Padding(
@@ -886,11 +943,13 @@ class _Content extends StatelessWidget {
                                           }
                                         : null,
                                     visualDensity: VisualDensity(
-                                      vertical: value ? -4 : 2,
+                                      vertical: open ? -4 : 2,
                                       horizontal: -2,
                                     ),
                                     title: Text(
                                       '${episode.number}. ${episode.title}',
+                                      maxLines: open ? 2 : null,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   );
                                 },
@@ -899,7 +958,7 @@ class _Content extends StatelessWidget {
                             if (playerArgs.times.isNotEmpty &&
                                 !scope.isPipActivated)
                               CustomPopup(
-                                duration: const Duration(milliseconds: 100),
+                                duration: const Duration(milliseconds: 250),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.only(
                                     topLeft: Radius.circular(12),
@@ -908,7 +967,7 @@ class _Content extends StatelessWidget {
                                 ),
                                 height: sizeOf.height,
                                 width: sizeOf.width / 2,
-                                show: value,
+                                show: open,
                                 items: playerArgs.times,
                                 builderFunction: (context, index, item) {
                                   return ValueListenableBuilder(
@@ -974,3 +1033,25 @@ class _Content extends StatelessWidget {
     );
   }
 }
+
+// class LinePainter extends CustomPainter {
+//   final double? screenHeight;
+//   final double? screenWidth;
+
+//   LinePainter({this.screenWidth, this.screenHeight});
+
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//     final startPoint = Offset(0, screenHeight! / 2);
+//     final endPoint = Offset(screenWidth!, screenHeight! / 2);
+//     final paint = Paint()
+//       ..color = Colors.black
+//       ..strokeWidth = 2;
+//     canvas.drawLine(startPoint, endPoint, paint);
+//   }
+
+//   @override
+//   bool shouldRepaint(CustomPainter old) {
+//     return true;
+//   }
+// }

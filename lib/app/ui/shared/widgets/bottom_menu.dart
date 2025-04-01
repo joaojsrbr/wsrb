@@ -68,7 +68,12 @@ class _BottomMenuState extends AnimatedWidgetBaseState<BottomMenu> {
                       CurveTween(curve: Curves.ease),
                     ),
                   ),
-                  onDismiss: railMenuController.close,
+                  onDismiss: () {
+                    final ValueNotifierList valueNotifierList =
+                        context.read<ValueNotifierList>();
+                    valueNotifierList.clear();
+                    railMenuController.close();
+                  },
                 ),
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 350),
