@@ -31,10 +31,12 @@ class _CustomPopupState<E> extends State<CustomPopup<E>> {
   late final ScrollController _localController;
 
   bool _delayShow = false;
+  bool _show = false;
 
   @override
   void initState() {
     _delayShow = widget.show;
+    _show = widget.show;
     _localController = ScrollController();
     scheduleMicrotask(_scrollToTop);
     super.initState();
@@ -43,13 +45,19 @@ class _CustomPopupState<E> extends State<CustomPopup<E>> {
   @override
   void didUpdateWidget(covariant CustomPopup<E> oldWidget) {
     if (oldWidget.show != widget.show) {
-      if (oldWidget.show) {
-        Timer(const Duration(milliseconds: 300), () {
+      _show = widget.show;
+      Timer(widget.duration ?? const Duration(milliseconds: 300), () {
+        setState(() {
           _delayShow = widget.show;
         });
-      } else {
-        _delayShow = widget.show;
-      }
+      });
+      // if (oldWidget.show) {
+      //   Timer(widget.duration ?? const Duration(milliseconds: 300), () {
+      //     _delayShow = widget.show;
+      //   });
+      // } else {
+      //   _delayShow = widget.show;
+      // }
     }
 
     super.didUpdateWidget(oldWidget);
@@ -71,7 +79,7 @@ class _CustomPopupState<E> extends State<CustomPopup<E>> {
   Widget build(BuildContext context) {
     final padding = MediaQuery.paddingOf(context);
     return Offstage(
-      offstage: !_delayShow,
+      offstage: !_show,
       child: AnimatedContainer(
         width: widget.show ? widget.width ?? 110 : 0,
         height: widget.show
@@ -100,10 +108,15 @@ class _CustomPopupState<E> extends State<CustomPopup<E>> {
               scrollDirection: Axis.vertical,
               itemCount: widget.items.length,
               itemBuilder: (context, index) {
-                return widget.builderFunction(
-                  context,
-                  index,
-                  widget.items[index],
+                return AnimatedSwitcher(
+                  duration: widget.duration ?? Duration(milliseconds: 300),
+                  child: !_delayShow
+                      ? const SizedBox.shrink()
+                      : widget.builderFunction(
+                          context,
+                          index,
+                          widget.items[index],
+                        ),
                 );
               },
             ),
