@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/utils/elapsed.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
@@ -23,67 +22,9 @@ class LibraryController extends ChangeNotifier {
     super.dispose();
   }
 
-  // void _updateBookIsarLinks(data) async {
-  //   Timer(const Duration(milliseconds: 350), () async {
-  //     final bookColetions = await _isarService.collection<BookEntity>();
-
-  //     final bookEntities = await bookColetions.where().findAll();
-
-  //     await Future.wait([
-  //       ...bookEntities.map((element) => element.chapters.load()),
-  //     ]);
-
-  //     bool update = false;
-
-  //     for (var contentEntity in bookEntities) {
-  //       update = _entities.updateWhere(
-  //           contentEntity,
-  //           (element) => switch (element) {
-  //                 BookEntity data =>
-  //                   data.stringID.contains(contentEntity.stringID),
-  //                 _ => false,
-  //               });
-  //     }
-
-  //     if (update) {
-  //       _updateDebouncer.cancel();
-  //       _updateDebouncer.call(notifyListeners);
-  //     }
-  //   });
-  // }
-
-  // void _updateAnimeIsarLinks(data) async {
-  //   Timer(const Duration(milliseconds: 350), () async {
-  //     final animeColetions = await _isarService.collection<AnimeEntity>();
-
-  //     final animeEntities = await animeColetions.where().findAll();
-
-  //     await Future.wait([
-  //       ...animeEntities.map((element) => element.episodes.load()),
-  //     ]);
-
-  //     bool update = false;
-
-  //     for (var contentEntity in animeEntities) {
-  //       update = _entities.updateWhere(
-  //           contentEntity,
-  //           (element) => switch (element) {
-  //                 AnimeEntity data =>
-  //                   data.stringID.contains(contentEntity.stringID),
-  //                 _ => false,
-  //               });
-  //     }
-
-  //     if (update) {
-  //       _updateDebouncer.cancel();
-  //       _updateDebouncer.call(notifyListeners);
-  //     }
-  //   });
-  // }
-
   final List<ContentEntity> _entities = [];
 
-  void _updateAll(data) async {
+  void _watchAll(data) async {
     final animeColetions = await _isarService.collection<AnimeEntity>();
 
     final bookColetions = await _isarService.collection<BookEntity>();
@@ -116,7 +57,6 @@ class LibraryController extends ChangeNotifier {
     _entities
       ..clear()
       ..addAll(entities);
-    _updateDebouncer.cancel();
     _updateDebouncer.call(notifyListeners);
   }
 
@@ -156,9 +96,9 @@ class LibraryController extends ChangeNotifier {
 
     _subscriptions.addAll(
       [
-        animeColetions.watchLazy().listen(_updateAll),
-        bookColetions.watchLazy().listen(_updateAll),
-        episodeColetions.watchLazy().listen(_updateAll),
+        animeColetions.watchLazy().listen(_watchAll),
+        bookColetions.watchLazy().listen(_watchAll),
+        episodeColetions.watchLazy().listen(_watchAll),
       ],
     );
 
@@ -169,14 +109,12 @@ class LibraryController extends ChangeNotifier {
       UnmodifiableListView(_entities);
 
   Future<Result<(bool, List<int>?)>> add({
-    ContentEntity? contentEntity,
+    required ContentEntity contentEntity,
   }) async {
     bool isSucess = false;
     final List<int> ids = [];
 
-    if (contentEntity != null) {
-      _setDateTime(contentEntity);
-    }
+    _setDateTime(contentEntity);
 
     final result = await _isarService.add(entity: contentEntity);
 
@@ -185,11 +123,6 @@ class LibraryController extends ChangeNotifier {
       if (data.$1) isSucess = data.$1;
     });
 
-    if (contentEntity != null) {
-      _addOrUpdate(contentEntity);
-    }
-
-    notifyListeners();
     return Result.success((isSucess, ids));
   }
 
@@ -212,33 +145,15 @@ class LibraryController extends ChangeNotifier {
     }
   }
 
-  void _addOrUpdate(ContentEntity contentEntity) {
-    _entities.addOrUpdateWhere(
-      contentEntity,
-      (element) => switch (element) {
-        AnimeEntity data when contentEntity is AnimeEntity =>
-          data.stringID.contains(contentEntity.stringID),
-        BookEntity data when contentEntity is BookEntity =>
-          data.stringID.contains(contentEntity.stringID),
-        _ => false,
-      },
-    );
-  }
-
-  void setDateTimeAndAdd(ContentEntity element) {
-    _setDateTime(element);
-    _addOrUpdate(element);
-  }
-
   Future<Result<(bool, List<int>?)>> addAll({
-    List<ContentEntity>? contentEntities,
+    required List<ContentEntity> contentEntities,
   }) async {
     bool isSucess = false;
     final List<int> ids = [];
 
-    final entities = contentEntities?.nonNulls.cast<ContentEntity>().toList();
+    final entities = contentEntities.nonNulls.cast<ContentEntity>().toList();
 
-    entities?.forEach(setDateTimeAndAdd);
+    entities.forEach(_setDateTime);
 
     final result = await _isarService.addAll(entities: entities);
 
@@ -247,7 +162,6 @@ class LibraryController extends ChangeNotifier {
       if (data.$1) isSucess = data.$1;
     });
 
-    notifyListeners();
     return Result.success((isSucess, ids));
   }
 
@@ -259,8 +173,6 @@ class LibraryController extends ChangeNotifier {
 
     final entities = contentEntities?.nonNulls.cast<ContentEntity>().toList();
 
-    entities?.forEach(_entities.remove);
-
     final result = await _isarService.removeAll(entities: entities);
 
     result.fold(onSuccess: (data) {
@@ -268,24 +180,13 @@ class LibraryController extends ChangeNotifier {
       if (data.$1) isSucess = data.$1;
     });
 
-    notifyListeners();
     return Result.success((isSucess, ids));
   }
 
   Future<Result<(bool, List<int>?)>> remove({
-    ContentEntity? contentEntity,
+    required ContentEntity contentEntity,
   }) async {
     final result = await _isarService.remove(entity: contentEntity);
-
-    _entities.removeWhere((entity) => switch (entity) {
-          AnimeEntity data when contentEntity is AnimeEntity =>
-            data.stringID.contains(contentEntity.stringID),
-          BookEntity data when contentEntity is BookEntity =>
-            data.stringID.contains(contentEntity.stringID),
-          _ => false,
-        });
-
-    notifyListeners();
 
     final record = result.fold<(bool, List<int>?)>(onSuccess: (data) {
       return (data.$1, [if (data.$2 != null) data.$2!]);

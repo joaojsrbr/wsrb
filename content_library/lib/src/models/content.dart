@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/entities/anilist_media.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class Content extends Equatable {

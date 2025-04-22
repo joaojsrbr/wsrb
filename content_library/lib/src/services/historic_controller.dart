@@ -1,12 +1,21 @@
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/utils/elapsed.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
 class HistoricController extends ChangeNotifier {
   final IsarServiceImpl _isarService;
-
+  final Subscriptions _subscriptions = Subscriptions();
+  final Debouncer _debouncer = Debouncer(
+    duration: const Duration(milliseconds: 200),
+  );
   HistoricController(this._isarService);
+
+  @override
+  void dispose() {
+    _debouncer.cancel();
+    _subscriptions.cancelAll();
+    super.dispose();
+  }
 
   Future<void> start() async {
     final Elapsed elapsed = Elapsed()..start();
@@ -14,12 +23,32 @@ class HistoricController extends ChangeNotifier {
     final episodeCollections = await _isarService.collection<EpisodeEntity>();
     final chaptersCollections = await _isarService.collection<ChapterEntity>();
 
+    _subscriptions.addAll(
+      [
+        episodeCollections.watchLazy().listen(_watchCollections),
+        chaptersCollections.watchLazy().listen(_watchCollections),
+      ],
+    );
+
     final episodes = await episodeCollections.where().findAll();
     final chapters = await chaptersCollections.where().findAll();
 
     _entities.addAll(episodes);
     _entities.addAll(chapters);
     elapsed.printAndStop(runtimeType.toString());
+  }
+
+  void _watchCollections(data) async {
+    final episodeCollections = await _isarService.collection<EpisodeEntity>();
+    final chaptersCollections = await _isarService.collection<ChapterEntity>();
+    final episodes = await episodeCollections.where().findAll();
+    final chapters = await chaptersCollections.where().findAll();
+    _entities.clear();
+    _entities
+      ..clear()
+      ..addAll([episodes, chapters].flattened);
+
+    _debouncer.call(notifyListeners);
   }
 
   T? getHistoryEntityByID<T extends HistoryEntity>(List<String> ids) {
@@ -86,9 +115,6 @@ class HistoricController extends ChangeNotifier {
       if (data.$1) isSucess = data.$1;
     });
 
-    _addOrUpdate(historyEntity);
-
-    notifyListeners();
     return Result.success((isSucess, ids));
   }
 
@@ -117,36 +143,15 @@ class HistoricController extends ChangeNotifier {
     };
   }
 
-  void _addOrUpdate(HistoryEntity historyEntity) {
-    final indexOf = _entities.indexWhere((element) => switch (element) {
-          EpisodeEntity data when historyEntity is EpisodeEntity =>
-            data.stringID.contains(historyEntity.stringID),
-          ChapterEntity data when historyEntity is ChapterEntity =>
-            data.stringID.contains(historyEntity.stringID),
-          _ => false,
-        });
-
-    if (indexOf != -1) {
-      _entities[indexOf] = historyEntity;
-    } else {
-      _entities.add(historyEntity);
-    }
-  }
-
-  void setDateTimeAndAdd(HistoryEntity element) {
-    _setDateTime(element);
-    _addOrUpdate(element);
-  }
-
   Future<Result<(bool, List<int>?)>> addAll({
-    List<HistoryEntity>? historyEntities,
+    required List<HistoryEntity> historyEntities,
   }) async {
     bool isSucess = false;
     final List<int> ids = [];
 
-    final entities = historyEntities?.nonNulls.cast<HistoryEntity>().toList();
+    final entities = historyEntities.nonNulls.cast<HistoryEntity>().toList();
 
-    entities?.forEach(setDateTimeAndAdd);
+    entities.forEach(_setDateTime);
 
     final result = await _isarService.addAll(entities: entities);
 
@@ -155,23 +160,16 @@ class HistoricController extends ChangeNotifier {
       if (data.$1) isSucess = data.$1;
     });
 
-    notifyListeners();
     return Result.success((isSucess, ids));
   }
 
   Future<Result<(bool, List<int>?)>> removeAll({
-    List<HistoryEntity>? historyEntities,
+    required List<HistoryEntity> historyEntities,
   }) async {
     bool isSucess = false;
     final List<int> ids = [];
 
-    final entities = historyEntities?.nonNulls.cast<HistoryEntity>().toList();
-
-    // entities.forEach((entity) {
-    //   // _entities.removeWhere((remove) => remove.id == element.id);
-    // });
-
-    entities?.forEach(_entities.remove);
+    final entities = historyEntities.nonNulls.cast<HistoryEntity>().toList();
 
     final result = await _isarService.removeAll(entities: entities);
 
@@ -180,12 +178,11 @@ class HistoricController extends ChangeNotifier {
       if (data.$1) isSucess = data.$1;
     });
 
-    notifyListeners();
     return Result.success((isSucess, ids));
   }
 
   Future<Result<(bool, List<int>?)>> remove({
-    HistoryEntity? historyEntity,
+    required HistoryEntity historyEntity,
   }) async {
     bool isSucess = false;
     final List<int> ids = [];
@@ -197,9 +194,6 @@ class HistoricController extends ChangeNotifier {
       if (data.$1) isSucess = data.$1;
     });
 
-    _entities.remove(historyEntity);
-
-    notifyListeners();
     return Result.success((isSucess, ids));
   }
 }

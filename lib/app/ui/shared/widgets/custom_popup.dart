@@ -11,15 +11,36 @@ class CustomPopup<E> extends StatefulWidget {
     this.width,
     this.duration,
     this.shape,
+    this.startAnimatedAlignment = Alignment.topCenter,
+    this.scrollDirection = Axis.vertical,
     this.paddingTop = false,
     required this.builderFunction,
-  });
+  }) : builder = null;
+
+  const CustomPopup.builder({
+    super.key,
+    required this.show,
+    this.height,
+    this.width,
+    this.startAnimatedAlignment = Alignment.topCenter,
+    this.duration,
+    this.shape,
+    this.scrollDirection = Axis.vertical,
+    this.paddingTop = false,
+    required this.builder,
+  })  : builderFunction = null,
+        items = const [];
+
   final bool paddingTop;
+  final Axis scrollDirection;
+  final Alignment startAnimatedAlignment;
   final bool show;
   final Duration? duration;
   final ShapeBorder? shape;
   final List<E> items;
-  final Function(BuildContext context, int index, E item) builderFunction;
+  final Widget Function(BuildContext context)? builder;
+  final Widget Function(BuildContext context, int index, E item)?
+      builderFunction;
   final double? height;
   final double? width;
 
@@ -78,47 +99,55 @@ class _CustomPopupState<E> extends State<CustomPopup<E>> {
   @override
   Widget build(BuildContext context) {
     final padding = MediaQuery.paddingOf(context);
-    return Offstage(
-      offstage: !_show,
-      child: AnimatedContainer(
-        width: widget.show ? widget.width ?? 110 : 0,
-        height: widget.show
-            ? widget.height ?? MediaQuery.of(context).size.height / 1.4
-            : 0,
-        duration: widget.duration ?? const Duration(milliseconds: 300),
-        curve: Curves.fastOutSlowIn,
-        child: Card(
-          margin: EdgeInsets.zero,
-          shape: widget.shape,
-          elevation: 3,
-          child: MediaQuery.removePadding(
-            context: context,
-            removeTop: true,
-            removeLeft: true,
-            removeRight: true,
-            child: ListView.builder(
-              primary: false,
-              padding: EdgeInsets.only(
-                top: widget.paddingTop ? padding.top : 0,
-                right: 0,
-                left: 0,
-                bottom: 0,
-              ),
-              controller: _localController,
-              scrollDirection: Axis.vertical,
-              itemCount: widget.items.length,
-              itemBuilder: (context, index) {
-                return AnimatedSwitcher(
-                  duration: widget.duration ?? Duration(milliseconds: 300),
-                  child: !_delayShow
+    return Align(
+      alignment: widget.startAnimatedAlignment,
+      child: Offstage(
+        offstage: !_show && !_delayShow,
+        child: AnimatedContainer(
+          width: widget.show ? widget.width ?? 110 : 0,
+          height: widget.show
+              ? widget.height ?? MediaQuery.of(context).size.height / 1.4
+              : 0,
+          duration: widget.duration ?? const Duration(milliseconds: 300),
+          curve: Curves.fastOutSlowIn,
+          child: Card(
+            margin: EdgeInsets.zero,
+            shape: widget.shape,
+            elevation: 3,
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: true,
+              removeLeft: true,
+              removeRight: true,
+              child: widget.builder != null
+                  ? !_delayShow || !_show
                       ? const SizedBox.shrink()
-                      : widget.builderFunction(
-                          context,
-                          index,
-                          widget.items[index],
-                        ),
-                );
-              },
+                      : widget.builder!(context)
+                  : ListView.builder(
+                      primary: false,
+                      padding: EdgeInsets.only(
+                        top: widget.paddingTop ? padding.top : 0,
+                        right: 0,
+                        left: 0,
+                        bottom: 0,
+                      ),
+                      controller: _localController,
+                      scrollDirection: widget.scrollDirection,
+                      itemCount: widget.items.length,
+                      itemBuilder: (context, index) {
+                        return AnimatedSwitcher(
+                          duration:
+                              widget.duration ?? Duration(milliseconds: 300),
+                          child: !_delayShow || !_show
+                              ? const SizedBox.shrink()
+                              : widget.builderFunction!(
+                                  context,
+                                  index,
+                                  widget.items[index],
+                                ),
+                        );
+                      },
+                    ),
             ),
           ),
         ),
