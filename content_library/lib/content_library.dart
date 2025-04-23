@@ -1,4 +1,4 @@
-library content_library;
+library;
 
 export 'package:anilist_dart/anilist.dart';
 export 'package:collection/collection.dart';

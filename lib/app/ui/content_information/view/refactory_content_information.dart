@@ -2,18 +2,13 @@
 import 'dart:async';
 
 import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/destinations/information_destination.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/destinations/release_destination.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/widgets/content_persistent_header.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/widgets/content_scaffold.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_auto_cache/flutter_auto_cache.dart';
 import 'package:go_router/go_router.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
 class RefContentInformationView extends StatefulWidget {
@@ -73,7 +68,7 @@ class _RefContentkInformationViewState
 
     _initialRefresh = Completer();
 
-    _informationArgs = await _parseArguments();
+    _informationArgs = _parseArguments();
 
     _content = _informationArgs!.content;
 
@@ -84,21 +79,18 @@ class _RefContentkInformationViewState
     _loadContentData();
   }
 
-  Future<ContentInformationArgs> _parseArguments() async {
-    final args = ModalRoute.settingsOf(context)?.arguments;
-    if (args is String) {
-      return ContentInformationArgs.fromJson(args);
-    } else {
-      return args as ContentInformationArgs;
-    }
-  }
-
   Future<void> _loadContentData() async {
     if (_informationArgs?.isLibrary == true) {
       setStateIfMounted(() {
         _isLoading = false;
         _releasesIsLoading = false;
       });
+      final data = _informationArgs!.content;
+      if (data is Anime) {
+        _processAnimeReleases(data);
+      } else {
+        _releases[_index] = data.releases;
+      }
       return;
     }
     _refreshIndicatorKey.currentState?.show();
@@ -187,9 +179,9 @@ class _RefContentkInformationViewState
       _releases[_index] = data.releases;
     }
 
-    if (!_informationArgs!.isLibrary) {
-      AutoCache.data.saveJson(key: data.stringID, data: _content!.toJson());
-    }
+    // if (!_informationArgs!.isLibrary) {
+    //   AutoCache.data.saveJson(key: data.stringID, data: _content!.toJson());
+    // }
     if (!_initialRefresh.isCompleted) _initialRefresh.complete();
   }
 
@@ -305,13 +297,18 @@ class _RefContentkInformationViewState
 
   @override
   void didChangeDependencies() {
-    if (_content == null) {
-      final argsContent =
-          ModalRoute.settingsOf(context)?.arguments as ContentInformationArgs;
-      _content = argsContent.content;
-    }
+    _content ??= _parseArguments().content;
 
     super.didChangeDependencies();
+  }
+
+  ContentInformationArgs _parseArguments() {
+    final args = ModalRoute.settingsOf(context)?.arguments;
+    if (args is String) {
+      return ContentInformationArgs.fromJson(args);
+    } else {
+      return args as ContentInformationArgs;
+    }
   }
 
   bool get noContent =>
@@ -322,221 +319,59 @@ class _RefContentkInformationViewState
       _content?.anilistMedia?.characters == null &&
       _content?.anilistMedia?.staff == null;
 
+  Future<void> _onRefresh() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    Future<void> getData() async {
+      await _repository
+          .getData(_informationArgs!.content)
+          .timeout(const Duration(minutes: 1), onTimeout: _handleTimeout)
+          .then(_handleResult);
+    }
+
+    await getData();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final sizeOf = MediaQuery.sizeOf(context);
-
-    final themeData = Theme.of(context);
-
-    final libraryService = context.watch<LibraryService>();
-
-    // final appSnackBar = context.appSnackBar;
-
     customLog('$widget[build]');
-    // FlexThemeData.dark(colors: FlexSchemeColor.from(primary: _content!.anilistMedia!.coverImage!.color!.fromHex));
 
-    return Theme(
-      data: themeData,
-      // data: FlexThemeData.dark(
-      //   darkIsTrueBlack: false,
-      //   colors: FlexSchemeColor.from(
-      //     primary: _content!.anilistMedia!.coverImage!.color!.fromHex,
-      //   ),
-      //   tones: FlexTones.material(themeData.brightness),
-      // colorScheme: _content?.anilistMedia?.coverImage?.color != null
-      //     ? ColorScheme.fromSeed(
-      //         seedColor: _content!.anilistMedia!.coverImage!.color!.fromHex,
-      //         brightness: themeData.brightness,
-      //       )
-      //     : null,
-      // ),
-      child: DefaultTabController(
-        length: 2,
-        child: ContentScope(
-          index: _index,
-          onLongPressed: _handleLongPressed,
-          informationArgs: _informationArgs,
-          isLoading: _isLoading,
-          setListIndex: _handleSetListIndex,
-          downloadRelease: _downloadRelease,
-          releases: _releases,
-          content: _content,
-          releasesIsLoading: _releasesIsLoading,
-          builder: (context) => BottomMenu(
-            isDismissible: true,
-            bottomMenuController: _bottomMenuController,
-            buttons: (context) {
-              return OverflowBar(
-                spacing: 8,
-                overflowAlignment: OverflowBarAlignment.center,
-                children: const [],
-              );
+    return DefaultTabController(
+      length: 2,
+      child: ContentScope(
+        saveData: _saveData,
+        index: _index,
+        noContent: noContent,
+        onLongPressed: _handleLongPressed,
+        informationArgs: _informationArgs,
+        isLoading: _isLoading,
+        setListIndex: _handleSetListIndex,
+        downloadRelease: _downloadRelease,
+        releases: _releases,
+        content: _content,
+        releasesIsLoading: _releasesIsLoading,
+        builder: (context) => BottomMenu(
+          isDismissible: false,
+          bottomMenuController: _bottomMenuController,
+          buttons: (context) {
+            return OverflowBar(
+              spacing: 8,
+              overflowAlignment: OverflowBarAlignment.center,
+              children: const [],
+            );
+          },
+          child: RefreshIndicator(
+            notificationPredicate: (notification) {
+              if (notification is OverscrollNotification) {
+                return notification.depth == 2;
+              }
+              return notification.depth == 0;
             },
-            child: Builder(builder: (context) {
-              return Scaffold(
-                body: RefreshIndicator(
-                  key: _refreshIndicatorKey,
-                  notificationPredicate: (notification) {
-                    if (notification is OverscrollNotification) {
-                      return notification.depth == 2;
-                    }
-                    return notification.depth == 0;
-                  },
-                  onRefresh: () async {
-                    // if (!_enableRefreshIndicator) return;
-                    setState(() {
-                      _isLoading = true;
-                    });
-
-                    // Result<Content> contentCache =
-                    //     Result.success(_informationArgs!.content);
-
-                    Future<void> getData() async {
-                      await _repository
-                          .getData(_informationArgs!.content)
-                          .timeout(const Duration(minutes: 1),
-                              onTimeout: _handleTimeout)
-                          .then(_handleResult);
-                    }
-
-                    // if (_informationArgs!.content.releases.isEmpty) {
-                    //   contentCache = const Result.empty();
-                    // }
-
-                    // if (_content?.cached == true ||
-                    //     _informationArgs?.isLibrary == true &&
-                    //         _informationArgs?.content.releases.isNotEmpty ==
-                    //             true) {
-                    //   await getData();
-                    //   // _handleResult(contentCache);
-                    // } else {
-                    // }
-                    await getData();
-
-                    // customLog(_content?.cached == true);
-                    // _initialRefresh = Completer();
-                    // if (_content?.cached == false &&
-                    //     !_libraryService.contains(content: _content)) {
-                    //   await _initialRefresh.future;
-                    //   return;
-                    // }
-
-                    // if (_content == null) return;
-
-                    // await _repository.getData(_content!).timeout(
-                    //   const Duration(seconds: 15),
-                    //   onTimeout: () {
-                    //     if (_informationArgs!.content.releases.length > 1 ||
-                    //         _content!.cached) {
-                    //       return Result.success(_informationArgs!.content);
-                    //     }
-                    //     return Result.failure(
-                    //       TimeoutException("Tempo excedido"),
-                    //     );
-                    //   },
-                    // ).then((result) {
-                    //   result.fold(
-                    //     onSuccess: (result) => _onSuccess(result, false, true),
-                    //     onError: appSnackBar.onError,
-                    //   );
-                    // });
-                  },
-                  child: NestedScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                      SliverAppBar(
-                        expandedHeight: sizeOf.height * .40,
-                        flexibleSpace: const FlexibleSpaceBar(
-                          background: ContentHeader(),
-                          collapseMode: CollapseMode.pin,
-                        ),
-                        actions: [
-                          IconButton(
-                            onPressed: () async {
-                              customLog(
-                                  'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${_content!.title} - id: ${_content!.stringID}');
-                              if (libraryService.favoritesIDS
-                                  .contains(_content!.stringID)) {
-                                _libraryController.remove(
-                                  contentEntity: _content!.toEntity(),
-                                );
-                              } else {
-                                _saveData(_content);
-                              }
-                            },
-                            icon: FadeThroughTransitionSwitcher(
-                              enableSecondChild:
-                                  libraryService.favoritesIDS.contains(
-                                _content?.stringID,
-                              ),
-                              secondChild: Icon(
-                                MdiIcons.heart,
-                                color: Colors.red,
-                              ),
-                              child: Icon(MdiIcons.heartOutline),
-                            ),
-                          ),
-                        ],
-                        bottom: TabBar(
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          tabAlignment: TabAlignment.fill,
-                          enableFeedback: true,
-                          onTap: (index) {
-                            final data = ContentTabBar.values.elementAt(index);
-                            final disable =
-                                noContent && data == ContentTabBar.INFORMATION;
-                            if (disable) {
-                              DefaultTabController.maybeOf(context)
-                                  ?.animateTo(0);
-                            }
-                          },
-                          tabs: ContentTabBar.values.map(
-                            (data) {
-                              final disable = noContent &&
-                                  data == ContentTabBar.INFORMATION;
-                              return Tab(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      data.getIconData(_content!),
-                                      color: disable
-                                          ? themeData.disabledColor
-                                          : null,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Center(
-                                      child: Text(
-                                        data.getTitle(_content!),
-                                        style: TextStyle(
-                                          color: disable
-                                              ? themeData.disabledColor
-                                              : null,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ).toList(),
-                        ),
-                      ),
-                    ],
-                    body: TabBarView(
-                      physics: _isLoading || noContent
-                          ? const NeverScrollableScrollPhysics()
-                          : const PageScrollPhysics(),
-                      children: const [
-                        ReleaseDestination(),
-                        InformationDestination(),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }),
+            onRefresh: _onRefresh,
+            key: _refreshIndicatorKey,
+            child: const ContentScaffold(),
           ),
         ),
       ),
@@ -613,5 +448,55 @@ class _RefContentkInformationViewState
 
       await _historicController.addAll(historyEntities: historyEntities);
     }
+  }
+}
+
+// Widget de texto expansível
+class _ExpandableText extends StatefulWidget {
+  final String text;
+  const _ExpandableText(this.text);
+
+  @override
+  State<_ExpandableText> createState() => _ExpandableTextState();
+}
+
+class _ExpandableTextState extends State<_ExpandableText> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final span = TextSpan(
+      text: widget.text,
+      style: TextStyle(color: Colors.white),
+    );
+    return LayoutBuilder(builder: (context, size) {
+      // calcula altura de duas linhas
+      final tp = TextPainter(
+        maxLines: 2,
+        text: span,
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: size.maxWidth);
+
+      final needsTrim = tp.didExceedMaxLines;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.text,
+            maxLines: _expanded ? null : 2,
+            overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+          ),
+          if (needsTrim)
+            GestureDetector(
+              onTap: () => setState(() => _expanded = !_expanded),
+              child: Text(
+                _expanded ? "Show less" : "Show more",
+                style: TextStyle(color: Colors.blueAccent, fontSize: 12),
+              ),
+            ),
+        ],
+      );
+    });
   }
 }

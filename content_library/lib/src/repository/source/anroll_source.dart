@@ -57,7 +57,7 @@ class AnrollSource extends RSource {
   Future<(Anime, String)> _getAnimeIDAndBuildId(Anime anime) async {
     if (anime.animeID == null || anime.buildId == null) {
       return await contentRepository._dio
-          .get("https://www.anroll.net/e/${anime.generateID}")
+          .get("https://www.anroll.net/a/${anime.generateID}")
           .then(
         (response) {
           final newAnime = anime.copyWith(
@@ -68,6 +68,31 @@ class AnrollSource extends RSource {
                 .last,
           );
 
+          final Element? element =
+              parse(response.data).querySelector('#__NEXT_DATA__');
+
+          String buildId = "";
+
+          if (element == null) {
+            throw AnrollGetIdException();
+          } else {
+            final map = jsonDecode(element.text);
+            buildId = map['buildId'] as String;
+          }
+
+          return (newAnime.copyWith(buildId: buildId), buildId);
+        },
+        onError: (data) async {
+          final response = await contentRepository._dio
+              .get("https://www.anroll.net/e/${anime.generateID}");
+
+          final newAnime = anime.copyWith(
+            animeID: parse(response.data)
+                .querySelector('#anime_title a')
+                ?.attributes['href']
+                ?.split('/')
+                .last,
+          );
           final Element? element =
               parse(response.data).querySelector('#__NEXT_DATA__');
 

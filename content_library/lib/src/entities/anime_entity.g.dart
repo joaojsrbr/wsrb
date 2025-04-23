@@ -155,6 +155,7 @@ const AnimeEntitySchema = CollectionSchema(
     r'Date': DateSchema,
     r'Trailer': TrailerSchema,
     r'CoverImage': CoverImageSchema,
+    r'BannerImage': BannerImageSchema,
     r'Tag': TagSchema,
     r'Character': CharacterSchema,
     r'CharacterName': CharacterNameSchema,

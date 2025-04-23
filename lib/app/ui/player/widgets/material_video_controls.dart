@@ -107,7 +107,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
 
   Future<void> setBrightness(double value) async {
     try {
-      await ScreenBrightness().setScreenBrightness(value);
+      await ScreenBrightness.instance.setApplicationScreenBrightness(value);
     } catch (_) {}
     setState(() => _brightnessIndicator = true);
     _brightnessTimer?.cancel();
@@ -133,10 +133,10 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
       widget.state;
 
       try {
-        VolumeController().showSystemUI = false;
-        _volumeValue = await VolumeController().getVolume();
+        VolumeController.instance.showSystemUI = false;
+        _volumeValue = await VolumeController.instance.getVolume();
         subscriptions.add(
-          VolumeController().listener((value) {
+          VolumeController.instance.addListener((value) {
             if (mounted && !_volumeInterceptEventStream) {
               setState(() {
                 _volumeValue = value;
@@ -149,9 +149,10 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
 
     Future.microtask(() async {
       try {
-        _brightnessValue = await ScreenBrightness().current;
+        _brightnessValue = await ScreenBrightness.instance.application;
         subscriptions.add(
-          ScreenBrightness().onCurrentBrightnessChanged.listen((value) {
+          ScreenBrightness.instance.onApplicationScreenBrightnessChanged
+              .listen((value) {
             if (mounted) {
               setState(() {
                 _brightnessValue = value;
@@ -166,7 +167,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
 
   Future<void> setVolume(double value) async {
     try {
-      VolumeController().setVolume(value);
+      VolumeController.instance.setVolume(value);
     } catch (_) {}
     setState(() {
       _volumeValue = value;
@@ -275,7 +276,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
 
   @override
   void dispose() {
-    VolumeController().removeListener();
+    VolumeController.instance.removeListener();
     _timer?.cancel();
     _volumeTimer?.cancel();
     _seekBarDeltaValueNotifier.dispose();
@@ -288,7 +289,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
     // package:screen_brightness
     Future.microtask(() async {
       try {
-        await ScreenBrightness().resetScreenBrightness();
+        await ScreenBrightness.instance.resetApplicationScreenBrightness();
       } catch (_) {}
     });
     // --------------------------------------------------

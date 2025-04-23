@@ -1,7 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/entities/anilist_media.dart';
 
 class Book extends Content {
   final String? alternativeTitle;

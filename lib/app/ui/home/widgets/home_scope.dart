@@ -18,7 +18,6 @@ class HomeScope extends InheritedNotifier<Listenable> {
           notifier: Listenable.merge([tabController, bottomMenuController]),
           child: Builder(builder: builder),
         );
-
   final BottomMenuController bottomMenuController;
   final CustomSearchController searchController;
   final TabController tabController;

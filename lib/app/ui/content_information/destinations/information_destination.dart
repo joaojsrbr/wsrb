@@ -3,6 +3,8 @@ import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:html2md/html2md.dart' as html2md;
 import 'package:intl/intl.dart';
 
 class InformationDestination extends StatefulWidget {
@@ -122,37 +124,69 @@ class _InformationDestinationState extends State<InformationDestination>
                                 child: AnimatedSize(
                                   duration: const Duration(milliseconds: 350),
                                   alignment: Alignment.topCenter,
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    child: SelectableText(
-                                      !_expanded
-                                          ? _substring.isEmpty
-                                              ? sinopse
-                                              : _substring
-                                          : sinopse,
-                                      focusNode: _focusNode,
-                                      onSelectionChanged: (selection, cause) {
-                                        addPostFrameSetState(() {
-                                          if (cause ==
-                                              SelectionChangedCause.longPress) {
-                                            _isSelection = true;
-                                          } else if (cause ==
-                                              SelectionChangedCause.tap) {
-                                            _isSelection = false;
-                                          }
-                                        });
-                                        customLog(cause);
-                                      },
-                                      enableInteractiveSelection: true,
-                                      onTap: _substring.isEmpty
-                                          ? null
-                                          : _setExpanded,
-                                      textAlign: TextAlign.justify,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium,
+                                  child: Markdown(
+                                    selectable: true,
+                                    shrinkWrap: true,
+                                    onSelectionChanged:
+                                        (text, selection, cause) {
+                                      addPostFrameSetState(() {
+                                        if (cause ==
+                                            SelectionChangedCause.longPress) {
+                                          _isSelection = true;
+                                        } else if (cause ==
+                                            SelectionChangedCause.tap) {
+                                          _isSelection = false;
+                                        }
+                                      });
+                                      customLog(cause);
+                                    },
+                                    styleSheetTheme:
+                                        MarkdownStyleSheetBaseTheme.material,
+                                    styleSheet: MarkdownStyleSheet.fromTheme(
+                                      Theme.of(context),
+                                    ).copyWith(
+                                      a: Theme.of(context).textTheme.bodyMedium,
+                                      textAlign: WrapAlignment.spaceBetween,
                                     ),
+                                    onTapText: _substring.isEmpty
+                                        ? null
+                                        : _setExpanded,
+                                    padding: EdgeInsets.zero,
+                                    data: html2md.convert(!_expanded
+                                        ? _substring.isEmpty
+                                            ? sinopse
+                                            : _substring
+                                        : sinopse),
+                                    physics: NeverScrollableScrollPhysics(),
                                   ),
+                                  // child: SelectableText(
+                                  //   !_expanded
+                                  //       ? _substring.isEmpty
+                                  //           ? sinopse
+                                  //           : _substring
+                                  //       : sinopse,
+                                  //   focusNode: _focusNode,
+                                  //   onSelectionChanged: (selection, cause) {
+                                  //     addPostFrameSetState(() {
+                                  //       if (cause ==
+                                  //           SelectionChangedCause.longPress) {
+                                  //         _isSelection = true;
+                                  //       } else if (cause ==
+                                  //           SelectionChangedCause.tap) {
+                                  //         _isSelection = false;
+                                  //       }
+                                  //     });
+                                  //     customLog(cause);
+                                  //   },
+                                  //   enableInteractiveSelection: true,
+                                  //   onTap: _substring.isEmpty
+                                  //       ? null
+                                  //       : _setExpanded,
+                                  //   textAlign: TextAlign.justify,
+                                  //   style: Theme.of(context)
+                                  //       .textTheme
+                                  //       .bodyMedium,
+                                  // ),
                                 ),
                               ),
                             ],
@@ -161,6 +195,7 @@ class _InformationDestinationState extends State<InformationDestination>
                       ),
                     ),
                   ),
+
                 if (_content!.anilistMedia != null)
                   Padding(
                     padding: EdgeInsets.only(
@@ -322,6 +357,43 @@ class _InformationDestinationState extends State<InformationDestination>
                       ),
                     ),
                   ),
+                // if (_content?.anilistMedia?.bannerImage?.extraLarge != null)
+                //   Padding(
+                //     padding: const EdgeInsets.fromLTRB(
+                //       8,
+                //       0,
+                //       8,
+                //       12,
+                //     ),
+                //     child: SizedBox(
+                //       height: 200,
+                //       width: double.infinity,
+                //       child: Card.filled(
+                //         color: themeData.colorScheme.primary.withAlpha(10),
+                //         shape: RoundedRectangleBorder(
+                //           borderRadius: BorderRadius.circular(8),
+                //         ),
+                //         child: ClipRRect(
+                //           borderRadius: BorderRadius.circular(8),
+                //           child: CachedNetworkImage(
+                //             scale: 20,
+                //             fit: BoxFit.cover,
+                //             placeholder: (context, url) {
+                //               return Card.filled(
+                //                 color:
+                //                     themeData.colorScheme.primary.withAlpha(10),
+                //               );
+                //             },
+                //             imageUrl:
+                //                 _content!.anilistMedia!.coverImage!.extraLarge!,
+                //             httpHeaders: App.HEADERS,
+                //             memCacheWidth: 1050,
+                //             memCacheHeight: 400,
+                //           ),
+                //         ),
+                //       ),
+                //     ),
+                //   ),
                 if (_content!.anilistMedia?.genres != null ||
                     _content!.genres.isNotEmpty)
                   Column(
@@ -422,10 +494,11 @@ class _InformationDestinationState extends State<InformationDestination>
                                           borderRadius:
                                               BorderRadius.circular(8),
                                           child: CachedNetworkImage(
+                                            cacheManager: App.APP_IMAGE_CACHE,
                                             fit: BoxFit.cover,
                                             height: 140,
-                                            maxHeightDiskCache: 400,
-                                            maxWidthDiskCache: 200,
+                                            memCacheHeight: 400,
+                                            memCacheWidth: 200,
                                             width: 120,
                                             imageUrl: personagem.image!.large!,
                                           ),
@@ -501,9 +574,10 @@ class _InformationDestinationState extends State<InformationDestination>
                                               BorderRadius.circular(8),
                                           child: CachedNetworkImage(
                                             fit: BoxFit.cover,
+                                            cacheManager: App.APP_IMAGE_CACHE,
                                             height: 140,
-                                            maxHeightDiskCache: 400,
-                                            maxWidthDiskCache: 200,
+                                            memCacheHeight: 400,
+                                            memCacheWidth: 200,
                                             width: 120,
                                             imageUrl: staff.image!.large!,
                                           ),

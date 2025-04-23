@@ -616,6 +616,7 @@ class _ViewContentState extends State<_ViewContent> {
     final Widget defaultLeading = IconButton(
       icon: const Icon(Icons.arrow_back),
       onPressed: () {
+        _controller.clear();
         Navigator.of(context).pop();
       },
       style: const ButtonStyle(tapTargetSize: MaterialTapTargetSize.shrinkWrap),

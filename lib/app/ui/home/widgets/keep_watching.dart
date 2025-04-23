@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
@@ -86,14 +88,19 @@ class _Content extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final widthCache = 500;
+    final heightCache = 340;
+
     return SizedBox(
-      height: 190,
+      height: 160,
+      width: 180,
       child: ListView.builder(
+        shrinkWrap: true,
         // key: PageStorageKey(
         //   'home_and_library_watching_${_sortedByUpdateAt.length}',
         // ),
         controller: scope.keepWatchingScrollController,
-        padding: const EdgeInsets.only(left: 12, top: 12),
+        padding: const EdgeInsets.only(left: 8, top: 8),
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         itemCount: _sortedByUpdateAt.length,
@@ -109,11 +116,12 @@ class _Content extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(
                     right: 12,
-                    top: 8,
-                    bottom: 8,
+                    top: 4,
+                    bottom: 4,
                   ),
                   child: SizedBox(
-                    width: 260,
+                    height: 180,
+                    width: 180,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Stack(
@@ -133,16 +141,19 @@ class _Content extends StatelessWidget {
                                 stops: const [0.00, 1.0],
                               ).createShader(bounds);
                             },
-                            child: data.currentPositionBytearray != null
+                            child: data.currentPositionBase64 != null
                                 ? _Image(
-                                    currentPositionBytearray:
-                                        data.currentPositionBytearray!,
+                                    width: widthCache,
+                                    height: heightCache,
+                                    currentPositionBase64:
+                                        data.currentPositionBase64!,
                                   )
                                 : data.thumbnail != null
                                     ? CachedNetworkImage(
+                                        cacheManager: App.APP_IMAGE_CACHE,
                                         fit: BoxFit.cover,
-                                        maxWidthDiskCache: 300,
-                                        maxHeightDiskCache: 150,
+                                        memCacheWidth: widthCache,
+                                        memCacheHeight: heightCache,
                                         imageUrl: data.thumbnail!,
                                         httpHeaders: App.HEADERS,
                                         errorWidget: (context, url, error) {
@@ -264,9 +275,14 @@ class _Content extends StatelessWidget {
 }
 
 class _Image extends StatefulWidget {
-  const _Image({required this.currentPositionBytearray});
-
-  final List<int> currentPositionBytearray;
+  const _Image({
+    required this.currentPositionBase64,
+    required this.width,
+    required this.height,
+  });
+  final int width;
+  final int height;
+  final String currentPositionBase64;
 
   @override
   State<_Image> createState() => _ImageState();
@@ -275,23 +291,24 @@ class _Image extends StatefulWidget {
 class _ImageState extends State<_Image> {
   late Uint8List _currentPositionUint8List;
   late ResizeImage _memoryImage;
-
-  static final ImageProvider _placeHolder = const ResizeImage(
+  late ImageProvider _placeHolder = ResizeImage(
     App.IMAGE_BLACK,
-    width: 350,
-    height: 200,
+    width: widget.width,
+    height: widget.height,
   );
+
+  Uint8List _base64ToBytes(String base64String) {
+    return base64Decode(base64String);
+  }
 
   @override
   void initState() {
-    _currentPositionUint8List = Uint8List.fromList(
-      widget.currentPositionBytearray,
-    );
+    _currentPositionUint8List = _base64ToBytes(widget.currentPositionBase64);
 
     _memoryImage = ResizeImage(
       MemoryImage(_currentPositionUint8List),
-      width: 350,
-      height: 200,
+      width: widget.width,
+      height: widget.height,
     );
 
     // scheduleMicrotask(_precacheImage);
@@ -305,15 +322,21 @@ class _ImageState extends State<_Image> {
 
   @override
   void didUpdateWidget(covariant _Image oldWidget) {
-    if (!listEquals(
-        widget.currentPositionBytearray, oldWidget.currentPositionBytearray)) {
+    if (widget.currentPositionBase64 != oldWidget.currentPositionBase64 ||
+        widget.height != oldWidget.height ||
+        widget.width != oldWidget.width) {
       _currentPositionUint8List = Uint8List.fromList(
-        widget.currentPositionBytearray,
+        _base64ToBytes(widget.currentPositionBase64),
+      );
+      _placeHolder = ResizeImage(
+        App.IMAGE_BLACK,
+        width: widget.width,
+        height: widget.height,
       );
       _memoryImage = ResizeImage(
         MemoryImage(_currentPositionUint8List),
-        width: 350,
-        height: 200,
+        width: widget.width,
+        height: widget.height,
       );
     }
     super.didUpdateWidget(oldWidget);

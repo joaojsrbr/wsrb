@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_popup.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/utils/category_utils.dart';
 import 'package:content_library/content_library.dart';
@@ -36,12 +37,10 @@ class BottomMenu extends ImplicitlyAnimatedWidget {
 
 class _BottomMenuState extends AnimatedWidgetBaseState<BottomMenu> {
   late final BottomMenuController _railMenuController;
-
   @override
   void initState() {
     _railMenuController =
         (widget.bottomMenuController ?? BottomMenuController());
-
     super.initState();
   }
 
@@ -52,52 +51,48 @@ class _BottomMenuState extends AnimatedWidgetBaseState<BottomMenu> {
       child: Builder(
         builder: (context) {
           final railMenuController = BottomMenu.menuControllerOf(context);
-          return Stack(
-            alignment: Alignment.bottomCenter,
-            fit: StackFit.expand,
+          return Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              widget.child,
-              if (widget.isDismissible && railMenuController.isOpen)
-                AnimatedModalBarrier(
-                  barrierSemanticsDismissible: railMenuController.isOpen,
-                  color: animation.drive(
-                    ColorTween(
-                      begin: Colors.black54,
-                      end: Colors.black54,
-                    ).chain(
-                      CurveTween(curve: Curves.ease),
-                    ),
-                  ),
-                  onDismiss: () {
-                    final ValueNotifierList valueNotifierList =
-                        context.read<ValueNotifierList>();
-                    valueNotifierList.clear();
-                    railMenuController.close();
-                  },
-                ),
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 350),
-                right: 0,
-                left: 0,
-                height: railMenuController.isOpen
-                    ? railMenuController._menuSize?.height ?? kToolbarHeight
-                    : 0,
-                child: SizedBox(
-                  width: double.infinity,
-                  height:
-                      railMenuController._menuSize?.height ?? kToolbarHeight,
-                  child: Card(
-                    shape: const RoundedRectangleBorder(),
-                    margin: EdgeInsets.zero,
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: widget.buttons?.call(context) ??
-                            const _LibraryButtons(),
+              Expanded(
+                child: Stack(
+                  alignment: Alignment.bottomCenter,
+                  fit: StackFit.expand,
+                  children: [
+                    widget.child,
+                    if (widget.isDismissible && railMenuController.isOpen)
+                      AnimatedModalBarrier(
+                        barrierSemanticsDismissible: railMenuController.isOpen,
+                        color: animation.drive(
+                          ColorTween(
+                            begin: Colors.black54,
+                            end: Colors.black54,
+                          ).chain(
+                            CurveTween(curve: Curves.ease),
+                          ),
+                        ),
+                        onDismiss: () {
+                          final ValueNotifierList valueNotifierList =
+                              context.read<ValueNotifierList>();
+                          valueNotifierList.clear();
+                          railMenuController.close();
+                        },
                       ),
-                    ),
-                  ),
+                  ],
+                ),
+              ),
+              CustomPopup.builder(
+                show: railMenuController.isOpen,
+                width: MediaQuery.sizeOf(context).width,
+                // color: Colors.transparent,
+                shape: RoundedRectangleBorder(),
+                startAnimatedAlignment: Alignment.bottomCenter,
+                duration: const Duration(milliseconds: 450),
+                height: railMenuController._menuSize.height,
+                builder: (context) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child:
+                      widget.buttons?.call(context) ?? const _LibraryButtons(),
                 ),
               )
             ],
@@ -145,16 +140,19 @@ class _BottomMenuControllerScope
 }
 
 class BottomMenuController<T> extends ChangeNotifier {
-  BottomMenuController({bool? opened, double minHeight = 50}) {
-    _openMenu = opened ?? false;
+  BottomMenuController({
+    bool opened = false,
+    double minHeight = 50,
+  }) {
+    _openMenu = opened;
     _menuSize = Size.fromHeight(minHeight);
   }
 
-  Size? _menuSize;
+  late Size _menuSize;
 
   T? args;
 
-  Size? get menuSize => _menuSize;
+  Size get menuSize => _menuSize;
 
   void Function()? _onClose;
 
@@ -194,10 +192,10 @@ class _LibraryButtons extends StatelessWidget {
 
     final TabController tabController = HomeScope.of(context).tabController;
 
-    return OverflowBar(
+    return Row(
       spacing: 8,
       textDirection: Directionality.of(context),
-      overflowAlignment: OverflowBarAlignment.center,
+      // overflowAlignment: OverflowBarAlignment.center,
       children: [
         if (tabController.index != 1)
           IconButton(

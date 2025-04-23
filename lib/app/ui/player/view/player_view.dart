@@ -296,8 +296,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
 
     await Future.wait(futures);
-
-    await _videoController?.waitUntilFirstFrameRendered.whenComplete(
+    // _videoController!.player.platform.waitForPlayerInitialization;
+    await player?.platform?.waitForPlayerInitialization.whenComplete(
       () {
         if (_playerArgs.forceEnterFullScreen) {
           Future.delayed(const Duration(milliseconds: 500),
@@ -540,7 +540,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
 
     // _saveDataDebouncer.cancel();
-    final currentPositionBytearray = await videoScreenshotBase64();
+    final currentPositionBase64 = await videoScreenshotBase64();
     await setSessionActive(false);
     await playerAudioHandler.stop();
 
@@ -573,7 +573,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       anime: _playerArgs.anime,
       isComplete: isComplete,
       episode: _playerArgs.episode,
-      currentPositionBytearray: currentPositionBytearray,
+      currentPositionBase64: currentPositionBase64,
       position: position,
       duration: duration,
       entity: entity,
@@ -625,7 +625,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
               },
               child: Icon(MdiIcons.timelapse),
             ),
-      extendBody: true,
       body: PlayerScope(
         animationController: _animationController,
         onClickSkipAnime: _handleClickSkipAnime,
@@ -856,6 +855,8 @@ class _Content extends StatelessWidget {
                                                       8,
                                                     ),
                                                     child: CachedNetworkImage(
+                                                      cacheManager:
+                                                          App.APP_IMAGE_CACHE,
                                                       httpHeaders: {
                                                         ...App.HEADERS,
                                                         'Referer':
@@ -867,8 +868,8 @@ class _Content extends StatelessWidget {
                                                               url) =>
                                                           const Card.filled(),
                                                       fit: BoxFit.cover,
-                                                      maxWidthDiskCache: 300,
-                                                      maxHeightDiskCache: 200,
+                                                      memCacheWidth: 300,
+                                                      memCacheHeight: 200,
                                                     ),
                                                   )
                                                 : const Card.filled(),

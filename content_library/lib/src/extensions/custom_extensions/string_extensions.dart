@@ -23,7 +23,7 @@ extension StringExtensions on String {
 
   String get toID => slugify(trim(), delimiter: '_');
 
-  String get toUuID => const Uuid().v5(Uuid.NAMESPACE_URL, trim());
+  String get toUuID => const Uuid().v5(Namespace.url.value, trim());
 
   Uri get toUri => Uri.parse(this);
 

@@ -1,13 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
-import 'package:content_library/content_library.dart';
-
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -71,6 +69,7 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
       switch (data) {
         case ImageData content:
           widget = CachedNetworkImage(
+            cacheManager: App.APP_IMAGE_CACHE,
             fit: BoxFit.contain,
             // memCacheHeight: 1080,
             maxWidthDiskCache: 1080,

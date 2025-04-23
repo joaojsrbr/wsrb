@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_auto_cache/flutter_auto_cache.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class App {
@@ -28,13 +29,24 @@ class App {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
   };
 
-  static const APP_CACHE_CONFIG = CacheConfiguration(
+  static const CONTENT_APP_CACHE_CONFIG = CacheConfiguration(
     sizeOptions: CacheSizeOptions(maxMb: 20),
     dataCacheOptions: DataCacheOptions(
       substitutionPolicy: SubstitutionPolicies.lru,
       invalidationMethod: TTLInvalidationMethod(
         maxDuration: Duration(days: 2),
       ),
+    ),
+  );
+
+  static CacheManager APP_IMAGE_CACHE = CacheManager(
+    Config(
+      "WSRB_IMAGE",
+      maxNrOfCacheObjects: 300,
+      stalePeriod: const Duration(days: 2),
+      repo: JsonCacheInfoRepository(databaseName: "WSRB_IMAGE"),
+      fileSystem: IOFileSystem("WSRB_IMAGE"),
+      fileService: HttpFileService(),
     ),
   );
 

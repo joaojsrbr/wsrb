@@ -6,7 +6,6 @@ import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_auto_cache/flutter_auto_cache.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
@@ -197,7 +196,7 @@ class ItemContent extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: CachedNetworkImage(
-                        filterQuality: FilterQuality.medium,
+                        cacheManager: App.APP_IMAGE_CACHE,
                         imageUrl: content.imageUrl,
                         placeholder: (context, url) => const _Placeholder(),
                         errorListener: customLog,
@@ -235,21 +234,21 @@ class ItemContent extends StatelessWidget {
                           'InkWell tapped title: ${content.title} - id: ${content.stringID}',
                         );
 
-                        final cache = await AutoCache.data.getJson(
-                          key: content.stringID,
-                        );
-                        final cacheContent = switch (content) {
-                          Anime _ when cache.data != null =>
-                            Anime.fromMap(cache.data!),
-                          Book _ when cache.data != null =>
-                            Book.fromMap(cache.data!),
-                          _ => null,
-                        };
+                        // final cache = await AutoCache.data.getJson(
+                        //   key: content.stringID,
+                        // );
+                        // final cacheContent = switch (content) {
+                        //   Anime _ when cache.data != null =>
+                        //     Anime.fromMap(cache.data!),
+                        //   Book _ when cache.data != null =>
+                        //     Book.fromMap(cache.data!),
+                        //   _ => null,
+                        // };
                         if (context.mounted) {
                           final result = await context.push(
                             RouteName.CONTENTINFO,
                             extra: ContentInformationArgs(
-                              content: cacheContent ?? content,
+                              content: content,
                             ),
                           );
                           if (result != null) {
@@ -295,6 +294,7 @@ class ItemContent extends StatelessWidget {
               },
               child: CachedNetworkImage(
                 imageUrl: content.imageUrl,
+                cacheManager: App.APP_IMAGE_CACHE,
                 placeholder: (context, url) => const _Placeholder(),
                 errorListener: customLog,
                 fit: BoxFit.cover,

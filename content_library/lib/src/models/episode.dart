@@ -44,6 +44,10 @@ class Episode extends Release {
         title.replaceAll(RegExp(r'[^0-9]'), '').trim();
   }
 
+  int get numberInt {
+    return int.parse(number);
+  }
+
   EpisodeEntity toEntity({
     required Anime anime,
     DateTime? updatedAt,

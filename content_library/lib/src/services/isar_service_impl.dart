@@ -250,7 +250,7 @@ class IsarServiceImpl implements IsarService {
         await isar.writeTxn(() async {
           for (final episode in episodeEntitys) {
             final animeEntity = await isar.animeEntitys.getByStringID(
-              episode.stringID,
+              episode.animeStringID,
             );
 
             if (animeEntity != null) {

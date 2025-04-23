@@ -11,14 +11,16 @@ class PlayerArgs with EquatableMixin {
   final bool forceEnterFullScreen;
   final bool getAnimeData;
 
-  const PlayerArgs({
+  PlayerArgs({
     this.data,
     this.forceEnterFullScreen = false,
     this.getAnimeData = true,
     required this.episode,
     required this.anime,
     this.startPossition,
-  });
+  }) {
+    anime.releases.sort();
+  }
 
   PlayerArgs copyWith({
     Data? data,

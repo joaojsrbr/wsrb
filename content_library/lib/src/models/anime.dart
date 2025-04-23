@@ -129,10 +129,17 @@ class Anime extends Content {
 
   @override
   String get imageUrl {
-    if (originalImage.isEmpty && releases.isEmpty) {
-      return releases.first.thumbnail ?? '';
-    }
-    return extraLarge ?? largeImage ?? mediumImage ?? originalImage;
+    // if (originalImage.isEmpty && releases.isEmpty) {
+    //   return releases.first.thumbnail ?? '';
+    // }
+    return [
+          anilistMedia?.coverImage?.large,
+          anilistMedia?.coverImage?.medium,
+          extraLarge,
+          largeImage,
+          mediumImage,
+        ].firstWhereOrNull((img) => img != null) ??
+        originalImage;
   }
 
   factory Anime.fromMap(Map<String, dynamic> map) {

@@ -47,7 +47,7 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
             ),
           )
         : ListView(
-            shrinkWrap: true,
+            // shrinkWrap: true,
             padding: const EdgeInsets.only(top: 4),
             physics: const NeverScrollableScrollPhysics(),
             children: [
@@ -333,6 +333,7 @@ class _ReleaseLeading extends StatelessWidget {
                 Widget container = ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: CachedNetworkImage(
+                    cacheManager: App.APP_IMAGE_CACHE,
                     httpHeaders: {
                       ...App.HEADERS,
                       'Referer': '${hiveController.source.baseURL}/',
@@ -353,8 +354,8 @@ class _ReleaseLeading extends StatelessWidget {
                       );
                     },
                     fit: BoxFit.cover,
-                    maxWidthDiskCache: 200,
-                    maxHeightDiskCache: 150,
+                    memCacheWidth: 200,
+                    memCacheHeight: 150,
                   ),
                 );
 
@@ -698,8 +699,12 @@ class _ReleasePaginationState extends State<_ReleasePagination> {
         when data.totalOfEpisodes != null && data.totalOfPages != null) {
       _totalPage = List.generate(data.totalOfPages!, (index) => index + 1);
     } else {
+      // _totalPage = List.generate(
+      //   widget.content!.releases.partition(20).length,
+      //   (index) => index + 1,
+      // );
       _totalPage = List.generate(
-        widget.content!.releases.partition(20).length,
+        1,
         (index) => index + 1,
       );
     }

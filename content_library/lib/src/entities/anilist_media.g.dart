@@ -18,146 +18,152 @@ const AniListMediaSchema = Schema(
       name: r'averageScore',
       type: IsarType.long,
     ),
-    r'characters': PropertySchema(
+    r'bannerImage': PropertySchema(
       id: 1,
+      name: r'bannerImage',
+      type: IsarType.object,
+      target: r'BannerImage',
+    ),
+    r'characters': PropertySchema(
+      id: 2,
       name: r'characters',
       type: IsarType.objectList,
       target: r'Character',
     ),
     r'countryOfOrigin': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'countryOfOrigin',
       type: IsarType.string,
     ),
     r'coverImage': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'coverImage',
       type: IsarType.object,
       target: r'CoverImage',
     ),
     r'description': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'description',
       type: IsarType.string,
     ),
     r'endDate': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'endDate',
       type: IsarType.object,
       target: r'Date',
     ),
     r'episodes': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'episodes',
       type: IsarType.long,
     ),
     r'favourites': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'favourites',
       type: IsarType.long,
     ),
     r'format': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'format',
       type: IsarType.string,
     ),
     r'genres': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'genres',
       type: IsarType.stringList,
     ),
     r'hashtag': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'hashtag',
       type: IsarType.string,
     ),
     r'idMal': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'idMal',
       type: IsarType.long,
     ),
     r'isLicensed': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'isLicensed',
       type: IsarType.bool,
     ),
     r'isLocked': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'isLocked',
       type: IsarType.bool,
     ),
     r'meanScore': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'meanScore',
       type: IsarType.long,
     ),
     r'popularity': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'popularity',
       type: IsarType.long,
     ),
     r'season': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'season',
       type: IsarType.string,
     ),
     r'source': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'source',
       type: IsarType.string,
     ),
     r'staff': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'staff',
       type: IsarType.objectList,
       target: r'Staff',
     ),
     r'startDate': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'startDate',
       type: IsarType.object,
       target: r'Date',
     ),
     r'status': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'status',
       type: IsarType.string,
     ),
     r'synonyms': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'synonyms',
       type: IsarType.stringList,
     ),
     r'tags': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'tags',
       type: IsarType.objectList,
       target: r'Tag',
     ),
     r'title': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'title',
       type: IsarType.object,
       target: r'Title',
     ),
     r'trailer': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'trailer',
       type: IsarType.object,
       target: r'Trailer',
     ),
     r'trending': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'trending',
       type: IsarType.long,
     ),
     r'type': PropertySchema(
-      id: 26,
+      id: 27,
       name: r'type',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 27,
+      id: 28,
       name: r'updatedAt',
       type: IsarType.long,
     )
@@ -174,6 +180,14 @@ int _aniListMediaEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.bannerImage;
+    if (value != null) {
+      bytesCount += 3 +
+          BannerImageSchema.estimateSize(
+              value, allOffsets[BannerImage]!, allOffsets);
+    }
+  }
   bytesCount += 3 + object.characters.length * 3;
   {
     final offsets = allOffsets[Character]!;
@@ -306,73 +320,79 @@ void _aniListMediaSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.averageScore);
-  writer.writeObjectList<Character>(
+  writer.writeObject<BannerImage>(
     offsets[1],
+    allOffsets,
+    BannerImageSchema.serialize,
+    object.bannerImage,
+  );
+  writer.writeObjectList<Character>(
+    offsets[2],
     allOffsets,
     CharacterSchema.serialize,
     object.characters,
   );
-  writer.writeString(offsets[2], object.countryOfOrigin);
+  writer.writeString(offsets[3], object.countryOfOrigin);
   writer.writeObject<CoverImage>(
-    offsets[3],
+    offsets[4],
     allOffsets,
     CoverImageSchema.serialize,
     object.coverImage,
   );
-  writer.writeString(offsets[4], object.description);
+  writer.writeString(offsets[5], object.description);
   writer.writeObject<Date>(
-    offsets[5],
+    offsets[6],
     allOffsets,
     DateSchema.serialize,
     object.endDate,
   );
-  writer.writeLong(offsets[6], object.episodes);
-  writer.writeLong(offsets[7], object.favourites);
-  writer.writeString(offsets[8], object.format);
-  writer.writeStringList(offsets[9], object.genres);
-  writer.writeString(offsets[10], object.hashtag);
-  writer.writeLong(offsets[11], object.idMal);
-  writer.writeBool(offsets[12], object.isLicensed);
-  writer.writeBool(offsets[13], object.isLocked);
-  writer.writeLong(offsets[14], object.meanScore);
-  writer.writeLong(offsets[15], object.popularity);
-  writer.writeString(offsets[16], object.season);
-  writer.writeString(offsets[17], object.source);
+  writer.writeLong(offsets[7], object.episodes);
+  writer.writeLong(offsets[8], object.favourites);
+  writer.writeString(offsets[9], object.format);
+  writer.writeStringList(offsets[10], object.genres);
+  writer.writeString(offsets[11], object.hashtag);
+  writer.writeLong(offsets[12], object.idMal);
+  writer.writeBool(offsets[13], object.isLicensed);
+  writer.writeBool(offsets[14], object.isLocked);
+  writer.writeLong(offsets[15], object.meanScore);
+  writer.writeLong(offsets[16], object.popularity);
+  writer.writeString(offsets[17], object.season);
+  writer.writeString(offsets[18], object.source);
   writer.writeObjectList<Staff>(
-    offsets[18],
+    offsets[19],
     allOffsets,
     StaffSchema.serialize,
     object.staff,
   );
   writer.writeObject<Date>(
-    offsets[19],
+    offsets[20],
     allOffsets,
     DateSchema.serialize,
     object.startDate,
   );
-  writer.writeString(offsets[20], object.status);
-  writer.writeStringList(offsets[21], object.synonyms);
+  writer.writeString(offsets[21], object.status);
+  writer.writeStringList(offsets[22], object.synonyms);
   writer.writeObjectList<Tag>(
-    offsets[22],
+    offsets[23],
     allOffsets,
     TagSchema.serialize,
     object.tags,
   );
   writer.writeObject<Title>(
-    offsets[23],
+    offsets[24],
     allOffsets,
     TitleSchema.serialize,
     object.title,
   );
   writer.writeObject<Trailer>(
-    offsets[24],
+    offsets[25],
     allOffsets,
     TrailerSchema.serialize,
     object.trailer,
   );
-  writer.writeLong(offsets[25], object.trending);
-  writer.writeString(offsets[26], object.type);
-  writer.writeLong(offsets[27], object.updatedAt);
+  writer.writeLong(offsets[26], object.trending);
+  writer.writeString(offsets[27], object.type);
+  writer.writeLong(offsets[28], object.updatedAt);
 }
 
 AniListMedia _aniListMediaDeserialize(
@@ -383,71 +403,76 @@ AniListMedia _aniListMediaDeserialize(
 ) {
   final object = AniListMedia();
   object.averageScore = reader.readLongOrNull(offsets[0]);
+  object.bannerImage = reader.readObjectOrNull<BannerImage>(
+    offsets[1],
+    BannerImageSchema.deserialize,
+    allOffsets,
+  );
   object.characters = reader.readObjectList<Character>(
-        offsets[1],
+        offsets[2],
         CharacterSchema.deserialize,
         allOffsets,
         Character(),
       ) ??
       [];
-  object.countryOfOrigin = reader.readStringOrNull(offsets[2]);
+  object.countryOfOrigin = reader.readStringOrNull(offsets[3]);
   object.coverImage = reader.readObjectOrNull<CoverImage>(
-    offsets[3],
+    offsets[4],
     CoverImageSchema.deserialize,
     allOffsets,
   );
-  object.description = reader.readStringOrNull(offsets[4]);
+  object.description = reader.readStringOrNull(offsets[5]);
   object.endDate = reader.readObjectOrNull<Date>(
-    offsets[5],
+    offsets[6],
     DateSchema.deserialize,
     allOffsets,
   );
-  object.episodes = reader.readLongOrNull(offsets[6]);
-  object.favourites = reader.readLongOrNull(offsets[7]);
-  object.format = reader.readStringOrNull(offsets[8]);
-  object.genres = reader.readStringList(offsets[9]) ?? [];
-  object.hashtag = reader.readStringOrNull(offsets[10]);
-  object.idMal = reader.readLongOrNull(offsets[11]);
-  object.isLicensed = reader.readBoolOrNull(offsets[12]);
-  object.isLocked = reader.readBoolOrNull(offsets[13]);
-  object.meanScore = reader.readLongOrNull(offsets[14]);
-  object.popularity = reader.readLongOrNull(offsets[15]);
-  object.season = reader.readStringOrNull(offsets[16]);
-  object.source = reader.readStringOrNull(offsets[17]);
+  object.episodes = reader.readLongOrNull(offsets[7]);
+  object.favourites = reader.readLongOrNull(offsets[8]);
+  object.format = reader.readStringOrNull(offsets[9]);
+  object.genres = reader.readStringList(offsets[10]) ?? [];
+  object.hashtag = reader.readStringOrNull(offsets[11]);
+  object.idMal = reader.readLongOrNull(offsets[12]);
+  object.isLicensed = reader.readBoolOrNull(offsets[13]);
+  object.isLocked = reader.readBoolOrNull(offsets[14]);
+  object.meanScore = reader.readLongOrNull(offsets[15]);
+  object.popularity = reader.readLongOrNull(offsets[16]);
+  object.season = reader.readStringOrNull(offsets[17]);
+  object.source = reader.readStringOrNull(offsets[18]);
   object.staff = reader.readObjectList<Staff>(
-        offsets[18],
+        offsets[19],
         StaffSchema.deserialize,
         allOffsets,
         Staff(),
       ) ??
       [];
   object.startDate = reader.readObjectOrNull<Date>(
-    offsets[19],
+    offsets[20],
     DateSchema.deserialize,
     allOffsets,
   );
-  object.status = reader.readStringOrNull(offsets[20]);
-  object.synonyms = reader.readStringList(offsets[21]) ?? [];
+  object.status = reader.readStringOrNull(offsets[21]);
+  object.synonyms = reader.readStringList(offsets[22]) ?? [];
   object.tags = reader.readObjectList<Tag>(
-        offsets[22],
+        offsets[23],
         TagSchema.deserialize,
         allOffsets,
         Tag(),
       ) ??
       [];
   object.title = reader.readObjectOrNull<Title>(
-    offsets[23],
+    offsets[24],
     TitleSchema.deserialize,
     allOffsets,
   );
   object.trailer = reader.readObjectOrNull<Trailer>(
-    offsets[24],
+    offsets[25],
     TrailerSchema.deserialize,
     allOffsets,
   );
-  object.trending = reader.readLongOrNull(offsets[25]);
-  object.type = reader.readStringOrNull(offsets[26]);
-  object.updatedAt = reader.readLongOrNull(offsets[27]);
+  object.trending = reader.readLongOrNull(offsets[26]);
+  object.type = reader.readStringOrNull(offsets[27]);
+  object.updatedAt = reader.readLongOrNull(offsets[28]);
   return object;
 }
 
@@ -461,6 +486,12 @@ P _aniListMediaDeserializeProp<P>(
     case 0:
       return (reader.readLongOrNull(offset)) as P;
     case 1:
+      return (reader.readObjectOrNull<BannerImage>(
+        offset,
+        BannerImageSchema.deserialize,
+        allOffsets,
+      )) as P;
+    case 2:
       return (reader.readObjectList<Character>(
             offset,
             CharacterSchema.deserialize,
@@ -468,47 +499,47 @@ P _aniListMediaDeserializeProp<P>(
             Character(),
           ) ??
           []) as P;
-    case 2:
-      return (reader.readStringOrNull(offset)) as P;
     case 3:
+      return (reader.readStringOrNull(offset)) as P;
+    case 4:
       return (reader.readObjectOrNull<CoverImage>(
         offset,
         CoverImageSchema.deserialize,
         allOffsets,
       )) as P;
-    case 4:
-      return (reader.readStringOrNull(offset)) as P;
     case 5:
+      return (reader.readStringOrNull(offset)) as P;
+    case 6:
       return (reader.readObjectOrNull<Date>(
         offset,
         DateSchema.deserialize,
         allOffsets,
       )) as P;
-    case 6:
-      return (reader.readLongOrNull(offset)) as P;
     case 7:
       return (reader.readLongOrNull(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
-    case 9:
-      return (reader.readStringList(offset) ?? []) as P;
-    case 10:
-      return (reader.readStringOrNull(offset)) as P;
-    case 11:
       return (reader.readLongOrNull(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
+      return (reader.readStringList(offset) ?? []) as P;
+    case 11:
+      return (reader.readStringOrNull(offset)) as P;
     case 12:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 13:
       return (reader.readBoolOrNull(offset)) as P;
     case 14:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 15:
       return (reader.readLongOrNull(offset)) as P;
     case 16:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 17:
       return (reader.readStringOrNull(offset)) as P;
     case 18:
+      return (reader.readStringOrNull(offset)) as P;
+    case 19:
       return (reader.readObjectList<Staff>(
             offset,
             StaffSchema.deserialize,
@@ -516,17 +547,17 @@ P _aniListMediaDeserializeProp<P>(
             Staff(),
           ) ??
           []) as P;
-    case 19:
+    case 20:
       return (reader.readObjectOrNull<Date>(
         offset,
         DateSchema.deserialize,
         allOffsets,
       )) as P;
-    case 20:
-      return (reader.readStringOrNull(offset)) as P;
     case 21:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 22:
+      return (reader.readStringList(offset) ?? []) as P;
+    case 23:
       return (reader.readObjectList<Tag>(
             offset,
             TagSchema.deserialize,
@@ -534,23 +565,23 @@ P _aniListMediaDeserializeProp<P>(
             Tag(),
           ) ??
           []) as P;
-    case 23:
+    case 24:
       return (reader.readObjectOrNull<Title>(
         offset,
         TitleSchema.deserialize,
         allOffsets,
       )) as P;
-    case 24:
+    case 25:
       return (reader.readObjectOrNull<Trailer>(
         offset,
         TrailerSchema.deserialize,
         allOffsets,
       )) as P;
-    case 25:
-      return (reader.readLongOrNull(offset)) as P;
     case 26:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 27:
+      return (reader.readStringOrNull(offset)) as P;
+    case 28:
       return (reader.readLongOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -629,6 +660,24 @@ extension AniListMediaQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<AniListMedia, AniListMedia, QAfterFilterCondition>
+      bannerImageIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'bannerImage',
+      ));
+    });
+  }
+
+  QueryBuilder<AniListMedia, AniListMedia, QAfterFilterCondition>
+      bannerImageIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'bannerImage',
       ));
     });
   }
@@ -3240,6 +3289,13 @@ extension AniListMediaQueryFilter
 
 extension AniListMediaQueryObject
     on QueryBuilder<AniListMedia, AniListMedia, QFilterCondition> {
+  QueryBuilder<AniListMedia, AniListMedia, QAfterFilterCondition> bannerImage(
+      FilterQuery<BannerImage> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'bannerImage');
+    });
+  }
+
   QueryBuilder<AniListMedia, AniListMedia, QAfterFilterCondition>
       charactersElement(FilterQuery<Character> q) {
     return QueryBuilder.apply(this, (query) {
@@ -3296,6 +3352,747 @@ extension AniListMediaQueryObject
     });
   }
 }
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const BannerImageSchema = Schema(
+  name: r'BannerImage',
+  id: 8985448922713851526,
+  properties: {
+    r'color': PropertySchema(
+      id: 0,
+      name: r'color',
+      type: IsarType.string,
+    ),
+    r'extraLarge': PropertySchema(
+      id: 1,
+      name: r'extraLarge',
+      type: IsarType.string,
+    ),
+    r'isBanner': PropertySchema(
+      id: 2,
+      name: r'isBanner',
+      type: IsarType.bool,
+    ),
+    r'large': PropertySchema(
+      id: 3,
+      name: r'large',
+      type: IsarType.string,
+    ),
+    r'medium': PropertySchema(
+      id: 4,
+      name: r'medium',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _bannerImageEstimateSize,
+  serialize: _bannerImageSerialize,
+  deserialize: _bannerImageDeserialize,
+  deserializeProp: _bannerImageDeserializeProp,
+);
+
+int _bannerImageEstimateSize(
+  BannerImage object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.color;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.extraLarge;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.large;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.medium;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  return bytesCount;
+}
+
+void _bannerImageSerialize(
+  BannerImage object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.color);
+  writer.writeString(offsets[1], object.extraLarge);
+  writer.writeBool(offsets[2], object.isBanner);
+  writer.writeString(offsets[3], object.large);
+  writer.writeString(offsets[4], object.medium);
+}
+
+BannerImage _bannerImageDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = BannerImage();
+  object.color = reader.readStringOrNull(offsets[0]);
+  object.extraLarge = reader.readStringOrNull(offsets[1]);
+  object.isBanner = reader.readBool(offsets[2]);
+  object.large = reader.readStringOrNull(offsets[3]);
+  object.medium = reader.readStringOrNull(offsets[4]);
+  return object;
+}
+
+P _bannerImageDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readStringOrNull(offset)) as P;
+    case 1:
+      return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (reader.readBool(offset)) as P;
+    case 3:
+      return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension BannerImageQueryFilter
+    on QueryBuilder<BannerImage, BannerImage, QFilterCondition> {
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> colorIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'color',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      colorIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'color',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> colorEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'color',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      colorGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'color',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> colorLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'color',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> colorBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'color',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> colorStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'color',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> colorEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'color',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> colorContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'color',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> colorMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'color',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> colorIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'color',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      colorIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'color',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      extraLargeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'extraLarge',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      extraLargeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'extraLarge',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      extraLargeEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'extraLarge',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      extraLargeGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'extraLarge',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      extraLargeLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'extraLarge',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      extraLargeBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'extraLarge',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      extraLargeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'extraLarge',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      extraLargeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'extraLarge',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      extraLargeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'extraLarge',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      extraLargeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'extraLarge',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      extraLargeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'extraLarge',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      extraLargeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'extraLarge',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> isBannerEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isBanner',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> largeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'large',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      largeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'large',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> largeEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'large',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      largeGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'large',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> largeLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'large',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> largeBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'large',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> largeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'large',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> largeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'large',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> largeContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'large',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> largeMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'large',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> largeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'large',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      largeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'large',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> mediumIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'medium',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      mediumIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'medium',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> mediumEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'medium',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      mediumGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'medium',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> mediumLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'medium',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> mediumBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'medium',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      mediumStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'medium',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> mediumEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'medium',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> mediumContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'medium',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition> mediumMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'medium',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      mediumIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'medium',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<BannerImage, BannerImage, QAfterFilterCondition>
+      mediumIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'medium',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension BannerImageQueryObject
+    on QueryBuilder<BannerImage, BannerImage, QFilterCondition> {}
 
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types

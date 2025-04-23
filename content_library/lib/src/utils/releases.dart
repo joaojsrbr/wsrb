@@ -38,6 +38,11 @@ class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
   T operator [](int index) => _array[index];
 
   @override
+  void sort([int Function(T a, T b)? compare]) {
+    _array.sort((release1, release2) => release1.compareTo(release2));
+  }
+
+  @override
   void add(T element) {
     _array.add(element);
     sort((release1, release2) => release1.compareTo(release2));
@@ -59,10 +64,29 @@ class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
 class EpisodeReleases extends Releases<Episode> {
   EpisodeReleases() : super();
   EpisodeReleases.from(super.contents) : super.fromList();
+
+  UnmodifiableListView<Episode> get _sorted {
+    return UnmodifiableListView(
+        _array.sortedBy<num>((episode) => episode.numberInt));
+  }
+
+  @override
+  Episode operator [](int index) => _sorted[index];
+
+  @override
+  void operator []=(int index, Episode value) => _array[index] = value;
 }
 
 class ChapterReleases extends Releases<Chapter> {
   ChapterReleases() : super();
+
+  UnmodifiableListView<Chapter> get _sorted {
+    return UnmodifiableListView(
+        _array.sortedBy<num>((episode) => int.parse(episode.number)));
+  }
+
+  @override
+  Chapter operator [](int index) => _sorted[index];
 
   ChapterReleases.from(super.contents) : super.fromList();
 }

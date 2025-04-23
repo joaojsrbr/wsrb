@@ -12,18 +12,21 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
     required WidgetBuilder builder,
     required this.isLoading,
     required this.index,
+    required this.noContent,
     required this.setListIndex,
     required this.downloadRelease,
+    required this.saveData,
     required this.releases,
     required this.content,
     required this.informationArgs,
     required this.releasesIsLoading,
     required this.onLongPressed,
   }) : super(child: Builder(builder: builder));
-
+  final void Function([Content? otherData]) saveData;
   final ContentInformationArgs? informationArgs;
   final bool releasesIsLoading;
   final bool isLoading;
+  final bool noContent;
   final Content? content;
   final ValueSetter<int> setListIndex;
   final int index;
@@ -42,6 +45,8 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
 
   static bool isLoadingOf(BuildContext context) =>
       _of(context, ContentScopeAspect.ISLOADING).isLoading;
+  static bool noContentOf(BuildContext context) =>
+      _of(context, ContentScopeAspect.noContent).noContent;
 
   static Content contentOf(BuildContext context) =>
       _of(context, ContentScopeAspect.CONTENT).content ??
@@ -65,6 +70,9 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
         switch (dependency) {
           case ContentScopeAspect.ISLOADING
               when isLoading != oldWidget.isLoading:
+            return true;
+          case ContentScopeAspect.noContent
+              when noContent != oldWidget.noContent:
             return true;
           case ContentScopeAspect.CONTENT when content != oldWidget.content:
             return true;
@@ -90,6 +98,7 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
   bool updateShouldNotify(ContentScope oldWidget) {
     return isLoading != oldWidget.isLoading ||
         content != oldWidget.content ||
+        noContent != oldWidget.noContent ||
         releasesIsLoading != oldWidget.releasesIsLoading ||
         index != oldWidget.index;
   }
@@ -101,6 +110,7 @@ enum ContentScopeAspect {
   LISTCHAPTERINDEX,
   ALLRELEASES,
   CONTENT,
+  noContent,
 }
 
 enum ContentTabBar {

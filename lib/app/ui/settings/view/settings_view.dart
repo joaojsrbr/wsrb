@@ -23,7 +23,7 @@ class _SettingsViewState extends State<SettingsView> {
 
   List<Color> _recentColors = [];
 
-  double _sliderValue = 0.0;
+  // double _sliderValue = 0.0;
 
   late final Queue<ThemeMode> _themeModeQueue;
 
@@ -39,7 +39,7 @@ class _SettingsViewState extends State<SettingsView> {
     _themeController = context.read<ThemeController>();
     _recentColors.add(_themeController.appColor);
     _themeModeQueue = Queue.from(ThemeMode.values.where(test));
-    _sliderValue = context.read<HiveController>().historicSavePercent;
+    // _sliderValue = context.read<HiveController>().historicSavePercent;
   }
 
   bool test(ThemeMode element) {

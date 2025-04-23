@@ -23,7 +23,7 @@ class AniListMedia {
   Trailer? trailer;
   int? updatedAt;
   CoverImage? coverImage;
-  CoverImage? bannerImage;
+  BannerImage? bannerImage;
   List<String> genres = const [];
   List<String> synonyms = const [];
   int? averageScore;
@@ -152,8 +152,12 @@ class AniListMedia {
 }
 
 @Embedded(ignore: {"toJson", "fromJson"})
-class BannerImage extends CoverImage {
+class BannerImage {
   bool isBanner = false;
+  String? extraLarge;
+  String? large;
+  String? medium;
+  String? color;
 
   BannerImage();
 
@@ -164,6 +168,16 @@ class BannerImage extends CoverImage {
       ..large = json['large']
       ..medium = json['medium']
       ..color = json['color'];
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'isBanner': isBanner,
+      'extraLarge': extraLarge,
+      'large': large,
+      'medium': medium,
+      'color': color,
+    };
   }
 }
 

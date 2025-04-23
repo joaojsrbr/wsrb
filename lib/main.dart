@@ -6,7 +6,6 @@ import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_auto_cache/flutter_auto_cache.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
@@ -65,7 +64,9 @@ void main(List<String> arguments) async {
 
   await Future.wait([
     PermissionUtils.manageExternalStorage(),
-    AutoCacheInitializer.initialize(configuration: App.APP_CACHE_CONFIG),
+    // AutoCacheInitializer.initialize(
+    //   configuration: App.CONTENT_APP_CACHE_CONFIG,
+    // ),
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
     // Workmanager().initialize(callbackDispatcher),
     // hiveCacheServiceImpl.init(),
