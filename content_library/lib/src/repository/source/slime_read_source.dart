@@ -37,7 +37,7 @@ class SlimeReadSource extends RSource {
         'https://morria.slimeread.com:8443/books?page=${contentRepository.index}';
 
     try {
-      contentRepository._dio.removeInterceptor(_DefaultAppHeadersInterceptor());
+      // contentRepository._dio.removeInterceptor(_DefaultAppHeadersInterceptor());
       final Response response = await contentRepository._dio.get(
         apiURL,
         headers: {'user-agent': 'PostmanRuntime/7.43.0'},
@@ -107,7 +107,7 @@ class SlimeReadSource extends RSource {
       contentRepository._hasMore = false;
       return Future.value(false);
     } finally {
-      contentRepository._dio.addInterceptor(_DefaultAppHeadersInterceptor());
+      // contentRepository._dio.addInterceptor(_DefaultAppHeadersInterceptor());
     }
   }
 

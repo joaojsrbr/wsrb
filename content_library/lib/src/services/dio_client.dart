@@ -1,9 +1,7 @@
 import 'dart:convert';
 
+import 'package:content_library/content_library.dart';
 import 'package:dio/dio.dart' as dio;
-
-import '../interfaces/http_service.dart';
-import '../utils/custom_log.dart';
 
 class _DioStatus extends dio.Interceptor {
   Stopwatch? _stopwatch;
@@ -14,6 +12,7 @@ class _DioStatus extends dio.Interceptor {
     _stopwatch = Stopwatch()..start();
     final message = 'REQUEST[${options.method}] => PATH: ${options.path}';
     customLog(message);
+
     return super.onRequest(options, handler);
   }
 
@@ -59,7 +58,7 @@ class DioClient
     _dio = dio.Dio(
       options,
     );
-
+    addInterceptor(_DefaultAppHeadersInterceptor());
     addInterceptor(_DioStatus());
   }
 
@@ -218,4 +217,13 @@ class DioClient
 
   @override
   List<dio.Interceptor> get interceptors => _dio.interceptors;
+}
+
+class _DefaultAppHeadersInterceptor extends dio.Interceptor {
+  @override
+  void onRequest(
+      dio.RequestOptions options, dio.RequestInterceptorHandler handler) {
+    options.headers.addEntries(App.HEADERS.entries);
+    super.onRequest(options, handler);
+  }
 }

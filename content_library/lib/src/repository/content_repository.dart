@@ -66,7 +66,6 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
     this._animeSkipRepository,
     this.initialSource,
   ) {
-    _dio.addInterceptor(_DefaultAppHeadersInterceptor());
     _sources = [
       NeoxSource(this),
       GoyabuSource(this),
@@ -226,8 +225,29 @@ class _ContentRepositoryImp extends ContentRepository {
       await currentSource.loadData();
 
   @override
-  Future<Result<Content>> getData(Content content) async =>
-      await currentSource.getData(content);
+  Future<Result<Content>> getData(Content content) async {
+    final result = await currentSource.getData(content);
+    if (result is Success<Content> && result.data is Anime) {
+      Anime anime = result.data as Anime;
+      final anilistMedia = await getAnilistMedia(anime);
+
+      if (anilistMedia != null) {
+        anime = anime.copyWith(
+          sinopse: anime.sinopse?.isEmpty == true || anime.sinopse == null
+              ? anilistMedia.description
+              : null,
+          anilistMedia: AniListMedia.fromJson(
+            AnilistMedia.toJson(anilistMedia),
+          ),
+          largeImage: anilistMedia.coverImage?.large,
+          mediumImage: anilistMedia.coverImage?.medium,
+        );
+      }
+      return Result.success(anime);
+    }
+
+    return result;
+  }
 
   @override
   Future<Result<List<Data>>> getContent(Release release) async =>
@@ -253,13 +273,5 @@ class _ContentRepositoryImp extends ContentRepository {
         await future;
       } catch (_) {}
     }
-  }
-}
-
-class _DefaultAppHeadersInterceptor extends Interceptor {
-  @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    options.headers.addEntries(App.HEADERS.entries);
-    super.onRequest(options, handler);
   }
 }

@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 4.0.5
+version: 4.1.5
 
 environment:
   sdk: ">=3.0.0 <3.27.4"
@@ -44,30 +44,38 @@ dependencies:
 
 
   # Video Render
-  media_kit: ^1.2.0
-  media_kit_video: ^1.3.0
-  media_kit_libs_video: ^1.0.6
+  # media_kit: ^1.2.0
+  # media_kit_video: ^1.3.0
+  # media_kit_libs_video: ^1.0.6
   
   # media_kit: ^1.1.11
   # media_kit_video: ^1.2.5
   # media_kit_libs_video: ^1.0.5
 
-  # Git
+  # Video Render (Git)
+  media_kit:
+    git:
+      url: https://github.com/joaojsrbr/media-kit
+      ref: develop
+      path: media_kit
+  media_kit_video:
+    git:
+      url: https://github.com/joaojsrbr/media-kit
+      ref: develop
+      path: media_kit_video
+  media_kit_libs_video:
+    git:
+      url: https://github.com/joaojsrbr/media-kit
+      ref: develop
+      path: libs/universal/media_kit_libs_video
+
+  # Video Render (Path)
   # media_kit:
-  #   git:
-  #     url: https://github.com/media-kit/media-kit
-  #     ref: main
-  #     path: media_kit
+  #   path: ../media-kit/media_kit
   # media_kit_video:
-  #   git:
-  #     url: https://github.com/media-kit/media-kit
-  #     ref: main
-  #     path: media_kit_video
+  #   path: ../media-kit/media_kit_video
   # media_kit_libs_video:
-  #   git:
-  #     url: https://github.com/media-kit/media-kit
-  #     ref: main
-  #     path: libs/universal/media_kit_libs_video
+  #   path: ../media-kit/libs/universal/media_kit_libs_video
 
   volume_controller: ^3.3.3
   screen_brightness: ^2.1.2

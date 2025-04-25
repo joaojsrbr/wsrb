@@ -3,10 +3,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:content_library/content_library.dart';
-import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter/ffprobe_kit.dart';
-import 'package:ffmpeg_kit_flutter/return_code.dart';
-import 'package:ffmpeg_kit_flutter/statistics.dart';
+import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_new/ffprobe_kit.dart';
+import 'package:ffmpeg_kit_flutter_new/return_code.dart';
+import 'package:ffmpeg_kit_flutter_new/statistics.dart';
 import 'package:flutter/foundation.dart';
 
 class DownloadService extends ChangeNotifier {
@@ -162,7 +162,7 @@ class DownloadService extends ChangeNotifier {
                     return info;
                   },
                 )).setValue(
-                  time: status.getTime(),
+                  time: status.getTime().toDouble(),
                   id: status.getSessionId(),
                   isDownloading: true,
                   speed: status.getSpeed(),

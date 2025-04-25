@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:app_wsrb_jsr/app/ui/content_information/destinations/information_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/destinations/release_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
@@ -75,7 +73,7 @@ class ContentScaffold extends StatelessWidget {
                 // ),
               ],
               flexibleSpace: FlexibleSpaceBar(
-                stretchModes: [StretchMode.blurBackground],
+                stretchModes: [StretchMode.zoomBackground],
                 background: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -87,16 +85,32 @@ class ContentScaffold extends StatelessWidget {
                             color: themeData.colorScheme.primary.withAlpha(10),
                           );
                         },
-                        fit: BoxFit.cover,
+                        fit: BoxFit.fitWidth,
                         imageUrl:
                             content.anilistMedia!.bannerImage!.extraLarge!,
                         httpHeaders: App.HEADERS,
                       ),
 
-                    BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                      child: Container(
-                        color: Colors.black.withValues(alpha: 0.3),
+                    // BackdropFilter(
+                    //   filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                    //   child: Container(
+                    //     color: Colors.black.withValues(alpha: 0.3),
+                    //   ),
+                    // ),
+                    Container(
+                      width: double.infinity,
+                      height: 300,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black54,
+                            Colors.transparent.withAlpha(60),
+                            Colors.black54,
+                          ],
+                          stops: [0.0, 0.4, 1.0],
+                        ),
                       ),
                     ),
                     // Conteúdo sobre o banner

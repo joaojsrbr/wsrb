@@ -9,7 +9,8 @@ export 'package:dio/dio.dart';
 export 'package:hive/hive.dart';
 export 'package:loading_more_list/loading_more_list.dart';
 export 'package:path_provider/path_provider.dart';
-export 'package:workmanager/workmanager.dart';
+
+// export 'package:workmanager/workmanager.dart';
 
 export 'src/constants/app.dart';
 export 'src/constants/order.dart';

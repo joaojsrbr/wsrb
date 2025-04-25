@@ -16,7 +16,7 @@ mixin PlayerAudioHandlerMixin
     on
         PlayerControllerMixin,
         SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs>,
-        PlayerSimplePipMixin {
+        PlayerPipMixin {
   static late final PlayerAudioHandler _playerAudioHandler;
 
   PlayerAudioHandler get playerAudioHandler => _playerAudioHandler;
@@ -65,13 +65,13 @@ mixin PlayerAudioHandlerMixin
   }
 
   void handleEnterInPip() async {
-    if (draggableScrollableController.isAttached) {
-      await draggableScrollableController.animateTo(
-        1.0,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.ease,
-      );
-    }
+    // if (draggableScrollableController.isAttached) {
+    //   await draggableScrollableController.animateTo(
+    //     1.0,
+    //     duration: const Duration(milliseconds: 250),
+    //     curve: Curves.ease,
+    //   );
+    // }
 
     setState(() => isPipActivated = true);
     WidgetsBinding.instance.addPostFrameCallback((timer) {

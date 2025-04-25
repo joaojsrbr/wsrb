@@ -3,9 +3,8 @@ import 'package:android_pip/android_pip.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
-import 'package:flutter/material.dart';
 
-mixin PlayerSimplePipMixin
+mixin PlayerPipMixin
     on SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs> {
   // late final AndroidPIP androidPIP;
 
@@ -13,7 +12,7 @@ mixin PlayerSimplePipMixin
   bool isPipActivated = false;
   bool isAutoPipAvailable = false;
 
-  late final DraggableScrollableController draggableScrollableController;
+  // late final DraggableScrollableController draggableScrollableController;
 
   Future<void> pipStart() async {
     isPipAvailable = await AndroidPIP.isPipAvailable;
@@ -24,11 +23,11 @@ mixin PlayerSimplePipMixin
     // }
   }
 
-  @override
-  void initState() {
-    draggableScrollableController = DraggableScrollableController();
-    super.initState();
-  }
+  // @override
+  // void initState() {
+  // draggableScrollableController = DraggableScrollableController();
+  //   super.initState();
+  // }
 
   // @override
   // void initState() {
@@ -40,9 +39,9 @@ mixin PlayerSimplePipMixin
 
   void onPipChange();
 
-  @override
-  void dispose() {
-    draggableScrollableController.dispose();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   draggableScrollableController.dispose();
+  //   super.dispose();
+  // }
 }

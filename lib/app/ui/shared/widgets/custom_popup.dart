@@ -214,6 +214,7 @@ class _CustomPopupState<E> extends State<CustomPopup<E>>
                               left: 0,
                               bottom: 0,
                             ),
+                            shrinkWrap: true,
                             controller: _localController,
                             scrollDirection: widget.scrollDirection,
                             itemCount: widget.items.length,

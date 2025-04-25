@@ -119,18 +119,18 @@ void main(List<String> arguments) async {
   );
 }
 
-@pragma('vm:entry-point')
-void callbackDispatcher() {
-  WidgetsFlutterBinding.ensureInitialized();
-  Workmanager().executeTask((task, inputData) async {
-    customLog('running $task');
+// @pragma('vm:entry-point')
+// void callbackDispatcher() {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   Workmanager().executeTask((task, inputData) async {
+//     customLog('running $task');
 
-    // if ([App.APP_CACHE_TASK_DELETE_BY_ID, App.APP_CACHE_TASK_DELETE_ALL]
-    //         .contains(task) &&
-    //     inputData != null) {
-    //   return Future.value(false);
-    // }
+//     // if ([App.APP_CACHE_TASK_DELETE_BY_ID, App.APP_CACHE_TASK_DELETE_ALL]
+//     //         .contains(task) &&
+//     //     inputData != null) {
+//     //   return Future.value(false);
+//     // }
 
-    return Future.value(false);
-  });
-}
+//     return Future.value(false);
+//   });
+// }

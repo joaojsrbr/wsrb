@@ -35,7 +35,7 @@ class GoyabuSource extends RSource {
           document.querySelector('.metaframe.rptss')?.attributes['src'];
 
       if (fremeSrc != null) {
-        final Completer completer = Completer();
+        Completer<Data> completer = Completer();
 
         final controller = WebViewController()
           ..loadRequest(Uri.parse(fremeSrc), headers: {
@@ -52,6 +52,7 @@ class GoyabuSource extends RSource {
             return NavigationDecision.navigate;
           },
           onPageFinished: (url) async {
+            if (completer.isCompleted) return;
             // await Future.wait([
             //   contentRepository._dio.post(
             //       r'https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/Create',
@@ -73,25 +74,28 @@ class GoyabuSource extends RSource {
             await controller.runJavaScript(
                 r'''document.querySelector('.play-button').click();''');
 
+            await Future.delayed(const Duration(seconds: 2));
+
             var videoConfig =
                 await controller.runJavaScriptReturningResult(r"VIDEO_CONFIG;");
 
             final videoConfigJson = jsonDecode(videoConfig.toString());
             final playURL = (videoConfigJson['streams'] as List)
                 .first['play_url'] as String;
-
-            data.add(Data.videoData(
-              videoContent: playURL,
-              httpHeaders: const {
-                "User-Agent":
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
-              },
-            ));
-            completer.complete();
+            if (completer.isCompleted) return;
+            completer.complete(
+              Data.videoData(
+                videoContent: playURL,
+                httpHeaders: const {
+                  "User-Agent":
+                      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+                },
+              ),
+            );
           },
         ));
 
-        await completer.future;
+        data.add(await completer.future);
       }
 
       return Result.success(data);
@@ -146,7 +150,7 @@ class GoyabuSource extends RSource {
       }
 
       return Result.success(
-        content.copyWith(releases: cacheRelease.partition(20).elementAt(page)),
+        content.copyWith(releases: cacheRelease),
       );
     } on DioException catch (_, __) {
       return Result.failure(_);

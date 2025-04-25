@@ -1,7 +1,7 @@
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
 import 'package:equatable/equatable.dart';
 
-mixin PlayerStatusShotMixin on PlayerControllerMixin {
+mixin PlayerStatusMixin on PlayerControllerMixin {
   final PlayerStatus status = PlayerStatus();
 }
 

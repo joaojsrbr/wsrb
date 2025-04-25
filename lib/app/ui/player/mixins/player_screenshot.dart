@@ -10,7 +10,7 @@ import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 
-mixin PlayerScreenShotMixin
+mixin PlayerScreenshotMixin
     on
         SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs>,
         PlayerControllerMixin {

@@ -572,35 +572,45 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                   if (isFullscreen(context) &&
                       scope.playerArgs.times.isNotEmpty &&
                       mount)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: CustomPopup(
-                        duration: const Duration(milliseconds: 200),
-                        width: 170,
-                        show: value,
-                        paddingTop: true,
-                        shape: RoundedRectangleBorder(),
-                        height: MediaQuery.sizeOf(context).height,
-                        items: scope.playerArgs.times,
-                        builderFunction: (context, index, item) {
-                          return ValueListenableBuilder(
-                            valueListenable: scope.selectedAnimeTimeStamp,
-                            builder: (context, value, child) {
-                              return ListTile(
-                                dense: true,
-                                onTap: () => scope.onClickSkipAnime.call(item),
-                                selected: value?.id.contains(item.id) ?? false,
-                                leading: Text(
-                                  Duration(microseconds: item.at).label(),
-                                ),
-                                title: Text(item.timeStampType.label),
-                                visualDensity: const VisualDensity(
-                                  vertical: -4,
-                                ),
-                              );
-                            },
-                          );
-                        },
+                    Positioned(
+                      top: 0,
+                      // bottom: 0,
+                      right: 0,
+                      left: MediaQuery.sizeOf(context).width - 170,
+                      // left: 170,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: CustomPopup(
+                          startAnimatedAlignment: Alignment.centerRight,
+                          duration: const Duration(milliseconds: 200),
+                          width: 170,
+                          show: value,
+                          paddingTop: true,
+                          shape: RoundedRectangleBorder(),
+                          height: MediaQuery.sizeOf(context).height,
+                          items: scope.playerArgs.times,
+                          builderFunction: (context, index, item) {
+                            return ValueListenableBuilder(
+                              valueListenable: scope.selectedAnimeTimeStamp,
+                              builder: (context, value, child) {
+                                return ListTile(
+                                  dense: true,
+                                  onTap: () =>
+                                      scope.onClickSkipAnime.call(item),
+                                  selected:
+                                      value?.id.contains(item.id) ?? false,
+                                  leading: Text(
+                                    Duration(microseconds: item.at).label(),
+                                  ),
+                                  title: Text(item.timeStampType.label),
+                                  visualDensity: const VisualDensity(
+                                    vertical: -4,
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
                       ),
                     ),
                   Positioned(
@@ -728,12 +738,17 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                         ),
 
                         if (!value) ...[
-                          Padding(
-                            padding: EdgeInsets.only(top: !isPortrait ? 20 : 8),
-                            child: PlayerCustomOverlay(
-                              key: const ValueKey('custom_overlay_1'),
-                              begin: const Offset(-1, 0),
-                              notifierChange: scope.overlayBoxFit,
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            child: Padding(
+                              padding:
+                                  EdgeInsets.only(top: !isPortrait ? 20 : 8),
+                              child: PlayerCustomOverlay(
+                                key: const ValueKey('custom_overlay_1'),
+                                begin: const Offset(-1, 0),
+                                notifierChange: scope.overlayBoxFit,
+                              ),
                             ),
                           ),
                           Positioned(
@@ -1336,7 +1351,9 @@ class _BottomButtons extends StatelessWidget {
                     !state.widget.state._lockPlayer;
               },
               iconSize: 22,
-              icon: Icon(MdiIcons.lock),
+              icon: Icon(state.widget.state._lockPlayer
+                  ? MdiIcons.lock
+                  : MdiIcons.lockOpen),
             ),
             _LockWidget(
               child: Container(

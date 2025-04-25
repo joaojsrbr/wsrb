@@ -56,6 +56,55 @@ class AnrollSource extends RSource {
 
   Future<(Anime, String)> _getAnimeIDAndBuildId(Anime anime) async {
     if (anime.animeID == null || anime.buildId == null) {
+      // try {
+      //   final response = await contentRepository._dio
+      //       .get("https://www.anroll.net/a/${anime.generateID}");
+      //   final newAnime = anime.copyWith(
+      //     animeID: parse(response.data)
+      //         .querySelector('#anime_title a')
+      //         ?.attributes['href']
+      //         ?.split('/')
+      //         .last,
+      //   );
+
+      //   final Element? element =
+      //       parse(response.data).querySelector('#__NEXT_DATA__');
+
+      //   String buildId = "";
+
+      //   if (element == null) {
+      //     throw AnrollGetIdException();
+      //   } else {
+      //     final map = jsonDecode(element.text);
+      //     buildId = map['buildId'] as String;
+      //   }
+
+      //   return (newAnime.copyWith(buildId: buildId), buildId);
+      // } catch (_) {
+      //   final response = await contentRepository._dio
+      //       .get("https://www.anroll.net/e/${anime.generateID}");
+
+      //   final newAnime = anime.copyWith(
+      //     animeID: parse(response.data)
+      //         .querySelector('#anime_title a')
+      //         ?.attributes['href']
+      //         ?.split('/')
+      //         .last,
+      //   );
+      //   final Element? element =
+      //       parse(response.data).querySelector('#__NEXT_DATA__');
+
+      //   String buildId = "";
+
+      //   if (element == null) {
+      //     throw AnrollGetIdException();
+      //   } else {
+      //     final map = jsonDecode(element.text);
+      //     buildId = map['buildId'] as String;
+      //   }
+
+      //   return (newAnime.copyWith(buildId: buildId), buildId);
+      // }
       return await contentRepository._dio
           .get("https://www.anroll.net/a/${anime.generateID}")
           .then(
@@ -83,8 +132,9 @@ class AnrollSource extends RSource {
           return (newAnime.copyWith(buildId: buildId), buildId);
         },
         onError: (data) async {
-          final response = await contentRepository._dio
-              .get("https://www.anroll.net/e/${anime.generateID}");
+          final response = await contentRepository._dio.get(
+            "https://www.anroll.net/e/${anime.generateID}",
+          );
 
           final newAnime = anime.copyWith(
             animeID: parse(response.data)
@@ -93,6 +143,7 @@ class AnrollSource extends RSource {
                 ?.split('/')
                 .last,
           );
+
           final Element? element =
               parse(response.data).querySelector('#__NEXT_DATA__');
 
@@ -105,7 +156,10 @@ class AnrollSource extends RSource {
             buildId = map['buildId'] as String;
           }
 
-          return (newAnime.copyWith(buildId: buildId), buildId);
+          return (
+            newAnime.copyWith(buildId: buildId),
+            buildId,
+          );
         },
       );
     }
@@ -268,26 +322,26 @@ class AnrollSource extends RSource {
             (result) => result.fold(onSuccess: (data) => newAnime = data));
       }
 
-      Future<void> getAniListData() async {
-        final anilistMedia = await contentRepository.getAnilistMedia(newAnime);
+      // Future<void> getAniListData() async {
+      //   final anilistMedia = await contentRepository.getAnilistMedia(newAnime);
 
-        if (anilistMedia != null) {
-          newAnime = newAnime.copyWith(
-            sinopse:
-                newAnime.sinopse?.isEmpty == true || newAnime.sinopse == null
-                    ? anilistMedia.description
-                    : null,
-            anilistMedia: AniListMedia.fromJson(
-              AnilistMedia.toJson(anilistMedia),
-            ),
-            largeImage: anilistMedia.coverImage?.large,
-            mediumImage: anilistMedia.coverImage?.medium,
-          );
-        }
-      }
+      //   if (anilistMedia != null) {
+      //     newAnime = newAnime.copyWith(
+      //       sinopse:
+      //           newAnime.sinopse?.isEmpty == true || newAnime.sinopse == null
+      //               ? anilistMedia.description
+      //               : null,
+      //       anilistMedia: AniListMedia.fromJson(
+      //         AnilistMedia.toJson(anilistMedia),
+      //       ),
+      //       largeImage: anilistMedia.coverImage?.large,
+      //       mediumImage: anilistMedia.coverImage?.medium,
+      //     );
+      //   }
+      // }
 
       await data();
-      await getAniListData();
+      // await getAniListData();
       await getEpisodes();
 
       return Result.success(newAnime);

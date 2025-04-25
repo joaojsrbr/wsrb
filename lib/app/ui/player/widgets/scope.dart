@@ -44,11 +44,11 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
     required this.openMenuInFullScreen,
     required this.animationController,
     required this.onPipChange,
-    required this.draggableScrollableController,
+    // required this.draggableScrollableController,
   });
 
   final void Function(AnimeTimeStamp item) onClickSkipAnime;
-  final DraggableScrollableController draggableScrollableController;
+  // final DraggableScrollableController draggableScrollableController;
   final void Function(PipAction) onPipAction;
   final AnimationController animationController;
   final void Function() onPipChange;
