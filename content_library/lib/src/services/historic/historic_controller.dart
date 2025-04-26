@@ -1,4 +1,5 @@
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/services/historic/historic_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
@@ -8,7 +9,14 @@ class HistoricController extends ChangeNotifier {
   final Debouncer _debouncer = Debouncer(
     duration: const Duration(milliseconds: 200),
   );
-  HistoricController(this._isarService);
+
+  HistoricController(this._isarService) {
+    _repository = HistoricRepository();
+  }
+
+  late final HistoricRepository _repository;
+
+  HistoricRepository get repo => _repository;
 
   @override
   void dispose() {
@@ -33,8 +41,8 @@ class HistoricController extends ChangeNotifier {
     final episodes = await episodeCollections.where().findAll();
     final chapters = await chaptersCollections.where().findAll();
 
-    _entities.addAll(episodes);
-    _entities.addAll(chapters);
+    repo.updateRepository([episodes, chapters]);
+
     elapsed.printAndStop(runtimeType.toString());
   }
 
@@ -43,61 +51,9 @@ class HistoricController extends ChangeNotifier {
     final chaptersCollections = await _isarService.collection<ChapterEntity>();
     final episodes = await episodeCollections.where().findAll();
     final chapters = await chaptersCollections.where().findAll();
-    _entities.clear();
-    _entities
-      ..clear()
-      ..addAll([episodes, chapters].flattened);
+    repo.updateRepository([episodes, chapters]);
 
     _debouncer.call(notifyListeners);
-  }
-
-  T? getHistoryEntityByID<T extends HistoryEntity>(List<String> ids) {
-    final entity = entities.firstWhereOrNull((entity) => switch (entity) {
-          EpisodeEntity data =>
-            ids.containsOneElement([data.stringID, data.animeStringID]),
-          _ => false,
-        });
-
-    return entity is T ? entity : null;
-  }
-
-  final List<HistoryEntity> _entities = [];
-
-  UnmodifiableListView<HistoryEntity> get entities =>
-      UnmodifiableListView(_entities);
-
-  UnmodifiableListView<String> get ids =>
-      UnmodifiableListView(_entities.map(_map).nonNulls);
-
-  String? _map(HistoryEntity entity) {
-    return switch (entity) {
-      EpisodeEntity data => data.stringID,
-      ChapterEntity data => data.stringID,
-      _ => null,
-    };
-  }
-
-  bool contains({
-    HistoryEntity? historyEntity,
-    Release? release,
-  }) {
-    bool result = false;
-    if (release != null) {
-      assert(historyEntity == null);
-      result = switch (release) {
-        Episode data => ids.contains(data.stringID),
-        Chapter data => ids.contains(data.stringID),
-        _ => false,
-      };
-    } else if (historyEntity != null) {
-      assert(release == null);
-      result = switch (historyEntity) {
-        EpisodeEntity data => ids.contains(data.stringID),
-        ChapterEntity data => ids.contains(data.stringID),
-        _ => false,
-      };
-    }
-    return result;
   }
 
   Future<Result<(bool, List<int>?)>> add({
@@ -106,7 +62,7 @@ class HistoricController extends ChangeNotifier {
     bool isSucess = false;
     final List<int> ids = [];
 
-    _setDateTime(historyEntity);
+    // _setDateTime(historyEntity);
 
     final result = await _isarService.add(entity: historyEntity);
 
@@ -118,22 +74,22 @@ class HistoricController extends ChangeNotifier {
     return Result.success((isSucess, ids));
   }
 
-  void _setDateTime(HistoryEntity historyEntity) {
-    switch (historyEntity) {
-      case EpisodeEntity data:
-        if (contains(historyEntity: data)) {
-          data.updatedAt = DateTime.now();
-        }
-        data.createdAt ??= DateTime.now();
-        break;
-      case ChapterEntity data:
-        if (contains(historyEntity: data)) {
-          data.updatedAt = DateTime.now();
-        }
-        data.createdAt ??= DateTime.now();
-        break;
-    }
-  }
+  // void _setDateTime(HistoryEntity historyEntity) {
+  //   switch (historyEntity) {
+  //     case EpisodeEntity data:
+  //       if (repo.contains(historyEntity: data)) {
+  //         data.updatedAt = DateTime.now();
+  //       }
+  //       data.createdAt ??= DateTime.now();
+  //       break;
+  //     case ChapterEntity data:
+  //       if (repo.contains(historyEntity: data)) {
+  //         data.updatedAt = DateTime.now();
+  //       }
+  //       data.createdAt ??= DateTime.now();
+  //       break;
+  //   }
+  // }
 
   String getStringID(Entity entity) {
     return switch (entity) {
@@ -151,7 +107,7 @@ class HistoricController extends ChangeNotifier {
 
     final entities = historyEntities.nonNulls.cast<HistoryEntity>().toList();
 
-    entities.forEach(_setDateTime);
+    // entities.forEach(_setDateTime);
 
     final result = await _isarService.addAll(entities: entities);
 

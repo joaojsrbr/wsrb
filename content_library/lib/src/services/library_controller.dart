@@ -7,9 +7,9 @@ import 'package:isar/isar.dart';
 class LibraryController extends ChangeNotifier {
   final IsarServiceImpl _isarService;
   final Subscriptions _subscriptions = Subscriptions();
-  late final LibraryService _libraryService;
+  // late final LibraryService _libraryService;
   LibraryController(this._isarService, HiveController hiveController) {
-    _libraryService = LibraryService(this, hiveController);
+    // _libraryService = LibraryService(this, hiveController);
   }
 
   final Debouncer _updateDebouncer =
@@ -114,7 +114,7 @@ class LibraryController extends ChangeNotifier {
     bool isSucess = false;
     final List<int> ids = [];
 
-    _setDateTime(contentEntity);
+    // _setDateTime(contentEntity);
 
     final result = await _isarService.add(entity: contentEntity);
 
@@ -126,24 +126,24 @@ class LibraryController extends ChangeNotifier {
     return Result.success((isSucess, ids));
   }
 
-  void _setDateTime(ContentEntity contentEntity) {
-    switch (contentEntity) {
-      case AnimeEntity data:
-        if (_libraryService.contains(contentEntity: data)) {
-          data.updatedAt = DateTime.now();
-          break;
-        }
-        data.createdAt = DateTime.now();
-        break;
-      case BookEntity data:
-        if (_libraryService.contains(contentEntity: data)) {
-          data.updatedAt = DateTime.now();
-          break;
-        }
-        data.createdAt = DateTime.now();
-        break;
-    }
-  }
+  // void _setDateTime(ContentEntity contentEntity) {
+  //   switch (contentEntity) {
+  //     case AnimeEntity data:
+  //     // if (_libraryService.contains(contentEntity: data)) {
+  //     //   data.updatedAt = DateTime.now();
+  //     //   break;
+  //     // }
+  //     // data.createdAt = DateTime.now();
+  //     // break;
+  //     case BookEntity data:
+  //       if (_libraryService.contains(contentEntity: data)) {
+  //         data.updatedAt = DateTime.now();
+  //         break;
+  //       }
+  //       data.createdAt = DateTime.now();
+  //       break;
+  //   }
+  // }
 
   Future<Result<(bool, List<int>?)>> addAll({
     required List<ContentEntity> contentEntities,
@@ -153,7 +153,7 @@ class LibraryController extends ChangeNotifier {
 
     final entities = contentEntities.nonNulls.cast<ContentEntity>().toList();
 
-    entities.forEach(_setDateTime);
+    // entities.forEach(_setDateTime);
 
     final result = await _isarService.addAll(entities: entities);
 

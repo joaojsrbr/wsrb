@@ -356,7 +356,7 @@ class _InformationDestinationState extends State<InformationDestination>
                       width: double.infinity,
                       child: Builder(builder: (context) {
                         final list = _content!.anilistMedia?.characters
-                            .unique((char) => char.name?.full);
+                            .unique((char) => char.name?.full, false);
                         if (list == null) return const SizedBox.shrink();
                         return ListView.builder(
                           itemCount: list.length,
@@ -436,7 +436,7 @@ class _InformationDestinationState extends State<InformationDestination>
                       width: double.infinity,
                       child: Builder(builder: (context) {
                         final list = _content!.anilistMedia!.staff
-                            .unique((staff) => staff.name?.full);
+                            .unique((staff) => staff.name?.full, false);
                         return ListView.builder(
                           itemCount: list.length,
                           scrollDirection: Axis.horizontal,

@@ -240,7 +240,7 @@ class _Content extends StatelessWidget {
                             child: InkWell(
                               onTap: () async {
                                 final videoFile = AppStorage.getReleaseFile(
-                                  anime!.toAnime,
+                                  anime!.toAnime(),
                                   data.toEpisode(anime.isDublado),
                                 );
 
@@ -252,7 +252,7 @@ class _Content extends StatelessWidget {
                                         ? FileVideoData(file: videoFile)
                                         : null,
                                     getAnimeData: false,
-                                    anime: anime.toAnime,
+                                    anime: anime.toAnime(),
                                     episode: data.toEpisode(anime.isDublado),
                                     startPossition: data.cdToDuration,
                                   ),

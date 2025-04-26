@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 // ignore_for_file: must_be_immutable
 
 import 'package:content_library/src/constants/source.dart';
@@ -30,25 +31,25 @@ class AnimeEntity extends ContentEntity {
   //       : null;
   // }
 
-  AniListMedia? anilistMedia;
-  DateTime? createdAt;
-  String? animeID;
-  DateTime? updatedAt;
-  String? sinopse;
+  final AniListMedia? anilistMedia;
+  final DateTime? createdAt;
+  final String? animeID;
+  final DateTime? updatedAt;
+  final String? sinopse;
   @enumerated
-  Source source;
-  bool isDublado;
-  bool isFavorite;
-  String? slugSerie;
-  String url;
-  String title;
-  String originalImage;
-  String? extraLarge;
-  String? largeImage;
-  String? mediumImage;
-  String? generateID;
-  int? totalOfEpisodes;
-  int? totalOfPages;
+  final Source source;
+  final bool isDublado;
+  final bool isFavorite;
+  final String? slugSerie;
+  final String url;
+  final String title;
+  final String originalImage;
+  final String? extraLarge;
+  final String? largeImage;
+  final String? mediumImage;
+  final String? generateID;
+  final int? totalOfEpisodes;
+  final int? totalOfPages;
 
   AnimeEntity({
     required super.stringID,
@@ -99,7 +100,52 @@ class AnimeEntity extends ContentEntity {
         totalOfEpisodes,
       ];
 
-  Anime get toAnime {
+  AnimeEntity populeIfItWasCreated({
+    AnimeEntity? other,
+  }) {
+    final entity = copyWith(
+      // stringID: other?.stringID,
+      // anilistMedia: other?.anilistMedia,
+      createdAt: other?.createdAt,
+      // animeID: other?.animeID,
+      // updatedAt: other?.updatedAt,
+      // sinopse: other?.sinopse,
+      // source: other?.source,
+      // isDublado: other?.isDublado,
+      isFavorite: other?.isFavorite,
+      // slugSerie: other?.slugSerie,
+      // url: other?.url,
+      // title: other?.title,
+      // originalImage: other?.originalImage,
+      // extraLarge: other?.extraLarge,
+      // largeImage: other?.largeImage,
+      // mediumImage: other?.mediumImage,
+      // generateID: other?.generateID,
+      // totalOfEpisodes: other?.totalOfEpisodes,
+      // totalOfPages: other?.totalOfPages,
+    );
+
+    // if (other?.episodes != null) {
+    //   entity.episodes = other!.episodes;
+    // }
+    // if (other?.animeSkip != null) {
+    //   entity.animeSkip = other!.animeSkip;
+    // }
+
+    return entity;
+  }
+
+  void addEpisode(EpisodeEntity entity) {
+    episodes.add(entity);
+  }
+
+  Future<void> saveEpisode() async => await episodes.save();
+
+  Future<void> saveAnimeSkip() async {
+    if (animeSkip.value != null) await animeSkip.save();
+  }
+
+  Anime toAnime() {
     return Anime(
       anilistMedia: anilistMedia,
       url: url,
@@ -120,5 +166,53 @@ class AnimeEntity extends ContentEntity {
       largeImage: largeImage,
       mediumImage: mediumImage,
     );
+  }
+
+  AnimeEntity copyWith({
+    AniListMedia? anilistMedia,
+    DateTime? createdAt,
+    String? animeID,
+    DateTime? updatedAt,
+    String? sinopse,
+    Source? source,
+    bool? isDublado,
+    bool? isFavorite,
+    String? slugSerie,
+    String? url,
+    String? title,
+    String? originalImage,
+    String? extraLarge,
+    String? largeImage,
+    String? stringID,
+    String? mediumImage,
+    String? generateID,
+    int? totalOfEpisodes,
+    int? totalOfPages,
+  }) {
+    final entity = AnimeEntity(
+      stringID: stringID ?? this.stringID,
+      anilistMedia: anilistMedia ?? this.anilistMedia,
+      createdAt: createdAt ?? this.createdAt,
+      animeID: animeID ?? this.animeID,
+      updatedAt: updatedAt ?? this.updatedAt,
+      sinopse: sinopse ?? this.sinopse,
+      source: source ?? this.source,
+      isDublado: isDublado ?? this.isDublado,
+      isFavorite: isFavorite ?? this.isFavorite,
+      slugSerie: slugSerie ?? this.slugSerie,
+      url: url ?? this.url,
+      title: title ?? this.title,
+      originalImage: originalImage ?? this.originalImage,
+      extraLarge: extraLarge ?? this.extraLarge,
+      largeImage: largeImage ?? this.largeImage,
+      mediumImage: mediumImage ?? this.mediumImage,
+      generateID: generateID ?? this.generateID,
+      totalOfEpisodes: totalOfEpisodes ?? this.totalOfEpisodes,
+      totalOfPages: totalOfPages ?? this.totalOfPages,
+    );
+    entity.episodes = episodes;
+    entity.animeSkip = animeSkip;
+
+    return entity;
   }
 }

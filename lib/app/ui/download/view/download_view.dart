@@ -370,7 +370,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                                                 episode: episode.toEpisode(
                                                   animeEntity.isDublado,
                                                 ),
-                                                anime: animeEntity.toAnime,
+                                                anime: animeEntity.toAnime(),
                                                 data: FileVideoData(
                                                   file: File(data.file.path),
                                                 ),

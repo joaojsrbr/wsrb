@@ -78,7 +78,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   late final HiveController _hiveController;
   late final LibraryController _libraryController;
   late final AnimeSkipController _animeSkipController;
-  late final HistoryService _historyService;
   late final HistoricController _historicController;
   late final Timer _systemUIModeTimer;
 
@@ -127,7 +126,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         .where((fit) => !(fit == BoxFit.none || fit == _activeFit))
         .forEach(_queueBoxFits.add);
     _historicController = context.read<HistoricController>();
-    _historyService = HistoryService(_historicController);
     _libraryController = context.read<LibraryController>();
 
     _systemUIModeTimer = Timer.periodic(
@@ -409,7 +407,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _continueVideoByHistoricPosition() async {
-    final entity = _historyService.getHistoric<EpisodeEntity>(
+    final entity = _historicController.repo.getHistoric<EpisodeEntity>(
       release: _playerArgs.episode,
       content: _playerArgs.anime,
     );
@@ -516,7 +514,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     final Duration duration = player!.state.duration;
 
-    final EpisodeEntity? entity = _historyService.getHistoric(
+    final EpisodeEntity? entity = _historicController.repo.getHistoric(
       release: _playerArgs.episode,
       content: _playerArgs.anime,
     );
@@ -550,7 +548,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     );
 
     animeEntity.animeSkip.value ??= _playerArgs.anime.animeSkip?.toEntity;
-    animeEntity.episodes.add(episodeEntity);
+
+    animeEntity.addEpisode(episodeEntity);
+
     if (animeEntity.animeSkip.value != null) {
       await _animeSkipController.save(animeEntity.animeSkip.value!);
     }

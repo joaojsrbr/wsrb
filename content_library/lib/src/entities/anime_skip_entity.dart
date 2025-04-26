@@ -30,7 +30,7 @@ class AnimeSkipEntity extends Entity {
   @override
   List<Object?> get props => [name, animeSkipId, times];
 
-  AnimeSkip get toObj {
+  AnimeSkip toObj() {
     return AnimeSkip(
       name: name,
       animeSkipId: animeSkipId,
@@ -44,7 +44,7 @@ class AnimeSkipEntity extends Entity {
     );
   }
 
-  Map<String, dynamic> get toMap {
+  Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'name': name,
       'id': id,

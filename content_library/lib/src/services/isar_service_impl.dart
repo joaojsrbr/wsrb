@@ -33,18 +33,22 @@ class IsarServiceImpl implements IsarService {
             isSucess = true;
           }
 
-        case EpisodeEntity data:
-          final animeEntity = await isar.animeEntitys.getByStringID(
-            data.animeStringID,
-          );
+        case EpisodeEntity episode:
+          await isar.animeEntitys
+              .getByStringID(episode.animeStringID)
+              .then((anime) async {
+            if (anime != null) {
+              anime.addEpisode(episode);
+              currentID = await isar.episodeEntitys.putByStringID(episode);
+              await anime.saveEpisode();
+              currentID = await isar.animeEntitys.putByStringID(
+                anime.copyWith(updatedAt: DateTime.now()),
+              );
 
-          if (animeEntity != null) {
-            animeEntity.updatedAt = DateTime.now();
-            animeEntity.episodes.add(data);
-            currentID = await isar.episodeEntitys.putByStringID(data);
-            await animeEntity.episodes.save();
-            isSucess = true;
-          }
+              isSucess = true;
+            }
+          });
+
           // currentID = await isar.episodeEntitys.putByStringID(data);
 
           // isSucess = true;
@@ -61,33 +65,19 @@ class IsarServiceImpl implements IsarService {
           isSucess = true;
           break;
 
-        case AnimeEntity data:
-          final animeEntity = await isar.animeEntitys.getByStringID(
-            data.stringID,
+        case AnimeEntity anime:
+          AnimeEntity? animeEntity = await isar.animeEntitys.getByStringID(
+            anime.stringID,
           );
 
-          if (animeEntity != null) {
-            animeEntity.isFavorite = data.isFavorite;
-            data.createdAt = animeEntity.createdAt;
-          }
+          currentID = await isar.animeEntitys.putByStringID(
+            anime.copyWith(
+              createdAt: animeEntity?.createdAt,
+              updatedAt: DateTime.now(),
+            ),
+          );
 
-          data.updatedAt = DateTime.now();
-
-          currentID = await isar.animeEntitys.putByStringID(data);
-          // await data.animeSkip.value!.times.save();
-          if (data.animeSkip.value != null) {
-            // await isar.animeSkipEntitys.putByAnimeSkipId(data.animeSkip.value!);
-            await data.animeSkip.save();
-            // await isar.animeTimeStampEntitys.putAll(
-            //   data.animeSkip.value!.times.toList(),
-            // );
-          }
-
-          // if (!data.episodes.isLoaded) {
-          //   await data.episodes.save();
-          // } else {
-          //   await data.episodes.load();
-          // }
+          await anime.saveAnimeSkip();
 
           isSucess = true;
           break;
@@ -176,18 +166,13 @@ class IsarServiceImpl implements IsarService {
         await isar.writeTxn(
           () async {
             final futures = animeEntitys.map((anime) async {
-              final animeEntity = await isar.animeEntitys.getByStringID(
+              AnimeEntity? animeEntity = await isar.animeEntitys.getByStringID(
                 anime.stringID,
               );
 
-              if (animeEntity != null) {
-                animeEntity.isFavorite = anime.isFavorite;
-                anime.createdAt = animeEntity.createdAt;
-              }
-
-              anime.updatedAt = DateTime.now();
-
-              return anime;
+              return anime
+                  .populeIfItWasCreated(other: animeEntity)
+                  .copyWith(updatedAt: DateTime.now());
             });
 
             final animes = await Future.wait(futures);
@@ -249,18 +234,24 @@ class IsarServiceImpl implements IsarService {
       if (episodeEntitys.isNotEmpty) {
         await isar.writeTxn(() async {
           for (final episode in episodeEntitys) {
-            final animeEntity = await isar.animeEntitys.getByStringID(
-              episode.animeStringID,
-            );
+            await isar.animeEntitys
+                .getByStringID(episode.animeStringID)
+                .then((anime) async {
+              if (anime != null) {
+                anime.addEpisode(episode);
 
-            if (animeEntity != null) {
-              animeEntity.updatedAt = DateTime.now();
-              animeEntity.episodes.add(episode);
-              final id = await isar.episodeEntitys.putByStringID(episode);
-              ids.add(id);
-              await animeEntity.episodes.save();
-              isSucess = true;
-            }
+                await isar.episodeEntitys
+                    .putByStringID(episode)
+                    .then(ids.add)
+                    .whenComplete(anime.saveEpisode);
+
+                await isar.animeEntitys.putByStringID(
+                  anime.copyWith(updatedAt: DateTime.now()),
+                );
+
+                isSucess = true;
+              }
+            });
           }
         });
       }

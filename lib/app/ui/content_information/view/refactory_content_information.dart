@@ -29,7 +29,7 @@ class _RefContentkInformationViewState
   late final LibraryController _libraryController;
   late final HistoricController _historicController;
   late final DownloadService _downloadService;
-  late final HistoryService _historyService;
+
   late final AnimeSkipController _animeSkipController;
 
   final Debouncer _changeTabBarIndex = Debouncer(
@@ -54,7 +54,7 @@ class _RefContentkInformationViewState
     super.initState();
     _bottomMenuController = BottomMenuController(minHeight: 70);
     _historicController = context.read<HistoricController>();
-    _historyService = HistoryService(_historicController);
+
     _libraryController = context.read<LibraryController>();
     _animeSkipController = context.read<AnimeSkipController>();
     _libraryService = context.read<LibraryService>();
@@ -230,7 +230,7 @@ class _RefContentkInformationViewState
     final HistoricController historicController =
         context.read<HistoricController>();
 
-    final HistoryService historyService = HistoryService(historicController);
+    final historicRepo = historicController.repo;
 
     switch (release) {
       case Episode data when mounted && _content is Anime:
@@ -249,7 +249,7 @@ class _RefContentkInformationViewState
                 ),
               );
 
-              final EpisodeEntity episodeEntity = historyService.getHistoric(
+              final EpisodeEntity episodeEntity = historicRepo.getHistoric(
                 release: data,
                 content: _content,
                 orElse: () => data.toEntity(anime: _content as Anime),
@@ -400,10 +400,11 @@ class _RefContentkInformationViewState
       );
 
       contentEntity = switch (contentEntity) {
-        AnimeEntity data => data
-          ..isFavorite = true
-          ..anilistMedia = ((otherData ?? _content)?.toEntity() as AnimeEntity?)
-              ?.anilistMedia,
+        AnimeEntity data => data.copyWith(
+            isFavorite: true,
+            anilistMedia: ((otherData ?? _content)?.toEntity() as AnimeEntity?)
+                ?.anilistMedia,
+          ),
         BookEntity data => data
           ..isFavorite = true
           ..anilistMedia = ((otherData ?? _content)?.toEntity() as BookEntity?)
@@ -416,7 +417,7 @@ class _RefContentkInformationViewState
       // final HistoryService historyService = HistoryService(_historicController);
 
       for (final episode in (otherData ?? _content)!.releases) {
-        final entity = _historyService.getHistoric<HistoryEntity>(
+        final entity = _historicController.repo.getHistoric<HistoryEntity>(
           release: episode,
           orElse: () {
             return switch (episode) {

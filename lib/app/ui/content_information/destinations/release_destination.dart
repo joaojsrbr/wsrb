@@ -86,9 +86,12 @@ class _ReleaseSubtitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final historyService = HistoryService(context.watch());
+    final HistoricController historicController =
+        context.watch<HistoricController>();
 
-    final HistoryEntity? historic = historyService.getHistoric(
+    final historicRepo = historicController.repo;
+
+    final HistoryEntity? historic = historicRepo.getHistoric(
       release: release,
     );
     final themeData = Theme.of(context);
@@ -308,11 +311,14 @@ class _ReleaseLeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final HistoryService historyService = HistoryService(context.watch());
+    final HistoricController historicController =
+        context.watch<HistoricController>();
+
+    final historicRepo = historicController.repo;
 
     final colorScheme = Theme.of(context).colorScheme;
 
-    final historic = historyService.getHistoric(release: release);
+    final historic = historicRepo.getHistoric(release: release);
 
     final percent = historic?.isComplete == true
         ? 1.0
