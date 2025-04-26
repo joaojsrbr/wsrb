@@ -1,4 +1,5 @@
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/repository/anime_skip_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 
@@ -8,11 +9,15 @@ class AnimeSkipController extends ChangeNotifier {
     duration: const Duration(milliseconds: 200),
   );
 
+  late final InAnimeSkipRepository _inAnimeSkipRepository;
+
   final Subscriptions _subscriptions = Subscriptions();
 
-  AnimeSkipController(this._isarService);
+  AnimeSkipController(this._isarService) {
+    _inAnimeSkipRepository = InAnimeSkipRepository();
+  }
 
-  final List<AnimeSkipEntity> _entities = [];
+  InAnimeSkipRepository get repo => _inAnimeSkipRepository;
 
   @override
   void dispose() {
@@ -33,7 +38,8 @@ class AnimeSkipController extends ChangeNotifier {
       ],
     );
 
-    _entities.addAll(animeskips);
+    repo.updateRepository([animeskips]);
+
     elapsed.printAndStop(runtimeType.toString());
   }
 
@@ -42,9 +48,8 @@ class AnimeSkipController extends ChangeNotifier {
         await _isarService.collection<AnimeSkipEntity>();
     final animeskips = await animeSkipCollections.where().findAll();
 
-    _entities
-      ..clear()
-      ..addAll(animeskips);
+    repo.updateRepository([animeskips]);
+
     _debouncer.call(notifyListeners);
   }
 

@@ -20,7 +20,6 @@ class ContentScaffold extends StatelessWidget {
     final saveData = ContentScope.of(context).saveData;
     final content = ContentScope.contentOf(context);
     final isLoading = ContentScope.isLoadingOf(context);
-    final libraryService = context.watch<LibraryService>();
     final libraryController = context.watch<LibraryController>();
     final themeData = Theme.of(context);
     // final sizeOf = MediaQuery.sizeOf(context);
@@ -44,7 +43,7 @@ class ContentScaffold extends StatelessWidget {
                   onPressed: () async {
                     customLog(
                         'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${content.title} - id: ${content.stringID}');
-                    if (libraryService.favoritesIDS
+                    if (libraryController.repo.favoritesIDS
                         .contains(content.stringID)) {
                       libraryController.remove(
                         contentEntity: content.toEntity(),
@@ -54,7 +53,8 @@ class ContentScaffold extends StatelessWidget {
                     }
                   },
                   icon: FadeThroughTransitionSwitcher(
-                    enableSecondChild: libraryService.favoritesIDS.contains(
+                    enableSecondChild:
+                        libraryController.repo.favoritesIDS.contains(
                       content.stringID,
                     ),
                     secondChild: Icon(

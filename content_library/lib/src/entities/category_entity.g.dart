@@ -123,11 +123,11 @@ CategoryEntity _categoryEntityDeserialize(
   final object = CategoryEntity(
     createdAt: reader.readDateTimeOrNull(offsets[0]),
     description: reader.readStringOrNull(offsets[1]),
+    ids: reader.readStringList(offsets[2]) ?? const [],
     title: reader.readString(offsets[4]),
     updatedAt: reader.readDateTimeOrNull(offsets[5]),
   );
   object.id = id;
-  object.ids = reader.readStringList(offsets[2]) ?? [];
   return object;
 }
 
@@ -143,7 +143,7 @@ P _categoryEntityDeserializeProp<P>(
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readStringList(offset) ?? const []) as P;
     case 3:
       return (reader.readString(offset)) as P;
     case 4:

@@ -150,8 +150,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       tabController: _tabController,
       builder: (context) {
         final TabController tabController = HomeScope.of(context).tabController;
-        final LibraryService libraryService = context.watch<LibraryService>();
-
+        final LibraryController libraryController =
+            context.watch<LibraryController>();
+        final libraryRepo = libraryController.repo;
         return Scaffold(
           body: BottomMenu(
             isDismissible: false,
@@ -169,8 +170,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     ),
                     bottom: TabBar(
                       controller: _tabController,
-                      dividerColor: (libraryService.notCompleted.isNotEmpty ||
-                                  libraryService.completed.isEmpty) &&
+                      dividerColor: (libraryRepo.notCompleted.isNotEmpty ||
+                                  libraryRepo.completed.isEmpty) &&
                               _tabController.index == 1
                           ? Colors.transparent
                           : null,

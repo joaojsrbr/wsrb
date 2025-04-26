@@ -188,7 +188,7 @@ class _LibraryButtons extends StatelessWidget {
     final ContentRepository repository = context.read<ContentRepository>();
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
-    final LibraryService libraryService = context.watch<LibraryService>();
+    final libraryRepo = libraryController.repo;
 
     final TabController tabController = HomeScope.of(context).tabController;
 
@@ -239,10 +239,10 @@ class _LibraryButtons extends StatelessWidget {
             onPressed: () async {
               final CategoryController categoryController =
                   context.read<CategoryController>();
-              final List<Entity> removeEntities = libraryController.entities
+              final List<Entity> removeEntities = libraryRepo.entities
                   .where(
                     (element) => valueNotifierList.contains(
-                      libraryService.getStringID(element),
+                      libraryRepo.getStringID(element),
                     ),
                   )
                   .toList()
@@ -251,15 +251,19 @@ class _LibraryButtons extends StatelessWidget {
               final removeIDS = <CategoryEntity>{};
 
               for (final category in categoryController.categories) {
-                final id = libraryService.favoritesIDS
+                final id = libraryRepo.favoritesIDS
                     .firstWhereOrNull((id) => category.ids.contains(id));
 
                 if (id != null) {
                   final newIDS = List<String>.from(category.ids);
                   newIDS.remove(id);
-                  category.ids = newIDS;
-                  category.updatedAt = DateTime.now();
-                  removeIDS.add(category);
+
+                  removeIDS.add(
+                    category.copyWith(
+                      ids: newIDS,
+                      updatedAt: DateTime.now(),
+                    ),
+                  );
                 }
               }
 
@@ -282,12 +286,12 @@ class _LibraryButtons extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: libraryService.favoritesIDS
-                    .containsOneElement(valueNotifierList)
-                ? () {
-                    CategoryUtils.selectCategory(context);
-                  }
-                : null,
+            onPressed:
+                libraryRepo.favoritesIDS.containsOneElement(valueNotifierList)
+                    ? () {
+                        CategoryUtils.selectCategory(context);
+                      }
+                    : null,
             icon: FadeThroughTransitionSwitcher(
               enableSecondChild: valueNotifierList.length > 1,
               duration: const Duration(milliseconds: 250),

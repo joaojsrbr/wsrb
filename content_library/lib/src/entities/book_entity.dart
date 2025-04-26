@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 // ignore_for_file: must_be_immutable
 
 import 'package:content_library/src/constants/source.dart';
@@ -19,23 +20,22 @@ part 'book_entity.g.dart';
   'map',
 })
 class BookEntity extends ContentEntity {
-  AniListMedia? anilistMedia;
-  String title;
-  String url;
-  DateTime? createdAt;
-  DateTime? updatedAt;
+  final String title;
+  final String url;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   @enumerated
-  Source source;
-  String? sinopse;
-  String? alternativeTitle;
-  bool isFavorite;
-  String originalImage;
-  String? extraLarge;
-  String? largeImage;
-  String? mediumImage;
+  final Source source;
+  final String? sinopse;
+  final String? alternativeTitle;
 
-  IsarLinks<ChapterEntity> chapters = IsarLinks<ChapterEntity>();
+  final String originalImage;
+  final String? extraLarge;
+  final String? largeImage;
+  final String? mediumImage;
+
+  IsarLinks<ChapterEntity> chapters;
 
   BookEntity({
     required super.stringID,
@@ -44,15 +44,15 @@ class BookEntity extends ContentEntity {
     required this.source,
     required this.originalImage,
     this.createdAt,
-    this.anilistMedia,
+    super.anilistMedia,
     this.sinopse,
     this.updatedAt,
     this.alternativeTitle,
     this.extraLarge,
     this.largeImage,
     this.mediumImage,
-    this.isFavorite = false,
-  });
+    super.isFavorite = false,
+  }) : chapters = IsarLinks<ChapterEntity>();
 
   String get imageUrl =>
       extraLarge ?? largeImage ?? mediumImage ?? originalImage;
@@ -75,7 +75,13 @@ class BookEntity extends ContentEntity {
         chapters,
       ];
 
-  Book get toBook {
+  void addChapter(ChapterEntity entity) {
+    chapters.add(entity);
+  }
+
+  Future<void> saveChapter() async => await chapters.save();
+
+  Book toBook() {
     return Book(
       anilistMedia: anilistMedia,
       sinopse: sinopse,
@@ -83,12 +89,50 @@ class BookEntity extends ContentEntity {
       url: url,
       title: title,
       releases: ChapterReleases.from(
-        chapters.map((entity) => entity.toChapter),
+        chapters.map((entity) => entity.toChapter()),
       ),
       extraLarge: extraLarge,
       largeImage: largeImage,
       mediumImage: mediumImage,
       originalImage: originalImage,
     );
+  }
+
+  @override
+  BookEntity copyWith({
+    AniListMedia? anilistMedia,
+    bool? isFavorite,
+    String? title,
+    String? url,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Source? source,
+    String? sinopse,
+    String? alternativeTitle,
+    String? originalImage,
+    String? extraLarge,
+    String? stringID,
+    String? largeImage,
+    String? mediumImage,
+  }) {
+    final entity = BookEntity(
+      anilistMedia: anilistMedia ?? this.anilistMedia,
+      title: title ?? this.title,
+      url: url ?? this.url,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      source: source ?? this.source,
+      stringID: stringID ?? this.stringID,
+      sinopse: sinopse ?? this.sinopse,
+      alternativeTitle: alternativeTitle ?? this.alternativeTitle,
+      isFavorite: isFavorite ?? this.isFavorite,
+      originalImage: originalImage ?? this.originalImage,
+      extraLarge: extraLarge ?? this.extraLarge,
+      largeImage: largeImage ?? this.largeImage,
+      mediumImage: mediumImage ?? this.mediumImage,
+    );
+
+    entity.chapters = chapters;
+    return entity;
   }
 }

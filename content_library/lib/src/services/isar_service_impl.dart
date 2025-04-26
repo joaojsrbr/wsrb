@@ -21,17 +21,20 @@ class IsarServiceImpl implements IsarService {
     await isar.writeTxn(() async {
       switch (entity) {
         case ChapterEntity data:
-          final bookEntity = await isar.bookEntitys.getByStringID(
-            data.bookStringID,
-          );
-
-          if (bookEntity != null) {
-            bookEntity.updatedAt = DateTime.now();
-            bookEntity.chapters.add(data);
-            currentID = await isar.chapterEntitys.putByStringID(data);
-            await bookEntity.chapters.save();
-            isSucess = true;
-          }
+          await isar.bookEntitys
+              .getByStringID(data.bookStringID)
+              .then((book) async {
+            if (book != null) {
+              book.addChapter(data);
+              // bookEntity.updatedAt = DateTime.now();
+              currentID = await isar.chapterEntitys.putByStringID(data);
+              await book.saveChapter();
+              await isar.bookEntitys.put(
+                book.copyWith(updatedAt: DateTime.now()),
+              );
+              isSucess = true;
+            }
+          });
 
         case EpisodeEntity episode:
           await isar.animeEntitys
@@ -81,17 +84,17 @@ class IsarServiceImpl implements IsarService {
 
           isSucess = true;
           break;
-        case BookEntity data:
+        case BookEntity book:
           final bookEntity = await isar.bookEntitys.getByStringID(
-            data.stringID,
+            book.stringID,
           );
 
-          if (bookEntity != null) {
-            data.createdAt = bookEntity.createdAt;
-          }
-
-          data.updatedAt = DateTime.now();
-          currentID = await isar.bookEntitys.putByStringID(data);
+          currentID = await isar.bookEntitys.putByStringID(
+            book.copyWith(
+              updatedAt: DateTime.now(),
+              createdAt: bookEntity?.createdAt,
+            ),
+          );
           isSucess = true;
           break;
       }
@@ -170,9 +173,11 @@ class IsarServiceImpl implements IsarService {
                 anime.stringID,
               );
 
-              return anime
-                  .populeIfItWasCreated(other: animeEntity)
-                  .copyWith(updatedAt: DateTime.now());
+              return anime.copyWith(
+                updatedAt: DateTime.now(),
+                createdAt: animeEntity?.createdAt,
+                isFavorite: animeEntity?.isFavorite,
+              );
             });
 
             final animes = await Future.wait(futures);
@@ -193,14 +198,10 @@ class IsarServiceImpl implements IsarService {
                 book.stringID,
               );
 
-              if (bookEntitys != null) {
-                bookEntitys.isFavorite = book.isFavorite;
-                book.createdAt = bookEntitys.createdAt;
-              }
-
-              book.updatedAt = DateTime.now();
-
-              return book;
+              return book.copyWith(
+                updatedAt: DateTime.now(),
+                createdAt: bookEntitys?.createdAt,
+              );
             });
             final books = await Future.wait(futures);
             final addIds = await isar.bookEntitys.putAllByStringID(books);

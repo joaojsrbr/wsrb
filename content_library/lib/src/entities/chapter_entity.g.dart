@@ -131,6 +131,7 @@ ChapterEntity _chapterEntityDeserialize(
     bookStringID: reader.readString(offsets[0]),
     createdAt: reader.readDateTimeOrNull(offsets[1]),
     isComplete: reader.readBoolOrNull(offsets[2]) ?? false,
+    percent: reader.readDoubleOrNull(offsets[3]) ?? 0.0,
     readPercent: reader.readDouble(offsets[4]),
     stringID: reader.readString(offsets[5]),
     title: reader.readString(offsets[6]),
@@ -155,7 +156,7 @@ P _chapterEntityDeserializeProp<P>(
     case 2:
       return (reader.readBoolOrNull(offset) ?? false) as P;
     case 3:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readDoubleOrNull(offset) ?? 0.0) as P;
     case 4:
       return (reader.readDouble(offset)) as P;
     case 5:

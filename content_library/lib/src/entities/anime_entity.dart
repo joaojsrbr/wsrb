@@ -22,16 +22,6 @@ part 'anime_entity.g.dart';
   'aniList',
 })
 class AnimeEntity extends ContentEntity {
-  IsarLinks<EpisodeEntity> episodes = IsarLinks<EpisodeEntity>();
-  IsarLink<AnimeSkipEntity> animeSkip = IsarLink<AnimeSkipEntity>();
-
-  // AnilistMedia? get aniList {
-  //   return anilistMedia != null
-  //       ? AnilistMedia.fromJson(jsonDecode(anilistMedia!))
-  //       : null;
-  // }
-
-  final AniListMedia? anilistMedia;
   final DateTime? createdAt;
   final String? animeID;
   final DateTime? updatedAt;
@@ -39,7 +29,7 @@ class AnimeEntity extends ContentEntity {
   @enumerated
   final Source source;
   final bool isDublado;
-  final bool isFavorite;
+
   final String? slugSerie;
   final String url;
   final String title;
@@ -51,13 +41,16 @@ class AnimeEntity extends ContentEntity {
   final int? totalOfEpisodes;
   final int? totalOfPages;
 
+  IsarLinks<EpisodeEntity> episodes;
+  IsarLink<AnimeSkipEntity> animeSkip;
+
   AnimeEntity({
     required super.stringID,
     required this.url,
     required this.totalOfEpisodes,
     required this.title,
     required this.source,
-    this.anilistMedia,
+    super.anilistMedia,
     this.createdAt,
     this.animeID,
     this.totalOfPages,
@@ -66,12 +59,13 @@ class AnimeEntity extends ContentEntity {
     this.updatedAt,
     this.sinopse,
     this.generateID,
-    this.isFavorite = false,
+    super.isFavorite = false,
     required this.originalImage,
     this.extraLarge,
     this.largeImage,
     this.mediumImage,
-  });
+  })  : episodes = IsarLinks<EpisodeEntity>(),
+        animeSkip = IsarLink<AnimeSkipEntity>();
 
   String get imageUrl =>
       extraLarge ?? largeImage ?? mediumImage ?? originalImage;
@@ -100,41 +94,6 @@ class AnimeEntity extends ContentEntity {
         totalOfEpisodes,
       ];
 
-  AnimeEntity populeIfItWasCreated({
-    AnimeEntity? other,
-  }) {
-    final entity = copyWith(
-      // stringID: other?.stringID,
-      // anilistMedia: other?.anilistMedia,
-      createdAt: other?.createdAt,
-      // animeID: other?.animeID,
-      // updatedAt: other?.updatedAt,
-      // sinopse: other?.sinopse,
-      // source: other?.source,
-      // isDublado: other?.isDublado,
-      isFavorite: other?.isFavorite,
-      // slugSerie: other?.slugSerie,
-      // url: other?.url,
-      // title: other?.title,
-      // originalImage: other?.originalImage,
-      // extraLarge: other?.extraLarge,
-      // largeImage: other?.largeImage,
-      // mediumImage: other?.mediumImage,
-      // generateID: other?.generateID,
-      // totalOfEpisodes: other?.totalOfEpisodes,
-      // totalOfPages: other?.totalOfPages,
-    );
-
-    // if (other?.episodes != null) {
-    //   entity.episodes = other!.episodes;
-    // }
-    // if (other?.animeSkip != null) {
-    //   entity.animeSkip = other!.animeSkip;
-    // }
-
-    return entity;
-  }
-
   void addEpisode(EpisodeEntity entity) {
     episodes.add(entity);
   }
@@ -153,7 +112,7 @@ class AnimeEntity extends ContentEntity {
       animeID: animeID,
       title: title,
       generateID: generateID,
-      animeSkip: animeSkip.value?.toObj,
+      animeSkip: animeSkip.value?.toObj(),
       totalOfEpisodes: totalOfEpisodes,
       slugSerie: slugSerie,
       source: source,

@@ -13,14 +13,14 @@ class HomeBottomOverlay extends StatelessWidget {
     final LibraryController libraryController =
         context.read<LibraryController>();
 
+    final libraryRepo = libraryController.repo;
+
     final ContentRepository repository = context.read<ContentRepository>();
 
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
 
     if (valueNotifierList.isEmpty) return const SizedBox.shrink();
-
-    final LibraryService libraryService = context.watch<LibraryService>();
 
     return SafeArea(
       top: false,
@@ -39,7 +39,7 @@ class HomeBottomOverlay extends StatelessWidget {
             overflowAlignment: OverflowBarAlignment.end,
             children: [
               IconButton(
-                onPressed: libraryService.favoritesIDS
+                onPressed: libraryRepo.favoritesIDS
                         .containsOneElement(valueNotifierList)
                     ? null
                     : () async {
@@ -72,34 +72,36 @@ class HomeBottomOverlay extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: libraryService.favoritesIDS
+                onPressed: libraryRepo.favoritesIDS
                         .containsOneElement(valueNotifierList)
                     ? () async {
                         final CategoryController categoryController =
                             context.read<CategoryController>();
-                        final List<Entity> removeEntities =
-                            libraryController.entities
-                                .where(
-                                  (element) => valueNotifierList.contains(
-                                    libraryService.getStringID(element),
-                                  ),
-                                )
-                                .toList()
-                                .unique((content) => content.id);
+                        final List<Entity> removeEntities = libraryRepo.entities
+                            .where(
+                              (element) => valueNotifierList.contains(
+                                libraryRepo.getStringID(element),
+                              ),
+                            )
+                            .toList()
+                            .unique((content) => content.id);
 
                         final removeIDS = <CategoryEntity>{};
 
                         for (final category in categoryController.categories) {
-                          final id = libraryService.favoritesIDS
-                              .firstWhereOrNull(
-                                  (id) => category.ids.contains(id));
+                          final id = libraryRepo.favoritesIDS.firstWhereOrNull(
+                              (id) => category.ids.contains(id));
 
                           if (id != null) {
                             final newIDS = List<String>.from(category.ids);
                             newIDS.remove(id);
-                            category.ids = newIDS;
-                            category.updatedAt = DateTime.now();
-                            removeIDS.add(category);
+
+                            removeIDS.add(
+                              category.copyWith(
+                                ids: newIDS,
+                                updatedAt: DateTime.now(),
+                              ),
+                            );
                           }
                         }
 
@@ -123,7 +125,7 @@ class HomeBottomOverlay extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: libraryService.favoritesIDS
+                onPressed: libraryRepo.favoritesIDS
                         .containsOneElement(valueNotifierList)
                     ? () {
                         CategoryUtils.selectCategory(context);

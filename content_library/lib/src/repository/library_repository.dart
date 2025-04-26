@@ -1,14 +1,13 @@
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/utils/in_repository.dart';
 
-class LibraryService {
-  final LibraryController _libraryController;
+class InLibraryRepository extends InRepository<ContentEntity> {
   final HiveController _hiveController;
-  const LibraryService(this._libraryController, this._hiveController);
 
-  UnmodifiableListView<ContentEntity> get entities =>
-      _libraryController.entities;
+  InLibraryRepository(this._hiveController);
+
   UnmodifiableListView<String> get allDownIds =>
-      UnmodifiableListView(_libraryController.entities.map(_map2).nonNulls);
+      UnmodifiableListView(entities.map(_map2).nonNulls);
 
   UnmodifiableListView<String> get favoritesIDS => UnmodifiableListView(entities
       .where((entity) => switch (entity) {
@@ -104,7 +103,7 @@ class LibraryService {
     CategoryController categoryController, [
     bool noCategory = false,
   ]) {
-    return _libraryController.entities
+    return entities
         .where((content) => switch (content) {
               AnimeEntity data
                   when favoritesIDS.contains(data.stringID) && noCategory =>

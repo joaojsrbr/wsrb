@@ -1,5 +1,5 @@
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/services/historic/historic_repository.dart';
+import 'package:content_library/src/repository/historic_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
@@ -11,12 +11,12 @@ class HistoricController extends ChangeNotifier {
   );
 
   HistoricController(this._isarService) {
-    _repository = HistoricRepository();
+    _repository = InHistoricRepository();
   }
 
-  late final HistoricRepository _repository;
+  late final InHistoricRepository _repository;
 
-  HistoricRepository get repo => _repository;
+  InHistoricRepository get repo => _repository;
 
   @override
   void dispose() {
@@ -62,8 +62,6 @@ class HistoricController extends ChangeNotifier {
     bool isSucess = false;
     final List<int> ids = [];
 
-    // _setDateTime(historyEntity);
-
     final result = await _isarService.add(entity: historyEntity);
 
     result.fold(onSuccess: (data) {
@@ -73,23 +71,6 @@ class HistoricController extends ChangeNotifier {
 
     return Result.success((isSucess, ids));
   }
-
-  // void _setDateTime(HistoryEntity historyEntity) {
-  //   switch (historyEntity) {
-  //     case EpisodeEntity data:
-  //       if (repo.contains(historyEntity: data)) {
-  //         data.updatedAt = DateTime.now();
-  //       }
-  //       data.createdAt ??= DateTime.now();
-  //       break;
-  //     case ChapterEntity data:
-  //       if (repo.contains(historyEntity: data)) {
-  //         data.updatedAt = DateTime.now();
-  //       }
-  //       data.createdAt ??= DateTime.now();
-  //       break;
-  //   }
-  // }
 
   String getStringID(Entity entity) {
     return switch (entity) {
@@ -106,8 +87,6 @@ class HistoricController extends ChangeNotifier {
     final List<int> ids = [];
 
     final entities = historyEntities.nonNulls.cast<HistoryEntity>().toList();
-
-    // entities.forEach(_setDateTime);
 
     final result = await _isarService.addAll(entities: entities);
 

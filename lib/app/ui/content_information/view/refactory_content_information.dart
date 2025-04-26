@@ -24,7 +24,6 @@ class _RefContentkInformationViewState
   late final ContentRepository _repository;
   // late final ConnectionChecker _connectionChecker;
 
-  late final LibraryService _libraryService;
   late final BottomMenuController<Release> _bottomMenuController;
   late final LibraryController _libraryController;
   late final HistoricController _historicController;
@@ -57,7 +56,6 @@ class _RefContentkInformationViewState
 
     _libraryController = context.read<LibraryController>();
     _animeSkipController = context.read<AnimeSkipController>();
-    _libraryService = context.read<LibraryService>();
     _downloadService = context.read<DownloadService>();
     _repository = context.read<ContentRepository>();
     scheduleMicrotask(_onInit);
@@ -242,7 +240,7 @@ class _RefContentkInformationViewState
           onResult: (result) async {
             if (result is Success) {
               final AnimeEntity animeEntity =
-                  _libraryService.getContentEntityByStringID(
+                  _libraryController.repo.getContentEntityByStringID(
                 _content!.stringID,
                 orElse: () => (_content! as Anime).toEntity(
                   createdAt: DateTime.now(),
@@ -388,9 +386,9 @@ class _RefContentkInformationViewState
 
   void _saveData([Content? otherData]) async {
     if (otherData != null ||
-        _libraryService.contains(content: otherData ?? _content)) {
+        _libraryController.repo.contains(content: otherData ?? _content)) {
       ContentEntity? contentEntity =
-          await _libraryService.getContentEntityByStringIDAll(
+          await _libraryController.repo.getContentEntityByStringIDAll(
         otherData?.stringID ?? _content!.stringID,
       );
 
@@ -399,18 +397,26 @@ class _RefContentkInformationViewState
         isFavorite: true,
       );
 
-      contentEntity = switch (contentEntity) {
-        AnimeEntity data => data.copyWith(
-            isFavorite: true,
-            anilistMedia: ((otherData ?? _content)?.toEntity() as AnimeEntity?)
-                ?.anilistMedia,
-          ),
-        BookEntity data => data
-          ..isFavorite = true
-          ..anilistMedia = ((otherData ?? _content)?.toEntity() as BookEntity?)
-              ?.anilistMedia,
-        _ => throw UnimplementedError(),
-      };
+      // contentEntity = switch (contentEntity) {
+      //   AnimeEntity data => data.copyWith(
+      //       isFavorite: true,
+      //       anilistMedia: ((otherData ?? _content)?.toEntity() as AnimeEntity?)
+      //           ?.anilistMedia,
+      //     ),
+      //   BookEntity data => data.copyWith(
+      //       isFavorite: true,
+      //       anilistMedia: ((otherData ?? _content)?.toEntity() as BookEntity?)
+      //           ?.anilistMedia,
+      //     ),
+      //   _ => throw UnimplementedError(),
+      // };
+      contentEntity = contentEntity?.copyWith(
+        isFavorite: true,
+        anilistMedia:
+            ((otherData ?? _content)?.toEntity() as BookEntity?)?.anilistMedia,
+      );
+
+      if (contentEntity == null) return;
 
       final List<HistoryEntity> historyEntities = [];
 

@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 // ignore_for_file: must_be_immutable
 
 import 'package:content_library/src/entities/entity.dart';
@@ -8,24 +9,22 @@ part 'category_entity.g.dart';
 
 @Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode'})
 class CategoryEntity extends Entity {
-  String title;
-  String? description;
-
-  List<String> ids = [];
-
-  DateTime? createdAt;
-
-  DateTime? updatedAt;
+  final String title;
+  final String? description;
+  final List<String> ids;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   @Index(replace: true, unique: true)
-  String get stringID => const Uuid().v5(Namespace.url.value, title);
+  final String stringID;
 
   CategoryEntity({
     required this.title,
     this.description,
     this.createdAt,
     this.updatedAt,
-  });
+    this.ids = const [],
+  }) : stringID = const Uuid().v5(Namespace.url.value, title);
 
   @override
   List<Object?> get props => [
@@ -36,4 +35,21 @@ class CategoryEntity extends Entity {
         updatedAt,
         stringID,
       ];
+
+  CategoryEntity copyWith({
+    String? title,
+    String? description,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    String? stringID,
+    List<String>? ids,
+  }) {
+    return CategoryEntity(
+      title: title ?? this.title,
+      ids: ids ?? this.ids,
+      description: description ?? this.description,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }

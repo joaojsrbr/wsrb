@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/repository/library_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
@@ -8,12 +9,19 @@ class LibraryController extends ChangeNotifier {
   final IsarServiceImpl _isarService;
   final Subscriptions _subscriptions = Subscriptions();
   // late final LibraryService _libraryService;
+
+  late final InLibraryRepository _inLibraryRepository;
+
+  InLibraryRepository get repo => _inLibraryRepository;
+
   LibraryController(this._isarService, HiveController hiveController) {
+    _inLibraryRepository = InLibraryRepository(hiveController);
     // _libraryService = LibraryService(this, hiveController);
   }
 
-  final Debouncer _updateDebouncer =
-      Debouncer(duration: const Duration(milliseconds: 200));
+  final Debouncer _updateDebouncer = Debouncer(
+    duration: const Duration(milliseconds: 200),
+  );
 
   @override
   void dispose() {
@@ -21,8 +29,6 @@ class LibraryController extends ChangeNotifier {
     _subscriptions.cancelAll();
     super.dispose();
   }
-
-  final List<ContentEntity> _entities = [];
 
   void _watchAll(data) async {
     final animeColetions = await _isarService.collection<AnimeEntity>();
@@ -54,9 +60,7 @@ class LibraryController extends ChangeNotifier {
           .flattened,
     );
 
-    _entities
-      ..clear()
-      ..addAll(entities);
+    repo.updateRepository([entities]);
     _updateDebouncer.call(notifyListeners);
   }
 
@@ -92,7 +96,7 @@ class LibraryController extends ChangeNotifier {
           .flattened,
     );
 
-    _entities.addAll(entities);
+    repo.updateRepository([entities]);
 
     _subscriptions.addAll(
       [
@@ -104,9 +108,6 @@ class LibraryController extends ChangeNotifier {
 
     elapsed.printAndStop(runtimeType.toString());
   }
-
-  UnmodifiableListView<ContentEntity> get entities =>
-      UnmodifiableListView(_entities);
 
   Future<Result<(bool, List<int>?)>> add({
     required ContentEntity contentEntity,
@@ -125,25 +126,6 @@ class LibraryController extends ChangeNotifier {
 
     return Result.success((isSucess, ids));
   }
-
-  // void _setDateTime(ContentEntity contentEntity) {
-  //   switch (contentEntity) {
-  //     case AnimeEntity data:
-  //     // if (_libraryService.contains(contentEntity: data)) {
-  //     //   data.updatedAt = DateTime.now();
-  //     //   break;
-  //     // }
-  //     // data.createdAt = DateTime.now();
-  //     // break;
-  //     case BookEntity data:
-  //       if (_libraryService.contains(contentEntity: data)) {
-  //         data.updatedAt = DateTime.now();
-  //         break;
-  //       }
-  //       data.createdAt = DateTime.now();
-  //       break;
-  //   }
-  // }
 
   Future<Result<(bool, List<int>?)>> addAll({
     required List<ContentEntity> contentEntities,

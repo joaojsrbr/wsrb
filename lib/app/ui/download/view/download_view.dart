@@ -78,8 +78,8 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
   );
 
   final List<_FileData> _files = [];
-  late final LibraryService _libraryService;
   late final BottomMenuController _bottomMenuController;
+  late final LibraryController _libraryController;
   final List<String> _fileSelected = [];
 
   late final DownloadService _downloadService;
@@ -89,8 +89,8 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
   @override
   void initState() {
     _bottomMenuController = BottomMenuController();
-    _libraryService = context.read<LibraryService>();
     _downloadService = context.read<DownloadService>();
+    _libraryController = context.read<LibraryController>();
     scheduleMicrotask(_onInit);
     super.initState();
   }
@@ -160,7 +160,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
         .forEachIndexed((index, file) async {
           _FileData data = _FileData(file: file, imageThumbnail: "");
           if (data.number != null &&
-              _libraryService.allDownIds.contains(data.title.toID)) {
+              _libraryController.repo.allDownIds.contains(data.title.toID)) {
             final cacheDir =
                 Directory("$tempPath/${data.source}/${data.title.toUuID}");
             final cacheFile = File("${cacheDir.path}/${data.number}.png");
@@ -335,11 +335,8 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                                           add(data.file.path);
                                         }
                                       : () async {
-                                          final LibraryService libraryService =
-                                              context.read<LibraryService>();
-
-                                          final animeEntity = libraryService
-                                              .entities
+                                          final animeEntity = _libraryController
+                                              .repo.entities
                                               .firstWhereOrNull(
                                             (entity) => switch (entity) {
                                               AnimeEntity anime => anime

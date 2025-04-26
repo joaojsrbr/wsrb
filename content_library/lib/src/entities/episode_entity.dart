@@ -13,27 +13,27 @@ part 'episode_entity.g.dart';
   'percent'
 })
 class EpisodeEntity extends HistoryEntity {
-  int episodeDuration;
-  int currentDuration;
+  final int episodeDuration;
+  final int currentDuration;
   @override
-  bool isComplete;
-  String? sinopse;
-  int? numberEpisode;
+  final bool isComplete;
+  final String? sinopse;
+  final int? numberEpisode;
   @Index(replace: true, unique: true)
-  String stringID;
-  String animeStringID;
-  DateTime? createdAt;
-  int? pageNumber;
-  DateTime? updatedAt;
-  String? thumbnail;
-  String? slugSerie;
-  String? generateID;
-  String url;
-  String? currentPositionBase64;
-  String title;
+  final String stringID;
+  final String animeStringID;
+  final DateTime? createdAt;
+  final int? pageNumber;
+  final DateTime? updatedAt;
+  final String? thumbnail;
+  final String? slugSerie;
+  final String? generateID;
+  final String url;
+  final String? currentPositionBase64;
+  final String title;
 
   @override
-  double get percent => (currentDuration / episodeDuration).abs();
+  final double percent;
 
   EpisodeEntity({
     this.currentDuration = 0,
@@ -52,7 +52,7 @@ class EpisodeEntity extends HistoryEntity {
     this.thumbnail,
     this.updatedAt,
     this.isComplete = false,
-  });
+  }) : percent = (currentDuration / episodeDuration).abs();
 
   factory EpisodeEntity.save({
     bool isComplete = false,

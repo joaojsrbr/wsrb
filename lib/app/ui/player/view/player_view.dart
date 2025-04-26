@@ -74,7 +74,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   late PlayerArgs _playerArgs = argument();
   late final AnimationController _animationController;
   late final ContentRepository _repository;
-  late final LibraryService _libraryService;
   late final HiveController _hiveController;
   late final LibraryController _libraryController;
   late final AnimeSkipController _animeSkipController;
@@ -114,7 +113,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _libraryService = context.read<LibraryService>();
     _hiveController = context.read<HiveController>();
     _animeSkipController = context.read<AnimeSkipController>();
     _repository = context.read<ContentRepository>();
@@ -542,7 +540,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     customLog(
         '[$runtimeType][_saveVideoPosition()][${episodeEntity.numberEpisode}]');
 
-    final AnimeEntity animeEntity = _libraryService.getContentEntityByStringID(
+    final AnimeEntity animeEntity =
+        _libraryController.repo.getContentEntityByStringID(
       _playerArgs.anime.stringID,
       orElse: () => _playerArgs.anime.toEntity(createdAt: DateTime.now()),
     );

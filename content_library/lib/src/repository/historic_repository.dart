@@ -1,19 +1,9 @@
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/utils/in_repository.dart';
 
-class HistoricRepository {
-  void updateRepository(Iterable<Iterable<HistoryEntity>> iterable) {
-    _entities
-      ..clear()
-      ..addAll(iterable.flattened);
-  }
-
-  final List<HistoryEntity> _entities = [];
-
-  UnmodifiableListView<HistoryEntity> get entities =>
-      UnmodifiableListView(_entities);
-
+class InHistoricRepository extends InRepository<HistoryEntity> {
   UnmodifiableListView<String> get ids =>
-      UnmodifiableListView(_entities.map(_map).nonNulls);
+      UnmodifiableListView(entities.map(_map).nonNulls);
 
   String? _map(HistoryEntity entity) {
     return switch (entity) {
@@ -58,7 +48,7 @@ class HistoricRepository {
 
   UnmodifiableListView<HistoryEntity> get sortedByCreatedAt =>
       UnmodifiableListView(
-        _entities.sorted(
+        entities.sorted(
           (historic1, historic2) => historic2.compareTo(historic1),
         ),
       );

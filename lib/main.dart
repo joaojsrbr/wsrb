@@ -100,19 +100,6 @@ void main(List<String> arguments) async {
           create: (context) => contentRepository,
           dispose: (context, repository) => repository.dispose(),
         ),
-        ProxyProvider(
-          updateShouldNotify: (previous, current) => true,
-          update: (context, value, previous) {
-            return LibraryService(
-              context.watch(),
-              context.watch(),
-            );
-          },
-          create: (context) => LibraryService(
-            context.read(),
-            context.read(),
-          ),
-        ),
       ],
       child: const MyApp(),
     ),

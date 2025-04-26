@@ -29,7 +29,6 @@ class LibraryeDestinationState extends State<LibraryDestination>
   int? _initialIndex;
 
   late final LibraryController _libraryController;
-  late final LibraryService _libraryService;
   late final CategoryController _categoryController;
 
   @override
@@ -38,8 +37,6 @@ class LibraryeDestinationState extends State<LibraryDestination>
 
     _libraryController = context.read<LibraryController>()
       ..addListener(_setChildren);
-
-    _libraryService = context.read<LibraryService>();
 
     _categoryController = context.read<CategoryController>()
       ..addListener(_setChildren);
@@ -55,12 +52,12 @@ class LibraryeDestinationState extends State<LibraryDestination>
   }
 
   void _setChildren() {
-    final noCategories = _libraryService
+    final noCategories = _libraryController.repo
         .byCategories(_categoryController, true)
         .getContent
         .toList();
 
-    final yesCategories = _libraryService.entities
+    final yesCategories = _libraryController.repo.entities
         .categoryByID(context)
         .map((e) => e.getContent.toList())
         .toList();

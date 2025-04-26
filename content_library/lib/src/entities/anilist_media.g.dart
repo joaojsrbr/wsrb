@@ -401,78 +401,79 @@ AniListMedia _aniListMediaDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = AniListMedia();
-  object.averageScore = reader.readLongOrNull(offsets[0]);
-  object.bannerImage = reader.readObjectOrNull<BannerImage>(
-    offsets[1],
-    BannerImageSchema.deserialize,
-    allOffsets,
+  final object = AniListMedia(
+    averageScore: reader.readLongOrNull(offsets[0]),
+    bannerImage: reader.readObjectOrNull<BannerImage>(
+      offsets[1],
+      BannerImageSchema.deserialize,
+      allOffsets,
+    ),
+    characters: reader.readObjectList<Character>(
+          offsets[2],
+          CharacterSchema.deserialize,
+          allOffsets,
+          Character(),
+        ) ??
+        const [],
+    countryOfOrigin: reader.readStringOrNull(offsets[3]),
+    coverImage: reader.readObjectOrNull<CoverImage>(
+      offsets[4],
+      CoverImageSchema.deserialize,
+      allOffsets,
+    ),
+    description: reader.readStringOrNull(offsets[5]),
+    endDate: reader.readObjectOrNull<Date>(
+      offsets[6],
+      DateSchema.deserialize,
+      allOffsets,
+    ),
+    episodes: reader.readLongOrNull(offsets[7]),
+    favourites: reader.readLongOrNull(offsets[8]),
+    format: reader.readStringOrNull(offsets[9]),
+    genres: reader.readStringList(offsets[10]) ?? const [],
+    hashtag: reader.readStringOrNull(offsets[11]),
+    idMal: reader.readLongOrNull(offsets[12]),
+    isLicensed: reader.readBoolOrNull(offsets[13]),
+    isLocked: reader.readBoolOrNull(offsets[14]),
+    meanScore: reader.readLongOrNull(offsets[15]),
+    popularity: reader.readLongOrNull(offsets[16]),
+    season: reader.readStringOrNull(offsets[17]),
+    source: reader.readStringOrNull(offsets[18]),
+    staff: reader.readObjectList<Staff>(
+          offsets[19],
+          StaffSchema.deserialize,
+          allOffsets,
+          Staff(),
+        ) ??
+        const [],
+    startDate: reader.readObjectOrNull<Date>(
+      offsets[20],
+      DateSchema.deserialize,
+      allOffsets,
+    ),
+    status: reader.readStringOrNull(offsets[21]),
+    synonyms: reader.readStringList(offsets[22]) ?? const [],
+    tags: reader.readObjectList<Tag>(
+          offsets[23],
+          TagSchema.deserialize,
+          allOffsets,
+          Tag(),
+        ) ??
+        const [],
+    title: reader.readObjectOrNull<Title>(
+      offsets[24],
+      TitleSchema.deserialize,
+      allOffsets,
+    ),
+    trailer: reader.readObjectOrNull<Trailer>(
+      offsets[25],
+      TrailerSchema.deserialize,
+      allOffsets,
+    ),
+    trending: reader.readLongOrNull(offsets[26]),
+    type: reader.readStringOrNull(offsets[27]),
+    updatedAt: reader.readLongOrNull(offsets[28]),
   );
-  object.characters = reader.readObjectList<Character>(
-        offsets[2],
-        CharacterSchema.deserialize,
-        allOffsets,
-        Character(),
-      ) ??
-      [];
-  object.countryOfOrigin = reader.readStringOrNull(offsets[3]);
-  object.coverImage = reader.readObjectOrNull<CoverImage>(
-    offsets[4],
-    CoverImageSchema.deserialize,
-    allOffsets,
-  );
-  object.description = reader.readStringOrNull(offsets[5]);
-  object.endDate = reader.readObjectOrNull<Date>(
-    offsets[6],
-    DateSchema.deserialize,
-    allOffsets,
-  );
-  object.episodes = reader.readLongOrNull(offsets[7]);
-  object.favourites = reader.readLongOrNull(offsets[8]);
-  object.format = reader.readStringOrNull(offsets[9]);
-  object.genres = reader.readStringList(offsets[10]) ?? [];
-  object.hashtag = reader.readStringOrNull(offsets[11]);
-  object.idMal = reader.readLongOrNull(offsets[12]);
-  object.isLicensed = reader.readBoolOrNull(offsets[13]);
-  object.isLocked = reader.readBoolOrNull(offsets[14]);
-  object.meanScore = reader.readLongOrNull(offsets[15]);
-  object.popularity = reader.readLongOrNull(offsets[16]);
-  object.season = reader.readStringOrNull(offsets[17]);
-  object.source = reader.readStringOrNull(offsets[18]);
-  object.staff = reader.readObjectList<Staff>(
-        offsets[19],
-        StaffSchema.deserialize,
-        allOffsets,
-        Staff(),
-      ) ??
-      [];
-  object.startDate = reader.readObjectOrNull<Date>(
-    offsets[20],
-    DateSchema.deserialize,
-    allOffsets,
-  );
-  object.status = reader.readStringOrNull(offsets[21]);
-  object.synonyms = reader.readStringList(offsets[22]) ?? [];
-  object.tags = reader.readObjectList<Tag>(
-        offsets[23],
-        TagSchema.deserialize,
-        allOffsets,
-        Tag(),
-      ) ??
-      [];
-  object.title = reader.readObjectOrNull<Title>(
-    offsets[24],
-    TitleSchema.deserialize,
-    allOffsets,
-  );
-  object.trailer = reader.readObjectOrNull<Trailer>(
-    offsets[25],
-    TrailerSchema.deserialize,
-    allOffsets,
-  );
-  object.trending = reader.readLongOrNull(offsets[26]);
-  object.type = reader.readStringOrNull(offsets[27]);
-  object.updatedAt = reader.readLongOrNull(offsets[28]);
   return object;
 }
 
@@ -498,7 +499,7 @@ P _aniListMediaDeserializeProp<P>(
             allOffsets,
             Character(),
           ) ??
-          []) as P;
+          const []) as P;
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
@@ -522,7 +523,7 @@ P _aniListMediaDeserializeProp<P>(
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readStringList(offset) ?? const []) as P;
     case 11:
       return (reader.readStringOrNull(offset)) as P;
     case 12:
@@ -546,7 +547,7 @@ P _aniListMediaDeserializeProp<P>(
             allOffsets,
             Staff(),
           ) ??
-          []) as P;
+          const []) as P;
     case 20:
       return (reader.readObjectOrNull<Date>(
         offset,
@@ -556,7 +557,7 @@ P _aniListMediaDeserializeProp<P>(
     case 21:
       return (reader.readStringOrNull(offset)) as P;
     case 22:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readStringList(offset) ?? const []) as P;
     case 23:
       return (reader.readObjectList<Tag>(
             offset,
@@ -564,7 +565,7 @@ P _aniListMediaDeserializeProp<P>(
             allOffsets,
             Tag(),
           ) ??
-          []) as P;
+          const []) as P;
     case 24:
       return (reader.readObjectOrNull<Title>(
         offset,
@@ -3444,12 +3445,13 @@ BannerImage _bannerImageDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = BannerImage();
-  object.color = reader.readStringOrNull(offsets[0]);
-  object.extraLarge = reader.readStringOrNull(offsets[1]);
-  object.isBanner = reader.readBool(offsets[2]);
-  object.large = reader.readStringOrNull(offsets[3]);
-  object.medium = reader.readStringOrNull(offsets[4]);
+  final object = BannerImage(
+    color: reader.readStringOrNull(offsets[0]),
+    extraLarge: reader.readStringOrNull(offsets[1]),
+    isBanner: reader.readBoolOrNull(offsets[2]) ?? false,
+    large: reader.readStringOrNull(offsets[3]),
+    medium: reader.readStringOrNull(offsets[4]),
+  );
   return object;
 }
 
@@ -3465,7 +3467,7 @@ P _bannerImageDeserializeProp<P>(
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
@@ -4167,10 +4169,11 @@ Title _titleDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Title();
-  object.english = reader.readStringOrNull(offsets[0]);
-  object.native = reader.readStringOrNull(offsets[1]);
-  object.romaji = reader.readStringOrNull(offsets[2]);
+  final object = Title(
+    english: reader.readStringOrNull(offsets[0]),
+    native: reader.readStringOrNull(offsets[1]),
+    romaji: reader.readStringOrNull(offsets[2]),
+  );
   return object;
 }
 
@@ -4693,10 +4696,11 @@ Date _dateDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Date();
-  object.day = reader.readLong(offsets[0]);
-  object.month = reader.readLong(offsets[2]);
-  object.year = reader.readLong(offsets[3]);
+  final object = Date(
+    day: reader.readLongOrNull(offsets[0]) ?? -1,
+    month: reader.readLongOrNull(offsets[2]) ?? -1,
+    year: reader.readLongOrNull(offsets[3]) ?? -1,
+  );
   return object;
 }
 
@@ -4708,13 +4712,13 @@ P _dateDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLong(offset)) as P;
+      return (reader.readLongOrNull(offset) ?? -1) as P;
     case 1:
       return (reader.readBool(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
+      return (reader.readLongOrNull(offset) ?? -1) as P;
     case 3:
-      return (reader.readLong(offset)) as P;
+      return (reader.readLongOrNull(offset) ?? -1) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -4962,10 +4966,11 @@ Trailer _trailerDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Trailer();
-  object.id = reader.readStringOrNull(offsets[0]);
-  object.site = reader.readStringOrNull(offsets[1]);
-  object.thumbnail = reader.readStringOrNull(offsets[2]);
+  final object = Trailer(
+    id: reader.readStringOrNull(offsets[0]),
+    site: reader.readStringOrNull(offsets[1]),
+    thumbnail: reader.readStringOrNull(offsets[2]),
+  );
   return object;
 }
 
@@ -5515,11 +5520,12 @@ CoverImage _coverImageDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = CoverImage();
-  object.color = reader.readStringOrNull(offsets[0]);
-  object.extraLarge = reader.readStringOrNull(offsets[1]);
-  object.large = reader.readStringOrNull(offsets[2]);
-  object.medium = reader.readStringOrNull(offsets[3]);
+  final object = CoverImage(
+    color: reader.readStringOrNull(offsets[0]),
+    extraLarge: reader.readStringOrNull(offsets[1]),
+    large: reader.readStringOrNull(offsets[2]),
+    medium: reader.readStringOrNull(offsets[3]),
+  );
   return object;
 }
 
@@ -6174,12 +6180,7 @@ int _tagEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.name;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.name.length * 3;
   return bytesCount;
 }
 
@@ -6199,9 +6200,10 @@ Tag _tagDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Tag();
-  object.id = reader.readLong(offsets[0]);
-  object.name = reader.readStringOrNull(offsets[1]);
+  final object = Tag(
+    id: reader.readLongOrNull(offsets[0]),
+    name: reader.readStringOrNull(offsets[1]) ?? "",
+  );
   return object;
 }
 
@@ -6213,16 +6215,32 @@ P _tagDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLong(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset) ?? "") as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 extension TagQueryFilter on QueryBuilder<Tag, Tag, QFilterCondition> {
-  QueryBuilder<Tag, Tag, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Tag, Tag, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Tag, Tag, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Tag, Tag, QAfterFilterCondition> idEqualTo(int? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -6232,7 +6250,7 @@ extension TagQueryFilter on QueryBuilder<Tag, Tag, QFilterCondition> {
   }
 
   QueryBuilder<Tag, Tag, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -6245,7 +6263,7 @@ extension TagQueryFilter on QueryBuilder<Tag, Tag, QFilterCondition> {
   }
 
   QueryBuilder<Tag, Tag, QAfterFilterCondition> idLessThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -6258,8 +6276,8 @@ extension TagQueryFilter on QueryBuilder<Tag, Tag, QFilterCondition> {
   }
 
   QueryBuilder<Tag, Tag, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    int? lower,
+    int? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -6274,24 +6292,8 @@ extension TagQueryFilter on QueryBuilder<Tag, Tag, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Tag, Tag, QAfterFilterCondition> nameIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'name',
-      ));
-    });
-  }
-
-  QueryBuilder<Tag, Tag, QAfterFilterCondition> nameIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'name',
-      ));
-    });
-  }
-
   QueryBuilder<Tag, Tag, QAfterFilterCondition> nameEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -6304,7 +6306,7 @@ extension TagQueryFilter on QueryBuilder<Tag, Tag, QFilterCondition> {
   }
 
   QueryBuilder<Tag, Tag, QAfterFilterCondition> nameGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -6319,7 +6321,7 @@ extension TagQueryFilter on QueryBuilder<Tag, Tag, QFilterCondition> {
   }
 
   QueryBuilder<Tag, Tag, QAfterFilterCondition> nameLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -6334,8 +6336,8 @@ extension TagQueryFilter on QueryBuilder<Tag, Tag, QFilterCondition> {
   }
 
   QueryBuilder<Tag, Tag, QAfterFilterCondition> nameBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -6498,16 +6500,17 @@ Character _characterDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Character();
-  object.image = reader.readObjectOrNull<CharacterImage>(
-    offsets[0],
-    CharacterImageSchema.deserialize,
-    allOffsets,
-  );
-  object.name = reader.readObjectOrNull<CharacterName>(
-    offsets[1],
-    CharacterNameSchema.deserialize,
-    allOffsets,
+  final object = Character(
+    image: reader.readObjectOrNull<CharacterImage>(
+      offsets[0],
+      CharacterImageSchema.deserialize,
+      allOffsets,
+    ),
+    name: reader.readObjectOrNull<CharacterName>(
+      offsets[1],
+      CharacterNameSchema.deserialize,
+      allOffsets,
+    ),
   );
   return object;
 }
@@ -6674,11 +6677,12 @@ CharacterName _characterNameDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = CharacterName();
-  object.alternative = reader.readStringList(offsets[0]) ?? [];
-  object.first = reader.readStringOrNull(offsets[1]);
-  object.full = reader.readStringOrNull(offsets[2]);
-  object.native = reader.readStringOrNull(offsets[3]);
+  final object = CharacterName(
+    alternative: reader.readStringList(offsets[0]) ?? const [],
+    first: reader.readStringOrNull(offsets[1]),
+    full: reader.readStringOrNull(offsets[2]),
+    native: reader.readStringOrNull(offsets[3]),
+  );
   return object;
 }
 
@@ -6690,7 +6694,7 @@ P _characterNameDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readStringList(offset) ?? const []) as P;
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
@@ -7455,9 +7459,10 @@ CharacterImage _characterImageDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = CharacterImage();
-  object.large = reader.readStringOrNull(offsets[0]);
-  object.medium = reader.readStringOrNull(offsets[1]);
+  final object = CharacterImage(
+    large: reader.readStringOrNull(offsets[0]),
+    medium: reader.readStringOrNull(offsets[1]),
+  );
   return object;
 }
 
@@ -7868,16 +7873,17 @@ Staff _staffDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Staff();
-  object.image = reader.readObjectOrNull<StaffImage>(
-    offsets[0],
-    StaffImageSchema.deserialize,
-    allOffsets,
-  );
-  object.name = reader.readObjectOrNull<StaffName>(
-    offsets[1],
-    StaffNameSchema.deserialize,
-    allOffsets,
+  final object = Staff(
+    image: reader.readObjectOrNull<StaffImage>(
+      offsets[0],
+      StaffImageSchema.deserialize,
+      allOffsets,
+    ),
+    name: reader.readObjectOrNull<StaffName>(
+      offsets[1],
+      StaffNameSchema.deserialize,
+      allOffsets,
+    ),
   );
   return object;
 }
@@ -8054,12 +8060,13 @@ StaffName _staffNameDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = StaffName();
-  object.alternative = reader.readStringList(offsets[0]) ?? [];
-  object.first = reader.readStringOrNull(offsets[1]);
-  object.full = reader.readStringOrNull(offsets[2]);
-  object.last = reader.readStringOrNull(offsets[3]);
-  object.native = reader.readStringOrNull(offsets[4]);
+  final object = StaffName(
+    alternative: reader.readStringList(offsets[0]) ?? const [],
+    first: reader.readStringOrNull(offsets[1]),
+    full: reader.readStringOrNull(offsets[2]),
+    last: reader.readStringOrNull(offsets[3]),
+    native: reader.readStringOrNull(offsets[4]),
+  );
   return object;
 }
 
@@ -8071,7 +8078,7 @@ P _staffNameDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readStringList(offset) ?? const []) as P;
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
@@ -8961,9 +8968,10 @@ StaffImage _staffImageDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = StaffImage();
-  object.large = reader.readStringOrNull(offsets[0]);
-  object.medium = reader.readStringOrNull(offsets[1]);
+  final object = StaffImage(
+    large: reader.readStringOrNull(offsets[0]),
+    medium: reader.readStringOrNull(offsets[1]),
+  );
   return object;
 }
 

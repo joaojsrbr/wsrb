@@ -115,9 +115,15 @@ class CategoryUtils {
             final List<String> newIDS = List<String>.from(category.ids)
               ..removeWhere(valueNotifierList.contains)
               ..unique();
-            category.updatedAt = DateTime.now();
-            category.ids = newIDS;
-            futures.add(categoryController.add(category));
+
+            futures.add(
+              categoryController.add(
+                category.copyWith(
+                  ids: newIDS,
+                  updatedAt: DateTime.now(),
+                ),
+              ),
+            );
           }
         }
 
@@ -126,9 +132,14 @@ class CategoryUtils {
             ..addAll(valueNotifierList)
             ..unique();
 
-          category.updatedAt = DateTime.now();
-          category.ids = newIDS;
-          futures.add(categoryController.add(category));
+          futures.add(
+            categoryController.add(
+              category.copyWith(
+                ids: newIDS,
+                updatedAt: DateTime.now(),
+              ),
+            ),
+          );
         }
 
         await Future.wait(futures);
@@ -274,9 +285,13 @@ class CategoryUtils {
                                             form.currentState?.validate();
                                         if (isValid == false) return;
                                         final entity = editEntity.value!;
-                                        entity.updatedAt = DateTime.now();
-                                        entity.title = controller.text.trim();
-                                        category.add(entity);
+
+                                        category.add(
+                                          entity.copyWith(
+                                            title: controller.text.trim(),
+                                            updatedAt: DateTime.now(),
+                                          ),
+                                        );
                                         controller.clear();
                                         editEntity.value = null;
                                         context.unFocusKeyBoard();
@@ -319,10 +334,14 @@ class CategoryUtils {
                                                 form.currentState?.validate();
                                             if (isValid == false) return;
                                             final entity = editEntity.value!;
-                                            entity.updatedAt = DateTime.now();
-                                            entity.title =
-                                                controller.text.trim();
+
                                             category.add(entity);
+                                            category.add(
+                                              entity.copyWith(
+                                                title: controller.text.trim(),
+                                                updatedAt: DateTime.now(),
+                                              ),
+                                            );
                                             controller.clear();
                                             editEntity.value = null;
                                             context.unFocusKeyBoard();

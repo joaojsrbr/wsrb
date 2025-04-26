@@ -23,17 +23,17 @@ class KeepWatching extends StatefulWidget {
 class _KeepWatchingState extends State<KeepWatching> {
   List<HistoryEntity> _sortedByUpdateAt = [];
 
-  late LibraryService _libraryService;
-
   @override
   void didChangeDependencies() {
     final TabController tabController = HomeScope.of(context).tabController;
+    final LibraryController libraryController =
+        context.watch<LibraryController>();
+    final libraryRepo = libraryController.repo;
 
-    _libraryService = context.watch<LibraryService>();
     final sortedByUpdateAt = (tabController.index == 0
-            ? _libraryService.entities
-            : _libraryService.favorites)
-        .map(_libraryService.getIsarLinks)
+            ? libraryRepo.entities
+            : libraryRepo.favorites)
+        .map(libraryRepo.getIsarLinks)
         .nonNulls
         .flattened
         .sorted()
@@ -64,7 +64,6 @@ class _KeepWatchingState extends State<KeepWatching> {
               child: _Content(
                 sortedByUpdateAt: _sortedByUpdateAt,
                 scope: scope,
-                libraryService: _libraryService,
                 textTheme: textTheme,
               ),
             ),
@@ -76,21 +75,21 @@ class _Content extends StatelessWidget {
   const _Content({
     required List<HistoryEntity> sortedByUpdateAt,
     required this.scope,
-    required LibraryService libraryService,
     required this.textTheme,
-  })  : _sortedByUpdateAt = sortedByUpdateAt,
-        _libraryService = libraryService;
+  }) : _sortedByUpdateAt = sortedByUpdateAt;
 
   final List<HistoryEntity> _sortedByUpdateAt;
   final HomeScope scope;
-  final LibraryService _libraryService;
+
   final TextTheme textTheme;
 
   @override
   Widget build(BuildContext context) {
     final widthCache = 500;
     final heightCache = 340;
-
+    final LibraryController libraryController =
+        context.watch<LibraryController>();
+    final libraryRepo = libraryController.repo;
     return SizedBox(
       height: 160,
       width: 180,
@@ -110,8 +109,9 @@ class _Content extends StatelessWidget {
 
           return switch (historyEntity) {
             EpisodeEntity data => Builder(builder: (context) {
-                final anime = _libraryService.getContentEntityByStringID(
-                    data.animeStringID) as AnimeEntity?;
+                final anime =
+                    libraryRepo.getContentEntityByStringID(data.animeStringID)
+                        as AnimeEntity?;
 
                 return Padding(
                   padding: const EdgeInsets.only(

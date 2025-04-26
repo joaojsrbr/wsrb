@@ -69,7 +69,7 @@ extension CustomListExtensions<E, Id> on List<E> {
 extension EntityListExtensions on Iterable<Entity> {
   Iterable<Content> get getContent => map((entity) => switch (entity) {
         AnimeEntity data => data.toAnime(),
-        BookEntity data => data.toBook,
+        BookEntity data => data.toBook(),
         _ => null,
       }).nonNulls;
 
