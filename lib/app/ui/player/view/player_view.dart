@@ -281,7 +281,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
 
     await Future.wait(futures);
-    // _videoController!.player.platform.waitForPlayerInitialization;
+    await _videoController!
+        .player.platform?.waitForVideoControllerInitializationIfAttached;
     await player?.platform?.waitForPlayerInitialization.whenComplete(
       () {
         if (_playerArgs.forceEnterFullScreen) {
