@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 @pragma('vm:entry-point')
 void main(List<String> arguments) async {
@@ -18,17 +19,16 @@ void main(List<String> arguments) async {
   final DioClient dioClient = DioClient();
 
   final IsarServiceImpl isarServiceImpl = IsarServiceImpl();
-  final ConnectionChecker connectionChecker = ConnectionChecker();
+
   final ValueNotifierList valueNotifierList = ValueNotifierList();
 
-  final HiveService hiveServiceImpl = HiveServiceImpl();
-  final HiveController hiveController = HiveController(hiveServiceImpl);
-  // late final AnrollLoginService anrollLoginService;
-  final ThemeController themeController = ThemeController(hiveServiceImpl);
+  final AppConfigController appConfigController =
+      AppConfigController(isarServiceImpl);
 
-  // final HiveCacheServiceImpl hiveCacheServiceImpl = HiveCacheServiceImpl();
-  final LibraryController libraryController =
-      LibraryController(isarServiceImpl, hiveController);
+  final LibraryController libraryController = LibraryController(
+    isarServiceImpl,
+    appConfigController,
+  );
 
   final GraphQLApiClient graphQLApiClient = GraphQLApiClient();
   final AnimeSkipRepository animeSkipRepository =
@@ -43,8 +43,12 @@ void main(List<String> arguments) async {
   final CategoryController categoryController =
       CategoryController(isarServiceImpl);
 
+  timeago.setLocaleMessages('pt_br', timeago.PtBrMessages());
+  timeago.setDefaultLocale('pt_br');
+
   // Start Isar
   await isarServiceImpl.startDatabase();
+  await appConfigController.start();
   await Future.wait([
     historicController.start(),
     categoryController.start(),
@@ -52,24 +56,10 @@ void main(List<String> arguments) async {
     libraryController.start(),
   ]);
 
-  // Start Hive
-  await hiveServiceImpl.init();
-  await Future.wait([
-    themeController.loadAll(),
-    hiveController.loadAll(),
-  ]);
-  // final Elapsed elapsed = Elapsed()..start();
-
-  connectionChecker.start();
-
   await Future.wait([
     PermissionUtils.manageExternalStorage(),
-    // AutoCacheInitializer.initialize(
-    //   configuration: App.CONTENT_APP_CACHE_CONFIG,
-    // ),
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
     // Workmanager().initialize(callbackDispatcher),
-    // hiveCacheServiceImpl.init(),
     PlayerAudioHandlerMixin.startPlayerAudio(),
     dotenv.load(fileName: "assets/.env"),
   ]);
@@ -77,7 +67,7 @@ void main(List<String> arguments) async {
   // elapsed.printAndStop('MAIN');
 
   final ContentRepository contentRepository = ContentRepository(
-    hiveController,
+    appConfigController,
     dioClient,
     animeSkipRepository,
   );
@@ -85,11 +75,8 @@ void main(List<String> arguments) async {
   runApp(
     MultiProvider(
       providers: [
-        // Provider(create: (context) => anrollLoginService),
         Provider(create: (context) => dioClient),
-        ChangeNotifierProvider(create: (context) => connectionChecker),
-        ChangeNotifierProvider(create: (context) => themeController),
-        ChangeNotifierProvider(create: (context) => hiveController),
+        ChangeNotifierProvider(create: (context) => appConfigController),
         ChangeNotifierProvider(create: (context) => libraryController),
         ChangeNotifierProvider(create: (context) => categoryController),
         ChangeNotifierProvider(create: (context) => historicController),

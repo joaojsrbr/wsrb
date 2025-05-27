@@ -572,45 +572,37 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                   if (isFullscreen(context) &&
                       scope.playerArgs.times.isNotEmpty &&
                       mount)
-                    Positioned(
-                      top: 0,
-                      // bottom: 0,
-                      right: 0,
-                      left: MediaQuery.sizeOf(context).width - 170,
-                      // left: 170,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: CustomPopup(
-                          startAnimatedAlignment: Alignment.centerRight,
-                          duration: const Duration(milliseconds: 200),
-                          width: 170,
-                          show: value,
-                          paddingTop: true,
-                          shape: RoundedRectangleBorder(),
-                          height: MediaQuery.sizeOf(context).height,
-                          items: scope.playerArgs.times,
-                          builderFunction: (context, index, item) {
-                            return ValueListenableBuilder(
-                              valueListenable: scope.selectedAnimeTimeStamp,
-                              builder: (context, value, child) {
-                                return ListTile(
-                                  dense: true,
-                                  onTap: () =>
-                                      scope.onClickSkipAnime.call(item),
-                                  selected:
-                                      value?.id.contains(item.id) ?? false,
-                                  leading: Text(
-                                    Duration(microseconds: item.at).label(),
-                                  ),
-                                  title: Text(item.timeStampType.label),
-                                  visualDensity: const VisualDensity(
-                                    vertical: -4,
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: CustomPopup(
+                        startAnimatedAlignment: Alignment.centerRight,
+                        duration: const Duration(milliseconds: 200),
+                        width: 170,
+                        show: value,
+                        paddingTop: true,
+                        shape: RoundedRectangleBorder(),
+                        height: MediaQuery.sizeOf(context).height,
+                        items: scope.playerArgs.times,
+                        builderFunction: (context, index, item) {
+                          if (!value) return const SizedBox.shrink();
+                          return ValueListenableBuilder(
+                            valueListenable: scope.selectedAnimeTimeStamp,
+                            builder: (context, value, child) {
+                              return ListTile(
+                                dense: true,
+                                onTap: () => scope.onClickSkipAnime.call(item),
+                                selected: value?.id.contains(item.id) ?? false,
+                                leading: Text(
+                                  Duration(microseconds: item.at).label(),
+                                ),
+                                title: Text(item.timeStampType.label),
+                                visualDensity: const VisualDensity(
+                                  vertical: -4,
+                                ),
+                              );
+                            },
+                          );
+                        },
                       ),
                     ),
                   Positioned(
@@ -1371,10 +1363,12 @@ class _BottomButtons extends StatelessWidget {
 
                     if (scope.playerArgs.forceEnterFullScreen &&
                         isFullscreen(context)) {
-                      WidgetsBinding.instance.addPostFrameCallback((timer) {
-                        Navigator.of(PlayerView.videoStateKey.currentContext!)
-                            .pop();
-                      });
+                      // WidgetsBinding.instance.addPostFrameCallback((timer) {
+                      //   Navigator.of(PlayerView.videoStateKey.currentContext!)
+                      //       .pop();
+                      // });
+                      Navigator.of(PlayerView.videoStateKey.currentContext!)
+                          .pop();
                     }
                   },
                   iconSize: 22,

@@ -8,7 +8,7 @@ import 'package:uuid/uuid.dart';
 part 'category_entity.g.dart';
 
 @Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode'})
-class CategoryEntity extends Entity {
+final class CategoryEntity extends OtherEntity {
   final String title;
   final String? description;
   final List<String> ids;

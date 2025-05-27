@@ -3,10 +3,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:content_library/content_library.dart';
-import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_new/ffprobe_kit.dart';
-import 'package:ffmpeg_kit_flutter_new/return_code.dart';
-import 'package:ffmpeg_kit_flutter_new/statistics.dart';
+import 'package:ffmpeg_kit_min_gpl/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_min_gpl/ffprobe_kit.dart';
+import 'package:ffmpeg_kit_min_gpl/return_code.dart';
+import 'package:ffmpeg_kit_min_gpl/statistics.dart';
+// import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
+// import 'package:ffmpeg_kit_flutter_new/ffprobe_kit.dart';
+// import 'package:ffmpeg_kit_flutter_new/return_code.dart';
+// import 'package:ffmpeg_kit_flutter_new/statistics.dart';
 import 'package:flutter/foundation.dart';
 
 class DownloadService extends ChangeNotifier {
@@ -178,16 +182,12 @@ class DownloadService extends ChangeNotifier {
     }
   }
 
-  void clearDownloadList() {
+  @override
+  void dispose() {
     for (final download in downloadList) {
       download.dispose();
     }
     downloadList.clear();
-  }
-
-  @override
-  void dispose() {
-    clearDownloadList();
     super.dispose();
   }
 }
@@ -212,6 +212,11 @@ class DownloadInfo with ChangeNotifier {
     this.speed = 0.0,
     this.isDownloading = false,
   });
+
+  String getStringDownloadPercent() =>
+      '${(((time * 100) / videoDuration!.inMilliseconds)).ceil().toString()}%';
+
+  String getSpeedString() => ' - speed: ${speed.toStringAsFixed(2)}';
 
   void setValue({
     int? id,

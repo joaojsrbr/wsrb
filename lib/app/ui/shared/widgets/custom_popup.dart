@@ -82,15 +82,24 @@ class _CustomPopupState<E> extends State<CustomPopup<E>>
 
     _localController = ScrollController();
 
-    _animationHeight = _animationController.drive(Tween(
-      begin: 0.0,
-      end: widget.height,
-    ));
+    _animationHeight = _animationController.drive(
+      Tween(
+        begin: 0.0,
+        end: widget.height,
+      ),
+    );
 
-    _animationWidth = Tween(
-      begin: 0.0,
-      end: widget.width,
-    ).animate(_animationHeight);
+    _animationWidth = _animationController.drive(
+      Tween(
+        begin: 0.0,
+        end: widget.width,
+      ),
+    );
+
+    // _animationWidth = Tween(
+    //   begin: 0.0,
+    //   end: widget.width,
+    // ).animate(_animationHeight);
 
     scheduleMicrotask(_init);
     super.initState();
@@ -133,10 +142,16 @@ class _CustomPopupState<E> extends State<CustomPopup<E>>
       ));
     }
     if (widget.width != oldWidget.width) {
-      _animationWidth = Tween(
-        begin: 0.0,
-        end: widget.width,
-      ).animate(_animationHeight);
+      // _animationWidth = Tween(
+      //   begin: 0.0,
+      //   end: widget.width,
+      // ).animate(_animationHeight);
+      _animationWidth = _animationController.drive(
+        Tween(
+          begin: 0.0,
+          end: widget.width,
+        ),
+      );
     }
 
     if (oldWidget.show != widget.show) {

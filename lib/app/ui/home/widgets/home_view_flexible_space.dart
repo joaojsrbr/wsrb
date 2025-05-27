@@ -85,10 +85,8 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
 
-    final ConnectionChecker connectionChecker =
-        context.watch<ConnectionChecker>();
     return IgnorePointer(
-      ignoring: (!connectionChecker.hasConnection && tabController.index == 1),
+      ignoring: tabController.index == 1,
       child: CustomSearchAnchor(
         onSubmitted: (value) {
           if (value.isEmpty || tabController.index != 0) {

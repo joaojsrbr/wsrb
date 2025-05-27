@@ -360,10 +360,13 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                                               extra: PlayerArgs(
                                                 getAnimeData: false,
                                                 forceEnterFullScreen: true,
-                                                startPossition:
-                                                    episode.currentDuration > 0
-                                                        ? episode.cdToDuration
-                                                        : null,
+                                                startPossition: (episode
+                                                                .getLastCurrentPosition()
+                                                                ?.currentDuration ??
+                                                            0) >
+                                                        0
+                                                    ? episode.cdToDuration
+                                                    : null,
                                                 episode: episode.toEpisode(
                                                   animeEntity.isDublado,
                                                 ),

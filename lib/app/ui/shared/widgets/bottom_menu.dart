@@ -252,7 +252,7 @@ class _LibraryButtons extends StatelessWidget {
 
               for (final category in categoryController.categories) {
                 final id = libraryRepo.favoritesIDS
-                    .firstWhereOrNull((id) => category.ids.contains(id));
+                    .firstWhereOrNull(category.ids.contains);
 
                 if (id != null) {
                   final newIDS = List<String>.from(category.ids);

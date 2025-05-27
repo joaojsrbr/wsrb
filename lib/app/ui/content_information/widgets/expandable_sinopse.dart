@@ -54,6 +54,7 @@ class _ExpandableSinopseState extends State<ExpandableSinopse>
         borderRadius: BorderRadius.circular(8),
         overlayColor: _OverlayColor(context),
         child: Card.filled(
+          margin: EdgeInsets.zero,
           color: themeData.colorScheme.primary.withAlpha(10),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),

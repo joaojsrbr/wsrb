@@ -34,7 +34,7 @@ class DemonSect extends RSource {
   Future<bool> loadData() async {
     try {
       final String subKey =
-          'manga/page/${contentRepository.index}/?s&post_type=wp-manga&m_orderby=${contentRepository._hiveController?.orderBy.label}';
+          'manga/page/${contentRepository.index}/?s&post_type=wp-manga&m_orderby=${contentRepository.config.orderBy.label}';
 
       final String mainURL = '$BASE_URL/$subKey';
 

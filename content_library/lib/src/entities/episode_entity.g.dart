@@ -27,40 +27,41 @@ const EpisodeEntitySchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'currentDuration': PropertySchema(
-      id: 2,
-      name: r'currentDuration',
-      type: IsarType.long,
-    ),
-    r'currentPositionBase64': PropertySchema(
-      id: 3,
-      name: r'currentPositionBase64',
-      type: IsarType.string,
-    ),
     r'episodeDuration': PropertySchema(
-      id: 4,
+      id: 2,
       name: r'episodeDuration',
       type: IsarType.long,
     ),
     r'generateID': PropertySchema(
-      id: 5,
+      id: 3,
       name: r'generateID',
       type: IsarType.string,
     ),
     r'isComplete': PropertySchema(
-      id: 6,
+      id: 4,
       name: r'isComplete',
       type: IsarType.bool,
     ),
     r'numberEpisode': PropertySchema(
-      id: 7,
+      id: 5,
       name: r'numberEpisode',
       type: IsarType.long,
     ),
     r'pageNumber': PropertySchema(
-      id: 8,
+      id: 6,
       name: r'pageNumber',
       type: IsarType.long,
+    ),
+    r'positions': PropertySchema(
+      id: 7,
+      name: r'positions',
+      type: IsarType.objectList,
+      target: r'CurrentPosition',
+    ),
+    r'registrationData': PropertySchema(
+      id: 8,
+      name: r'registrationData',
+      type: IsarType.dateTime,
     ),
     r'sinopse': PropertySchema(
       id: 9,
@@ -119,7 +120,7 @@ const EpisodeEntitySchema = CollectionSchema(
     )
   },
   links: {},
-  embeddedSchemas: {},
+  embeddedSchemas: {r'CurrentPosition': CurrentPositionSchema},
   getId: _episodeEntityGetId,
   getLinks: _episodeEntityGetLinks,
   attach: _episodeEntityAttach,
@@ -134,15 +135,18 @@ int _episodeEntityEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.animeStringID.length * 3;
   {
-    final value = object.currentPositionBase64;
+    final value = object.generateID;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
   }
+  bytesCount += 3 + object.positions.length * 3;
   {
-    final value = object.generateID;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
+    final offsets = allOffsets[CurrentPosition]!;
+    for (var i = 0; i < object.positions.length; i++) {
+      final value = object.positions[i];
+      bytesCount +=
+          CurrentPositionSchema.estimateSize(value, offsets, allOffsets);
     }
   }
   {
@@ -177,13 +181,18 @@ void _episodeEntitySerialize(
 ) {
   writer.writeString(offsets[0], object.animeStringID);
   writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeLong(offsets[2], object.currentDuration);
-  writer.writeString(offsets[3], object.currentPositionBase64);
-  writer.writeLong(offsets[4], object.episodeDuration);
-  writer.writeString(offsets[5], object.generateID);
-  writer.writeBool(offsets[6], object.isComplete);
-  writer.writeLong(offsets[7], object.numberEpisode);
-  writer.writeLong(offsets[8], object.pageNumber);
+  writer.writeLong(offsets[2], object.episodeDuration);
+  writer.writeString(offsets[3], object.generateID);
+  writer.writeBool(offsets[4], object.isComplete);
+  writer.writeLong(offsets[5], object.numberEpisode);
+  writer.writeLong(offsets[6], object.pageNumber);
+  writer.writeObjectList<CurrentPosition>(
+    offsets[7],
+    allOffsets,
+    CurrentPositionSchema.serialize,
+    object.positions,
+  );
+  writer.writeDateTime(offsets[8], object.registrationData);
   writer.writeString(offsets[9], object.sinopse);
   writer.writeString(offsets[10], object.slugSerie);
   writer.writeString(offsets[11], object.stringID);
@@ -202,13 +211,19 @@ EpisodeEntity _episodeEntityDeserialize(
   final object = EpisodeEntity(
     animeStringID: reader.readString(offsets[0]),
     createdAt: reader.readDateTimeOrNull(offsets[1]),
-    currentDuration: reader.readLongOrNull(offsets[2]) ?? 0,
-    currentPositionBase64: reader.readStringOrNull(offsets[3]),
-    episodeDuration: reader.readLongOrNull(offsets[4]) ?? 0,
-    generateID: reader.readStringOrNull(offsets[5]),
-    isComplete: reader.readBoolOrNull(offsets[6]) ?? false,
-    numberEpisode: reader.readLongOrNull(offsets[7]),
-    pageNumber: reader.readLongOrNull(offsets[8]),
+    episodeDuration: reader.readLongOrNull(offsets[2]) ?? 0,
+    generateID: reader.readStringOrNull(offsets[3]),
+    isComplete: reader.readBoolOrNull(offsets[4]) ?? false,
+    numberEpisode: reader.readLongOrNull(offsets[5]),
+    pageNumber: reader.readLongOrNull(offsets[6]),
+    positions: reader.readObjectList<CurrentPosition>(
+          offsets[7],
+          CurrentPositionSchema.deserialize,
+          allOffsets,
+          CurrentPosition(),
+        ) ??
+        const [],
+    registrationData: reader.readDateTimeOrNull(offsets[8]),
     sinopse: reader.readStringOrNull(offsets[9]),
     slugSerie: reader.readStringOrNull(offsets[10]),
     stringID: reader.readString(offsets[11]),
@@ -237,15 +252,21 @@ P _episodeEntityDeserializeProp<P>(
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readLongOrNull(offset) ?? 0) as P;
-    case 5:
-      return (reader.readStringOrNull(offset)) as P;
-    case 6:
       return (reader.readBoolOrNull(offset) ?? false) as P;
+    case 5:
+      return (reader.readLongOrNull(offset)) as P;
+    case 6:
+      return (reader.readLongOrNull(offset)) as P;
     case 7:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readObjectList<CurrentPosition>(
+            offset,
+            CurrentPositionSchema.deserialize,
+            allOffsets,
+            CurrentPosition(),
+          ) ??
+          const []) as P;
     case 8:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
@@ -672,217 +693,6 @@ extension EpisodeEntityQueryFilter
   }
 
   QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentDurationEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'currentDuration',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentDurationGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'currentDuration',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentDurationLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'currentDuration',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentDurationBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'currentDuration',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentPositionBase64IsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'currentPositionBase64',
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentPositionBase64IsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'currentPositionBase64',
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentPositionBase64EqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'currentPositionBase64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentPositionBase64GreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'currentPositionBase64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentPositionBase64LessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'currentPositionBase64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentPositionBase64Between(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'currentPositionBase64',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentPositionBase64StartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'currentPositionBase64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentPositionBase64EndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'currentPositionBase64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentPositionBase64Contains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'currentPositionBase64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentPositionBase64Matches(String pattern,
-          {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'currentPositionBase64',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentPositionBase64IsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'currentPositionBase64',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      currentPositionBase64IsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'currentPositionBase64',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
       episodeDurationEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1296,6 +1106,169 @@ extension EpisodeEntityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'pageNumber',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      positionsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'positions',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      positionsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'positions',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      positionsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'positions',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      positionsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'positions',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      positionsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'positions',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      positionsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'positions',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      registrationDataIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'registrationData',
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      registrationDataIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'registrationData',
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      registrationDataEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'registrationData',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      registrationDataGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'registrationData',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      registrationDataLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'registrationData',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      registrationDataBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'registrationData',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -2248,7 +2221,14 @@ extension EpisodeEntityQueryFilter
 }
 
 extension EpisodeEntityQueryObject
-    on QueryBuilder<EpisodeEntity, EpisodeEntity, QFilterCondition> {}
+    on QueryBuilder<EpisodeEntity, EpisodeEntity, QFilterCondition> {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
+      positionsElement(FilterQuery<CurrentPosition> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'positions');
+    });
+  }
+}
 
 extension EpisodeEntityQueryLinks
     on QueryBuilder<EpisodeEntity, EpisodeEntity, QFilterCondition> {}
@@ -2279,34 +2259,6 @@ extension EpisodeEntityQuerySortBy
       sortByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-      sortByCurrentDuration() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'currentDuration', Sort.asc);
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-      sortByCurrentDurationDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'currentDuration', Sort.desc);
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-      sortByCurrentPositionBase64() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'currentPositionBase64', Sort.asc);
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-      sortByCurrentPositionBase64Desc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'currentPositionBase64', Sort.desc);
     });
   }
 
@@ -2374,6 +2326,20 @@ extension EpisodeEntityQuerySortBy
       sortByPageNumberDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'pageNumber', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
+      sortByRegistrationData() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'registrationData', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
+      sortByRegistrationDataDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'registrationData', Sort.desc);
     });
   }
 
@@ -2496,34 +2462,6 @@ extension EpisodeEntityQuerySortThenBy
   }
 
   QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-      thenByCurrentDuration() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'currentDuration', Sort.asc);
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-      thenByCurrentDurationDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'currentDuration', Sort.desc);
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-      thenByCurrentPositionBase64() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'currentPositionBase64', Sort.asc);
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-      thenByCurrentPositionBase64Desc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'currentPositionBase64', Sort.desc);
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
       thenByEpisodeDuration() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'episodeDuration', Sort.asc);
@@ -2599,6 +2537,20 @@ extension EpisodeEntityQuerySortThenBy
       thenByPageNumberDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'pageNumber', Sort.desc);
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
+      thenByRegistrationData() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'registrationData', Sort.asc);
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
+      thenByRegistrationDataDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'registrationData', Sort.desc);
     });
   }
 
@@ -2708,21 +2660,6 @@ extension EpisodeEntityQueryWhereDistinct
   }
 
   QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct>
-      distinctByCurrentDuration() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'currentDuration');
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct>
-      distinctByCurrentPositionBase64({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'currentPositionBase64',
-          caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct>
       distinctByEpisodeDuration() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'episodeDuration');
@@ -2752,6 +2689,13 @@ extension EpisodeEntityQueryWhereDistinct
   QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct> distinctByPageNumber() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'pageNumber');
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct>
+      distinctByRegistrationData() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'registrationData');
     });
   }
 
@@ -2825,19 +2769,6 @@ extension EpisodeEntityQueryProperty
     });
   }
 
-  QueryBuilder<EpisodeEntity, int, QQueryOperations> currentDurationProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'currentDuration');
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, String?, QQueryOperations>
-      currentPositionBase64Property() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'currentPositionBase64');
-    });
-  }
-
   QueryBuilder<EpisodeEntity, int, QQueryOperations> episodeDurationProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'episodeDuration');
@@ -2865,6 +2796,20 @@ extension EpisodeEntityQueryProperty
   QueryBuilder<EpisodeEntity, int?, QQueryOperations> pageNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'pageNumber');
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, List<CurrentPosition>, QQueryOperations>
+      positionsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'positions');
+    });
+  }
+
+  QueryBuilder<EpisodeEntity, DateTime?, QQueryOperations>
+      registrationDataProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'registrationData');
     });
   }
 
@@ -2910,3 +2855,450 @@ extension EpisodeEntityQueryProperty
     });
   }
 }
+
+// **************************************************************************
+// IsarEmbeddedGenerator
+// **************************************************************************
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const CurrentPositionSchema = Schema(
+  name: r'CurrentPosition',
+  id: 2395459582531459042,
+  properties: {
+    r'createdAt': PropertySchema(
+      id: 0,
+      name: r'createdAt',
+      type: IsarType.dateTime,
+    ),
+    r'currentDuration': PropertySchema(
+      id: 1,
+      name: r'currentDuration',
+      type: IsarType.long,
+    ),
+    r'currentPositionBase64': PropertySchema(
+      id: 2,
+      name: r'currentPositionBase64',
+      type: IsarType.string,
+    ),
+    r'episodeDuration': PropertySchema(
+      id: 3,
+      name: r'episodeDuration',
+      type: IsarType.long,
+    )
+  },
+  estimateSize: _currentPositionEstimateSize,
+  serialize: _currentPositionSerialize,
+  deserialize: _currentPositionDeserialize,
+  deserializeProp: _currentPositionDeserializeProp,
+);
+
+int _currentPositionEstimateSize(
+  CurrentPosition object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.currentPositionBase64;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  return bytesCount;
+}
+
+void _currentPositionSerialize(
+  CurrentPosition object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeDateTime(offsets[0], object.createdAt);
+  writer.writeLong(offsets[1], object.currentDuration);
+  writer.writeString(offsets[2], object.currentPositionBase64);
+  writer.writeLong(offsets[3], object.episodeDuration);
+}
+
+CurrentPosition _currentPositionDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = CurrentPosition(
+    createdAt: reader.readDateTimeOrNull(offsets[0]),
+    currentDuration: reader.readLongOrNull(offsets[1]) ?? 0,
+    currentPositionBase64: reader.readStringOrNull(offsets[2]),
+    episodeDuration: reader.readLongOrNull(offsets[3]) ?? 0,
+  );
+  return object;
+}
+
+P _currentPositionDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 1:
+      return (reader.readLongOrNull(offset) ?? 0) as P;
+    case 2:
+      return (reader.readStringOrNull(offset)) as P;
+    case 3:
+      return (reader.readLongOrNull(offset) ?? 0) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension CurrentPositionQueryFilter
+    on QueryBuilder<CurrentPosition, CurrentPosition, QFilterCondition> {
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      createdAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'createdAt',
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      createdAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'createdAt',
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      createdAtEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'createdAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      createdAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'createdAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      createdAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'createdAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      createdAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'createdAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentDurationEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'currentDuration',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentDurationGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'currentDuration',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentDurationLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'currentDuration',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentDurationBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'currentDuration',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentPositionBase64IsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'currentPositionBase64',
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentPositionBase64IsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'currentPositionBase64',
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentPositionBase64EqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'currentPositionBase64',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentPositionBase64GreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'currentPositionBase64',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentPositionBase64LessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'currentPositionBase64',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentPositionBase64Between(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'currentPositionBase64',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentPositionBase64StartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'currentPositionBase64',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentPositionBase64EndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'currentPositionBase64',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentPositionBase64Contains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'currentPositionBase64',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentPositionBase64Matches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'currentPositionBase64',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentPositionBase64IsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'currentPositionBase64',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      currentPositionBase64IsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'currentPositionBase64',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      episodeDurationEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'episodeDuration',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      episodeDurationGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'episodeDuration',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      episodeDurationLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'episodeDuration',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
+      episodeDurationBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'episodeDuration',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+}
+
+extension CurrentPositionQueryObject
+    on QueryBuilder<CurrentPosition, CurrentPosition, QFilterCondition> {}

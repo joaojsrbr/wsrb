@@ -7,7 +7,6 @@ import 'package:content_library/content_library.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:open_settings_plus/open_settings_plus.dart';
 import 'package:provider/provider.dart';
 
 Widget contentIndicatorBuilder(BuildContext context, IndicatorStatus status) {
@@ -209,8 +208,6 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final ConnectionChecker connectionChecker =
-        context.watch<ConnectionChecker>();
     final isSliver =
         context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
@@ -263,32 +260,32 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
                 },
                 child: const Text('Atualizar'),
               ),
-            if (!connectionChecker.hasConnection ||
-                connectionChecker.connectivityResult.isEmpty) ...[
-              if (widget.btnAtualizar) const SizedBox(width: 8),
-              FilledButton(
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: () async {
-                  switch (OpenSettingsPlus.shared) {
-                    case OpenSettingsPlusAndroid settings:
-                      await settings.wifi();
+            // if (!connectionChecker.hasConnection ||
+            //     connectionChecker.connectivityResult.isEmpty) ...[
+            //   if (widget.btnAtualizar) const SizedBox(width: 8),
+            //   FilledButton(
+            //     style: OutlinedButton.styleFrom(
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(8),
+            //       ),
+            //     ),
+            //     onPressed: () async {
+            //       switch (OpenSettingsPlus.shared) {
+            //         case OpenSettingsPlusAndroid settings:
+            //           await settings.wifi();
 
-                      break;
-                    case OpenSettingsPlusIOS settings:
-                      await settings.wifi();
-                      break;
-                  }
+            //           break;
+            //         case OpenSettingsPlusIOS settings:
+            //           await settings.wifi();
+            //           break;
+            //       }
 
-                  Timer(const Duration(seconds: 1),
-                      () => _contentRepository.refresh(true));
-                },
-                child: const Text('configurações de wi-fi'),
-              ),
-            ],
+            //       Timer(const Duration(seconds: 1),
+            //           () => _contentRepository.refresh(true));
+            //     },
+            //     child: const Text('configurações de wi-fi'),
+            //   ),
+            // ],
           ],
         ),
       ],

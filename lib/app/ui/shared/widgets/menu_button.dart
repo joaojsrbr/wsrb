@@ -33,6 +33,10 @@ class MenuButton<T> extends StatelessWidget {
           child: Builder(builder: (context) {
             return FilledButton(
               style: FilledButton.styleFrom(
+                disabledIconColor: Colors.white,
+                disabledBackgroundColor:
+                    Theme.of(context).colorScheme.primaryContainer,
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),

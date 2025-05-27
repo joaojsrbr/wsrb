@@ -156,6 +156,8 @@ class _RefContentkInformationViewState
       [bool refresh = false, bool forceSaveCache = false]) async {
     _releases.clear();
 
+    if (data is Anime) _processAnimeReleases(data);
+
     setState(() {
       _content = data.copyWith(
         releases: _releases[_index],
@@ -194,9 +196,11 @@ class _RefContentkInformationViewState
       if (release.pageNumber != null) {
         final pageIndex = release.pageNumber! - 1;
         if (_releases[pageIndex] == null) {
-          _releases[pageIndex] = Releases()..add(release);
+          _releases[pageIndex] = Releases()
+            ..addIfNoContains(release, release.isEqualStringID);
         } else {
-          _releases[pageIndex]?.add(release);
+          _releases[pageIndex]
+              ?.addIfNoContains(release, release.isEqualStringID);
         }
       }
     }
@@ -384,77 +388,80 @@ class _RefContentkInformationViewState
     super.dispose();
   }
 
-  void _saveData([Content? otherData]) async {
-    if (otherData != null ||
-        _libraryController.repo.contains(content: otherData ?? _content)) {
-      ContentEntity? contentEntity =
-          await _libraryController.repo.getContentEntityByStringIDAll(
-        otherData?.stringID ?? _content!.stringID,
-      );
+  void _saveData() async {
+    if (_content == null) return;
+    final Content content = _content!;
 
-      contentEntity ??= otherData?.toEntity(
+    // Obtém ou cria a ContentEntity
+    ContentEntity? contentEntity =
+        await _libraryController.repo.getContentEntityByStringIDAll(
+      content.stringID,
+      orElse: () => content.toEntity(
         createdAt: DateTime.now(),
         isFavorite: true,
-      );
+      ),
+    );
 
-      // contentEntity = switch (contentEntity) {
-      //   AnimeEntity data => data.copyWith(
-      //       isFavorite: true,
-      //       anilistMedia: ((otherData ?? _content)?.toEntity() as AnimeEntity?)
-      //           ?.anilistMedia,
-      //     ),
-      //   BookEntity data => data.copyWith(
-      //       isFavorite: true,
-      //       anilistMedia: ((otherData ?? _content)?.toEntity() as BookEntity?)
-      //           ?.anilistMedia,
-      //     ),
-      //   _ => throw UnimplementedError(),
-      // };
-      contentEntity = contentEntity?.copyWith(
+    // final bool shouldSave = _libraryController.repo.contains(content: content);
+
+    if (contentEntity == null) return;
+
+    // Garante que os dados do Anilist estejam presentes
+    if (contentEntity.anilistMedia == null) {
+      contentEntity = contentEntity.copyWith(
         isFavorite: true,
-        anilistMedia:
-            ((otherData ?? _content)?.toEntity() as BookEntity?)?.anilistMedia,
+        anilistMedia: content.anilistMedia,
       );
+    }
 
-      if (contentEntity == null) return;
+    final List<HistoryEntity> historyEntities = [];
 
-      final List<HistoryEntity> historyEntities = [];
-
-      // final HistoryService historyService = HistoryService(_historicController);
-
-      for (final episode in (otherData ?? _content)!.releases) {
+    final entries = content.releases.map(
+      (release) {
         final entity = _historicController.repo.getHistoric<HistoryEntity>(
-          release: episode,
+          release: release,
           orElse: () {
-            return switch (episode) {
-              Episode data => data.toEntity(
-                  anime: (otherData ?? _content) as Anime,
-                ),
-              Chapter data => data.toEntity(0.0, null, null),
-              _ => throw UnimplementedError(),
+            return switch ((release, content)) {
+              (Episode episode, Anime anime) => episode.toEntity(anime: anime),
+              (Chapter chapter, Book _) => chapter.toEntity(0.0, null, null),
+              _ => null,
             };
           },
         );
+        if (entity == null) return null;
+        return MapEntry(release, entity);
+      },
+    );
 
-        if (entity != null && entity.id < 0) {
-          historyEntities.add(entity);
-          switch (contentEntity) {
-            case AnimeEntity data when entity is EpisodeEntity:
-              data.episodes.add(entity);
-            case BookEntity data when entity is ChapterEntity:
-              data.chapters.add(entity);
-          }
-        }
+    for (var entry in entries.nonNulls) {
+      final value = entry.value;
+      final release = entry.key;
+
+      switch (contentEntity) {
+        case AnimeEntity anime when value is EpisodeEntity:
+          final saveEpisode = EpisodeEntity.save(
+            episode: release as Episode,
+            anime: content as Anime,
+            entity: value,
+          );
+          anime.episodes.add(saveEpisode);
+          historyEntities.add(saveEpisode);
+
+        case BookEntity book when value is ChapterEntity:
+          book.chapters.add(value);
+          historyEntities.add(value);
       }
-
-      if (contentEntity case AnimeEntity data
-          when data.animeSkip.value != null) {
-        await _animeSkipController.save(data.animeSkip.value!);
-      }
-      await _libraryController.add(contentEntity: contentEntity);
-
-      await _historicController.addAll(historyEntities: historyEntities);
     }
+
+    // Salva configurações de pulo de anime se existirem
+    if (contentEntity case AnimeEntity anime
+        when anime.animeSkip.value != null) {
+      await _animeSkipController.save(anime.animeSkip.value!);
+    }
+
+    // Salva os dados principais e históricos
+    await _libraryController.add(contentEntity: contentEntity);
+    await _historicController.addAll(historyEntities: historyEntities);
   }
 }
 

@@ -3,7 +3,9 @@ import 'dart:convert';
 
 import 'package:anilist_dart/anilist.dart';
 import 'package:collection/collection.dart';
+import 'package:content_library/src/controllers/app_config_controller.dart';
 import 'package:content_library/src/entities/anilist_media.dart';
+import 'package:content_library/src/entities/app_config_entity.dart';
 import 'package:content_library/src/exceptions/anime_exception.dart';
 import 'package:content_library/src/exceptions/book_exception.dart';
 import 'package:content_library/src/extensions/custom_extensions/list_extensions.dart';
@@ -13,8 +15,6 @@ import 'package:content_library/src/repository/anime_skip_imp.dart';
 import 'package:content_library/src/repository/models/slime_read_response.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart' as ui;
-// import 'package:flutter_webview_plugin/flutter_webview_plugin.dart' as plugin;
-import 'package:hive/hive.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:loading_more_list/loading_more_list.dart';
@@ -31,7 +31,6 @@ import '../models/episode.dart';
 import '../models/genre.dart';
 import '../models/release.dart';
 import '../services/dio_client.dart';
-import '../services/hive/hive_controller.dart';
 import '../utils/custom_log.dart';
 import '../utils/releases.dart';
 import '../utils/result.dart';
@@ -56,12 +55,15 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   // late final JikanService _jikanService;
   late final Subscriptions _subscriptions;
   late final List<RSource> _sources;
-  final HiveController? _hiveController;
+  final AppConfigController? _appConfigController;
   final Source? initialSource;
   final AnimeSkipRepository _animeSkipRepository;
 
+  AppConfigEntity get config =>
+      _appConfigController?.repo.config ?? AppConfigEntity.init();
+
   ContentRepository._internal(
-    this._hiveController,
+    this._appConfigController,
     this._dio,
     this._animeSkipRepository,
     this.initialSource,
@@ -74,16 +76,14 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       DemonSect(this),
     ];
 
-    if (_hiveController != null) {
-      _subscriptions = Subscriptions()
-        ..addAll([
-          _hiveController!.watchBy('repository_source').listen(_listen),
-          _hiveController!.watchBy('repository_order_by').listen(_listen),
-        ]);
+    if (_appConfigController != null) {
+      _appConfigController?.orderOrSourceUpdate = () {
+        _listen();
+      };
     }
   }
 
-  void _listen(BoxEvent event) {
+  void _listen() {
     ui.WidgetsBinding.instance.addPostFrameCallback(
       (timeStamp) => refresh(true),
     );
@@ -91,9 +91,9 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
 
   bool get addMore => isSuccess && _hasMore;
 
-  factory ContentRepository(HiveController hiveController, DioClient dio,
+  factory ContentRepository(AppConfigController appConfig, DioClient dio,
           AnimeSkipRepository animeSkipRepository) =>
-      _ContentRepositoryImp(hiveController, dio, animeSkipRepository, null);
+      _ContentRepositoryImp(appConfig, dio, animeSkipRepository, null);
 
   factory ContentRepository.test(DioClient dio,
           AnimeSkipRepository animeSkipRepository, Source initialSource) =>
@@ -184,7 +184,9 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   }
 
   RSource get currentSource =>
-      source(_hiveController?.source ?? initialSource ?? Source.ANROLL);
+      source(_appConfigController?.repo.config.source ??
+          initialSource ??
+          Source.ANROLL);
 
   @override
   Future<bool> refresh([bool notifyStateChanged = false]) async {

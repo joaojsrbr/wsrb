@@ -35,7 +35,7 @@ class BookEntity extends ContentEntity {
   final String? largeImage;
   final String? mediumImage;
 
-  IsarLinks<ChapterEntity> chapters;
+  IsarLinks<ChapterEntity> chapters = IsarLinks<ChapterEntity>();
 
   BookEntity({
     required super.stringID,
@@ -52,7 +52,7 @@ class BookEntity extends ContentEntity {
     this.largeImage,
     this.mediumImage,
     super.isFavorite = false,
-  }) : chapters = IsarLinks<ChapterEntity>();
+  });
 
   String get imageUrl =>
       extraLarge ?? largeImage ?? mediumImage ?? originalImage;

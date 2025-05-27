@@ -41,6 +41,7 @@ class DotText extends StatelessWidget {
         SizedBox(width: spacing),
         Text(
           text,
+          overflow: TextOverflow.ellipsis,
           style: textStyle ?? DefaultTextStyle.of(context).style,
         ),
       ],

@@ -51,8 +51,14 @@ class HomeBottomOverlay extends StatelessWidget {
                         final contentEntities = allSelected
                             .map(
                               (e) => switch (e) {
-                                Anime data => data.toEntity(isFavorite: true),
-                                Book data => data.toEntity(isFavorite: true),
+                                Anime data => data.toEntity(
+                                    isFavorite: true,
+                                    createdAt: DateTime.now(),
+                                  ),
+                                Book data => data.toEntity(
+                                    isFavorite: true,
+                                    createdAt: DateTime.now(),
+                                  ),
                                 _ => null,
                               },
                             )

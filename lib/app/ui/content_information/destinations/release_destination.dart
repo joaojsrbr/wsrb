@@ -5,6 +5,7 @@ import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer_container.dart';
 import 'package:border_progress_indicator/border_progress_indicator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
@@ -34,10 +35,14 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
     final themeData = Theme.of(context);
     final DownloadService downloadService = context.watch<DownloadService>();
     final bool releasesIsLoading = ContentScope.releasesIsLoadingOf(context);
-    final HiveController hiveController = context.watch<HiveController>();
+    final AppConfigController appConfigController =
+        context.watch<AppConfigController>();
 
-    final releases =
-        content.releases.sorted().reverse(hiveController.reverseContents);
+    final isLoading = ContentScope.isLoadingOf(context);
+
+    final releases = content.releases
+        .sorted()
+        .reverse(appConfigController.config.reverseContents);
 
     return releasesIsLoading
         ? Center(
@@ -47,14 +52,61 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
             ),
           )
         : ListView(
-            // shrinkWrap: true,
+            shrinkWrap: true,
             padding: const EdgeInsets.only(top: 4),
             physics: const NeverScrollableScrollPhysics(),
             children: [
               _ReleasePagination(content: content),
-              ...List.generate(
-                releases.length,
-                (index) {
+              ListView.builder(
+                padding: EdgeInsets.zero,
+                // separatorBuilder: (context, index) => Divider(
+                //   indent: 12,
+                //   endIndent: 12,
+                // ),
+                itemCount: isLoading ? 6 : releases.length,
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  if (isLoading) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: ListTile(
+                        dense: true,
+                        isThreeLine: false,
+                        subtitle: ShimmerContainer(
+                          height: 20,
+                          enable: isLoading,
+                          child: const SizedBox.expand(),
+                        ),
+                        horizontalTitleGap: 20,
+                        contentPadding: const EdgeInsets.only(
+                          left: 16.0,
+                          right: 8,
+                        ),
+                        leading: ShimmerContainer(
+                          width: 110,
+                          borderRadius: BorderRadius.circular(8),
+                          enable: isLoading,
+                          child: const SizedBox.expand(),
+                        ),
+                        titleTextStyle:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                        minVerticalPadding: 0,
+                        minTileHeight: 76,
+                        visualDensity:
+                            const VisualDensity(vertical: 4, horizontal: -2),
+                        title: ShimmerContainer(
+                          height: 20,
+                          enable: isLoading,
+                          child: const SizedBox.expand(),
+                        ),
+                      ),
+                    );
+                  }
+
                   final release = releases.elementAt(index);
 
                   return ReleaseContent(
@@ -64,19 +116,63 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
                     index: index,
                   );
                 },
-              )
+              ),
+              // ...List.generate(
+              //   isLoading ? 6 : releases.length,
+              //   (index) {
+              //     if (isLoading) {
+              //       return Padding(
+              //         padding: const EdgeInsets.symmetric(vertical: 2),
+              //         child: ListTile(
+              //           dense: true,
+              //           isThreeLine: false,
+              //           subtitle: ShimmerContainer(
+              //             height: 20,
+              //             enable: isLoading,
+              //             child: const SizedBox.expand(),
+              //           ),
+              //           horizontalTitleGap: 20,
+              //           contentPadding: const EdgeInsets.only(
+              //             left: 16.0,
+              //             right: 8,
+              //           ),
+              //           leading: ShimmerContainer(
+              //             width: 110,
+              //             borderRadius: BorderRadius.circular(8),
+              //             enable: isLoading,
+              //             child: const SizedBox.expand(),
+              //           ),
+              //           titleTextStyle:
+              //               Theme.of(context).textTheme.titleMedium?.copyWith(
+              //                     fontSize: 13,
+              //                     fontWeight: FontWeight.bold,
+              //                   ),
+              //           minVerticalPadding: 0,
+              //           minTileHeight: 76,
+              //           visualDensity:
+              //               const VisualDensity(vertical: 4, horizontal: -2),
+              //           title: ShimmerContainer(
+              //             height: 20,
+              //             enable: isLoading,
+              //             child: const SizedBox.expand(),
+              //           ),
+              //         ),
+              //       );
+              //     }
+
+              //     final release = releases.elementAt(index);
+
+              //     return ReleaseContent(
+              //       content: content,
+              //       release: release,
+              //       downloadService: downloadService,
+              //       index: index,
+              //     );
+              //   },
+              // )
             ],
           );
   }
-}
-
-class _ReleasePagination extends StatefulWidget {
-  const _ReleasePagination({required this.content});
-
-  final Content? content;
-
-  @override
-  State<_ReleasePagination> createState() => _ReleasePaginationState();
 }
 
 class _ReleaseSubtitle extends StatelessWidget {
@@ -86,60 +182,102 @@ class _ReleaseSubtitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final HistoricController historicController =
-        context.watch<HistoricController>();
+    // final HistoricController historicController =
+    //     context.watch<HistoricController>();
 
-    final historicRepo = historicController.repo;
+    // final historicRepo = historicController.repo;
 
-    final HistoryEntity? historic = historicRepo.getHistoric(
-      release: release,
-    );
-    final themeData = Theme.of(context);
+    // final HistoryEntity? historic = historicRepo.getHistoric(
+    //   release: release,
+    // );
 
-    final episodeDuration = (historic?.epdToDuration ?? Duration.zero);
-    final episodeCurrentDuration = (historic?.cdToDuration ?? Duration.zero);
+    // final percent = historic?.getPercent();
 
-    final percent = historic?.isComplete == true
-        ? 1.0
-        : (historic?.percent.isNaN == true ? 0.0 : historic?.percent) ?? 0.0;
+    // final themeData = Theme.of(context);
 
-    final DownloadInfo? downloadInfo = context.watch();
+    // final episodeDuration = (historic?.epdToDuration ?? Duration.zero);
+    // final episodeCurrentDuration = (historic?.cdToDuration ?? Duration.zero);
 
-    if (downloadInfo?.isDownloading == true &&
-        (downloadInfo?.speed ?? 0) > 0.0) {
-      return Text.rich(
-        TextSpan(
+    // final DownloadInfo? downloadInfo = context.watch();
+
+    // if (downloadInfo?.isDownloading == true &&
+    //     (downloadInfo?.speed ?? 0.0) > 0.0) {
+    //   return Text.rich(
+    //     TextSpan(
+    //       children: [
+    //         if (downloadInfo?.videoDuration != null &&
+    //             (downloadInfo?.time ?? 0) > 0.0)
+    //           TextSpan(
+    //             text: downloadInfo!.getStringDownloadPercent(),
+    //             style: Theme.of(context).textTheme.labelSmall,
+    //           ),
+    //         TextSpan(text: downloadInfo!.getSpeedString()),
+    //       ],
+    //     ),
+    //   );
+    // } else if (episodeDuration != Duration.zero &&
+    //     episodeCurrentDuration != Duration.zero &&
+    //     (percent != null && percent > 0.0)) {
+    //   final label = episodeCurrentDuration.label(
+    //     reference: historic?.epdToDuration ?? Duration.zero,
+    //   );
+    //   return Column(
+    //     mainAxisSize: MainAxisSize.min,
+    //     crossAxisAlignment: CrossAxisAlignment.start,
+    //     children: [
+    //       if (release case Episode data when data.registrationData != null) ...[
+    //         Row(
+    //           mainAxisSize: MainAxisSize.min,
+    //           crossAxisAlignment: CrossAxisAlignment.start,
+    //           children: [
+    //             Icon(MdiIcons.clock, size: 16),
+    //             const SizedBox(width: 4),
+    //             Text(timeago.format(data.registrationData!)),
+    //           ],
+    //         ),
+    //       ],
+    //       Text.rich(
+    //         TextSpan(
+    //           children: [
+    //             // if (release case Episode data
+    //             //     when data.registrationData != null) ...[
+    //             //   WidgetSpan(child: Icon(MdiIcons.clock, size: 16)),
+    //             //   WidgetSpan(child: const SizedBox(width: 4)),
+    //             //   TextSpan(text: timeago.format(data.registrationData!)),
+    //             //   TextSpan(text: " - "),
+    //             // ],
+    //             TextSpan(
+    //               text: label,
+    //               style: TextStyle(
+    //                 color: historic?.completeColor(
+    //                   themeData.colorScheme,
+    //                 ),
+    //               ),
+    //             ),
+    //             const TextSpan(text: " / "),
+    //             TextSpan(text: episodeDuration.label()),
+    //           ],
+    //         ),
+    //       ),
+    //     ],
+    //   );
+    // }
+
+    if (release case Episode data when data.registrationData != null) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 4.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            if (downloadInfo?.isDownloading == true &&
-                downloadInfo?.videoDuration != null &&
-                (downloadInfo?.time ?? 0) > 0.0)
-              TextSpan(
-                text:
-                    '${(((downloadInfo!.time * 100) / downloadInfo.videoDuration!.inMilliseconds)).ceil().toString()}%',
-                style: Theme.of(context).textTheme.labelSmall,
-              ),
-            TextSpan(
-                text: ' - speed: ${downloadInfo?.speed.toStringAsFixed(2)}'),
-          ],
-        ),
-      );
-    } else if (episodeDuration != Duration.zero &&
-        episodeCurrentDuration != Duration.zero &&
-        percent > 0.0) {
-      return Text.rich(
-        TextSpan(
-          children: [
-            TextSpan(
-              text: episodeCurrentDuration.label(
-                  reference: historic?.epdToDuration ?? Duration.zero),
-              style: TextStyle(
-                color: historic?.isComplete == true
-                    ? Colors.green
-                    : themeData.colorScheme.primary,
+            Icon(MdiIcons.clock, size: 16),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                data.formatRegistrationData(),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
-            const TextSpan(text: " / "),
-            TextSpan(text: episodeDuration.label()),
           ],
         ),
       );
@@ -320,116 +458,152 @@ class _ReleaseLeading extends StatelessWidget {
 
     final historic = historicRepo.getHistoric(release: release);
 
-    final percent = historic?.isComplete == true
-        ? 1.0
-        : (historic?.percent.isNaN == true ? 0.0 : historic?.percent) ?? 0.0;
+    final percent = historic?.getPercent();
 
-    final hiveController = context.watch<HiveController>();
+    final AppConfigController appConfigController =
+        context.watch<AppConfigController>();
 
     final color = historic?.isComplete == true
         ? colorScheme.primary
         : colorScheme.secondary;
 
+    final episodeDuration = (historic?.epdToDuration ?? Duration.zero);
+    final episodeCurrentDuration = (historic?.cdToDuration ?? Duration.zero);
+
     return SizedBox(
       width: 110,
       height: double.infinity,
-      child: release is Episode && (release as Episode).thumbnail != null
-          ? Builder(
-              builder: (context) {
-                Widget container = ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: CachedNetworkImage(
-                    cacheManager: App.APP_IMAGE_CACHE,
-                    httpHeaders: {
-                      ...App.HEADERS,
-                      'Referer': '${hiveController.source.baseURL}/',
-                    },
-                    imageUrl: (release as Episode).thumbnail!,
-                    placeholder: (context, url) => Card.filled(
-                      margin: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) {
-                      return Card.filled(
-                        margin: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          release is Episode && (release as Episode).thumbnail != null
+              ? Builder(
+                  builder: (context) {
+                    Widget container = ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: CachedNetworkImage(
+                        cacheManager: App.APP_IMAGE_CACHE,
+                        httpHeaders: {
+                          ...App.HEADERS,
+                          'Referer':
+                              '${appConfigController.config.source.baseURL}/',
+                        },
+                        imageUrl: (release as Episode).thumbnail!,
+                        placeholder: (context, url) => Card.filled(
+                          margin: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                      );
-                    },
-                    fit: BoxFit.cover,
-                    memCacheWidth: 200,
-                    memCacheHeight: 150,
-                  ),
-                );
-
-                // video == null
-                //     ? Colors.grey
-                //     : video is VideoData
-                //         ? colorScheme.primary
-                //         : colorScheme.secondaryContainer;
-
-                final DownloadInfo? downloadInfo = context.watch();
-
-                if (downloadInfo?.isDownloading == true &&
-                    downloadInfo?.videoDuration != null &&
-                    (downloadInfo?.time ?? 0) > 0.0) {
-                  final percent = ((downloadInfo!.time * 100) /
-                      downloadInfo.videoDuration!.inMilliseconds);
-
-                  customLog(percent);
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      container,
-                      AnimatedBorderProgressIndicator(
-                        value: percent / 100,
-                        color: color,
-                        strokeWidth: 2,
-                        borderRadius: 6,
+                        errorWidget: (context, url, error) {
+                          return Card.filled(
+                            margin: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          );
+                        },
+                        fit: BoxFit.cover,
+                        memCacheWidth: 200,
+                        memCacheHeight: 150,
                       ),
-                    ],
-                  );
-                }
-                // TextSpan(
-                //   text:
-                //       '${(((downloadInfo!.time * 100) / downloadInfo.videoDuration!.inMilliseconds)).ceil().toString()}%',
-                //   style: Theme.of(context).textTheme.labelSmall,
-                // ),
+                    );
 
-                if (percent > 0.0) {
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      container,
+                    // video == null
+                    //     ? Colors.grey
+                    //     : video is VideoData
+                    //         ? colorScheme.primary
+                    //         : colorScheme.secondaryContainer;
+
+                    final DownloadInfo? downloadInfo = context.watch();
+
+                    if (downloadInfo?.isDownloading == true &&
+                        downloadInfo?.videoDuration != null &&
+                        (downloadInfo?.time ?? 0) > 0.0) {
+                      final percent = ((downloadInfo!.time * 100) /
+                          downloadInfo.videoDuration!.inMilliseconds);
+
+                      customLog(percent);
+                      return Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          container,
+                          AnimatedBorderProgressIndicator(
+                            value: percent / 100,
+                            color: color,
+                            strokeWidth: 2,
+                            borderRadius: 6,
+                          ),
+                        ],
+                      );
+                    }
+                    // TextSpan(
+                    //   text:
+                    //       '${(((downloadInfo!.time * 100) / downloadInfo.videoDuration!.inMilliseconds)).ceil().toString()}%',
+                    //   style: Theme.of(context).textTheme.labelSmall,
+                    // ),
+
+                    if (percent != null && percent > 0.0) {
+                      return Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          container,
+                          AnimatedBorderProgressIndicator(
+                            value: percent,
+                            color: color,
+                            strokeWidth: 2,
+                            borderRadius: 6,
+                          ),
+                        ],
+                      );
+                    }
+
+                    return container;
+                  },
+                )
+              : Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    const Card.filled(),
+                    if (percent != null && percent > 0.0)
                       AnimatedBorderProgressIndicator(
                         value: percent,
                         color: color,
-                        strokeWidth: 2,
+                        strokeWidth: 6,
                         borderRadius: 6,
                       ),
-                    ],
+                  ],
+                ),
+          if (episodeDuration != Duration.zero &&
+              episodeCurrentDuration != Duration.zero &&
+              (percent != null && percent > 0.0))
+            Positioned(
+              top: 4,
+              right: 6,
+              child: Builder(
+                builder: (context) {
+                  final label = episodeCurrentDuration.label(
+                    reference: historic?.epdToDuration ?? Duration.zero,
                   );
-                }
-
-                return container;
-              },
-            )
-          : Stack(
-              fit: StackFit.expand,
-              children: [
-                const Card.filled(),
-                if (percent > 0.0)
-                  AnimatedBorderProgressIndicator(
-                    value: percent,
-                    color: color,
-                    strokeWidth: 6,
-                    borderRadius: 6,
-                  ),
-              ],
+                  return Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: label,
+                          style: TextStyle(
+                            color: historic?.completeColor(colorScheme),
+                          ),
+                        ),
+                        // const TextSpan(text: " / "),
+                        // TextSpan(text: episodeDuration.label()),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
+        ],
+      ),
     );
   }
 }
@@ -453,45 +627,57 @@ class ReleaseContent extends StatelessWidget {
         downloadService.downloadList.firstWhereOrNull(
       (info) => info.releaseId.contains(release.stringID),
     );
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+    // final isLoading = ContentScope.isLoadingOf(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: () => _listTitleOntap(context),
+      onDoubleTap: () => onDoubleTap(context),
+      splashFactory: InkRipple.splashFactory,
+      overlayColor: _OverlayColor(colorScheme),
       child: ChangeNotifierProvider.value(
         value: downloadInfo,
         builder: (context, child) {
-          return GestureDetector(
-            onDoubleTap: () => onDoubleTap(context),
-            child: ListTile(
-              dense: true,
-              onLongPress: () =>
-                  ContentScope.of(context).onLongPressed(release),
-              isThreeLine: false,
-              subtitle: _ReleaseSubtitle(release: release),
-              horizontalTitleGap: 20,
-              contentPadding: const EdgeInsets.only(
-                left: 16.0,
-                right: 8,
-              ),
-              trailing: _ReleaseTrailing(
-                content: content,
-                release: release,
-              ),
-              leading: _ReleaseLeading(
-                content: content,
-                release: release,
-              ),
-              titleTextStyle: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
-              onTap: () => _listTitleOntap(context),
-              minVerticalPadding: 0,
-              minTileHeight: 76,
-              visualDensity: const VisualDensity(vertical: 4, horizontal: -2),
-              title: Text(
-                '${release.number}. ${release.title}',
-                maxLines: 2,
-              ),
+          return ListTile(
+            isThreeLine: false,
+            dense: true,
+            // onLongPress: () =>
+            //     ContentScope.of(context).onLongPressed(release),
+            // isThreeLine: false,
+            subtitle: _ReleaseSubtitle(release: release),
+            horizontalTitleGap: 20,
+            contentPadding: const EdgeInsets.only(
+              left: 16.0,
+              right: 8,
+            ),
+            trailing: _ReleaseTrailing(
+              content: content,
+              release: release,
+            ),
+            leading: _ReleaseLeading(
+              content: content,
+              release: release,
+            ),
+            subtitleTextStyle: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w400,
+              color: Color(0xFFB0B0B0), // cinza claro para contraste no dark
+              height: 1.3,
+            ),
+            titleTextStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              height: 1.3,
+              overflow: TextOverflow.ellipsis,
+            ),
+            // onTap: () => _listTitleOntap(context),
+            onTap: null,
+            minVerticalPadding: 0,
+            minTileHeight: 76,
+            visualDensity: const VisualDensity(vertical: 3, horizontal: -2),
+            title: Text(
+              '${release.number}. ${release.title}',
+              maxLines: 2,
             ),
           );
         },
@@ -682,6 +868,15 @@ class ReleaseContent extends StatelessWidget {
   }
 }
 
+class _ReleasePagination extends StatefulWidget {
+  const _ReleasePagination({required this.content});
+
+  final Content? content;
+
+  @override
+  State<_ReleasePagination> createState() => _ReleasePaginationState();
+}
+
 class _ReleasePaginationState extends State<_ReleasePagination> {
   List<int> _totalPage = [];
   BoolList _selectChips = BoolList.empty();
@@ -744,8 +939,9 @@ class _ReleasePaginationState extends State<_ReleasePagination> {
     if (widget.content == null || _selectChips.isEmpty || _totalPage.isEmpty) {
       return const SizedBox(height: 0, width: 0);
     }
-
-    final hiveController = context.watch<HiveController>();
+    final isLoading = ContentScope.isLoadingOf(context);
+    final AppConfigController appConfigController =
+        context.watch<AppConfigController>();
     final setListIndex = ContentScope.of(context).setListIndex;
 
     // final chipsWidgets = List.generate(_selectChips.length, (index) {
@@ -768,6 +964,7 @@ class _ReleasePaginationState extends State<_ReleasePagination> {
         width: 100,
         height: 36,
         child: ListView.builder(
+          shrinkWrap: true,
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 8),
           scrollDirection: Axis.horizontal,
@@ -775,20 +972,27 @@ class _ReleasePaginationState extends State<_ReleasePagination> {
           itemBuilder: (context, index) {
             switch (index) {
               case 0:
-                return IconButton.filled(
-                  style: IconButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                return ShimmerContainer(
+                  borderRadius: BorderRadius.circular(8),
+                  height: 21,
+                  width: 40,
+                  enable: isLoading,
+                  child: IconButton.filled(
+                    style: IconButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                  ),
-                  iconSize: 21,
-                  onPressed: () => hiveController
-                      .setReverseContents(!hiveController.reverseContents),
-                  icon: FadeThroughTransitionSwitcher(
-                    enableSecondChild: !hiveController.reverseContents,
-                    duration: const Duration(milliseconds: 350),
-                    secondChild: Icon(MdiIcons.sortNumericAscending),
-                    child: Icon(MdiIcons.sortNumericDescending),
+                    iconSize: 21,
+                    onPressed: () => appConfigController.setReverseContents(
+                        !appConfigController.config.reverseContents),
+                    icon: FadeThroughTransitionSwitcher(
+                      enableSecondChild:
+                          !appConfigController.config.reverseContents,
+                      duration: const Duration(milliseconds: 350),
+                      secondChild: Icon(MdiIcons.sortNumericAscending),
+                      child: Icon(MdiIcons.sortNumericDescending),
+                    ),
                   ),
                 );
 
@@ -800,16 +1004,42 @@ class _ReleasePaginationState extends State<_ReleasePagination> {
 
             return Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: ChoiceChip(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                selected: _selectChips[index - 2],
-                onSelected: (value) => setListIndex.call(index - 2),
-                label: Text('$page'),
+              child: ShimmerContainer(
+                height: 36,
+                borderRadius: BorderRadius.circular(8),
+                width: 80,
+                enable: isLoading,
+                child: ChoiceChip(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  selected: _selectChips[index - 2],
+                  onSelected: (value) => setListIndex.call(index - 2),
+                  label: Text('$page'),
+                ),
               ),
             );
           },
         ),
       ),
     );
+  }
+}
+
+class _OverlayColor extends WidgetStateProperty<Color?> {
+  _OverlayColor(ColorScheme colorScheme) {
+    _color = colorScheme.primary;
+  }
+
+  Color? _color;
+
+  @override
+  Color? resolve(Set<WidgetState> states) {
+    if (states.contains(WidgetState.pressed)) {
+      return _color?.withAlpha(36);
+    } else if (states.contains(WidgetState.hovered)) {
+      return _color?.withAlpha(20);
+    } else if (states.contains(WidgetState.focused)) {
+      return Colors.transparent;
+    }
+    return Colors.transparent;
   }
 }

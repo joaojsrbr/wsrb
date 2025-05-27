@@ -41,8 +41,8 @@ class AnimeEntity extends ContentEntity {
   final int? totalOfEpisodes;
   final int? totalOfPages;
 
-  IsarLinks<EpisodeEntity> episodes;
-  IsarLink<AnimeSkipEntity> animeSkip;
+  IsarLinks<EpisodeEntity> episodes = IsarLinks<EpisodeEntity>();
+  IsarLink<AnimeSkipEntity> animeSkip = IsarLink<AnimeSkipEntity>();
 
   AnimeEntity({
     required super.stringID,
@@ -64,8 +64,7 @@ class AnimeEntity extends ContentEntity {
     this.extraLarge,
     this.largeImage,
     this.mediumImage,
-  })  : episodes = IsarLinks<EpisodeEntity>(),
-        animeSkip = IsarLink<AnimeSkipEntity>();
+  });
 
   String get imageUrl =>
       extraLarge ?? largeImage ?? mediumImage ?? originalImage;
@@ -127,6 +126,7 @@ class AnimeEntity extends ContentEntity {
     );
   }
 
+  @override
   AnimeEntity copyWith({
     AniListMedia? anilistMedia,
     DateTime? createdAt,

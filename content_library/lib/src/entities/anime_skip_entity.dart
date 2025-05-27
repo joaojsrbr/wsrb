@@ -15,7 +15,7 @@ part 'anime_skip_entity.g.dart';
     'toMap',
   },
 )
-class AnimeSkipEntity extends Entity {
+class AnimeSkipEntity extends OtherEntity {
   final String name;
   @Index(replace: true, unique: true)
   final String animeSkipId;

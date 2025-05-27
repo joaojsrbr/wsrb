@@ -186,10 +186,10 @@ class AnrollSource extends RSource {
   @override
   Future<Result<Anime>> getReleases(Content content, int page) async {
     if (content is! Anime) throw AnimeGetDataException();
-
+    Anime anime = content;
     try {
       String? animeID =
-          content.animeID ?? (await _getAnimeIDAndBuildId(content)).$1.animeID;
+          anime.animeID ?? (await _getAnimeIDAndBuildId(anime)).$1.animeID;
 
       final episodesResponse = await contentRepository._dio.get(
         'https://apiv3-prd.anroll.net/animes/$animeID/episodes?order=asc${page == -1 ? '' : '&page=$page'}',
@@ -203,36 +203,38 @@ class AnrollSource extends RSource {
 
       final lastENumber = int.parse(episodesList.last['n_episodio']);
 
-      content.releases.removeWhere(
+      anime.releases.removeWhere(
           (element) => (int.tryParse(element.number) ?? 0) > lastENumber);
 
       for (final map in episodesList) {
-        final number = int.parse(map['n_episodio']);
-        final titleEpisode = map['titulo_episodio'] as String;
+        // final number = int.parse(map['n_episodio']);
+        // final titleEpisode = map['titulo_episodio'] as String;
         final pageNumber = episodesResponse.data['meta']['pageNumber'] as int?;
-        final sinopseEpisode = map['sinopse_episodio'] as String?;
-        final episodeGenerateID = map['generate_id'] as String?;
-        final thumbnail =
-            "https://static.anroll.net/images/animes/screens/${content.slugSerie}/${map['n_episodio']}.jpg";
+        // final sinopseEpisode = map['sinopse_episodio'] as String?;
+        // final episodeGenerateID = map['generate_id'] as String?;
+        // final thumbnail =
+        //     "https://static.anroll.net/images/animes/screens/${content.slugSerie}/${map['n_episodio']}.jpg";
 
-        final Episode episode = Episode(
-          numberEpisode: number,
-          isDublado: content.isDublado,
-          url: '$BASE_URL/e/$episodeGenerateID',
-          generateID: episodeGenerateID,
-          pageNumber: pageNumber,
-          title: titleEpisode.contains('Episódio') ? 'N/A' : titleEpisode,
-          sinopse: sinopseEpisode,
-          slugSerie: content.slugSerie,
-          thumbnail: thumbnail,
-        );
+        // final Episode episode = Episode(
+        //   numberEpisode: number,
+        //   isDublado: content.isDublado,
+        //   url: '$BASE_URL/e/$episodeGenerateID',
+        //   generateID: episodeGenerateID,
+        //   pageNumber: pageNumber,
+        //   title: titleEpisode.contains('Episódio') ? 'N/A' : titleEpisode,
+        //   sinopse: sinopseEpisode,
+        //   slugSerie: content.slugSerie,
+        //   thumbnail: thumbnail,
+        // );
 
-        content.releases.addOrUpdateWhere(episode, episode.isEqualStringID);
+        // content.releases.add(Episode.fromReleaseMap(map, content, pageNumber));
+        final episode = Episode.fromReleaseMap(map, content, pageNumber);
+        anime.releases.addOrUpdateWhere(episode, episode.isEqualStringID);
       }
 
-      if (content.animeSkip == null &&
-          content.anilistMedia?.title?.english != null) {
-        final title = content.anilistMedia!.title!.english!;
+      if (anime.animeSkip == null &&
+          anime.anilistMedia?.title?.english != null) {
+        final title = anime.anilistMedia!.title!.english!;
 
         final result =
             await contentRepository._animeSkipRepository.getTimeStampsByName(
@@ -242,12 +244,12 @@ class AnrollSource extends RSource {
         if (result is Success<List<AnimeSkip>>) {
           final skip =
               result.data.firstWhereOrNull((skip) => title.contains(skip.name));
-          content = content.copyWith(animeSkip: skip);
+          anime = anime.copyWith(animeSkip: skip);
         }
       }
 
       return Result.success(
-        content.copyWith(
+        anime.copyWith(
           animeID: animeID,
           totalOfPages: totalOfPages,
           totalOfEpisodes: totalOfEpisodes,

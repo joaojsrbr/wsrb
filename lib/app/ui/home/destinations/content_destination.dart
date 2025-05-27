@@ -41,30 +41,26 @@ class _ContentDestinationState extends State<ContentDestination>
     super.build(context);
     customLog('$widget[build]');
 
-    final ConnectionChecker connectionChecker =
-        context.watch<ConnectionChecker>();
+    // gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+    //   crossAxisCount: 2,
+    //   crossAxisSpacing: 8,
+    //   mainAxisSpacing: 8,
+    // ),
 
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 350),
-        child: connectionChecker.connectivityResult.isEmpty
-            ? const FullScreenErrorWidget(btnAtualizar: false)
-            : LoadingMoreList(
-                ListConfig<Content>(
-                  shrinkWrap: true,
-                  // gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  //   crossAxisCount: 2,
-                  //   crossAxisSpacing: 8,
-                  //   mainAxisSpacing: 8,
-                  // ),
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  indicatorBuilder: contentIndicatorBuilder,
-                  itemBuilder: _itemBuilder,
-                  sourceList: _contentRepository,
-                ),
-              ),
+        child: LoadingMoreList(
+          ListConfig<Content>(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            indicatorBuilder: contentIndicatorBuilder,
+            itemBuilder: _itemBuilder,
+            sourceList: _contentRepository,
+          ),
+        ),
       ),
     );
   }

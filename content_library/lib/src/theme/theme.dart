@@ -1,4 +1,4 @@
-part of 'theme_controller.dart';
+import 'package:flutter/material.dart';
 
 class MaterialTheme {
   const MaterialTheme();

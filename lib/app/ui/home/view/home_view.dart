@@ -10,7 +10,6 @@ import 'package:app_wsrb_jsr/app/ui/shared/widgets/menu_button.dart';
 import 'package:app_wsrb_jsr/app/utils/category_utils.dart';
 import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
 import 'package:content_library/content_library.dart';
-import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -139,7 +138,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     customLog('$widget[build]');
-
+    // Divider();
     return HomeScope(
       bottomMenuController: _bottomMenuController,
       keepWatchingScrollController: _keepWatchingScrollController,
@@ -157,8 +156,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           body: BottomMenu(
             isDismissible: false,
             bottomMenuController: _bottomMenuController,
-            child: ExtendedNestedScrollView(
-              onlyOneScrollInBody: true,
+            child: NestedScrollView(
+              // onlyOneScrollInBody: true,
               controller: _scrollController,
               physics: _mainPhysics,
               headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -331,7 +330,8 @@ class _ButtonMenuSliver extends StatelessWidget {
         HomeScope.of(context).subordinateLibraryTabController;
     final CategoryController categoryController =
         context.watch<CategoryController>();
-    final HiveController hiveController = context.watch<HiveController>();
+    final AppConfigController appConfigController =
+        context.watch<AppConfigController>();
     return SliverAnimatedPaintExtent(
       duration: const Duration(milliseconds: 350),
       child: SliverToBoxAdapter(
@@ -372,15 +372,20 @@ class _ButtonMenuSliver extends StatelessWidget {
                         ),
                   physics: const BouncingScrollPhysics(),
                   scrollDirection: Axis.horizontal,
+                  shrinkWrap: true,
                   children: [
                     MenuButton(
                       data: Source.list,
-                      onTap: hiveController.setSource,
+                      onTap: appConfigController.setSource,
                       enableSecondChild: tabController.index != 0,
                       enableMenuItem: (data) =>
-                          !(hiveController.source == data),
+                          !(appConfigController.config.source == data),
                       child: Text(
-                        hiveController.source.toString(),
+                        appConfigController.config.source.toString(),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              letterSpacing: 1.2,
+                              color: Colors.white,
+                            ),
                       ),
                     ),
 

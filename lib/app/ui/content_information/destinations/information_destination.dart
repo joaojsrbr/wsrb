@@ -73,10 +73,6 @@ class _InformationDestinationState extends State<InformationDestination>
             shrinkWrap: true,
             padding: const EdgeInsets.only(bottom: 8),
             physics: const NeverScrollableScrollPhysics(),
-            // mainAxisSize: MainAxisSize.min,
-            // crossAxisAlignment: CrossAxisAlignment.start,
-            // shrinkWrap: true,
-            // padding: const EdgeInsets.only(bottom: 8),
             children: [
               if (sinopse.isNotEmpty)
                 Padding(
@@ -527,7 +523,6 @@ class _InformationDestinationState extends State<InformationDestination>
                         spacing: 8,
                         runSpacing: 8,
                         children: (_content!.anilistMedia?.tags.getMax(5))!
-                            .map((e) => e.name!.capitalize)
                             .map(
                               (e) => Card.filled(
                                 color:
@@ -536,7 +531,7 @@ class _InformationDestinationState extends State<InformationDestination>
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
-                                    e,
+                                    e.name.capitalize,
                                     style: themeData.textTheme.labelLarge
                                         ?.copyWith(
                                       fontWeight: FontWeight.w600,

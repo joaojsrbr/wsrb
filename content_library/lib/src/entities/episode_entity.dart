@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, must_be_immutable
 import 'package:content_library/content_library.dart';
+import 'package:equatable/equatable.dart';
 import 'package:isar/isar.dart';
 
 part 'episode_entity.g.dart';
@@ -14,7 +15,6 @@ part 'episode_entity.g.dart';
 })
 class EpisodeEntity extends HistoryEntity {
   final int episodeDuration;
-  final int currentDuration;
   @override
   final bool isComplete;
   final String? sinopse;
@@ -25,19 +25,43 @@ class EpisodeEntity extends HistoryEntity {
   final DateTime? createdAt;
   final int? pageNumber;
   final DateTime? updatedAt;
+  final DateTime? registrationData;
   final String? thumbnail;
   final String? slugSerie;
   final String? generateID;
   final String url;
-  final String? currentPositionBase64;
+  // final int currentDuration;
+  // final String? currentPositionBase64;
   final String title;
+  final List<CurrentPosition> positions;
+
+  CurrentPosition? getLastCurrentPosition() {
+    return positions.reduceOrNull(
+      (position1, position2) =>
+          (position1.createdAt != null && position2.createdAt != null) &&
+                  (position1.createdAt!.millisecond >
+                      position2.createdAt!.millisecond)
+              ? position1
+              : position2,
+    );
+  }
 
   @override
-  final double percent;
+  double get percent => getLastCurrentPosition()?.percent ?? 0.0;
+
+  @override
+  double getPercent() {
+    final percent = getLastCurrentPosition()?.percent;
+    return isComplete == true
+        ? 1.0
+        : (percent?.isNaN == true ? 0.0 : percent) ?? 0.0;
+    // if (isComplete || percent == null) return 1.0;
+    // return percent.isNaN ? 0.0 : percent;
+  }
 
   EpisodeEntity({
-    this.currentDuration = 0,
     this.episodeDuration = 0,
+    this.positions = const [],
     required this.stringID,
     required this.title,
     required this.animeStringID,
@@ -45,34 +69,44 @@ class EpisodeEntity extends HistoryEntity {
     required this.numberEpisode,
     required this.url,
     this.slugSerie,
+    this.registrationData,
     this.pageNumber,
-    this.currentPositionBase64,
+    // this.currentPositionBase64,
     this.generateID,
     this.createdAt,
     this.thumbnail,
     this.updatedAt,
     this.isComplete = false,
-  }) : percent = (currentDuration / episodeDuration).abs();
+  });
 
   factory EpisodeEntity.save({
     bool isComplete = false,
     required Episode episode,
     required Anime anime,
-    Duration position = Duration.zero,
-    Duration duration = Duration.zero,
+    Duration? position,
+    Duration? duration,
     String? currentPositionBase64,
     EpisodeEntity? entity,
   }) {
     return EpisodeEntity(
-      currentDuration: position.inMicroseconds,
-      currentPositionBase64: currentPositionBase64,
       title: episode.title,
+      registrationData: episode.registrationData ?? entity?.registrationData,
       animeStringID: anime.stringID,
       generateID: episode.generateID,
       slugSerie: episode.slugSerie,
       pageNumber: episode.pageNumber,
       url: episode.url,
-      episodeDuration: duration.inMicroseconds,
+      positions: [
+        ...?entity?.positions,
+        if (duration != null && position != null)
+          CurrentPosition(
+            createdAt: DateTime.now(),
+            episodeDuration: duration.inMicroseconds,
+            currentPositionBase64: currentPositionBase64,
+            currentDuration: position.inMicroseconds,
+          ),
+      ],
+      episodeDuration: entity?.episodeDuration ?? duration?.inMicroseconds ?? 0,
       thumbnail: episode.thumbnail,
       createdAt: entity?.createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),
@@ -85,12 +119,10 @@ class EpisodeEntity extends HistoryEntity {
 
   @override
   List<Object?> get props => [
-        episodeDuration,
+        positions,
         thumbnail,
         animeStringID,
-        currentPositionBase64,
         pageNumber,
-        currentDuration,
         isComplete,
         stringID,
         numberEpisode,
@@ -122,9 +154,39 @@ class EpisodeEntity extends HistoryEntity {
       numberEpisode: numberEpisode,
       generateID: generateID,
       slugSerie: slugSerie,
+      registrationData: registrationData,
       isDublado: isDublado,
       sinopse: sinopse,
       thumbnail: thumbnail,
     );
   }
+}
+
+@Embedded(ignore: {
+  'props',
+  'imageUrl',
+  'stringify',
+  'hashCode',
+  'videoPercent',
+  'percent'
+})
+class CurrentPosition with EquatableMixin {
+  final int currentDuration;
+  final int episodeDuration;
+  final String? currentPositionBase64;
+  final DateTime? createdAt;
+  final double percent;
+
+  CurrentPosition({
+    this.currentDuration = 0,
+    this.currentPositionBase64,
+    this.createdAt,
+    this.episodeDuration = 0,
+  }) : percent = (currentDuration / episodeDuration).abs();
+
+  @override
+  List<Object?> get props => [
+        currentPositionBase64,
+        currentDuration,
+      ];
 }

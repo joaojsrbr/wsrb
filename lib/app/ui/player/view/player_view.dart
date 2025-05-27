@@ -74,7 +74,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   late PlayerArgs _playerArgs = argument();
   late final AnimationController _animationController;
   late final ContentRepository _repository;
-  late final HiveController _hiveController;
+  late final AppConfigController _appConfigController;
   late final LibraryController _libraryController;
   late final AnimeSkipController _animeSkipController;
   late final HistoricController _historicController;
@@ -113,7 +113,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _hiveController = context.read<HiveController>();
+    _appConfigController = context.read<AppConfigController>();
     _animeSkipController = context.read<AnimeSkipController>();
     _repository = context.read<ContentRepository>();
     _animationController = AnimationController(
@@ -414,8 +414,8 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     customLog(
         '[$runtimeType][_continueVideoByHistoricPosition()][${entity.animeStringID}]');
-
-    if (entity.currentDuration == 0) return;
+    // final currentPosition = data.getLastCurrentPosition();
+    if (entity.percent == 0) return;
 
     final GlobalKey dialogAnchor = GlobalKey();
 
@@ -506,7 +506,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     await setSessionActive(false);
     await playerAudioHandler.stop();
 
-    if (_videoPercent < _hiveController.historicSavePercent) return;
+    // if (_videoPercent < _hiveController.historicSavePercent) return;
 
     final Duration position = player!.state.position;
 
@@ -654,6 +654,7 @@ class _Content extends StatelessWidget {
               progress: scope.currentValueCircularAnimation /
                   scope.maxValueCircularAnimation,
             ),
+            const SizedBox(height: 8),
             Text('Carregando...',
                 style: Theme.of(context).textTheme.titleSmall),
           ] else if (videoCtrl != null) ...[
@@ -724,8 +725,8 @@ class _VideoPlayerArea extends StatelessWidget {
               ? () async {}
               : () async {
                   await SystemChrome.setPreferredOrientations([
-                    DeviceOrientation.landscapeLeft,
                     DeviceOrientation.landscapeRight,
+                    DeviceOrientation.landscapeLeft,
                   ]);
                   SystemChrome.setEnabledSystemUIMode(
                     SystemUiMode.immersive,
@@ -734,7 +735,7 @@ class _VideoPlayerArea extends StatelessWidget {
           onExitFullscreen: scope.isPipActivated
               ? () async {}
               : () async {
-                  await SystemChrome.setPreferredOrientations(
+                  SystemChrome.setPreferredOrientations(
                     [DeviceOrientation.portraitUp],
                   );
                 },
@@ -753,7 +754,7 @@ class _EpisodesAndSkipList extends StatelessWidget {
   Widget build(BuildContext context) {
     final scope = PlayerScope.of(context);
     final args = scope.playerArgs;
-    final hive = context.watch<HiveController>();
+    final appConfig = context.watch<AppConfigController>();
     final size = MediaQuery.sizeOf(context);
 
     return AnimatedBuilder(
@@ -761,41 +762,39 @@ class _EpisodesAndSkipList extends StatelessWidget {
       builder: (context, child) => Row(
         mainAxisSize: MainAxisSize.max,
         children: [
-          Expanded(child: _EpisodeList(hive: hive)),
+          Expanded(child: _EpisodeList(appConfig: appConfig)),
           if (args.times.isNotEmpty)
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: scope.showAnimeSkip.value ? size.width / 2 : 0,
-              ),
-              child: CustomPopup(
-                // startAnimatedAlignment: Alignment.,
-                duration: const Duration(milliseconds: 250),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    bottomLeft: Radius.circular(12),
-                  ),
+            CustomPopup(
+              startAnimatedAlignment: Alignment.centerRight,
+              duration: const Duration(milliseconds: 250),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
                 ),
-                height: size.height,
-                width: size.width / 2,
-                show: scope.showAnimeSkip.value,
-                items: args.times,
-                builderFunction: (ctx, idx, stamp) {
-                  return ValueListenableBuilder<AnimeTimeStamp?>(
-                    valueListenable: scope.selectedAnimeTimeStamp,
-                    builder: (_, selected, __) {
-                      return ListTile(
-                        selected: selected?.id == stamp.id,
-                        leading: Text(Duration(microseconds: stamp.at).label()),
-                        title: Text(stamp.timeStampType.label),
-                        visualDensity:
-                            const VisualDensity(vertical: -4, horizontal: -2),
-                        onTap: () => scope.onClickSkipAnime(stamp),
-                      );
-                    },
-                  );
-                },
               ),
+              height: size.height,
+              width: size.width / 2,
+              show: scope.showAnimeSkip.value,
+              items: args.times,
+              builderFunction: (ctx, idx, stamp) {
+                return ValueListenableBuilder<AnimeTimeStamp?>(
+                  valueListenable: scope.selectedAnimeTimeStamp,
+                  builder: (_, selected, __) {
+                    if (!scope.showAnimeSkip.value) {
+                      return const SizedBox.shrink();
+                    }
+                    return ListTile(
+                      selected: selected?.id == stamp.id,
+                      leading: Text(Duration(microseconds: stamp.at).label()),
+                      title: Text(stamp.timeStampType.label),
+                      visualDensity:
+                          const VisualDensity(vertical: -4, horizontal: -2),
+                      onTap: () => scope.onClickSkipAnime(stamp),
+                    );
+                  },
+                );
+              },
             ),
         ],
       ),
@@ -804,8 +803,8 @@ class _EpisodesAndSkipList extends StatelessWidget {
 }
 
 class _EpisodeList extends StatelessWidget {
-  final HiveController hive;
-  const _EpisodeList({required this.hive});
+  final AppConfigController appConfig;
+  const _EpisodeList({required this.appConfig});
 
   @override
   Widget build(BuildContext context) {
@@ -837,7 +836,7 @@ class _EpisodeList extends StatelessWidget {
                       child: CachedNetworkImage(
                         cacheManager: App.APP_IMAGE_CACHE,
                         httpHeaders: {
-                          'Referer': '${hive.source.baseURL}/',
+                          'Referer': '${appConfig.config.source.baseURL}/',
                           ...App.HEADERS
                         },
                         imageUrl: ep.thumbnail!,

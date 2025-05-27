@@ -2,9 +2,10 @@ import 'package:content_library/content_library.dart';
 import 'package:content_library/src/utils/in_repository.dart';
 
 class InLibraryRepository extends InRepository<ContentEntity> {
-  final HiveController _hiveController;
+  // ignore: unused_field
+  final AppConfigController _appConfigController;
 
-  InLibraryRepository(this._hiveController);
+  InLibraryRepository(this._appConfigController);
 
   UnmodifiableListView<String> get allDownIds =>
       UnmodifiableListView(entities.map(_map2).nonNulls);
@@ -35,12 +36,18 @@ class InLibraryRepository extends InRepository<ContentEntity> {
       UnmodifiableListView(entities
           .where(
             (entity) => switch (entity) {
-              AnimeEntity data => data.episodes.any((episode) =>
-                  !episode.isComplete &&
-                  (episode.percent > _hiveController.historicSavePercent)),
-              BookEntity data => data.chapters.any((chapter) =>
-                  !chapter.isComplete &&
-                  (chapter.readPercent > _hiveController.historicSavePercent)),
+              AnimeEntity data =>
+                data.episodes.any((episode) => !episode.isComplete
+                    // &&
+                    // (episode.percent >
+                    //     _appConfigController.repo.config.historicSavePercent)
+
+                    ),
+              BookEntity data => data.chapters.any(
+                  (chapter) => !chapter.isComplete
+                  // &&
+                  // (chapter.readPercent > _hiveController.historicSavePercent)
+                  ),
               _ => false,
             },
           )
@@ -159,18 +166,14 @@ class InLibraryRepository extends InRepository<ContentEntity> {
   }
 
   Future<ContentEntity?> getContentEntityByStringIDAll(
-      String animeStringID) async {
+    String animeStringID, {
+    ContentEntity? Function()? orElse,
+  }) async {
     final first = entities.firstWhereOrNull(
       (content) => _byStringID(content, animeStringID),
     );
-    // switch (first) {
-    //   case AnimeEntity data:
-    //     await data.episodes.load();
-    //   case BookEntity data:
-    //     await data.chapters.load();
-    // }
 
-    return first;
+    return first ?? orElse?.call();
   }
 
   bool contains({ContentEntity? contentEntity, Content? content}) {

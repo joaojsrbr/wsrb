@@ -45,13 +45,26 @@ extension CustomListExtensions<E, Id> on List<E> {
     }
   }
 
-  bool updateWhere(E element, bool Function(E) test) {
+  bool updateWhere(
+    bool Function(E) test,
+    E Function(E old) update,
+  ) {
     final int indexOf = indexWhere(test);
     if (indexOf != -1) {
-      this[indexOf] = element;
+      this[indexOf] = update.call(this[indexOf]);
       return true;
     }
     return false;
+  }
+
+  E? reduceOrNull(E Function(E value, E element) combine) {
+    Iterator<E> iterator = this.iterator;
+    if (!iterator.moveNext()) return null;
+    E value = iterator.current;
+    while (iterator.moveNext()) {
+      value = combine(value, iterator.current);
+    }
+    return value;
   }
 
   bool containsOneElement(List elements) {

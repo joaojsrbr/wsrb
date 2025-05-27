@@ -48,6 +48,7 @@ class ItemContent extends StatelessWidget {
   })  : _isSearch = true,
         _isLibrary = false,
         _isContent = false;
+
   const ItemContent.content({
     super.key,
     required this.content,
@@ -73,15 +74,19 @@ class ItemContent extends StatelessWidget {
     final ValueNotifierList valueNotifierList =
         context.watch<ValueNotifierList>();
 
-    final HiveController hiveController = context.watch<HiveController>();
+    final AppConfigController appConfigController =
+        context.watch<AppConfigController>();
 
     final ThemeData themeData = Theme.of(context);
+
+    // final LibraryController libraryController =
+    //     context.watch<LibraryController>();
 
     final searchController = HomeScope.maybeOf(context)?.searchController;
 
     final content = this.content;
 
-    final _OverlayColor overlayColor = _OverlayColor(content);
+    final _OverlayColor overlayColor = _OverlayColor(themeData.colorScheme);
 
     final textTheme = themeData.textTheme;
 
@@ -136,7 +141,7 @@ class ItemContent extends StatelessWidget {
             }
           },
           splashFactory: InkRipple.splashFactory,
-          overlayColor: _OverlayColor(content),
+          overlayColor: _OverlayColor(themeData.colorScheme),
           child: ListTile(
             title: Text(
               content.title,
@@ -146,14 +151,11 @@ class ItemContent extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             isThreeLine: false,
-            dense: false,
+            dense: true,
             subtitle: Row(
               children: [
                 Text(
                   'Episódio ${content.releases.last.number}',
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.normal,
-                  ),
                 ),
                 if (content is Anime) ...[
                   Text.rich(
@@ -161,12 +163,8 @@ class ItemContent extends StatelessWidget {
                       children: [
                         const TextSpan(text: ' - '),
                         TextSpan(
-                          text: (content).isDublado ? 'DUB' : 'LEG',
-                          style: textTheme.titleSmall?.copyWith(
-                            color: (content).isDublado
-                                ? Colors.green
-                                : Colors.blue,
-                          ),
+                          text: content.isDublado ? 'DUB' : 'LEG',
+                          style: TextStyle(),
                         ),
                       ],
                     ),
@@ -208,7 +206,8 @@ class ItemContent extends StatelessWidget {
                             const _Placeholder(),
                         httpHeaders: {
                           ...App.HEADERS,
-                          'Referer': '${hiveController.source.baseURL}/',
+                          'Referer':
+                              '${appConfigController.config.source.baseURL}/',
                         },
                       ),
                     ),
@@ -304,7 +303,7 @@ class ItemContent extends StatelessWidget {
                 memCacheWidth: memCacheWidth,
                 httpHeaders: {
                   ...App.HEADERS,
-                  'Referer': '${hiveController.source.baseURL}/',
+                  'Referer': '${appConfigController.config.source.baseURL}/',
                 },
               ),
             ),
@@ -402,16 +401,35 @@ class ItemContent extends StatelessWidget {
                         ),
                       );
                     } else {
-                      final result = await context.push(
-                        RouteName.CONTENTINFO,
-                        extra: ContentInformationArgs(
-                          content: content,
-                          isLibrary: _isLibrary,
-                        ),
-                      );
+                      // final saveContent =
+                      //     libraryController.repo.getContentEntityByStringID(
+                      //   content.stringID,
+                      // );
 
-                      if (result != null) {
-                        await appSnackBar.onError(result);
+                      // switch (saveContent) {
+                      //   case AnimeEntity data:
+                      //     await data.episodes.load();
+                      //   case BookEntity data:
+                      //     await data.chapters.load();
+                      // }
+
+                      // final toContent = switch (saveContent) {
+                      //   AnimeEntity data => data.toAnime(),
+                      //   BookEntity data => data.toBook(),
+                      //   _ => null,
+                      // };
+                      if (context.mounted) {
+                        final result = await context.push(
+                          RouteName.CONTENTINFO,
+                          extra: ContentInformationArgs(
+                            content: content,
+                            isLibrary: _isLibrary,
+                          ),
+                        );
+
+                        if (result != null) {
+                          await appSnackBar.onError(result);
+                        }
                       }
                     }
                   }
@@ -472,15 +490,11 @@ class _Placeholder extends StatelessWidget {
 }
 
 class _OverlayColor extends WidgetStateProperty<Color?> {
-  _OverlayColor(this.content) {
-    if (content is Anime) {
-      _color = (content as Anime).isDublado ? Colors.blue : Colors.red;
-    }
+  _OverlayColor(ColorScheme colorScheme) {
+    _color = colorScheme.primary;
   }
 
   Color? _color;
-
-  final Content content;
 
   @override
   Color? resolve(Set<WidgetState> states) {

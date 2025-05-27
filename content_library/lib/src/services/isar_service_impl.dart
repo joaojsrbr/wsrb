@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/entities/app_config_entity.dart';
 import 'package:content_library/src/services/isar_service.dart';
 import 'package:isar/isar.dart';
 
@@ -20,6 +21,9 @@ class IsarServiceImpl implements IsarService {
 
     await isar.writeTxn(() async {
       switch (entity) {
+        case AppConfigEntity data:
+          currentID = await isar.appConfigEntitys.put(data);
+          isSucess = true;
         case ChapterEntity data:
           await isar.bookEntitys
               .getByStringID(data.bookStringID)
@@ -97,6 +101,12 @@ class IsarServiceImpl implements IsarService {
           );
           isSucess = true;
           break;
+        case ContentEntity():
+        //! abstract class
+        case HistoryEntity():
+        //! abstract class
+        case OtherEntity():
+        //! abstract class
       }
     });
 
@@ -116,9 +126,17 @@ class IsarServiceImpl implements IsarService {
     await isar.writeTxn(() async {
       switch (entity) {
         case AnimeEntity data:
+          await isar.episodeEntitys
+              .filter()
+              .animeStringIDEqualTo(data.stringID)
+              .deleteAll();
           isSucess = await isar.animeEntitys.deleteByStringID(data.stringID);
           break;
         case BookEntity data:
+          await isar.chapterEntitys
+              .filter()
+              .bookStringIDEqualTo(data.stringID)
+              .deleteAll();
           isSucess = await isar.bookEntitys.deleteByStringID(data.stringID);
           break;
         case EpisodeEntity data:
@@ -130,6 +148,12 @@ class IsarServiceImpl implements IsarService {
         case CategoryEntity data:
           isSucess = await isar.categoryEntitys.deleteByStringID(data.stringID);
           break;
+        case ContentEntity():
+        //! abstract class
+        case HistoryEntity():
+        //! abstract class
+        case OtherEntity():
+        //! abstract class
       }
     }).whenComplete(() {
       customLog('Isar[remove]: ${entity.id} as ${entity.runtimeType}');
@@ -234,26 +258,44 @@ class IsarServiceImpl implements IsarService {
 
       if (episodeEntitys.isNotEmpty) {
         await isar.writeTxn(() async {
-          for (final episode in episodeEntitys) {
-            await isar.animeEntitys
-                .getByStringID(episode.animeStringID)
-                .then((anime) async {
-              if (anime != null) {
-                anime.addEpisode(episode);
+          final anime = await isar.animeEntitys
+              .getByStringID(episodeEntitys.first.animeStringID)
+              .then((anime) => anime?.copyWith(updatedAt: DateTime.now()));
 
-                await isar.episodeEntitys
-                    .putByStringID(episode)
-                    .then(ids.add)
-                    .whenComplete(anime.saveEpisode);
+          if (anime != null) {
+            anime.episodes.addAll(episodeEntitys);
 
-                await isar.animeEntitys.putByStringID(
-                  anime.copyWith(updatedAt: DateTime.now()),
-                );
+            final epIds =
+                await isar.episodeEntitys.putAllByStringID(episodeEntitys);
 
-                isSucess = true;
-              }
-            });
+            // epIds.forEachIndexed((index, id) {
+            //   episodeEntitys[index] = episodeEntitys[index]..id = id;
+            // });
+
+            ids.addAll(epIds);
+            await isar.animeEntitys.putByStringID(anime);
+
+            await anime.episodes.save();
+            isSucess = true;
           }
+
+          // for (final episode in episodeEntitys) {
+          //   final anime =
+          //       await isar.animeEntitys.getByStringID(episode.animeStringID);
+          //   if (anime != null) {
+          //     anime.addEpisode(episode);
+
+          //     await isar.episodeEntitys.putByStringID(episode).then(ids.add);
+
+          //     await anime.saveEpisode();
+
+          //     await isar.animeEntitys.putByStringID(
+          //       anime.copyWith(updatedAt: DateTime.now()),
+          //     );
+
+          //     isSucess = true;
+          //   }
+          // }
         });
       }
 
@@ -310,6 +352,7 @@ class IsarServiceImpl implements IsarService {
         ChapterEntitySchema,
         CategoryEntitySchema,
         AnimeSkipEntitySchema,
+        AppConfigEntitySchema,
       ],
       maxSizeMiB: 2048,
       directory: isarPath,

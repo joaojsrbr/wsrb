@@ -14,8 +14,8 @@ class LibraryController extends ChangeNotifier {
 
   InLibraryRepository get repo => _inLibraryRepository;
 
-  LibraryController(this._isarService, HiveController hiveController) {
-    _inLibraryRepository = InLibraryRepository(hiveController);
+  LibraryController(this._isarService, AppConfigController appConfig) {
+    _inLibraryRepository = InLibraryRepository(appConfig);
     // _libraryService = LibraryService(this, hiveController);
   }
 

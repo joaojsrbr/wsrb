@@ -58,7 +58,7 @@ class InHistoricRepository extends InRepository<HistoryEntity> {
   T? getHistoric<T extends HistoryEntity>({
     Release? release,
     Content? content,
-    T Function()? orElse,
+    T? Function()? orElse,
   }) {
     bool matchesEntity(HistoryEntity e) {
       return switch (e) {

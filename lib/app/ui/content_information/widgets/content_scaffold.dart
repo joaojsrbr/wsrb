@@ -3,6 +3,7 @@ import 'package:app_wsrb_jsr/app/ui/content_information/destinations/release_des
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/dot_text.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer_container.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
@@ -49,7 +50,7 @@ class ContentScaffold extends StatelessWidget {
                         contentEntity: content.toEntity(),
                       );
                     } else {
-                      saveData(content);
+                      saveData();
                     }
                   },
                   icon: FadeThroughTransitionSwitcher(
@@ -85,7 +86,13 @@ class ContentScaffold extends StatelessWidget {
                             color: themeData.colorScheme.primary.withAlpha(10),
                           );
                         },
-                        fit: BoxFit.fitWidth,
+                        // progressIndicatorBuilder: (context, url, progress) {
+                        //   return ShimmerContainer(
+                        //     enable: isLoading,
+                        //     borderRadius: BorderRadius.zero,
+                        //     child: const SizedBox.shrink(),
+                        //   );
+                        // },
                         imageUrl:
                             content.anilistMedia!.bannerImage!.extraLarge!,
                         httpHeaders: App.HEADERS,
@@ -126,21 +133,30 @@ class ContentScaffold extends StatelessWidget {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: CachedNetworkImage(
-                                cacheManager: App.APP_IMAGE_CACHE,
-                                placeholder: (context, url) {
-                                  return Card.filled(
-                                    color: themeData.colorScheme.primary
-                                        .withAlpha(10),
-                                  );
-                                },
-                                fit: BoxFit.cover,
+                              child: ShimmerContainer(
                                 width: 90,
                                 height: 130,
-                                memCacheHeight: 300,
-                                memCacheWidth: 250,
-                                imageUrl: content.imageUrl,
-                                httpHeaders: App.HEADERS,
+                                enable: isLoading,
+                                borderRadius: BorderRadius.circular(8),
+                                child: CachedNetworkImage(
+                                  cacheManager: App.APP_IMAGE_CACHE,
+                                  placeholder: (context, url) {
+                                    return Card.filled(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      color: themeData.colorScheme.primary
+                                          .withAlpha(10),
+                                    );
+                                  },
+                                  fit: BoxFit.cover,
+                                  width: 90,
+                                  height: 130,
+                                  memCacheHeight: 300,
+                                  memCacheWidth: 250,
+                                  imageUrl: content.imageUrl,
+                                  httpHeaders: App.HEADERS,
+                                ),
                               ),
                             ),
                             SizedBox(width: 16),
@@ -149,33 +165,38 @@ class ContentScaffold extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  if (content.anilistMedia?.genres != null)
-                                    Row(
-                                      spacing: 8,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: List.generate(
-                                        content.anilistMedia!.genres
-                                            .getMax(3)
-                                            .length,
-                                        (index) {
-                                          final txt = content
-                                              .anilistMedia!.genres
+                                  if (content.anilistMedia?.genres != null ||
+                                      isLoading)
+                                    ShimmerContainer(
+                                      height: 16,
+                                      width: 200,
+                                      enable: isLoading,
+                                      child: Row(
+                                        spacing: 8,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: List.generate(
+                                          (content.anilistMedia?.genres ?? [])
                                               .getMax(3)
-                                              .elementAt(index);
-                                          return SizedBox(
-                                            height: 16,
-                                            child: DotText(
-                                              text: txt,
-                                              dotSize: 6,
-                                              spacing: 6,
-                                              textStyle: TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: 12,
+                                              .length,
+                                          (index) {
+                                            final txt = content
+                                                .anilistMedia!.genres
+                                                .getMax(3)
+                                                .elementAt(index);
+                                            return SizedBox(
+                                              child: DotText(
+                                                text: txt,
+                                                dotSize: 6,
+                                                spacing: 6,
+                                                textStyle: TextStyle(
+                                                  color: Colors.white70,
+                                                  fontSize: 12,
+                                                ),
+                                                dotColor: Colors.white70,
                                               ),
-                                              dotColor: Colors.white70,
-                                            ),
-                                          );
-                                        },
+                                            );
+                                          },
+                                        ),
                                       ),
                                     ),
                                   SizedBox(height: 4),
@@ -202,36 +223,43 @@ class ContentScaffold extends StatelessWidget {
                                   //   ),
                                   // ),
                                   // SizedBox(height: 8),
-                                  Row(
-                                    spacing: 12,
-                                    children: [
-                                      if (content.anilistMedia?.popularity !=
-                                          null)
-                                        _IconText(
-                                          ico: Icons.people,
-                                          txt: content.anilistMedia!.popularity!
-                                              .toString(),
-                                        ),
-                                      if (content.anilistMedia?.popularity !=
-                                          null) ...[
-                                        _IconText(
-                                            ico: MdiIcons.heart,
+                                  ShimmerContainer(
+                                    height: 18,
+                                    enable: isLoading,
+                                    width: 180,
+                                    child: Row(
+                                      spacing: 12,
+                                      children: [
+                                        if (content.anilistMedia?.popularity !=
+                                            null)
+                                          _IconText(
+                                            ico: Icons.people,
                                             txt: content
-                                                    .anilistMedia?.favourites
-                                                    .toString() ??
-                                                ""),
+                                                .anilistMedia!.popularity!
+                                                .toString(),
+                                          ),
+                                        if (content.anilistMedia?.popularity !=
+                                            null) ...[
+                                          _IconText(
+                                              ico: MdiIcons.heart,
+                                              txt: content
+                                                      .anilistMedia?.favourites
+                                                      .toString() ??
+                                                  ""),
+                                        ],
+                                        if (content
+                                                .anilistMedia?.averageScore !=
+                                            null) ...[
+                                          _IconText(
+                                            ico: MdiIcons.star,
+                                            txt: (content.anilistMedia!
+                                                        .averageScore! /
+                                                    10)
+                                                .toString(),
+                                          ),
+                                        ],
                                       ],
-                                      if (content.anilistMedia?.averageScore !=
-                                          null) ...[
-                                        _IconText(
-                                          ico: MdiIcons.star,
-                                          txt: (content.anilistMedia!
-                                                      .averageScore! /
-                                                  10)
-                                              .toString(),
-                                        ),
-                                      ],
-                                    ],
+                                    ),
                                   ),
                                 ],
                               ),
