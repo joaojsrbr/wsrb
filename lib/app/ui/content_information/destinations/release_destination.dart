@@ -481,41 +481,50 @@ class _ReleaseLeading extends StatelessWidget {
                   builder: (context) {
                     Widget container = ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: CachedNetworkImage(
-                        cacheManager: App.APP_IMAGE_CACHE,
-                        httpHeaders: {
-                          ...App.HEADERS,
-                          'Referer':
-                              '${appConfigController.config.source.baseURL}/',
+                      child: ShaderMask(
+                        blendMode: BlendMode.srcOver,
+                        shaderCallback: (bounds) {
+                          return LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black38.withAlpha(50),
+                              Colors.black38.withAlpha(50),
+                            ],
+                            stops: const [0.00, 1.0],
+                          ).createShader(bounds);
                         },
-                        imageUrl: (release as Episode).thumbnail!,
-                        placeholder: (context, url) => Card.filled(
-                          margin: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) {
-                          return Card.filled(
+                        child: CachedNetworkImage(
+                          cacheManager: App.APP_IMAGE_CACHE,
+                          httpHeaders: {
+                            ...App.HEADERS,
+                            'Referer':
+                                '${appConfigController.config.source.baseURL}/',
+                          },
+                          imageUrl: (release as Episode).thumbnail!,
+                          placeholder: (context, url) => Card.filled(
                             margin: EdgeInsets.zero,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                          );
-                        },
-                        fit: BoxFit.cover,
-                        memCacheWidth: 200,
-                        memCacheHeight: 150,
+                          ),
+                          errorWidget: (context, url, error) {
+                            return Card.filled(
+                              margin: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            );
+                          },
+                          fit: BoxFit.cover,
+                          memCacheWidth: 200,
+                          memCacheHeight: 150,
+                        ),
                       ),
                     );
 
-                    // video == null
-                    //     ? Colors.grey
-                    //     : video is VideoData
-                    //         ? colorScheme.primary
-                    //         : colorScheme.secondaryContainer;
-
-                    final DownloadInfo? downloadInfo = context.watch();
+                    final DownloadInfo? downloadInfo =
+                        context.watch<DownloadInfo?>();
 
                     if (downloadInfo?.isDownloading == true &&
                         downloadInfo?.videoDuration != null &&
@@ -576,7 +585,7 @@ class _ReleaseLeading extends StatelessWidget {
                 ),
           if (episodeDuration != Duration.zero &&
               episodeCurrentDuration != Duration.zero &&
-              (percent != null && percent > 0.0))
+              (percent != null && percent > 0.0)) ...[
             Positioned(
               top: 4,
               right: 6,
@@ -602,6 +611,22 @@ class _ReleaseLeading extends StatelessWidget {
                 },
               ),
             ),
+            // ShaderMask(
+            //   blendMode: BlendMode.srcOver,
+            //   shaderCallback: (bounds) {
+            //     return LinearGradient(
+            //       begin: Alignment.topCenter,
+            //       end: Alignment.bottomCenter,
+            //       colors: [
+            //         Colors.black38.withAlpha(71),
+            //         Colors.black38.withAlpha(71),
+            //         // Colors.transparent,
+            //       ],
+            //       stops: const [0.00, 1.0],
+            //     ).createShader(bounds);
+            //   },
+            // ),
+          ],
         ],
       ),
     );

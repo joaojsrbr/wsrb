@@ -53,7 +53,19 @@ class InLibraryRepository extends InRepository<ContentEntity> {
           )
           .nonNulls);
 
-  Iterable<HistoryEntity>? getIsarLinks(ContentEntity element) {
+  List<HistoryEntity> getIsarLinks(ContentEntity element) {
+    return switch (element) {
+      AnimeEntity data => data.episodes
+          .where((episode) => !episode.isComplete && episode.percent > 0.0)
+          .toList(),
+      BookEntity data => data.chapters
+          .where((episode) => !episode.isComplete && episode.percent > 0.0)
+          .toList(),
+      _ => [],
+    };
+  }
+
+  Iterable<HistoryEntity>? getAll(ContentEntity element) {
     return switch (element) {
       AnimeEntity data => data.episodes
           .where((episode) => !episode.isComplete && episode.percent > 0.0)
@@ -165,10 +177,10 @@ class InLibraryRepository extends InRepository<ContentEntity> {
     };
   }
 
-  Future<ContentEntity?> getContentEntityByStringIDAll(
+  ContentEntity? getContentEntityByStringIDAll(
     String animeStringID, {
     ContentEntity? Function()? orElse,
-  }) async {
+  }) {
     final first = entities.firstWhereOrNull(
       (content) => _byStringID(content, animeStringID),
     );

@@ -14,7 +14,6 @@ part 'episode_entity.g.dart';
   'percent'
 })
 class EpisodeEntity extends HistoryEntity {
-  final int episodeDuration;
   @override
   final bool isComplete;
   final String? sinopse;
@@ -47,7 +46,7 @@ class EpisodeEntity extends HistoryEntity {
   }
 
   @override
-  double get percent => getLastCurrentPosition()?.percent ?? 0.0;
+  double get percent => getPercent();
 
   @override
   double getPercent() {
@@ -60,7 +59,6 @@ class EpisodeEntity extends HistoryEntity {
   }
 
   EpisodeEntity({
-    this.episodeDuration = 0,
     this.positions = const [],
     required this.stringID,
     required this.title,
@@ -97,16 +95,16 @@ class EpisodeEntity extends HistoryEntity {
       pageNumber: episode.pageNumber,
       url: episode.url,
       positions: [
-        ...?entity?.positions,
         if (duration != null && position != null)
           CurrentPosition(
             createdAt: DateTime.now(),
             episodeDuration: duration.inMicroseconds,
             currentPositionBase64: currentPositionBase64,
             currentDuration: position.inMicroseconds,
-          ),
+          )
+        else
+          ...?entity?.positions,
       ],
-      episodeDuration: entity?.episodeDuration ?? duration?.inMicroseconds ?? 0,
       thumbnail: episode.thumbnail,
       createdAt: entity?.createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),

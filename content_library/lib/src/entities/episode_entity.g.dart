@@ -27,74 +27,69 @@ const EpisodeEntitySchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'episodeDuration': PropertySchema(
-      id: 2,
-      name: r'episodeDuration',
-      type: IsarType.long,
-    ),
     r'generateID': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'generateID',
       type: IsarType.string,
     ),
     r'isComplete': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'isComplete',
       type: IsarType.bool,
     ),
     r'numberEpisode': PropertySchema(
-      id: 5,
+      id: 4,
       name: r'numberEpisode',
       type: IsarType.long,
     ),
     r'pageNumber': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'pageNumber',
       type: IsarType.long,
     ),
     r'positions': PropertySchema(
-      id: 7,
+      id: 6,
       name: r'positions',
       type: IsarType.objectList,
       target: r'CurrentPosition',
     ),
     r'registrationData': PropertySchema(
-      id: 8,
+      id: 7,
       name: r'registrationData',
       type: IsarType.dateTime,
     ),
     r'sinopse': PropertySchema(
-      id: 9,
+      id: 8,
       name: r'sinopse',
       type: IsarType.string,
     ),
     r'slugSerie': PropertySchema(
-      id: 10,
+      id: 9,
       name: r'slugSerie',
       type: IsarType.string,
     ),
     r'stringID': PropertySchema(
-      id: 11,
+      id: 10,
       name: r'stringID',
       type: IsarType.string,
     ),
     r'thumbnail': PropertySchema(
-      id: 12,
+      id: 11,
       name: r'thumbnail',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 13,
+      id: 12,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 14,
+      id: 13,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 15,
+      id: 14,
       name: r'url',
       type: IsarType.string,
     )
@@ -181,25 +176,24 @@ void _episodeEntitySerialize(
 ) {
   writer.writeString(offsets[0], object.animeStringID);
   writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeLong(offsets[2], object.episodeDuration);
-  writer.writeString(offsets[3], object.generateID);
-  writer.writeBool(offsets[4], object.isComplete);
-  writer.writeLong(offsets[5], object.numberEpisode);
-  writer.writeLong(offsets[6], object.pageNumber);
+  writer.writeString(offsets[2], object.generateID);
+  writer.writeBool(offsets[3], object.isComplete);
+  writer.writeLong(offsets[4], object.numberEpisode);
+  writer.writeLong(offsets[5], object.pageNumber);
   writer.writeObjectList<CurrentPosition>(
-    offsets[7],
+    offsets[6],
     allOffsets,
     CurrentPositionSchema.serialize,
     object.positions,
   );
-  writer.writeDateTime(offsets[8], object.registrationData);
-  writer.writeString(offsets[9], object.sinopse);
-  writer.writeString(offsets[10], object.slugSerie);
-  writer.writeString(offsets[11], object.stringID);
-  writer.writeString(offsets[12], object.thumbnail);
-  writer.writeString(offsets[13], object.title);
-  writer.writeDateTime(offsets[14], object.updatedAt);
-  writer.writeString(offsets[15], object.url);
+  writer.writeDateTime(offsets[7], object.registrationData);
+  writer.writeString(offsets[8], object.sinopse);
+  writer.writeString(offsets[9], object.slugSerie);
+  writer.writeString(offsets[10], object.stringID);
+  writer.writeString(offsets[11], object.thumbnail);
+  writer.writeString(offsets[12], object.title);
+  writer.writeDateTime(offsets[13], object.updatedAt);
+  writer.writeString(offsets[14], object.url);
 }
 
 EpisodeEntity _episodeEntityDeserialize(
@@ -211,26 +205,25 @@ EpisodeEntity _episodeEntityDeserialize(
   final object = EpisodeEntity(
     animeStringID: reader.readString(offsets[0]),
     createdAt: reader.readDateTimeOrNull(offsets[1]),
-    episodeDuration: reader.readLongOrNull(offsets[2]) ?? 0,
-    generateID: reader.readStringOrNull(offsets[3]),
-    isComplete: reader.readBoolOrNull(offsets[4]) ?? false,
-    numberEpisode: reader.readLongOrNull(offsets[5]),
-    pageNumber: reader.readLongOrNull(offsets[6]),
+    generateID: reader.readStringOrNull(offsets[2]),
+    isComplete: reader.readBoolOrNull(offsets[3]) ?? false,
+    numberEpisode: reader.readLongOrNull(offsets[4]),
+    pageNumber: reader.readLongOrNull(offsets[5]),
     positions: reader.readObjectList<CurrentPosition>(
-          offsets[7],
+          offsets[6],
           CurrentPositionSchema.deserialize,
           allOffsets,
           CurrentPosition(),
         ) ??
         const [],
-    registrationData: reader.readDateTimeOrNull(offsets[8]),
-    sinopse: reader.readStringOrNull(offsets[9]),
-    slugSerie: reader.readStringOrNull(offsets[10]),
-    stringID: reader.readString(offsets[11]),
-    thumbnail: reader.readStringOrNull(offsets[12]),
-    title: reader.readString(offsets[13]),
-    updatedAt: reader.readDateTimeOrNull(offsets[14]),
-    url: reader.readString(offsets[15]),
+    registrationData: reader.readDateTimeOrNull(offsets[7]),
+    sinopse: reader.readStringOrNull(offsets[8]),
+    slugSerie: reader.readStringOrNull(offsets[9]),
+    stringID: reader.readString(offsets[10]),
+    thumbnail: reader.readStringOrNull(offsets[11]),
+    title: reader.readString(offsets[12]),
+    updatedAt: reader.readDateTimeOrNull(offsets[13]),
+    url: reader.readString(offsets[14]),
   );
   object.id = id;
   return object;
@@ -248,16 +241,14 @@ P _episodeEntityDeserializeProp<P>(
     case 1:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 2:
-      return (reader.readLongOrNull(offset) ?? 0) as P;
-    case 3:
       return (reader.readStringOrNull(offset)) as P;
-    case 4:
+    case 3:
       return (reader.readBoolOrNull(offset) ?? false) as P;
+    case 4:
+      return (reader.readLongOrNull(offset)) as P;
     case 5:
       return (reader.readLongOrNull(offset)) as P;
     case 6:
-      return (reader.readLongOrNull(offset)) as P;
-    case 7:
       return (reader.readObjectList<CurrentPosition>(
             offset,
             CurrentPositionSchema.deserialize,
@@ -265,21 +256,21 @@ P _episodeEntityDeserializeProp<P>(
             CurrentPosition(),
           ) ??
           const []) as P;
-    case 8:
+    case 7:
       return (reader.readDateTimeOrNull(offset)) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 11:
-      return (reader.readString(offset)) as P;
-    case 12:
       return (reader.readStringOrNull(offset)) as P;
-    case 13:
+    case 12:
       return (reader.readString(offset)) as P;
-    case 14:
+    case 13:
       return (reader.readDateTimeOrNull(offset)) as P;
-    case 15:
+    case 14:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -684,62 +675,6 @@ extension EpisodeEntityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'createdAt',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      episodeDurationEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'episodeDuration',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      episodeDurationGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'episodeDuration',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      episodeDurationLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'episodeDuration',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-      episodeDurationBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'episodeDuration',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -2262,20 +2197,6 @@ extension EpisodeEntityQuerySortBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-      sortByEpisodeDuration() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'episodeDuration', Sort.asc);
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-      sortByEpisodeDurationDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'episodeDuration', Sort.desc);
-    });
-  }
-
   QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByGenerateID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'generateID', Sort.asc);
@@ -2458,20 +2379,6 @@ extension EpisodeEntityQuerySortThenBy
       thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-      thenByEpisodeDuration() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'episodeDuration', Sort.asc);
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-      thenByEpisodeDurationDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'episodeDuration', Sort.desc);
     });
   }
 
@@ -2659,13 +2566,6 @@ extension EpisodeEntityQueryWhereDistinct
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct>
-      distinctByEpisodeDuration() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'episodeDuration');
-    });
-  }
-
   QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct> distinctByGenerateID(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2766,12 +2666,6 @@ extension EpisodeEntityQueryProperty
   QueryBuilder<EpisodeEntity, DateTime?, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
-    });
-  }
-
-  QueryBuilder<EpisodeEntity, int, QQueryOperations> episodeDurationProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'episodeDuration');
     });
   }
 

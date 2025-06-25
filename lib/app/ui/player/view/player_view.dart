@@ -202,17 +202,17 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   }
 
   Future<void> _getAllEpisodes() async {
-    if (_playerArgs.anime.releases.length <= 1 || _playerArgs.getAnimeData) {
-      await _repository.getReleases(_playerArgs.anime, -1).then(
-            (result) => result.fold(
-              onSuccess: (data) {
-                _playerArgs = _playerArgs.copyWith(
-                  anime: data as Anime,
-                );
-              },
-            ),
-          );
-    }
+    final lengthBool =
+        !(_playerArgs.anime.releases.length <= 1 || _playerArgs.getAnimeData);
+    if (lengthBool) return;
+    final result = await _repository.getReleases(_playerArgs.anime, -1);
+    result.fold(
+      onSuccess: (data) {
+        _playerArgs = _playerArgs.copyWith(
+          anime: data as Anime,
+        );
+      },
+    );
   }
 
   void _onInit(Duration time) async {
@@ -252,7 +252,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     }
 
     List<Future> futures = [
-      player!.setAudioDevice(AudioDevice.auto()),
+      // player!.setAudioDevice(AudioDevice.auto()),
       _registerListeners(false),
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive)
     ];
@@ -303,7 +303,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       final playbackState = playerAudioHandler.playbackState;
 
       playbackState.add(playbackState.value.copyWith
-          .call(processingState: AudioProcessingState.idle));
+          .call(processingState: AudioProcessingState.completed));
     }
   }
 

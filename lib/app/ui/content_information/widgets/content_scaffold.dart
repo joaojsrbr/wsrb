@@ -50,7 +50,7 @@ class ContentScaffold extends StatelessWidget {
                         contentEntity: content.toEntity(),
                       );
                     } else {
-                      saveData();
+                      saveData(true);
                     }
                   },
                   icon: FadeThroughTransitionSwitcher(

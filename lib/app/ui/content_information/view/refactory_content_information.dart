@@ -388,13 +388,17 @@ class _RefContentkInformationViewState
     super.dispose();
   }
 
-  void _saveData() async {
-    if (_content == null) return;
+  void _saveData([bool forceSave = false]) async {
+    if ((_content == null ||
+            !_libraryController.repo.contains(content: _content)) &&
+        !forceSave) {
+      return;
+    }
     final Content content = _content!;
 
     // Obtém ou cria a ContentEntity
     ContentEntity? contentEntity =
-        await _libraryController.repo.getContentEntityByStringIDAll(
+        _libraryController.repo.getContentEntityByStringIDAll(
       content.stringID,
       orElse: () => content.toEntity(
         createdAt: DateTime.now(),

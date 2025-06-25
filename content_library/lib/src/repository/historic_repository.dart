@@ -52,12 +52,17 @@ class InHistoricRepository extends InRepository<HistoryEntity> {
           (historic1, historic2) => historic2.compareTo(historic1),
         ),
       );
+
   UnmodifiableListView<ChapterEntity> get chapterHistoric =>
       UnmodifiableListView<ChapterEntity>(entities.whereType());
+
+  UnmodifiableListView<EpisodeEntity> get episodeHistoric =>
+      UnmodifiableListView<EpisodeEntity>(entities.whereType());
 
   T? getHistoric<T extends HistoryEntity>({
     Release? release,
     Content? content,
+    ContentEntity? contentEntity,
     T? Function()? orElse,
   }) {
     bool matchesEntity(HistoryEntity e) {
@@ -71,5 +76,22 @@ class InHistoricRepository extends InRepository<HistoryEntity> {
     }
 
     return entities.firstWhereOrNull(matchesEntity) as T? ?? orElse?.call();
+  }
+
+  T? getHistoricInKeepWatching<T extends HistoryEntity>({
+    required ContentEntity contentEntity,
+    T? Function()? orElse,
+  }) {
+    bool matchesEntity(HistoryEntity e) {
+      if (e case EpisodeEntity episode) {
+        return episode.animeStringID.contains(contentEntity.stringID);
+      } else {
+        return false;
+      }
+    }
+
+    final value =
+        entities.firstWhereOrNull(matchesEntity) as T? ?? orElse?.call();
+    return value;
   }
 }

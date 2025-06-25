@@ -11,7 +11,8 @@ extension EntityExtensions on HistoryEntity {
 
   Duration get epdToDuration {
     return switch (this) {
-      EpisodeEntity data => Duration(microseconds: data.episodeDuration),
+      EpisodeEntity data => Duration(
+          microseconds: data.getLastCurrentPosition()?.episodeDuration ?? 0),
       _ => Duration.zero,
     };
   }

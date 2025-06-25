@@ -22,7 +22,7 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
     required this.releasesIsLoading,
     required this.onLongPressed,
   }) : super(child: Builder(builder: builder));
-  final void Function() saveData;
+  final void Function(bool forceSave) saveData;
   final ContentInformationArgs? informationArgs;
   final bool releasesIsLoading;
   final bool isLoading;
