@@ -50,8 +50,7 @@ abstract class HistoryEntity implements Entity, Comparable<HistoryEntity> {
     return percent.isNaN ? 0.0 : percent;
   }
 
-  Color completeColor(ColorScheme scheme) =>
-      isComplete ? Colors.green : scheme.primary;
+  Color completeColor(ColorScheme scheme) => Colors.white;
 
   @override
   Id id = Isar.autoIncrement;

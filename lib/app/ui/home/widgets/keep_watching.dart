@@ -56,7 +56,7 @@ class _KeepWatchingState extends State<KeepWatching> {
   int _sortedItems(HistoryEntity a, HistoryEntity b) {
     if ((a, b) case (EpisodeEntity data1, EpisodeEntity data2)
         when data1.numberEpisode != null && data2.numberEpisode != null) {
-      return data1.numberEpisode!.compareTo(data2.numberEpisode!);
+      return data2.numberEpisode!.compareTo(data1.numberEpisode!);
     }
     return -1;
   }
@@ -65,10 +65,10 @@ class _KeepWatchingState extends State<KeepWatching> {
     if ((a, b) case (EpisodeEntity data1, EpisodeEntity data2)
         when data1.getLastCurrentPosition()?.createdAt != null &&
             data2.getLastCurrentPosition()?.createdAt != null) {
-      return data1
+      return data2
           .getLastCurrentPosition()!
           .createdAt!
-          .compareTo(data2.getLastCurrentPosition()!.createdAt!);
+          .compareTo(data1.getLastCurrentPosition()!.createdAt!);
     }
     return -1;
   }
@@ -155,7 +155,7 @@ class _Content extends StatelessWidget {
                           ),
                     ),
                     const SizedBox(width: 4),
-                    Icon(MdiIcons.arrowRight),
+                    Icon(MdiIcons.arrowRight, color: Colors.white),
                   ],
                 ),
               ),

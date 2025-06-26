@@ -72,7 +72,8 @@ class _WatchingDestinationsState extends State<WatchingDestinations> {
               physics: const BouncingScrollPhysics(),
               itemCount: _map.entries.length,
               itemBuilder: (context, index) {
-                final entry = _map.entries.elementAt(index);
+                final entry =
+                    _map.entries.toList().reverse(true).elementAt(index);
                 final value = entry.value;
 
                 final key = entry.key;
@@ -85,7 +86,7 @@ class _WatchingDestinationsState extends State<WatchingDestinations> {
                     minTileHeight: 48,
                     enableFeedback: true,
                     enabled: true,
-                    initiallyExpanded: true,
+                    initiallyExpanded: index == 0,
                     maintainState: true,
                     title: Text(
                       key.title,
