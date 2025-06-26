@@ -3,7 +3,7 @@ cls
 echo ===== Iniciando build APK Flutter (Production - Release - Split per ABI) =====
 
 :: Compila o APK com flavor Production, em modo release, dividindo por ABI
-call flutter build apk --flavor Production --release --split-per-abi
+call puro flutter build apk --flavor Production --release --split-per-abi
 IF ERRORLEVEL 1 (
     echo [ERRO] Falha ao compilar o APK.
     pause
