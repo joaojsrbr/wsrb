@@ -103,6 +103,7 @@ dependencies:
   flutter_animated_progress_bar: ^1.0.5
   primer_progress_bar: ^0.5.0
   url_launcher: ^6.3.1
+  share_plus: ^11.0.0
 
 dev_dependencies:
   flutter_test:

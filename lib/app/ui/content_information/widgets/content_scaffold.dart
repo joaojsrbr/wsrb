@@ -1,6 +1,7 @@
 import 'package:app_wsrb_jsr/app/ui/content_information/destinations/information_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/destinations/release_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/dot_text.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer_container.dart';
@@ -9,7 +10,7 @@ import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ContentScaffold extends StatelessWidget {
   const ContentScaffold({
@@ -22,8 +23,10 @@ class ContentScaffold extends StatelessWidget {
     final saveData = ContentScope.of(context).saveData;
     final content = ContentScope.contentOf(context);
     final isLoading = ContentScope.isLoadingOf(context);
+    final menu = BottomMenu.menuControllerOf<List<String>>(context);
     final libraryController = context.watch<LibraryController>();
     final themeData = Theme.of(context);
+
     // final sizeOf = MediaQuery.sizeOf(context);
     // customLog(Colors.black.withOpacity(0.3).a);
     return DefaultTabController(
@@ -37,8 +40,15 @@ class ContentScaffold extends StatelessWidget {
               pinned: true,
               floating: true,
               leading: IconButton(
-                icon: Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.of(context).pop(),
+                icon: menu.isOpen
+                    ? Icon(Icons.close, color: Colors.white)
+                    : Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: menu.isOpen
+                    ? () {
+                        menu.args = null;
+                        menu.close();
+                      }
+                    : () => Navigator.of(context).pop(),
               ),
               actions: isLoading
                   ? null
@@ -46,9 +56,15 @@ class ContentScaffold extends StatelessWidget {
                       IconButton(
                         onPressed: () async {
                           final uri = Uri.parse(content.url);
-                          if (!await launchUrl(uri,
-                              mode: LaunchMode.externalApplication)) {
-                            throw Exception('Could not launch $uri');
+                          // if (!await launchUrl(uri,
+                          //     mode: LaunchMode.externalApplication)) {
+                          //   throw Exception('Could not launch $uri');
+                          // }
+                          final result = await SharePlus.instance
+                              .share(ShareParams(uri: uri));
+
+                          if (result.status == ShareResultStatus.success) {
+                            customLog('Thank you for sharing my website!');
                           }
                         },
                         icon: Icon(MdiIcons.share),
@@ -183,7 +199,6 @@ class ContentScaffold extends StatelessWidget {
                                       isLoading)
                                     ShimmerContainer(
                                       height: 16,
-                                      width: 200,
                                       enable: isLoading,
                                       child: Row(
                                         spacing: 8,
@@ -197,17 +212,15 @@ class ContentScaffold extends StatelessWidget {
                                                 .anilistMedia!.genres
                                                 .getMax(3)
                                                 .elementAt(index);
-                                            return SizedBox(
-                                              child: DotText(
-                                                text: txt,
-                                                dotSize: 6,
-                                                spacing: 6,
-                                                textStyle: TextStyle(
-                                                  color: Colors.white70,
-                                                  fontSize: 12,
-                                                ),
-                                                dotColor: Colors.white70,
+                                            return DotText(
+                                              text: txt,
+                                              dotSize: 6,
+                                              spacing: 6,
+                                              textStyle: TextStyle(
+                                                color: Colors.white70,
+                                                fontSize: 12,
                                               ),
+                                              dotColor: Colors.white70,
                                             );
                                           },
                                         ),

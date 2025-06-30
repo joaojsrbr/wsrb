@@ -1069,7 +1069,7 @@ class _ReleasePaginationState extends State<_ReleasePagination> {
               child: ShimmerContainer(
                 height: 36,
                 borderRadius: BorderRadius.circular(8),
-                width: 80,
+                width: !_selectChips[index - 2] ? 40 : 80,
                 enable: isLoading,
                 child: ChoiceChip(
                   padding: const EdgeInsets.symmetric(horizontal: 8),

@@ -88,10 +88,10 @@ class _BottomMenuState<T> extends AnimatedWidgetBaseState<BottomMenu<T>> {
               CustomPopup.builder(
                 show: railMenuController.isOpen,
                 width: MediaQuery.sizeOf(context).width,
-                // color: Colors.transparent,
+                reverseDuration: const Duration(milliseconds: 250),
                 shape: RoundedRectangleBorder(),
-                startAnimatedAlignment: Alignment.bottomCenter,
-                duration: const Duration(milliseconds: 450),
+                startAnimatedAlignment: Alignment.center,
+                duration: const Duration(milliseconds: 250),
                 height: railMenuController._menuSize.height,
                 builder: (context) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),

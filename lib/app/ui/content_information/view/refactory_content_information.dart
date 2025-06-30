@@ -9,7 +9,9 @@ import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class RefContentInformationView extends StatefulWidget {
   const RefContentInformationView({super.key});
@@ -51,7 +53,7 @@ class _RefContentkInformationViewState
   @override
   void initState() {
     super.initState();
-    _bottomMenuController = BottomMenuController(minHeight: 70);
+    _bottomMenuController = BottomMenuController(minHeight: 60);
     _historicController = context.read<HistoricController>();
     _libraryController = context.read<LibraryController>();
     _animeSkipController = context.read<AnimeSkipController>();
@@ -335,17 +337,30 @@ class _RefContentkInformationViewState
 
   Future<void> _onRefresh() async {
     setState(() {
+      _index = 0;
       _isLoading = true;
     });
 
-    Future<void> getData() async {
-      await _repository
-          .getData(_informationArgs!.content)
-          .timeout(const Duration(minutes: 1), onTimeout: _handleTimeout)
-          .then(_handleResult);
-    }
+    await _repository
+        .getData(_informationArgs!.content)
+        .timeout(const Duration(minutes: 1), onTimeout: _handleTimeout)
+        .then(_handleResult);
+  }
 
-    await getData();
+  void _shareButton() async {
+    final args = _bottomMenuController.args;
+    final releases = _content?.releases
+            .where((release) => args?.contains(release.stringID) ?? false) ??
+        [];
+    final release = releases.single;
+    final uri = Uri.parse(release.url);
+    _bottomMenuController.args = null;
+    _bottomMenuController.close();
+    final result = await SharePlus.instance.share(ShareParams(uri: uri));
+
+    if (result.status == ShareResultStatus.success) {
+      customLog('Thank you for sharing my website!');
+    }
   }
 
   @override
@@ -370,10 +385,23 @@ class _RefContentkInformationViewState
           isDismissible: false,
           bottomMenuController: _bottomMenuController,
           buttons: (context) {
-            return OverflowBar(
-              spacing: 8,
-              overflowAlignment: OverflowBarAlignment.center,
-              children: const [],
+            final args = _bottomMenuController.args;
+            final releases = _content?.releases.where(
+                    (release) => args?.contains(release.stringID) ?? false) ??
+                [];
+
+            return Align(
+              alignment: Alignment.centerLeft,
+              child: OverflowBar(
+                spacing: 8,
+                overflowAlignment: OverflowBarAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: releases.length > 1 ? null : _shareButton,
+                    icon: Icon(MdiIcons.share),
+                  ),
+                ],
+              ),
             );
           },
           child: RefreshIndicator(
@@ -478,55 +506,5 @@ class _RefContentkInformationViewState
     // Salva os dados principais e históricos
     await _libraryController.add(contentEntity: contentEntity);
     await _historicController.addAll(historyEntities: historyEntities);
-  }
-}
-
-// Widget de texto expansível
-class _ExpandableText extends StatefulWidget {
-  final String text;
-  const _ExpandableText(this.text);
-
-  @override
-  State<_ExpandableText> createState() => _ExpandableTextState();
-}
-
-class _ExpandableTextState extends State<_ExpandableText> {
-  bool _expanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final span = TextSpan(
-      text: widget.text,
-      style: TextStyle(color: Colors.white),
-    );
-    return LayoutBuilder(builder: (context, size) {
-      // calcula altura de duas linhas
-      final tp = TextPainter(
-        maxLines: 2,
-        text: span,
-        textDirection: TextDirection.ltr,
-      )..layout(maxWidth: size.maxWidth);
-
-      final needsTrim = tp.didExceedMaxLines;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            widget.text,
-            maxLines: _expanded ? null : 2,
-            overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
-            style: TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-          if (needsTrim)
-            GestureDetector(
-              onTap: () => setState(() => _expanded = !_expanded),
-              child: Text(
-                _expanded ? "Show less" : "Show more",
-                style: TextStyle(color: Colors.blueAccent, fontSize: 12),
-              ),
-            ),
-        ],
-      );
-    });
   }
 }
