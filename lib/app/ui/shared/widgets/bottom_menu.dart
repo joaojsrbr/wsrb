@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
-class BottomMenu extends ImplicitlyAnimatedWidget {
+class BottomMenu<T> extends ImplicitlyAnimatedWidget {
   const BottomMenu({
     super.key,
     required this.child,
@@ -18,29 +18,33 @@ class BottomMenu extends ImplicitlyAnimatedWidget {
     this.bottomMenuController,
   }) : super(duration: const Duration(milliseconds: 350));
 
-  final BottomMenuController? bottomMenuController;
+  final BottomMenuController<T>? bottomMenuController;
   final WidgetBuilder? buttons;
   final bool isDismissible;
   final Widget child;
 
-  static BottomMenuController? menuControllerMaybeOf(BuildContext context) {
-    return _BottomMenuControllerScope.maybeOf(context)?.notifier;
+  static BottomMenuController<T>? menuControllerMaybeOf<T>(
+      BuildContext context) {
+    return _BottomMenuControllerScope.maybeOf(context)?.notifier
+        as BottomMenuController<T>?;
   }
 
-  static BottomMenuController menuControllerOf(BuildContext context) {
-    return _BottomMenuControllerScope.of(context).notifier!;
+  static BottomMenuController<T> menuControllerOf<T>(BuildContext context) {
+    return _BottomMenuControllerScope.of(context).notifier!
+        as BottomMenuController<T>;
   }
 
   @override
-  ImplicitlyAnimatedWidgetState<BottomMenu> createState() => _BottomMenuState();
+  ImplicitlyAnimatedWidgetState<BottomMenu<T>> createState() =>
+      _BottomMenuState<T>();
 }
 
-class _BottomMenuState extends AnimatedWidgetBaseState<BottomMenu> {
-  late final BottomMenuController _railMenuController;
+class _BottomMenuState<T> extends AnimatedWidgetBaseState<BottomMenu<T>> {
+  late final BottomMenuController<T> _railMenuController;
   @override
   void initState() {
     _railMenuController =
-        (widget.bottomMenuController ?? BottomMenuController());
+        (widget.bottomMenuController ?? BottomMenuController<T>());
     super.initState();
   }
 
@@ -151,6 +155,8 @@ class BottomMenuController<T> extends ChangeNotifier {
   late Size _menuSize;
 
   T? args;
+
+  void update() => notifyListeners();
 
   Size get menuSize => _menuSize;
 

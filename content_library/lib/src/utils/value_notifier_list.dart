@@ -13,13 +13,16 @@ class ValueNotifierList extends ChangeNotifier with ListBase<String> {
     _array = List.from(elements, growable: growable);
   }
 
-  void toggle(String id) {
+  bool toggle(String id) {
+    bool result = false;
     if (!contains(id)) {
       add(id);
+      result = false;
     } else {
-      remove(id);
+      result = remove(id);
     }
     notifyListeners();
+    return result;
   }
 
   @override

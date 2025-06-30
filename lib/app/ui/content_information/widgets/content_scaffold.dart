@@ -9,6 +9,7 @@ import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ContentScaffold extends StatelessWidget {
   const ContentScaffold({
@@ -39,40 +40,53 @@ class ContentScaffold extends StatelessWidget {
                 icon: Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () => Navigator.of(context).pop(),
               ),
-              actions: [
-                IconButton(
-                  onPressed: () async {
-                    customLog(
-                        'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${content.title} - id: ${content.stringID}');
-                    if (libraryController.repo.favoritesIDS
-                        .contains(content.stringID)) {
-                      libraryController.remove(
-                        contentEntity: content.toEntity(),
-                      );
-                    } else {
-                      saveData(true);
-                    }
-                  },
-                  icon: FadeThroughTransitionSwitcher(
-                    enableSecondChild:
-                        libraryController.repo.favoritesIDS.contains(
-                      content.stringID,
-                    ),
-                    secondChild: Icon(
-                      MdiIcons.heart,
-                      color: Colors.red,
-                    ),
-                    child: Icon(MdiIcons.heartOutline),
-                  ),
-                ),
-                // PopupMenuButton(
-                //   icon: Icon(Icons.more_vert, color: Colors.white),
-                //   itemBuilder: (_) => [
-                //     PopupMenuItem(child: Text("Share")),
-                //     PopupMenuItem(child: Text("Report")),
-                //   ],
-                // ),
-              ],
+              actions: isLoading
+                  ? null
+                  : [
+                      IconButton(
+                        onPressed: () async {
+                          final uri = Uri.parse(content.url);
+                          if (!await launchUrl(uri,
+                              mode: LaunchMode.externalApplication)) {
+                            throw Exception('Could not launch $uri');
+                          }
+                        },
+                        icon: Icon(MdiIcons.share),
+                      ),
+                      IconButton(
+                        onPressed: () async {
+                          customLog(
+                              'IconButton[MdiIcons.heart|MdiIcons.heartOutline] tapped title: ${content.title} - id: ${content.stringID}');
+                          if (libraryController.repo.favoritesIDS
+                              .contains(content.stringID)) {
+                            libraryController.remove(
+                              contentEntity: content.toEntity(),
+                            );
+                          } else {
+                            saveData(true);
+                          }
+                        },
+                        icon: FadeThroughTransitionSwitcher(
+                          enableSecondChild:
+                              libraryController.repo.favoritesIDS.contains(
+                            content.stringID,
+                          ),
+                          secondChild: Icon(
+                            MdiIcons.heart,
+                            color: Colors.red,
+                          ),
+                          child: Icon(MdiIcons.heartOutline),
+                        ),
+                      ),
+
+                      // PopupMenuButton(
+                      //   icon: Icon(Icons.more_vert, color: Colors.white),
+                      //   itemBuilder: (_) => [
+                      //     PopupMenuItem(child: Text("Share")),
+                      //     PopupMenuItem(child: Text("Report")),
+                      //   ],
+                      // ),
+                    ],
               flexibleSpace: FlexibleSpaceBar(
                 stretchModes: [StretchMode.zoomBackground],
                 background: Stack(

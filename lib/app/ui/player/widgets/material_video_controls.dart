@@ -7,6 +7,7 @@ import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_popup.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animated_progress_bar/flutter_animated_progress_bar.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -22,6 +23,63 @@ MaterialVideoControlsThemeData _theme(BuildContext context) =>
         : MaterialVideoControlsTheme.maybeOf(context)?.fullscreen ??
             kDefaultMaterialVideoControlsThemeDataFullscreen;
 
+class ControlScope extends InheritedWidget {
+  ControlScope({
+    super.key,
+    required WidgetBuilder builder,
+    // ignore: library_private_types_in_public_api
+    required this.controlState,
+    required this.openMenuInFullScreen,
+    required this.selectedAnimeTimeStamp,
+    required this.showAnimeSkip,
+    required this.topTitle,
+    required this.videoState,
+  }) : super(child: Builder(builder: builder));
+
+  // ignore: library_private_types_in_public_api
+  final _CustomMaterialControlsState controlState;
+  final String topTitle;
+  final bool showAnimeSkip;
+  final AnimeTimeStamp? selectedAnimeTimeStamp;
+  final bool openMenuInFullScreen;
+  final VideoState videoState;
+
+  static ControlScope of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<ControlScope>()!;
+  }
+
+  static MaterialVideoControlsThemeData theme(BuildContext context) =>
+      FullscreenInheritedWidget.maybeOf(context) == null
+          ? MaterialVideoControlsTheme.maybeOf(context)?.normal ??
+              kDefaultMaterialVideoControlsThemeData
+          : MaterialVideoControlsTheme.maybeOf(context)?.fullscreen ??
+              kDefaultMaterialVideoControlsThemeDataFullscreen;
+
+  static VideoController controller(BuildContext context) =>
+      VideoStateInheritedWidget.of(context).state.widget.controller;
+
+  // ignore: library_private_types_in_public_api
+  static _CustomMaterialControlsState controlStateOf(BuildContext context) {
+    return of(context).controlState;
+  }
+
+  static VideoState videoStateOf(BuildContext context) {
+    return of(context).videoState;
+  }
+
+  static ControlScope? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<ControlScope>();
+  }
+
+  static bool isFullscreen(BuildContext context) =>
+      FullscreenInheritedWidget.maybeOf(context) != null;
+
+  @override
+  bool updateShouldNotify(ControlScope oldWidget) {
+    return true;
+  }
+}
+
 class CustomMaterialControls extends StatefulWidget {
   const CustomMaterialControls._({required this.state});
   factory CustomMaterialControls(VideoState state) =>
@@ -35,8 +93,8 @@ class CustomMaterialControls extends StatefulWidget {
 
 class _CustomMaterialControlsState extends State<CustomMaterialControls>
     with SubscriptionsMixin {
-  late bool mount = _theme(context).visibleOnMount;
-  late bool visible = _theme(context).visibleOnMount;
+  late bool mount = theme.visibleOnMount;
+  late bool visible = theme.visibleOnMount;
 
   Timer? _timer;
   final ValueNotifier<Duration> _seekBarDeltaValueNotifier =
@@ -61,8 +119,11 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
 
   // ignore: prefer_final_fields
   bool _speedUpIndicator = false;
-  late Playlist playlist = controller(context).player.state.playlist;
-  late bool buffering = controller(context).player.state.buffering;
+
+  late VideoController controller = ControlScope.controller(context);
+  late Playlist playlist = controller.player.state.playlist;
+  late bool buffering = controller.player.state.buffering;
+  late MaterialVideoControlsThemeData theme = ControlScope.theme(context);
 
   bool _mountSeekBackwardButton = false;
   bool _mountSeekForwardButton = false;
@@ -78,11 +139,9 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
   }
 
   double get subtitleVerticalShiftOffset =>
-      (_theme(context).padding?.bottom ?? 0.0) +
-      (_theme(context).bottomButtonBarMargin.vertical) +
-      (_theme(context).bottomButtonBar.isNotEmpty
-          ? _theme(context).buttonBarHeight
-          : 0.0);
+      (theme.padding?.bottom ?? 0.0) +
+      (theme.bottomButtonBarMargin.vertical) +
+      (theme.bottomButtonBar.isNotEmpty ? theme.buttonBarHeight : 0.0);
   Offset? _tapPosition;
 
   void _handleTapDown(TapDownDetails details) {
@@ -130,8 +189,6 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
   @override
   void initState() {
     Future.microtask(() async {
-      widget.state;
-
       try {
         VolumeController.instance.showSystemUI = false;
         _volumeValue = await VolumeController.instance.getVolume();
@@ -191,12 +248,12 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
     if (subscriptions.isEmpty) {
       subscriptions.addAll(
         [
-          controller(context).player.stream.playlist.listen(
+          controller.player.stream.playlist.listen(
             (event) {
               setState(() => playlist = event);
             },
           ),
-          controller(context).player.stream.buffering.listen(
+          controller.player.stream.buffering.listen(
             (event) {
               setState(() => buffering = event);
             },
@@ -204,9 +261,9 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
         ],
       );
 
-      if (_theme(context).visibleOnMount) {
+      if (theme.visibleOnMount) {
         _timer = Timer(
-          _theme(context).controlsHoverDuration,
+          theme.controlsHoverDuration,
           () {
             if (mounted) {
               setState(() {
@@ -221,7 +278,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
   }
 
   void unshiftSubtitle() {
-    if (_theme(context).shiftSubtitlesOnControlsVisibilityChange) {
+    if (theme.shiftSubtitlesOnControlsVisibilityChange) {
       state(context).setSubtitleViewPadding(
         state(context).widget.subtitleViewConfiguration.padding,
       );
@@ -315,12 +372,11 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
     }
 
     final diff = _dragInitialDelta.dx - details.localPosition.dx;
-    final duration = controller(context).player.state.duration.inSeconds;
-    final position = controller(context).player.state.position.inSeconds;
+    final duration = controller.player.state.duration.inSeconds;
+    final position = controller.player.state.position.inSeconds;
 
     final seconds =
-        -(diff * duration / _theme(context).horizontalGestureSensitivity)
-            .round();
+        -(diff * duration / theme.horizontalGestureSensitivity).round();
     final relativePosition = position + seconds;
 
     if (relativePosition <= duration && relativePosition >= 0) {
@@ -334,13 +390,13 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
 
   void onHorizontalDragEnd() {
     if (swipeDuration != 0) {
-      Duration newPosition = controller(context).player.state.position +
-          Duration(seconds: swipeDuration);
+      Duration newPosition =
+          controller.player.state.position + Duration(seconds: swipeDuration);
       newPosition = newPosition.clamp(
         Duration.zero,
-        controller(context).player.state.duration,
+        controller.player.state.duration,
       );
-      controller(context).player.seek(newPosition);
+      controller.player.seek(newPosition);
     }
 
     setState(() {
@@ -358,240 +414,260 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
 
     PlayerScope scope =
         PlayerScope.of(PlayerView.videoStateKey.currentContext!);
+
     final seekOnDoubleTapEnabledWhileControlsAreVisible =
         (_theme(context).seekOnDoubleTap &&
             _theme(context).seekOnDoubleTapEnabledWhileControlsVisible);
 
-    return PopScope(
-      onPopInvokedWithResult: (didPop, result) {
-        if (scope.playerArgs.forceEnterFullScreen && isFullscreen(context)) {
-          addPostFrameCallback((timer) =>
-              Navigator.of(PlayerView.videoStateKey.currentContext!).pop());
-        }
-      },
-      child: Material(
-        elevation: 0.0,
-        borderOnForeground: false,
-        animationDuration: Duration.zero,
-        color: const Color(0x00000000),
-        shadowColor: const Color(0x00000000),
-        surfaceTintColor: const Color(0x00000000),
-        child: Focus(
-          autofocus: true,
-          child: ValueListenableBuilder(
-            valueListenable: scope.showAnimeSkip,
-            builder: (context, value, child) {
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(
-                    child: GestureDetector(
-                      onTap: onTap,
-                      onDoubleTapDown: _lockPlayer ? null : _handleTapDown,
-                      // onLongPress: _handleLongPress,
-                      // onLongPressEnd: _handleLongPressEnd,
-                      onDoubleTap: _lockPlayer
-                          ? null
-                          : () {
-                              if (_tapPosition != null &&
-                                  _tapPosition!.dx >
-                                      MediaQuery.of(context).size.width / 2) {
-                                if ((!mount) ||
-                                    seekOnDoubleTapEnabledWhileControlsAreVisible) {
-                                  onDoubleTapSeekForward();
-                                }
-                              } else {
-                                if ((!mount) ||
-                                    seekOnDoubleTapEnabledWhileControlsAreVisible) {
-                                  onDoubleTapSeekBackward();
-                                }
-                              }
-                            },
-                      onHorizontalDragUpdate: _lockPlayer
-                          ? null
-                          : (details) {
-                              if ((!mount)) {
-                                onHorizontalDragUpdate(details);
-                              }
-                            },
-                      onHorizontalDragEnd: _lockPlayer
-                          ? null
-                          : (details) {
-                              onHorizontalDragEnd();
-                            },
-                      onVerticalDragUpdate: _lockPlayer
-                          ? null
-                          : (details) async {
-                              final delta = details.delta.dy;
-                              final Offset position = details.localPosition;
-
-                              if (position.dx <=
-                                  MediaQuery.of(context).size.width / 2) {
-                                if (!mount) {
-                                  final brightness = _brightnessValue -
-                                      delta /
-                                          _theme(context)
-                                              .verticalGestureSensitivity;
-                                  final result = brightness.clamp(0.0, 1.0);
-                                  setBrightness(result);
-                                }
-                              } else {
-                                if (!mount) {
-                                  final volume = _volumeValue -
-                                      delta /
-                                          _theme(context)
-                                              .verticalGestureSensitivity;
-                                  final result = volume.clamp(0.0, 1.0);
-                                  setVolume(result);
-                                }
-                              }
-                            },
-                      child: AnimatedOpacity(
-                        curve: Curves.easeInOut,
-                        opacity: visible ? 1.0 : 0.0,
-                        duration: _theme(context).controlsTransitionDuration,
-                        child: Container(
-                          padding: EdgeInsets.zero,
-                          color: _theme(context).backdropColor ??
-                              Colors.transparent,
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (!mount || seekOnDoubleTapEnabledWhileControlsAreVisible)
-                    if (_mountSeekBackwardButton || _mountSeekForwardButton)
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        scope.showAnimeSkip,
+        scope.openMenuInFullScreen,
+        scope.selectedAnimeTimeStamp,
+        scope.topTitle,
+      ]),
+      builder: (context, _) => ControlScope(
+          topTitle: scope.topTitle.value,
+          selectedAnimeTimeStamp: scope.selectedAnimeTimeStamp.value,
+          showAnimeSkip: scope.showAnimeSkip.value,
+          openMenuInFullScreen: scope.openMenuInFullScreen.value,
+          controlState: this,
+          videoState: widget.state,
+          builder: (context) {
+            final showAnimeSkip = ControlScope.of(context).showAnimeSkip;
+            final openMenuInFullScreen =
+                ControlScope.of(context).openMenuInFullScreen;
+            final size = isFullscreen(context) &&
+                (showAnimeSkip || openMenuInFullScreen);
+            return PopScope(
+              onPopInvokedWithResult: (didPop, result) {
+                if (scope.playerArgs.forceEnterFullScreen &&
+                    isFullscreen(context)) {
+                  addPostFrameCallback((timer) =>
+                      Navigator.of(PlayerView.videoStateKey.currentContext!)
+                          .pop());
+                }
+              },
+              child: Material(
+                elevation: 0.0,
+                borderOnForeground: false,
+                animationDuration: Duration.zero,
+                color: const Color(0x00000000),
+                shadowColor: const Color(0x00000000),
+                surfaceTintColor: const Color(0x00000000),
+                child: Focus(
+                  autofocus: true,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
                       Positioned.fill(
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _mountSeekBackwardButton
-                                  ? TweenAnimationBuilder<double>(
-                                      tween: Tween<double>(
-                                        begin: 0.0,
-                                        end:
-                                            _hideSeekBackwardButton ? 0.0 : 1.0,
-                                      ),
-                                      duration:
-                                          const Duration(milliseconds: 200),
-                                      builder: (context, value, child) =>
-                                          Opacity(
-                                        opacity: value,
-                                        child: child,
-                                      ),
-                                      onEnd: () {
-                                        if (_hideSeekBackwardButton) {
-                                          setState(() {
-                                            _hideSeekBackwardButton = false;
-                                            _mountSeekBackwardButton = false;
-                                          });
-                                        }
-                                      },
-                                      child: _BackwardSeekIndicator(
-                                        onChanged: (value) {
-                                          _seekBarDeltaValueNotifier.value =
-                                              -value;
-                                        },
-                                        onSubmitted: (value) {
-                                          setState(() {
-                                            _hideSeekBackwardButton = true;
-                                          });
-                                          var result = controller(context)
-                                                  .player
-                                                  .state
-                                                  .position -
-                                              value;
-                                          result = result.clamp(
-                                            Duration.zero,
-                                            controller(context)
-                                                .player
-                                                .state
-                                                .duration,
-                                          );
-                                          controller(context)
-                                              .player
-                                              .seek(result);
-                                        },
-                                      ),
-                                    )
-                                  : const SizedBox.shrink(),
+                        child: GestureDetector(
+                          onTap: onTap,
+                          onDoubleTapDown: _lockPlayer ? null : _handleTapDown,
+                          // onLongPress: _handleLongPress,
+                          // onLongPressEnd: _handleLongPressEnd,
+                          onDoubleTap: _lockPlayer
+                              ? null
+                              : () {
+                                  if (_tapPosition != null &&
+                                      _tapPosition!.dx >
+                                          MediaQuery.of(context).size.width /
+                                              2) {
+                                    if ((!mount) ||
+                                        seekOnDoubleTapEnabledWhileControlsAreVisible) {
+                                      onDoubleTapSeekForward();
+                                    }
+                                  } else {
+                                    if ((!mount) ||
+                                        seekOnDoubleTapEnabledWhileControlsAreVisible) {
+                                      onDoubleTapSeekBackward();
+                                    }
+                                  }
+                                },
+                          onHorizontalDragUpdate: _lockPlayer
+                              ? null
+                              : (details) {
+                                  if ((!mount)) {
+                                    onHorizontalDragUpdate(details);
+                                  }
+                                },
+                          onHorizontalDragEnd: _lockPlayer
+                              ? null
+                              : (details) {
+                                  onHorizontalDragEnd();
+                                },
+                          onVerticalDragUpdate: _lockPlayer
+                              ? null
+                              : (details) async {
+                                  final delta = details.delta.dy;
+                                  final Offset position = details.localPosition;
+
+                                  if (position.dx <=
+                                      MediaQuery.of(context).size.width / 2) {
+                                    if (!mount) {
+                                      final brightness = _brightnessValue -
+                                          delta /
+                                              _theme(context)
+                                                  .verticalGestureSensitivity;
+                                      final result = brightness.clamp(0.0, 1.0);
+                                      setBrightness(result);
+                                    }
+                                  } else {
+                                    if (!mount) {
+                                      final volume = _volumeValue -
+                                          delta /
+                                              _theme(context)
+                                                  .verticalGestureSensitivity;
+                                      final result = volume.clamp(0.0, 1.0);
+                                      setVolume(result);
+                                    }
+                                  }
+                                },
+                          child: AnimatedOpacity(
+                            curve: Curves.easeInOut,
+                            opacity: visible ? 1.0 : 0.0,
+                            duration:
+                                _theme(context).controlsTransitionDuration,
+                            child: Container(
+                              padding: EdgeInsets.zero,
+                              color: _theme(context).backdropColor ??
+                                  Colors.transparent,
                             ),
-                            Expanded(
-                              child: _mountSeekForwardButton
-                                  ? TweenAnimationBuilder<double>(
-                                      tween: Tween<double>(
-                                        begin: 0.0,
-                                        end: _hideSeekForwardButton ? 0.0 : 1.0,
-                                      ),
-                                      duration:
-                                          const Duration(milliseconds: 200),
-                                      builder: (context, value, child) =>
-                                          Opacity(
-                                        opacity: value,
-                                        child: child,
-                                      ),
-                                      onEnd: () {
-                                        if (_hideSeekForwardButton) {
-                                          setState(() {
-                                            _hideSeekForwardButton = false;
-                                            _mountSeekForwardButton = false;
-                                          });
-                                        }
-                                      },
-                                      child: _ForwardSeekIndicator(
-                                        onChanged: (value) {
-                                          _seekBarDeltaValueNotifier.value =
-                                              value;
-                                        },
-                                        onSubmitted: (value) {
-                                          setState(() {
-                                            _hideSeekForwardButton = true;
-                                          });
-                                          var result = controller(context)
-                                                  .player
-                                                  .state
-                                                  .position +
-                                              value;
-                                          result = result.clamp(
-                                            Duration.zero,
-                                            controller(context)
-                                                .player
-                                                .state
-                                                .duration,
-                                          );
-                                          controller(context)
-                                              .player
-                                              .seek(result);
-                                        },
-                                      ),
-                                    )
-                                  : const SizedBox.shrink(),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                  if (isFullscreen(context) &&
-                      scope.playerArgs.times.isNotEmpty &&
-                      mount)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: CustomPopup(
-                        startAnimatedAlignment: Alignment.centerRight,
-                        duration: const Duration(milliseconds: 200),
-                        width: 170,
-                        show: value,
-                        paddingTop: true,
-                        shape: RoundedRectangleBorder(),
-                        height: MediaQuery.sizeOf(context).height,
-                        items: scope.playerArgs.times,
-                        builderFunction: (context, index, item) {
-                          if (!value) return const SizedBox.shrink();
-                          return ValueListenableBuilder(
-                            valueListenable: scope.selectedAnimeTimeStamp,
-                            builder: (context, value, child) {
+                      if (!mount ||
+                          seekOnDoubleTapEnabledWhileControlsAreVisible)
+                        if (_mountSeekBackwardButton || _mountSeekForwardButton)
+                          Positioned.fill(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: _mountSeekBackwardButton
+                                      ? TweenAnimationBuilder<double>(
+                                          tween: Tween<double>(
+                                            begin: 0.0,
+                                            end: _hideSeekBackwardButton
+                                                ? 0.0
+                                                : 1.0,
+                                          ),
+                                          duration:
+                                              const Duration(milliseconds: 200),
+                                          builder: (context, value, child) =>
+                                              Opacity(
+                                            opacity: value,
+                                            child: child,
+                                          ),
+                                          onEnd: () {
+                                            if (_hideSeekBackwardButton) {
+                                              setState(() {
+                                                _hideSeekBackwardButton = false;
+                                                _mountSeekBackwardButton =
+                                                    false;
+                                              });
+                                            }
+                                          },
+                                          child: _BackwardSeekIndicator(
+                                            onChanged: (value) {
+                                              _seekBarDeltaValueNotifier.value =
+                                                  -value;
+                                            },
+                                            onSubmitted: (value) {
+                                              setState(() {
+                                                _hideSeekBackwardButton = true;
+                                              });
+                                              var result = controller
+                                                      .player.state.position -
+                                                  value;
+                                              result = result.clamp(
+                                                Duration.zero,
+                                                controller
+                                                    .player.state.duration,
+                                              );
+                                              controller.player.seek(result);
+                                            },
+                                          ),
+                                        )
+                                      : const SizedBox.shrink(),
+                                ),
+                                Expanded(
+                                  child: _mountSeekForwardButton
+                                      ? TweenAnimationBuilder<double>(
+                                          tween: Tween<double>(
+                                            begin: 0.0,
+                                            end: _hideSeekForwardButton
+                                                ? 0.0
+                                                : 1.0,
+                                          ),
+                                          duration:
+                                              const Duration(milliseconds: 200),
+                                          builder: (context, value, child) =>
+                                              Opacity(
+                                            opacity: value,
+                                            child: child,
+                                          ),
+                                          onEnd: () {
+                                            if (_hideSeekForwardButton) {
+                                              setState(() {
+                                                _hideSeekForwardButton = false;
+                                                _mountSeekForwardButton = false;
+                                              });
+                                            }
+                                          },
+                                          child: _ForwardSeekIndicator(
+                                            onChanged: (value) {
+                                              _seekBarDeltaValueNotifier.value =
+                                                  value;
+                                            },
+                                            onSubmitted: (value) {
+                                              setState(() {
+                                                _hideSeekForwardButton = true;
+                                              });
+                                              var result = controller
+                                                      .player.state.position +
+                                                  value;
+                                              result = result.clamp(
+                                                Duration.zero,
+                                                controller
+                                                    .player.state.duration,
+                                              );
+                                              controller.player.seek(result);
+                                            },
+                                          ),
+                                        )
+                                      : const SizedBox.shrink(),
+                                ),
+                              ],
+                            ),
+                          ),
+                      if (isFullscreen(context) &&
+                          scope.playerArgs.times.isNotEmpty &&
+                          mount)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: CustomPopup(
+                            startAnimatedAlignment: Alignment.centerRight,
+                            duration: const Duration(milliseconds: 200),
+                            paddingTop: true,
+                            height: MediaQuery.sizeOf(context).height,
+                            width: 170,
+                            show: showAnimeSkip,
+                            shape: RoundedRectangleBorder(),
+                            items: scope.playerArgs.times,
+                            builderFunction: (context, index, item) {
+                              if (!showAnimeSkip) {
+                                return const SizedBox.shrink();
+                              }
+
+                              final selectedAnimeTimeStamp =
+                                  ControlScope.of(context)
+                                      .selectedAnimeTimeStamp;
                               return ListTile(
                                 dense: true,
                                 onTap: () => scope.onClickSkipAnime.call(item),
-                                selected: value?.id.contains(item.id) ?? false,
+                                selected: selectedAnimeTimeStamp?.id
+                                        .contains(item.id) ??
+                                    false,
                                 leading: Text(
                                   Duration(microseconds: item.at).label(),
                                 ),
@@ -601,677 +677,18 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                                 ),
                               );
                             },
-                          );
-                        },
-                      ),
-                    ),
-                  Positioned(
-                    right: isFullscreen(context) && value ? 170 : 0,
-                    left: 0,
-                    bottom: 0,
-                    top: 0,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        IgnorePointer(
-                            child: Center(child: _CustomIndicator(this))),
-                        IgnorePointer(child: _BufferingIndicator(this)),
-                        _Controlls(this),
-                        IgnorePointer(
-                          child: Padding(
-                            padding: (isFullscreen(context)
-                                ? MediaQuery.of(context).padding
-                                : EdgeInsets.zero),
-                            child: AnimatedOpacity(
-                              duration:
-                                  _theme(context).controlsTransitionDuration,
-                              opacity: _speedUpIndicator ? 1 : 0,
-                              child: Container(
-                                alignment: Alignment.center,
-                                child: Container(
-                                  margin: const EdgeInsets.all(16.0),
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0x88000000),
-                                    borderRadius: BorderRadius.circular(64.0),
-                                  ),
-                                  height: 48.0,
-                                  width: 108.0,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      const SizedBox(width: 16.0),
-                                      Expanded(
-                                        child: Text(
-                                          '${_theme(context).speedUpFactor.toStringAsFixed(1)}x',
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontSize: 14.0,
-                                            color: Color(0xFFFFFFFF),
-                                          ),
-                                        ),
-                                      ),
-                                      Container(
-                                        height: 48.0,
-                                        width: 48.0 - 16.0,
-                                        alignment: Alignment.centerRight,
-                                        child: const Icon(
-                                          Icons.fast_forward,
-                                          color: Color(0xFFFFFFFF),
-                                          size: 24.0,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16.0),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
                           ),
                         ),
-                        if (!mount)
-                          if (_mountSeekBackwardButton |
-                                  _mountSeekForwardButton ||
-                              showSwipeDuration)
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              left: 0,
-                              child: IgnorePointer(
-                                child: isFullscreen(context)
-                                    ? SafeArea(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(10.0),
-                                          child: _MaterialSeekBar(
-                                            this,
-                                            delta: _seekBarDeltaValueNotifier,
-                                          ),
-                                        ),
-                                      )
-                                    : _MaterialSeekBar(
-                                        this,
-                                        delta: _seekBarDeltaValueNotifier,
-                                      ),
-                              ),
-                            ),
-                        IgnorePointer(
-                          child: Center(
-                            child: AnimatedOpacity(
-                              duration:
-                                  _theme(context).controlsTransitionDuration,
-                              opacity: showSwipeDuration ? 1 : 0,
-                              child: _theme(context).seekIndicatorBuilder?.call(
-                                      context,
-                                      Duration(seconds: swipeDuration)) ??
-                                  Container(
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0x88000000),
-                                      borderRadius: BorderRadius.circular(64.0),
-                                    ),
-                                    height: 52.0,
-                                    width: 108.0,
-                                    child: Text(
-                                      swipeDuration > 0
-                                          ? "+ ${Duration(seconds: swipeDuration).label()}"
-                                          : "- ${Duration(seconds: swipeDuration).label()}",
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontSize: 14.0,
-                                        color: Color(0xFFFFFFFF),
-                                      ),
-                                    ),
-                                  ),
-                            ),
-                          ),
-                        ),
-
-                        if (!value) ...[
-                          Positioned(
-                            top: 0,
-                            left: 0,
-                            child: Padding(
-                              padding:
-                                  EdgeInsets.only(top: !isPortrait ? 20 : 8),
-                              child: PlayerCustomOverlay(
-                                key: const ValueKey('custom_overlay_1'),
-                                begin: const Offset(-1, 0),
-                                notifierChange: scope.overlayBoxFit,
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            bottom: !isPortrait ? 100 : 70,
-                            right: 0,
-                            top: 0,
-                            child: Align(
-                              alignment: Alignment.bottomRight,
-                              child: PlayerCustomOverlay(
-                                reversedBorder: true,
-                                key: const ValueKey('custom_overlay_2'),
-                                begin: const Offset(1, 0),
-                                end: Offset.zero,
-                                enableCancelReversed: false,
-                                notifierChange: scope.overlayNextEpisode,
-                                onTap: scope.onTapEpisodeInOverlay,
-                              ),
-                            ),
-                          ),
-                        ],
-
-                        // if (isFullscreen(context))
-                        //   ValueListenableBuilder(
-                        //     valueListenable: scope.openMenuInFullScreen,
-                        //     builder: (context, value, _) => AnimatedPositioned(
-                        //       duration: const Duration(milliseconds: 350),
-                        //       width: value ? 200 : 0,
-                        //       child: const SizedBox.shrink(),
-                        //     ),
-                        //   ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MaterialSeekBar extends StatefulWidget {
-  const _MaterialSeekBar(
-    this.state, {
-    this.delta,
-    this.onSeekStart,
-    this.onSeekEnd,
-  });
-  final _CustomMaterialControlsState state;
-  final ValueNotifier<Duration>? delta;
-  final VoidCallback? onSeekStart;
-  final VoidCallback? onSeekEnd;
-  @override
-  State<_MaterialSeekBar> createState() => _MaterialSeekBarState();
-}
-
-class _MaterialSeekBarState extends State<_MaterialSeekBar> {
-  final List<StreamSubscription> subscriptions = [];
-  bool tapped = false;
-  late bool playing = controller(context).player.state.playing;
-  late Duration position = controller(context).player.state.position;
-  late Duration duration = controller(context).player.state.duration;
-  late Duration buffer = controller(context).player.state.buffer;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.delta?.addListener(listener);
-  }
-
-  @override
-  void didChangeDependencies() {
-    if (subscriptions.isEmpty && widget.delta == null) {
-      subscriptions.addAll(
-        [
-          controller(context).player.stream.playing.listen((event) {
-            setState(() {
-              playing = event;
-            });
-          }),
-          controller(context).player.stream.completed.listen((event) {
-            setState(() {
-              position = Duration.zero;
-            });
-          }),
-          controller(context).player.stream.position.listen((event) {
-            setState(() {
-              if (!tapped) {
-                position = event;
-              }
-            });
-          }),
-          controller(context).player.stream.duration.listen((event) {
-            setState(() {
-              duration = event;
-            });
-          }),
-          controller(context).player.stream.buffer.listen((event) {
-            setState(() {
-              buffer = event;
-            });
-          }),
-        ],
-      );
-    }
-    super.didChangeDependencies();
-  }
-
-  void listener() {
-    setState(() {
-      final delta = widget.delta?.value ?? position;
-      position = controller(context).player.state.position + delta;
-    });
-  }
-
-  @override
-  void setState(VoidCallback fn) {
-    if (mounted) {
-      super.setState(fn);
-    }
-  }
-
-  void _onChangeStart(double value) {
-    final state = widget.state;
-    state._timer?.cancel();
-    setState(() => tapped = true);
-
-    widget.onSeekStart?.call();
-  }
-
-  void _onChangeEnd(double value) {
-    setState(() => tapped = false);
-
-    final newPosition = Duration(milliseconds: value.toInt());
-    controller(context).player.seek(newPosition);
-
-    widget.onSeekEnd?.call();
-    _disableVisible();
-  }
-
-  void _disableVisible() {
-    final state = widget.state;
-    state._timer?.cancel();
-
-    state._timer = Timer(_theme(context).controlsHoverDuration, () {
-      if (state.mounted) {
-        state.setState(() => state.visible = false);
-        state.unshiftSubtitle();
-      }
-    });
-  }
-
-  void _onChanged(double value) {
-    setState(() => tapped = true);
-
-    final newPosition = Duration(milliseconds: value.toInt());
-
-    setState(() {
-      position = newPosition;
-    });
-
-    _disableVisible();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    bool disableSlider = duration.inMilliseconds == 0 ||
-        position.inMilliseconds.toDouble() > duration.inMilliseconds.toDouble();
-    bool disableBufferSlider =
-        buffer.inMilliseconds > duration.inMilliseconds.toDouble();
-
-    final lockPlayer = widget.state._lockPlayer;
-
-    final value = disableSlider ? 0.0 : position.inMilliseconds.toDouble();
-
-    // customLog(duration.inMilliseconds);
-    // customLog(value);
-
-    return SliderTheme(
-      data: const SliderThemeData(
-        trackHeight: 14,
-        showValueIndicator: ShowValueIndicator.always,
-        thumbShape: RoundSliderThumbShape(),
-      ),
-      child: SizedBox(
-        height: 38,
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 20, top: 8),
-          child: Slider.adaptive(
-            divisions: null,
-            label: position.label(),
-            secondaryTrackValue: disableBufferSlider || value == 0.0
-                ? null
-                : buffer.inMilliseconds.toDouble(),
-            value: value,
-            max: disableSlider ? 1.0 : duration.inMilliseconds.toDouble(),
-            onChangeStart: lockPlayer || disableSlider ? null : _onChangeStart,
-            onChangeEnd: lockPlayer || disableSlider ? null : _onChangeEnd,
-            onChanged: lockPlayer || disableSlider ? null : _onChanged,
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    widget.delta?.removeListener(listener);
-    for (final subscription in subscriptions) {
-      subscription.cancel();
-    }
-    super.dispose();
-  }
-}
-
-class _Controlls extends StatefulWidget {
-  const _Controlls(this.state);
-  final _CustomMaterialControlsState state;
-
-  @override
-  State<_Controlls> createState() => _ControllsState();
-}
-
-class _ControllsState extends State<_Controlls>
-    with SingleTickerProviderStateMixin, SubscriptionsMixin {
-  late Duration _position = controller(context).player.state.position;
-  late Duration _duration = controller(context).player.state.duration;
-
-  late final PlayerScope _playerScope =
-      PlayerScope.of(PlayerView.videoStateKey.currentContext!);
-
-  late final AnimationController _animation = AnimationController(
-    vsync: this,
-    value: controller(context).player.state.playing ? 1 : 0,
-    duration: const Duration(milliseconds: 200),
-  );
-
-  bool get _reversedCurrentDuration =>
-      _playerScope.reversedCurrentDuration.value;
-
-  set setReversedCurrentDuration(bool reversedCurrentDuration) {
-    if (!mounted) return;
-    setState(() {
-      _playerScope.reversedCurrentDuration.value = reversedCurrentDuration;
-    });
-  }
-
-  @override
-  void setState(VoidCallback fn) {
-    if (mounted) {
-      super.setState(fn);
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (subscriptions.isEmpty) {
-      subscriptions.addAll(
-        [
-          controller(context).player.stream.position.listen((event) {
-            setState(() {
-              _position = event;
-            });
-          }),
-          controller(context).player.stream.duration.listen((event) {
-            setState(() {
-              _duration = event;
-            });
-          }),
-          controller(context).player.stream.playing.listen((event) {
-            if (event) {
-              _animation.forward();
-            } else {
-              _animation.reverse();
-            }
-          }),
-        ],
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    _animation.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final PlayerScope scope =
-        PlayerScope.of(PlayerView.videoStateKey.currentContext!);
-
-    final container = IgnorePointer(
-      ignoring: !widget.state.visible,
-      child: AnimatedOpacity(
-        curve: Curves.easeInOut,
-        opacity: widget.state.visible ? 1.0 : 0.0,
-        duration: _theme(context).controlsTransitionDuration,
-        onEnd: () {
-          setState(() {
-            if (!widget.state.visible) {
-              widget.state.mount = false;
-            }
-          });
-        },
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (widget.state.mount)
-              _LockWidget(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: isFullscreen(context)
-                      ? Padding(
-                          // padding: EdgeInsets.zero,
-                          padding: isFullscreen(context)
-                              ? const EdgeInsets.only(
-                                  top: 18.0,
-                                  right: 10,
-                                  left: 10,
-                                )
-                              : EdgeInsets.zero,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            // mainAxisSize: MainAxisSize.max,
-                            children: [
-                              ValueListenableBuilder(
-                                valueListenable: scope.topTitle,
-                                builder: (context, value, child) => Text(
-                                  value,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.copyWith(
-                                        color: const Color(0xFFFFFFFF),
-                                      ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : SafeArea(
-                          child: Padding(
-                            // padding: EdgeInsets.zero,
-                            padding: isFullscreen(context)
-                                ? const EdgeInsets.only(
-                                    top: 18.0,
-                                    right: 10,
-                                    left: 10,
-                                  )
-                                : EdgeInsets.zero,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              // mainAxisSize: MainAxisSize.max,
-                              children: [
-                                ValueListenableBuilder(
-                                  valueListenable: scope.topTitle,
-                                  builder: (context, value, child) => Text(
-                                    value,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(
-                                          color: const Color(0xFFFFFFFF),
-                                        ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                ),
-              ),
-            Center(
-              child: AnimatedOpacity(
-                curve: Curves.easeInOut,
-                opacity: widget.state.buffering ? 0.0 : 1.0,
-                duration: _theme(context).controlsTransitionDuration,
-                child: IconButton(
-                  onPressed: controller(context).player.playOrPause,
-                  iconSize: 48,
-                  padding: EdgeInsets.zero,
-                  icon: IgnorePointer(
-                    child: AnimatedIcon(
-                      progress: _animation,
-                      icon: AnimatedIcons.play_pause,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            _BottomButtons(this),
-          ],
-        ),
-      ),
-    );
-
-    // final orientation = MediaQuery.orientationOf(context);
-
-    // if (orientation == Orientation.landscape) {
-    //   return SafeArea(child: container);
-    // }
-    return container;
-  }
-}
-
-class _BottomButtons extends StatelessWidget {
-  const _BottomButtons(this.state);
-
-  final _ControllsState state;
-
-  @override
-  Widget build(BuildContext context) {
-    final PlayerScope scope =
-        PlayerScope.of(PlayerView.videoStateKey.currentContext!);
-    // final hiveController = context.read<HiveController>();
-    final fullscreen = isFullscreen(context);
-
-    Widget buttons = Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          // textDirection: Directionality.of(context),
-          children: [
-            _LockWidget(
-              child: Container(
-                padding: const EdgeInsets.only(left: 18),
-                child: TextButton(
-                  style: const ButtonStyle(
-                    visualDensity: VisualDensity(vertical: -4),
-                  ),
-                  onPressed: () {
-                    state.setReversedCurrentDuration =
-                        !state._reversedCurrentDuration;
-                  },
-                  child: Text(
-                    state._reversedCurrentDuration
-                        ? "-${(state._duration - state._position).label(reference: state._duration)} / ${state._duration.label(reference: state._duration)}"
-                        : '${state._position.label(reference: state._duration)} / ${state._duration.label(reference: state._duration)}',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: const Color(0xFFFFFFFF),
-                        ),
-                  ),
-                ),
-              ),
-            ),
-            if (isFullscreen(context) && scope.playerArgs.times.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-              TextButton(
-                style: const ButtonStyle(
-                  padding: WidgetStatePropertyAll(EdgeInsets.only(left: 10)),
-                  visualDensity: VisualDensity(vertical: -4),
-                ),
-                onLongPress: () {
-                  scope.showAnimeSkip.value = !scope.showAnimeSkip.value;
-                  // Timer(const Duration(seconds: 20), () {
-                  //   scope.showAnimeSkip.value = false;
-                  // });
-                },
-                onPressed: () {},
-                child: ValueListenableBuilder(
-                  valueListenable: scope.selectedAnimeTimeStamp,
-                  builder: (context, value, child) => Text(
-                    value?.timeStampType.label ?? '',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                  ),
-                ),
-              ),
-            ],
-            const Spacer(),
-            if (scope.isPipAvailable)
-              _LockWidget(
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  visualDensity: const VisualDensity(vertical: -4),
-                  onPressed: scope.enterInPip,
-                  iconSize: 22,
-                  icon: Icon(MdiIcons.pictureInPictureBottomRight),
-                ),
-              ),
-            _LockWidget(
-              child: IconButton(
-                padding: EdgeInsets.zero,
-                visualDensity: const VisualDensity(vertical: -4),
-                onPressed: scope.setFits,
-                iconSize: 22,
-                icon: Icon(MdiIcons.fitToScreen),
-              ),
-            ),
-            if (isFullscreen(context))
-              _LockWidget(
-                child: Stack(
-                  children: [
-                    IconButton(
-                      visualDensity: const VisualDensity(vertical: -4),
-                      padding: EdgeInsets.zero,
-                      onPressed: () {
-                        scope.openMenuInFullScreen.value =
-                            !scope.openMenuInFullScreen.value;
-                      },
-                      iconSize: 22,
-                      icon: Icon(MdiIcons.menu),
-                    ),
-                    ValueListenableBuilder(
-                        valueListenable: scope.openMenuInFullScreen,
-                        builder: (context, open, _) {
-                          return CustomPopup(
-                            height: MediaQuery.of(context).size.height / 1.4,
-                            width: 105,
-                            show: open,
+                      if (isFullscreen(context) && mount)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: CustomPopup(
+                            startAnimatedAlignment: Alignment.centerRight,
+                            duration: const Duration(milliseconds: 200),
+                            paddingTop: true,
+                            height: MediaQuery.sizeOf(context).height,
+                            width: 170,
+                            show: openMenuInFullScreen,
                             items: scope.playerArgs.anime.releases,
                             builderFunction: (context, index, episode) {
                               final cardTheme = CardTheme.of(context);
@@ -1330,57 +747,625 @@ class _BottomButtons extends StatelessWidget {
                                 ),
                               );
                             },
-                          );
-                        }),
-                  ],
-                ),
-              ),
-            IconButton(
-              visualDensity: const VisualDensity(vertical: -4),
-              padding: EdgeInsets.zero,
-              onPressed: () {
-                state.widget.state.setLockPlayer =
-                    !state.widget.state._lockPlayer;
-              },
-              iconSize: 22,
-              icon: Icon(state.widget.state._lockPlayer
-                  ? MdiIcons.lock
-                  : MdiIcons.lockOpen),
-            ),
-            _LockWidget(
-              child: Container(
-                width: 65,
-                padding: const EdgeInsets.only(
-                  right: 30,
-                ),
-                child: IconButton(
-                  visualDensity: const VisualDensity(vertical: -4),
-                  onPressed: () {
-                    toggleFullscreen(context);
-                    if (scope.showAnimeSkip.value) {
-                      scope.showAnimeSkip.value = !scope.showAnimeSkip.value;
-                    }
+                          ),
+                        ),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 300),
+                        right: size ? 150 : 0,
+                        left: 0,
+                        bottom: 0,
+                        top: 0,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            IgnorePointer(
+                                child: Center(child: _CustomIndicator(this))),
+                            IgnorePointer(child: _BufferingIndicator(this)),
+                            _Controlls(this),
+                            IgnorePointer(
+                              child: Padding(
+                                padding: (isFullscreen(context)
+                                    ? MediaQuery.of(context).padding
+                                    : EdgeInsets.zero),
+                                child: AnimatedOpacity(
+                                  duration: _theme(context)
+                                      .controlsTransitionDuration,
+                                  opacity: _speedUpIndicator ? 1 : 0,
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    child: Container(
+                                      margin: const EdgeInsets.all(16.0),
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0x88000000),
+                                        borderRadius:
+                                            BorderRadius.circular(64.0),
+                                      ),
+                                      height: 48.0,
+                                      width: 108.0,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          const SizedBox(width: 16.0),
+                                          Expanded(
+                                            child: Text(
+                                              '${_theme(context).speedUpFactor.toStringAsFixed(1)}x',
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontSize: 14.0,
+                                                color: Color(0xFFFFFFFF),
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            height: 48.0,
+                                            width: 48.0 - 16.0,
+                                            alignment: Alignment.centerRight,
+                                            child: const Icon(
+                                              Icons.fast_forward,
+                                              color: Color(0xFFFFFFFF),
+                                              size: 24.0,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16.0),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (!mount)
+                              if (_mountSeekBackwardButton |
+                                      _mountSeekForwardButton ||
+                                  showSwipeDuration)
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  left: 0,
+                                  child: IgnorePointer(
+                                    child: isFullscreen(context)
+                                        ? SafeArea(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(10.0),
+                                              child: _MaterialSeekBar(
+                                                this,
+                                                delta:
+                                                    _seekBarDeltaValueNotifier,
+                                              ),
+                                            ),
+                                          )
+                                        : _MaterialSeekBar(
+                                            this,
+                                            delta: _seekBarDeltaValueNotifier,
+                                          ),
+                                  ),
+                                ),
+                            IgnorePointer(
+                              child: Center(
+                                child: AnimatedOpacity(
+                                  duration: _theme(context)
+                                      .controlsTransitionDuration,
+                                  opacity: showSwipeDuration ? 1 : 0,
+                                  child: _theme(context)
+                                          .seekIndicatorBuilder
+                                          ?.call(
+                                              context,
+                                              Duration(
+                                                  seconds: swipeDuration)) ??
+                                      Container(
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0x88000000),
+                                          borderRadius:
+                                              BorderRadius.circular(64.0),
+                                        ),
+                                        height: 52.0,
+                                        width: 108.0,
+                                        child: Text(
+                                          swipeDuration > 0
+                                              ? "+ ${Duration(seconds: swipeDuration).label()}"
+                                              : "- ${Duration(seconds: swipeDuration).label()}",
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontSize: 14.0,
+                                            color: Color(0xFFFFFFFF),
+                                          ),
+                                        ),
+                                      ),
+                                ),
+                              ),
+                            ),
 
-                    if (scope.playerArgs.forceEnterFullScreen &&
-                        isFullscreen(context)) {
-                      // WidgetsBinding.instance.addPostFrameCallback((timer) {
-                      //   Navigator.of(PlayerView.videoStateKey.currentContext!)
-                      //       .pop();
-                      // });
-                      Navigator.of(PlayerView.videoStateKey.currentContext!)
-                          .pop();
-                    }
-                  },
-                  iconSize: 22,
-                  icon: fullscreen
-                      ? Icon(MdiIcons.fullscreenExit)
-                      : Icon(MdiIcons.fullscreen),
+                            if (!size) ...[
+                              Positioned(
+                                top: 0,
+                                left: 0,
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                      top: !isPortrait ? 20 : 8),
+                                  child: PlayerCustomOverlay(
+                                    key: const ValueKey('custom_overlay_1'),
+                                    begin: const Offset(-1, 0),
+                                    notifierChange: scope.overlayBoxFit,
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: !isPortrait ? 100 : 70,
+                                right: 0,
+                                top: 0,
+                                child: Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: PlayerCustomOverlay(
+                                    reversedBorder: true,
+                                    key: const ValueKey('custom_overlay_2'),
+                                    begin: const Offset(1, 0),
+                                    end: Offset.zero,
+                                    enableCancelReversed: false,
+                                    notifierChange: scope.overlayNextEpisode,
+                                    onTap: scope.onTapEpisodeInOverlay,
+                                  ),
+                                ),
+                              ),
+                            ],
+
+                            // if (isFullscreen(context))
+                            //   ValueListenableBuilder(
+                            //     valueListenable: scope.openMenuInFullScreen,
+                            //     builder: (context, value, _) => AnimatedPositioned(
+                            //       duration: const Duration(milliseconds: 350),
+                            //       width: value ? 200 : 0,
+                            //       child: const SizedBox.shrink(),
+                            //     ),
+                            //   ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+    );
+  }
+}
+
+class _MaterialSeekBar extends StatefulWidget {
+  const _MaterialSeekBar(
+    this.state, {
+    this.delta,
+    this.onSeekStart,
+    this.onSeekEnd,
+  });
+  final _CustomMaterialControlsState state;
+  final ValueNotifier<Duration>? delta;
+  final VoidCallback? onSeekStart;
+  final VoidCallback? onSeekEnd;
+  @override
+  State<_MaterialSeekBar> createState() => _MaterialSeekBarState();
+}
+
+class _MaterialSeekBarState extends State<_MaterialSeekBar>
+    with TickerProviderStateMixin {
+  final List<StreamSubscription> subscriptions = [];
+  bool tapped = false;
+  late final controller = widget.state.controller;
+  late bool playing = controller.player.state.playing;
+  late Duration position = controller.player.state.position;
+  late Duration duration = controller.player.state.duration;
+  late Duration buffer = controller.player.state.buffer;
+  late MaterialVideoControlsThemeData theme = widget.state.theme;
+
+  late final ProgressBarController _progressBarController;
+
+  @override
+  void initState() {
+    super.initState();
+    _progressBarController = ProgressBarController(vsync: this);
+    widget.delta?.addListener(listener);
+    if (widget.delta == null) {
+      subscriptions.addAll(
+        [
+          controller.player.stream.playing.listen((event) {
+            setState(() {
+              playing = event;
+            });
+          }),
+          controller.player.stream.completed.listen((event) {
+            setState(() {
+              position = Duration.zero;
+            });
+          }),
+          controller.player.stream.position.listen((event) {
+            setState(() {
+              if (!tapped) {
+                position = event;
+              }
+            });
+          }),
+          controller.player.stream.duration.listen((event) {
+            setState(() {
+              duration = event;
+            });
+          }),
+          controller.player.stream.buffer.listen((event) {
+            setState(() {
+              buffer = event;
+            });
+          }),
+        ],
+      );
+    }
+  }
+
+  void listener() {
+    setState(() {
+      final delta = widget.delta?.value ?? position;
+      position = controller.player.state.position + delta;
+    });
+  }
+
+  @override
+  void setState(VoidCallback fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  void _onChangeStart(Duration value) {
+    if (lockPlayer || disableSlider) return;
+    final state = widget.state;
+    state._timer?.cancel();
+
+    setState(() => tapped = true);
+
+    widget.onSeekStart?.call();
+  }
+
+  void _onChangeEnd(Duration value) async {
+    if (lockPlayer || disableSlider) return;
+    setState(() => tapped = false);
+
+    // final newPosition = Duration(milliseconds: value.toInt());
+    await controller.player.seek(value);
+
+    widget.onSeekEnd?.call();
+    _disableVisible();
+  }
+
+  void _disableVisible() {
+    final state = widget.state;
+    state._timer?.cancel();
+
+    state._timer = Timer(_theme(context).controlsHoverDuration, () {
+      if (state.mounted) {
+        state.setState(() => state.visible = false);
+        state.unshiftSubtitle();
+      }
+    });
+  }
+
+  void _onChanged(Duration value) {
+    if (lockPlayer || disableSlider) return;
+    // setState(() => tapped = true);
+
+    // final newPosition = Duration(milliseconds: value.toInt());
+
+    setState(() {
+      tapped = true;
+      position = value;
+    });
+
+    _disableVisible();
+  }
+
+  bool get lockPlayer => widget.state._lockPlayer;
+
+  bool get disableSlider =>
+      duration.inMilliseconds == 0 ||
+      position.inMilliseconds.toDouble() > duration.inMilliseconds.toDouble();
+
+  // Thumb Glow (efeito ao interagir com o slider)
+  static const Color thumbGlowColor =
+      Color(0x50FFFFFF); // branco com 30% de opacidade
+
+// Barra de fundo (trilha vazia)
+  static const Color backgroundBarColor =
+      Color(0xFF606060); // cinza escuro usado no YouTube
+
+// Colapsado (modo mini player)
+  static const Color collapsedBufferedBarColor =
+      Color(0x40FFFFFF); // branco 25%
+  static const Color collapsedThumbColor = Colors.white;
+
+// Expandido (fullscreen player)
+  static const Color expandedBufferedBarColor = Color(0x66FFFFFF); // branco 40%
+  static const Color expandedThumbColor = Colors.white;
+
+  static const Color collapsedProgressBarColor = Color(0xFFF44336);
+  static const Color expandedProgressBarColor = Color(0xFFF44336);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: isFullscreen(context)
+          ? const EdgeInsets.only(bottom: 8, right: 12, left: 12)
+          : EdgeInsets.zero,
+      child: IgnorePointer(
+        ignoring: disableSlider,
+        child: ClipRRect(
+          borderRadius: isFullscreen(context)
+              ? BorderRadius.circular(8)
+              : BorderRadius.zero,
+          child: ProgressBar(
+            collapsedProgressBarColor: collapsedProgressBarColor,
+            collapsedBufferedBarColor: collapsedBufferedBarColor,
+            backgroundBarColor: backgroundBarColor,
+            thumbGlowColor: thumbGlowColor,
+            collapsedThumbColor: collapsedThumbColor,
+            expandedProgressBarColor: expandedProgressBarColor,
+            expandedBufferedBarColor: expandedBufferedBarColor,
+            expandedThumbColor: expandedThumbColor,
+            alignment: isFullscreen(context)
+                ? ProgressBarAlignment.bottom
+                : ProgressBarAlignment.bottom,
+            progressBarIndicator: RoundedRectangularProgressBarIndicator(),
+            expandedBarHeight: isFullscreen(context) ? 5 : 4,
+            collapsedBarHeight: isFullscreen(context) ? 5 : 4,
+            controller: _progressBarController,
+            progress: position,
+            buffered: buffer,
+            total: duration,
+            onChangeStart: _onChangeStart,
+            onChangeEnd: _onChangeEnd,
+            onChanged: _onChanged,
+            onSeek: _onChangeEnd,
+          ),
+        ),
+      ),
+    );
+
+    // bool disableSlider = duration.inMilliseconds == 0 ||
+    //     position.inMilliseconds.toDouble() > duration.inMilliseconds.toDouble();
+    // final lockPlayer = widget.state._lockPlayer;
+    // bool disableBufferSlider =
+    //     buffer.inMilliseconds > duration.inMilliseconds.toDouble();
+
+    // final value = disableSlider ? 0.0 : position.inMilliseconds.toDouble();
+  }
+
+  @override
+  void dispose() {
+    widget.delta?.removeListener(listener);
+    for (final subscription in subscriptions) {
+      subscription.cancel();
+    }
+    _progressBarController.dispose();
+    super.dispose();
+  }
+}
+
+class _Controlls extends StatefulWidget {
+  const _Controlls(this.state);
+  final _CustomMaterialControlsState state;
+
+  @override
+  State<_Controlls> createState() => _ControllsState();
+}
+
+class _ControllsState extends State<_Controlls>
+    with SingleTickerProviderStateMixin, SubscriptionsMixin {
+  late final controller = widget.state.controller;
+  late Duration _position = controller.player.state.position;
+  late Duration _duration = controller.player.state.duration;
+
+  late final PlayerScope _playerScope =
+      PlayerScope.of(PlayerView.videoStateKey.currentContext!);
+
+  late final AnimationController _animation = AnimationController(
+    vsync: this,
+    value: controller.player.state.playing ? 1 : 0,
+    duration: const Duration(milliseconds: 200),
+  );
+
+  bool get _reversedCurrentDuration =>
+      _playerScope.reversedCurrentDuration.value;
+
+  set setReversedCurrentDuration(bool reversedCurrentDuration) {
+    if (!mounted) return;
+    setState(() {
+      _playerScope.reversedCurrentDuration.value = reversedCurrentDuration;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    subscriptions.addAll(
+      [
+        controller.player.stream.position.listen((event) {
+          setState(() {
+            _position = event;
+          });
+        }),
+        controller.player.stream.duration.listen((event) {
+          setState(() {
+            _duration = event;
+          });
+        }),
+        controller.player.stream.playing.listen((event) {
+          if (event) {
+            _animation.forward();
+          } else {
+            _animation.reverse();
+          }
+        }),
+      ],
+    );
+  }
+
+  @override
+  void setState(VoidCallback fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
+  void dispose() {
+    _animation.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // final PlayerScope scope =
+    //     PlayerScope.of(PlayerView.videoStateKey.currentContext!);
+
+    final topTitle = ControlScope.of(context).topTitle;
+
+    final container = IgnorePointer(
+      ignoring: !widget.state.visible,
+      child: AnimatedOpacity(
+        curve: Curves.easeInOut,
+        opacity: widget.state.visible ? 1.0 : 0.0,
+        duration: _theme(context).controlsTransitionDuration,
+        onEnd: () {
+          setState(() {
+            if (!widget.state.visible) {
+              widget.state.mount = false;
+            }
+          });
+        },
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (widget.state.mount)
+              _LockWidget(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: isFullscreen(context)
+                      ? Padding(
+                          // padding: EdgeInsets.zero,
+                          padding: isFullscreen(context)
+                              ? const EdgeInsets.only(
+                                  top: 18.0,
+                                  right: 10,
+                                  left: 10,
+                                )
+                              : EdgeInsets.zero,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            // mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Text(
+                                topTitle,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      color: const Color(0xFFFFFFFF),
+                                    ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : SafeArea(
+                          child: Padding(
+                            // padding: EdgeInsets.zero,
+                            padding: isFullscreen(context)
+                                ? const EdgeInsets.only(
+                                    top: 18.0,
+                                    right: 10,
+                                    left: 10,
+                                  )
+                                : EdgeInsets.zero,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              // mainAxisSize: MainAxisSize.max,
+                              children: [
+                                Text(
+                                  topTitle,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(
+                                        color: const Color(0xFFFFFFFF),
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                ),
+              ),
+            Center(
+              child: AnimatedOpacity(
+                curve: Curves.easeInOut,
+                opacity: widget.state.buffering ? 0.0 : 1.0,
+                duration: _theme(context).controlsTransitionDuration,
+                child: IconButton(
+                  onPressed: controller.player.playOrPause,
+                  iconSize: 48,
+                  padding: EdgeInsets.zero,
+                  icon: IgnorePointer(
+                    child: AnimatedIcon(
+                      progress: _animation,
+                      icon: AnimatedIcons.play_pause,
+                    ),
+                  ),
                 ),
               ),
             ),
+            _BottomButtons(this),
           ],
         ),
-        _MaterialSeekBar(
+      ),
+    );
+
+    // final orientation = MediaQuery.orientationOf(context);
+
+    // if (orientation == Orientation.landscape) {
+    //   return SafeArea(child: container);
+    // }
+    return container;
+  }
+}
+
+class _BottomButtons extends StatelessWidget {
+  const _BottomButtons(this.state);
+
+  final _ControllsState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final PlayerScope scope =
+        PlayerScope.of(PlayerView.videoStateKey.currentContext!);
+    // final hiveController = context.read<HiveController>();
+    final fullscreen = isFullscreen(context);
+
+    final selectedAnimeTimeStamp =
+        ControlScope.of(context).selectedAnimeTimeStamp;
+
+    final showAnimeSkip = ControlScope.of(context).showAnimeSkip;
+    final openMenuInFullScreen = ControlScope.of(context).openMenuInFullScreen;
+    final size =
+        isFullscreen(context) && (showAnimeSkip || openMenuInFullScreen);
+
+    final seekBar = _LockWidget(
+      child: SizedBox(
+        height: isFullscreen(context) ? 20 : 10,
+        child: _MaterialSeekBar(
           state.widget.state,
           onSeekStart: state.widget.state._timer?.cancel,
           onSeekEnd: () {
@@ -1397,12 +1382,192 @@ class _BottomButtons extends StatelessWidget {
             );
           },
         ),
+      ),
+    );
+
+    Widget buttons = Column(
+      // fit: StackFit.loose,
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (isFullscreen(context)) ...[
+          Expanded(child: SizedBox.shrink()),
+          seekBar,
+        ],
+        Padding(
+          padding: isFullscreen(context)
+              ? EdgeInsets.only(bottom: 8)
+              : EdgeInsets.zero,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            textDirection: Directionality.of(context),
+            children: [
+              _LockWidget(
+                child: Container(
+                  padding: isFullscreen(context)
+                      ? const EdgeInsets.only(left: 18)
+                      : EdgeInsets.zero,
+                  child: TextButton(
+                    style: const ButtonStyle(
+                      visualDensity: VisualDensity(vertical: -4),
+                    ),
+                    onPressed: () {
+                      state.setReversedCurrentDuration =
+                          !state._reversedCurrentDuration;
+                    },
+                    child: Text(
+                      state._reversedCurrentDuration
+                          ? "-${(state._duration - state._position).label(reference: state._duration)} / ${state._duration.label(reference: state._duration)}"
+                          : '${state._position.label(reference: state._duration)} / ${state._duration.label(reference: state._duration)}',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: const Color(0xFFFFFFFF),
+                          ),
+                    ),
+                  ),
+                ),
+              ),
+              if (isFullscreen(context) &&
+                  scope.playerArgs.times.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  style: const ButtonStyle(
+                    padding: WidgetStatePropertyAll(EdgeInsets.only(left: 10)),
+                    visualDensity: VisualDensity(vertical: -4),
+                  ),
+                  onLongPress: () {
+                    scope.showAnimeSkip.value = !scope.showAnimeSkip.value;
+                    // Timer(const Duration(seconds: 20), () {
+                    //   scope.showAnimeSkip.value = false;
+                    // });
+                  },
+                  onPressed: () {},
+                  child: Text(
+                    selectedAnimeTimeStamp?.timeStampType.label ?? '',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                  ),
+                ),
+              ],
+              const Spacer(),
+              if (scope.isPipAvailable)
+                _LockWidget(
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    visualDensity: const VisualDensity(
+                      vertical: -4,
+                      horizontal: -2,
+                    ),
+                    onPressed: scope.enterInPip,
+                    iconSize: 20,
+                    icon: Icon(MdiIcons.pictureInPictureBottomRight),
+                  ),
+                ),
+              _LockWidget(
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  visualDensity: const VisualDensity(
+                    vertical: -4,
+                    horizontal: -2,
+                  ),
+                  onPressed: scope.setFits,
+                  iconSize: 20,
+                  icon: Icon(MdiIcons.fitToScreen),
+                ),
+              ),
+              if (isFullscreen(context))
+                _LockWidget(
+                  child: Stack(
+                    children: [
+                      IconButton(
+                        visualDensity: const VisualDensity(
+                          vertical: -4,
+                          horizontal: -2,
+                        ),
+                        padding: EdgeInsets.zero,
+                        onPressed: () {
+                          scope.openMenuInFullScreen.value =
+                              !scope.openMenuInFullScreen.value;
+                        },
+                        iconSize: 20,
+                        icon: Icon(MdiIcons.menu),
+                      ),
+                    ],
+                  ),
+                ),
+              if (isFullscreen(context))
+                IconButton(
+                  visualDensity: const VisualDensity(
+                    vertical: -4,
+                    horizontal: -2,
+                  ),
+                  padding: EdgeInsets.zero,
+                  onPressed: () {
+                    state.widget.state.setLockPlayer =
+                        !state.widget.state._lockPlayer;
+                  },
+                  iconSize: 20,
+                  icon: Icon(
+                    state.widget.state._lockPlayer
+                        ? MdiIcons.lock
+                        : MdiIcons.lockOpen,
+                  ),
+                ),
+              _LockWidget(
+                child: Container(
+                  padding: isFullscreen(context)
+                      ? const EdgeInsets.only(right: 30)
+                      : const EdgeInsets.only(right: 8),
+                  child: IconButton(
+                    visualDensity: const VisualDensity(
+                      vertical: -4,
+                      horizontal: -2,
+                    ),
+                    onPressed: () {
+                      toggleFullscreen(context);
+                      if (scope.showAnimeSkip.value) {
+                        scope.showAnimeSkip.value = !scope.showAnimeSkip.value;
+                      }
+
+                      if (scope.playerArgs.forceEnterFullScreen &&
+                          isFullscreen(context)) {
+                        // WidgetsBinding.instance.addPostFrameCallback((timer) {
+                        //   Navigator.of(PlayerView.videoStateKey.currentContext!)
+                        //       .pop();
+                        // });
+                        Navigator.of(PlayerView.videoStateKey.currentContext!)
+                            .pop();
+                      }
+                    },
+                    iconSize: 20,
+                    icon: fullscreen
+                        ? Icon(MdiIcons.fullscreenExit)
+                        : Icon(MdiIcons.fullscreen),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (!isFullscreen(context)) ...[seekBar],
       ],
     );
 
     if (isFullscreen(context)) {
       buttons = Padding(
-        padding: const EdgeInsets.all(10.0),
+        padding: EdgeInsets.only(right: size ? 0 : 8, left: 8),
         child: SafeArea(child: buttons),
       );
     }

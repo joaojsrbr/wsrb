@@ -4,6 +4,7 @@ import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer_container.dart';
 import 'package:border_progress_indicator/border_progress_indicator.dart';
@@ -470,9 +471,30 @@ class _ReleaseLeading extends StatelessWidget {
     final episodeDuration = (historic?.epdToDuration ?? Duration.zero);
     final episodeCurrentDuration = (historic?.cdToDuration ?? Duration.zero);
 
-    return SizedBox(
+    final bottomMenuController =
+        BottomMenu.menuControllerOf<List<String>>(context);
+
+    final list = bottomMenuController.args ?? const [];
+
+    // if (list.contains(release.stringID))
+    //         AnimatedContainer(
+    //           duration: const Duration(milliseconds: 350),
+    //           decoration: BoxDecoration(
+    //             borderRadius: BorderRadius.circular(8),
+    //             border: Border.all(color: Colors.white),
+    //           ),
+    //         ),
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 350),
       width: 110,
       height: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: list.contains(release.stringID)
+            ? Border.all(color: Colors.white)
+            : null,
+      ),
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -557,11 +579,22 @@ class _ReleaseLeading extends StatelessWidget {
                         fit: StackFit.expand,
                         children: [
                           container,
-                          AnimatedBorderProgressIndicator(
-                            value: percent,
-                            color: color,
-                            strokeWidth: 2,
-                            borderRadius: 6,
+                          AnimatedSwitcher(
+                            layoutBuilder: (currentChild, previousChildren) {
+                              if (previousChildren.isNotEmpty) {
+                                return Stack(children: previousChildren);
+                              }
+                              return currentChild ?? SizedBox.shrink();
+                            },
+                            duration: const Duration(milliseconds: 300),
+                            child: !list.contains(release.stringID)
+                                ? AnimatedBorderProgressIndicator(
+                                    value: percent,
+                                    color: color,
+                                    strokeWidth: 2,
+                                    borderRadius: 6,
+                                  )
+                                : const SizedBox.shrink(),
                           ),
                         ],
                       );
@@ -575,11 +608,22 @@ class _ReleaseLeading extends StatelessWidget {
                   children: [
                     const Card.filled(),
                     if (percent != null && percent > 0.0)
-                      AnimatedBorderProgressIndicator(
-                        value: percent,
-                        color: color,
-                        strokeWidth: 6,
-                        borderRadius: 6,
+                      AnimatedSwitcher(
+                        layoutBuilder: (currentChild, previousChildren) {
+                          if (previousChildren.isNotEmpty) {
+                            return Stack(children: previousChildren);
+                          }
+                          return currentChild ?? SizedBox.shrink();
+                        },
+                        duration: const Duration(milliseconds: 300),
+                        child: !list.contains(release.stringID)
+                            ? AnimatedBorderProgressIndicator(
+                                value: percent,
+                                color: color,
+                                strokeWidth: 2,
+                                borderRadius: 6,
+                              )
+                            : const SizedBox.shrink(),
                       ),
                   ],
                 ),
@@ -611,21 +655,6 @@ class _ReleaseLeading extends StatelessWidget {
                 },
               ),
             ),
-            // ShaderMask(
-            //   blendMode: BlendMode.srcOver,
-            //   shaderCallback: (bounds) {
-            //     return LinearGradient(
-            //       begin: Alignment.topCenter,
-            //       end: Alignment.bottomCenter,
-            //       colors: [
-            //         Colors.black38.withAlpha(71),
-            //         Colors.black38.withAlpha(71),
-            //         // Colors.transparent,
-            //       ],
-            //       stops: const [0.00, 1.0],
-            //     ).createShader(bounds);
-            //   },
-            // ),
           ],
         ],
       ),
@@ -654,10 +683,20 @@ class ReleaseContent extends StatelessWidget {
     );
     // final isLoading = ContentScope.isLoadingOf(context);
     final colorScheme = Theme.of(context).colorScheme;
+
+    final onLongPressed = ContentScope.of(context).onLongPressed;
+
+    final bottomMenuController =
+        BottomMenu.menuControllerOf<List<String>>(context);
+
+    final list = bottomMenuController.args ?? const [];
+
     return InkWell(
-      onTap: () => _listTitleOntap(context),
+      onTap: () =>
+          list.isNotEmpty ? onLongPressed(release) : _listTitleOntap(context),
       onDoubleTap: () => onDoubleTap(context),
       splashFactory: InkRipple.splashFactory,
+      onLongPress: () => onLongPressed(release),
       overlayColor: _OverlayColor(colorScheme),
       child: ChangeNotifierProvider.value(
         value: downloadInfo,
@@ -665,8 +704,6 @@ class ReleaseContent extends StatelessWidget {
           return ListTile(
             isThreeLine: false,
             dense: true,
-            // onLongPress: () =>
-            //     ContentScope.of(context).onLongPressed(release),
             // isThreeLine: false,
             subtitle: _ReleaseSubtitle(release: release),
             horizontalTitleGap: 20,

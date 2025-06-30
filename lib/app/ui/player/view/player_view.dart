@@ -241,7 +241,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   ]) async {
     await _registerListeners(true);
     final playbackState = playerAudioHandler.playbackState;
-    playerAudioHandler.setPlayerController = this;
+    // playerAudioHandler.setPlayerController = this;
 
     if (onInit) {
       setPlayer = Player();
@@ -535,7 +535,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     if (onSave != null) {
       await onSave();
-      playerAudioHandler.setPlayerController = null;
+      // playerAudioHandler.setPlayerController = null;
     }
 
     customLog(

@@ -24,7 +24,7 @@ class _RefContentkInformationViewState
   late final ContentRepository _repository;
   // late final ConnectionChecker _connectionChecker;
 
-  late final BottomMenuController<Release> _bottomMenuController;
+  late final BottomMenuController<List<String>> _bottomMenuController;
   late final LibraryController _libraryController;
   late final HistoricController _historicController;
   late final DownloadService _downloadService;
@@ -53,7 +53,6 @@ class _RefContentkInformationViewState
     super.initState();
     _bottomMenuController = BottomMenuController(minHeight: 70);
     _historicController = context.read<HistoricController>();
-
     _libraryController = context.read<LibraryController>();
     _animeSkipController = context.read<AnimeSkipController>();
     _downloadService = context.read<DownloadService>();
@@ -290,11 +289,24 @@ class _RefContentkInformationViewState
 
   void _handleLongPressed(Release release) {
     if (_content == null) return;
-    final indexOf = _content!.releases.indexOf(release);
-    customLog(indexOf);
-    _bottomMenuController.args = release;
 
-    _bottomMenuController.open();
+    if (_bottomMenuController.args case List<String> data) {
+      if (data.contains(release.stringID)) {
+        data.remove(release.stringID);
+        _bottomMenuController.update();
+      } else {
+        data.add(release.stringID);
+        _bottomMenuController.update();
+      }
+
+      if (data.isEmpty) {
+        _bottomMenuController.args = null;
+        _bottomMenuController.close();
+      }
+    } else {
+      _bottomMenuController.args = [release.stringID];
+      _bottomMenuController.open();
+    }
   }
 
   @override

@@ -28,6 +28,12 @@ mixin PlayerAudioHandlerMixin
     );
   }
 
+  @override
+  void initState() {
+    _playerAudioHandler._player = player;
+    super.initState();
+  }
+
   void setPlayerMedia(PlayerArgs playerArgs) async {
     final mediaItem =
         await _playerAudioHandler.getMediaItem(playerArgs.episode.stringID);
@@ -94,14 +100,7 @@ mixin PlayerAudioHandlerMixin
 }
 
 abstract class PlayerAudioHandler extends BaseAudioHandler with SeekHandler {
-  PlayerAudioHandlerMixin? _controller;
-
-  Player? get _player => _controller?.player;
-
-  set setPlayerController(PlayerAudioHandlerMixin? controller) {
-    // _player?.dispose();
-    _controller = controller;
-  }
+  Player? _player;
 
   void setPlaybackState(PlayerState state);
 }
