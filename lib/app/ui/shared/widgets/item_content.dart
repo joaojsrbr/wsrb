@@ -129,11 +129,16 @@ class ItemContent extends StatelessWidget {
                 'InkWell tapped title: ${content.title} - id: ${content.stringID}',
               );
             } else {
-              if (content is Anime) {
+              if (content case Anime data) {
+                // final result = await ContentUtils.selectTypePlayer(
+                //   context,
+                //   data.releases.last,
+                // );
+                // customLog(result);
                 await context.push(
                   RouteName.PLAYER,
                   extra: PlayerArgs(
-                    anime: content,
+                    anime: data,
                     episode: content.releases.last,
                   ),
                 );
@@ -484,6 +489,7 @@ class _Placeholder extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     return Card.filled(
+      margin: EdgeInsets.zero,
       color: themeData.colorScheme.primary.withAlpha(10),
     );
   }

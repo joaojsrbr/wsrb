@@ -1,5 +1,4 @@
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/entities/app_config_entity.dart';
 import 'package:content_library/src/repository/app_config_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
@@ -52,6 +51,12 @@ class AppConfigController extends ChangeNotifier {
   Future<void> setReverseContents(bool value) async {
     if (value == repo.config.reverseContents) return;
     repo.updateConfig((config) => config.copyWith(reverseContents: value));
+    await _addConfig();
+  }
+
+  Future<void> setFilterWatching(FilterWatching value) async {
+    if (value == repo.config.filterWatching) return;
+    repo.updateConfig((config) => config.copyWith(filterWatching: value));
     await _addConfig();
   }
 

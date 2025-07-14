@@ -77,33 +77,14 @@ class InLibraryRepository extends InRepository<ContentEntity> {
     };
   }
 
-  UnmodifiableListView<ContentEntity> get noFavorites =>
-      UnmodifiableListView(entities
-          .where((entity) => switch (entity) {
-                AnimeEntity data => !data.isFavorite,
-                BookEntity data => !data.isFavorite,
-                _ => false,
-              })
-          .nonNulls);
+  UnmodifiableListView<ContentEntity> get noFavorites => UnmodifiableListView(
+      entities.where((entity) => !entity.isFavorite).nonNulls);
 
-  UnmodifiableListView<ContentEntity> get favorites =>
-      UnmodifiableListView(entities
-          .where((entity) => switch (entity) {
-                AnimeEntity data => data.isFavorite,
-                BookEntity data => data.isFavorite,
-                _ => false,
-              })
-          .nonNulls);
+  UnmodifiableListView<ContentEntity> get favorites => UnmodifiableListView(
+      entities.where((entity) => entity.isFavorite).nonNulls);
 
-  UnmodifiableListView<String> get noFavoritesIDS =>
-      UnmodifiableListView(entities
-          .where((entity) => switch (entity) {
-                AnimeEntity data => !data.isFavorite,
-                BookEntity data => !data.isFavorite,
-                _ => false,
-              })
-          .map(_map)
-          .nonNulls);
+  UnmodifiableListView<String> get noFavoritesIDS => UnmodifiableListView(
+      entities.where((entity) => !entity.isFavorite).map(_map).nonNulls);
 
   CategoryEntity? getContentByStringId(
     CategoryController categoryController,

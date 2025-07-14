@@ -8,7 +8,7 @@ Future<void> copyToClipboard(
   required String messageCopy,
   bool snackBar = true,
   String? messageSnackBar,
-  Duration duration = const Duration(seconds: 2),
+  Duration duration = const Duration(seconds: 3),
 }) async {
   final ClipboardData data = ClipboardData(text: messageCopy);
   await Clipboard.setData(data).whenComplete(() {

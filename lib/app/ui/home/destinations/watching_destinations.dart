@@ -1,6 +1,8 @@
+import 'package:app_wsrb_jsr/app/ui/home/widgets/filtro_bottom_sheet.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/keep_watching.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
 class WatchingDestinations extends StatefulWidget {
@@ -15,11 +17,19 @@ class WatchingDestinations extends StatefulWidget {
   State<WatchingDestinations> createState() => _WatchingDestinationsState();
 }
 
-class _WatchingDestinationsState extends State<WatchingDestinations> {
-  // late final HistoricController _historicController;
-  // late final LibraryController _libraryController;
-
+class _WatchingDestinationsState extends State<WatchingDestinations>
+    with SingleTickerProviderStateMixin {
   Map<ContentEntity, List<HistoryEntity>> _map = {};
+  late final AnimationController _bottomSheetAnimationController;
+  late final AppConfigController _appConfigController;
+
+  @override
+  void initState() {
+    super.initState();
+    _bottomSheetAnimationController =
+        BottomSheet.createAnimationController(this);
+    _appConfigController = context.read<AppConfigController>();
+  }
 
   @override
   void didChangeDependencies() {
@@ -44,6 +54,8 @@ class _WatchingDestinationsState extends State<WatchingDestinations> {
           )
           .sorted(_sorted);
 
+      if (sortedByUpdateAt.isEmpty) continue;
+
       _map[content] = sortedByUpdateAt;
     }
     super.didChangeDependencies();
@@ -61,10 +73,34 @@ class _WatchingDestinationsState extends State<WatchingDestinations> {
     return -1;
   }
 
+  void _filter() async {
+    final result = await Navigator.push(
+      context,
+      FiltroBottomSheetRoute(
+        genres: _map.keys
+            .map((entity) => entity.anilistMedia?.genres)
+            .nonNulls
+            .flattened
+            .toList(),
+        appConfigController: _appConfigController,
+        bottomSheetAnimationController: _bottomSheetAnimationController,
+      ),
+    );
+
+    if (result != null) {
+      _appConfigController.setFilterWatching(result);
+      customLog(result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        actions: [
+          IconButton(onPressed: _filter, icon: Icon(MdiIcons.plus)),
+        ],
+      ),
       body: _map.entries.isEmpty
           ? const SizedBox.shrink()
           : ListView.builder(
@@ -110,5 +146,11 @@ class _WatchingDestinationsState extends State<WatchingDestinations> {
               },
             ),
     );
+  }
+
+  @override
+  void dispose() {
+    _bottomSheetAnimationController.dispose();
+    super.dispose();
   }
 }

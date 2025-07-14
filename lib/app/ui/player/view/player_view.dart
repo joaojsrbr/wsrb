@@ -452,7 +452,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     _setContinueVideoTimer?.cancel();
 
-    if (result == true && mounted) {
+    final position = entity.getLastCurrentPosition();
+
+    if (result == true && mounted && position != null) {
       _setContinueVideoTimer = null;
       _seekInVideoPosition.value = entity.cdToDuration;
     }
@@ -518,11 +520,9 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       content: _playerArgs.anime,
     );
 
-    bool isComplete = _videoPercent >= 0.85;
-
     final EpisodeEntity episodeEntity = EpisodeEntity.save(
       anime: _playerArgs.anime,
-      isComplete: isComplete,
+      isComplete: _videoPercent >= 0.85,
       episode: _playerArgs.episode,
       currentPositionBase64: currentPositionBase64,
       position: position,
@@ -726,12 +726,12 @@ class _VideoPlayerArea extends StatelessWidget {
               ? () async {}
               : () async {
                   await SystemChrome.setPreferredOrientations([
+                    // DeviceOrientation.landscapeLeft,
                     DeviceOrientation.landscapeRight,
-                    DeviceOrientation.landscapeLeft,
                   ]);
-                  SystemChrome.setEnabledSystemUIMode(
-                    SystemUiMode.immersive,
-                  );
+                  // SystemChrome.setEnabledSystemUIMode(
+                  //   SystemUiMode.immersive,
+                  // );
                 },
           onExitFullscreen: scope.isPipActivated
               ? () async {}

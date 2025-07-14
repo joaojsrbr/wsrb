@@ -46,6 +46,17 @@ class InHistoricRepository extends InRepository<HistoryEntity> {
     return entity is T ? entity : null;
   }
 
+  List<HistoryEntity> getAllHistoryEntityByID(List<String> ids) {
+    return entities
+        .where((entity) => switch (entity) {
+              EpisodeEntity data =>
+                ids.containsOneElement([data.stringID, data.animeStringID]),
+              _ => false,
+            })
+        .cast<HistoryEntity>()
+        .toList();
+  }
+
   UnmodifiableListView<HistoryEntity> get sortedByCreatedAt =>
       UnmodifiableListView(
         entities.sorted(

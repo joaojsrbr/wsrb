@@ -85,11 +85,12 @@ class _RefContentkInformationViewState
         _releasesIsLoading = false;
       });
       final data = _informationArgs!.content;
-      if (data is Anime) {
-        _processAnimeReleases(data);
-      } else {
-        _releases[_index] = data.releases;
-      }
+      // if (data is Anime) {
+      //   _processAnimeReleases(data);
+      // } else {
+      //   _releases[_index] = data.releases;
+      // }
+      _releases[_index] = data.releases;
       return;
     }
     _refreshIndicatorKey.currentState?.show();
@@ -141,29 +142,31 @@ class _RefContentkInformationViewState
 
     setState(() {
       _index = index;
-      _releasesIsLoading = _releases[index] == null;
     });
 
-    if (_releasesIsLoading) {
-      await _getReleases(_content!.copyWith(releases: Releases()));
-    } else {
-      setState(() {
-        _content = _content!.copyWith(releases: _releases[index]);
-      });
-    }
+    await _getReleases(_content!.copyWith(releases: Releases()));
+
+    // if (_releasesIsLoading) {
+    //   await _getReleases(_content!.copyWith(releases: Releases()));
+    // } else {
+    //   setState(() {
+    //     _content = _content!.copyWith(releases: _releases[index]);
+    //   });
+    // }
   }
 
   void _onSuccess(Content data,
       [bool refresh = false, bool forceSaveCache = false]) async {
-    _releases.clear();
+    // _releases.clear();
 
-    if (data is Anime) _processAnimeReleases(data);
+    // if (data is Anime) _processAnimeReleases(data);
 
     setState(() {
       _content = data.copyWith(
         releases: _releases[_index],
         cached: true,
       );
+      _releases[_index] = data.releases;
       _releasesIsLoading = false;
       _isLoading = false;
     });
@@ -174,11 +177,11 @@ class _RefContentkInformationViewState
       return;
     }
 
-    if (data is Anime) {
-      _processAnimeReleases(data);
-    } else {
-      _releases[_index] = data.releases;
-    }
+    // if (data is Anime) {
+    //   _processAnimeReleases(data);
+    // } else {
+    //   _releases[_index] = data.releases;
+    // }
 
     // if (!_informationArgs!.isLibrary) {
     //   AutoCache.data.saveJson(key: data.stringID, data: _content!.toJson());
@@ -192,36 +195,37 @@ class _RefContentkInformationViewState
   //       _content!.cached == true);
   // }
 
-  void _processAnimeReleases(Anime data) {
-    for (var release in data.releases) {
-      if (release.pageNumber != null) {
-        final pageIndex = release.pageNumber! - 1;
-        if (_releases[pageIndex] == null) {
-          _releases[pageIndex] = Releases()
-            ..addIfNoContains(release, release.isEqualStringID);
-        } else {
-          _releases[pageIndex]
-              ?.addIfNoContains(release, release.isEqualStringID);
-        }
-      }
-    }
-  }
+  // void _processAnimeReleases(Anime data) {
+  //   for (var release in data.releases) {
+  //     if (release.pageNumber != null) {
+  //       final pageIndex = release.pageNumber! - 1;
+  //       if (_releases[pageIndex] == null) {
+  //         _releases[pageIndex] = Releases()
+  //           ..addIfNoContains(release, release.isEqualStringID);
+  //       } else {
+  //         _releases[pageIndex]
+  //             ?.addIfNoContains(release, release.isEqualStringID);
+  //       }
+  //     }
+  //   }
+  // }
 
   Future<void> _getReleases(Content content, [bool onRefresh = false]) async {
     final releases = _releases[_index];
 
     if (releases == null || onRefresh) {
+      setStateIfMounted(() {
+        _releasesIsLoading = true;
+      });
       final result = await _repository.getReleases(content, _index + 1);
 
-      result.fold(
-        onSuccess: (data) {
-          _releases[_index] = data.releases;
-
-          _onSuccess(data);
-        },
-      );
+      result.fold(onSuccess: _onSuccess);
     } else {
-      _releases[_index] = content.releases;
+      setState(() {
+        _content = _content?.copyWith(
+          releases: _releases[_index],
+        );
+      });
     }
   }
 
@@ -363,6 +367,66 @@ class _RefContentkInformationViewState
     }
   }
 
+  void _saveSelectEpisodeEntity() async {
+    if (_content case Anime data) {
+      final AnimeEntity animeEntity =
+          _libraryController.repo.getContentEntityByStringID(
+        data.stringID,
+        orElse: () => data.toEntity(
+          createdAt: DateTime.now(),
+        ),
+      );
+      final args = _bottomMenuController.args;
+
+      final toEntities = data.releases
+          .where((test) => args?.contains(test.stringID) ?? false)
+          .map((map) {
+        final entity = _historicController.repo.getHistoric<EpisodeEntity>(
+          release: map,
+          orElse: () => map.toEntity(
+            anime: data,
+            createdAt: DateTime.now(),
+          ),
+        );
+
+        // final duration = Duration(minutes: 24);
+
+        return entity?.copyWith(
+          isComplete: true,
+          updatedAt: DateTime.now(),
+          // positions: [
+          //   CurrentPosition(
+          //     createdAt: DateTime.now(),
+          //     episodeDuration: duration.inMilliseconds,
+          //     currentDuration: duration.inMilliseconds,
+          //   ),
+          // ],
+        );
+      }).toList();
+
+      animeEntity.episodes.addAll(toEntities.nonNulls);
+
+      await _libraryController.add(contentEntity: animeEntity);
+      await _historicController.addAll(
+          historyEntities: toEntities.nonNulls.toList());
+      _bottomMenuController.args = null;
+      _bottomMenuController.close();
+    }
+  }
+
+  void _deleteSelectEpisodeEntity() async {
+    final args = _bottomMenuController.args ?? [];
+    if (_content case Anime _) {
+      final historicEntities =
+          _historicController.repo.getAllHistoryEntityByID(args);
+
+      // await _libraryController.add(contentEntity: animeEntity);
+      await _historicController.removeAll(historyEntities: historicEntities);
+      _bottomMenuController.args = null;
+      _bottomMenuController.close();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     customLog('$widget[build]');
@@ -385,10 +449,13 @@ class _RefContentkInformationViewState
           isDismissible: false,
           bottomMenuController: _bottomMenuController,
           buttons: (context) {
-            final args = _bottomMenuController.args;
-            final releases = _content?.releases.where(
-                    (release) => args?.contains(release.stringID) ?? false) ??
+            final args = _bottomMenuController.args ?? [];
+            final releases = _content?.releases
+                    .where((release) => args.contains(release.stringID)) ??
                 [];
+
+            final historicEntities =
+                _historicController.repo.getAllHistoryEntityByID(args);
 
             return Align(
               alignment: Alignment.centerLeft,
@@ -397,8 +464,23 @@ class _RefContentkInformationViewState
                 overflowAlignment: OverflowBarAlignment.center,
                 children: [
                   IconButton(
+                    padding: EdgeInsets.zero,
                     onPressed: releases.length > 1 ? null : _shareButton,
                     icon: Icon(MdiIcons.share),
+                  ),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: historicEntities.isNotEmpty
+                        ? null
+                        : _saveSelectEpisodeEntity,
+                    icon: Icon(MdiIcons.eyeCheck),
+                  ),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: historicEntities.isEmpty
+                        ? null
+                        : _deleteSelectEpisodeEntity,
+                    icon: Icon(MdiIcons.eyeMinus),
                   ),
                 ],
               ),

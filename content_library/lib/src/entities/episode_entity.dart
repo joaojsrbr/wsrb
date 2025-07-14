@@ -54,8 +54,6 @@ class EpisodeEntity extends HistoryEntity {
     return isComplete == true
         ? 1.0
         : (percent?.isNaN == true ? 0.0 : percent) ?? 0.0;
-    // if (isComplete || percent == null) return 1.0;
-    // return percent.isNaN ? 0.0 : percent;
   }
 
   EpisodeEntity({
@@ -69,7 +67,6 @@ class EpisodeEntity extends HistoryEntity {
     this.slugSerie,
     this.registrationData,
     this.pageNumber,
-    // this.currentPositionBase64,
     this.generateID,
     this.createdAt,
     this.thumbnail,
@@ -156,6 +153,42 @@ class EpisodeEntity extends HistoryEntity {
       isDublado: isDublado,
       sinopse: sinopse,
       thumbnail: thumbnail,
+    );
+  }
+
+  EpisodeEntity copyWith({
+    bool? isComplete,
+    String? sinopse,
+    int? numberEpisode,
+    String? stringID,
+    String? animeStringID,
+    DateTime? createdAt,
+    int? pageNumber,
+    DateTime? updatedAt,
+    DateTime? registrationData,
+    String? thumbnail,
+    String? slugSerie,
+    String? generateID,
+    String? url,
+    String? title,
+    List<CurrentPosition>? positions,
+  }) {
+    return EpisodeEntity(
+      isComplete: isComplete ?? this.isComplete,
+      sinopse: sinopse ?? this.sinopse,
+      numberEpisode: numberEpisode ?? this.numberEpisode,
+      stringID: stringID ?? this.stringID,
+      animeStringID: animeStringID ?? this.animeStringID,
+      createdAt: createdAt ?? this.createdAt,
+      pageNumber: pageNumber ?? this.pageNumber,
+      updatedAt: updatedAt ?? this.updatedAt,
+      registrationData: registrationData ?? this.registrationData,
+      thumbnail: thumbnail ?? this.thumbnail,
+      slugSerie: slugSerie ?? this.slugSerie,
+      generateID: generateID ?? this.generateID,
+      url: url ?? this.url,
+      title: title ?? this.title,
+      positions: positions ?? this.positions,
     );
   }
 }

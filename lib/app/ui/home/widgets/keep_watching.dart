@@ -17,11 +17,9 @@ import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
 class KeepWatching extends StatefulWidget {
-  const KeepWatching({
-    super.key,
-    this.items,
-  });
+  const KeepWatching({super.key, this.items});
   final List<HistoryEntity>? items;
+
   @override
   State<KeepWatching> createState() => _KeepWatchingState();
 }
@@ -31,88 +29,77 @@ class _KeepWatchingState extends State<KeepWatching> {
 
   @override
   void didChangeDependencies() {
+    super.didChangeDependencies();
+
     if (widget.items != null) {
       _sortedByUpdateAt = widget.items!.sorted(_sortedItems);
-    } else {
-      final TabController tabController = HomeScope.of(context).tabController;
-      final LibraryController libraryController =
-          context.watch<LibraryController>();
-      final libraryRepo = libraryController.repo;
-
-      final sortedByUpdateAt = (tabController.index == 0
-              ? libraryRepo.entities
-              : libraryRepo.favorites)
-          .map(libraryRepo.getIsarLinks)
-          .flattened
-          .sorted()
-          .getMax(5);
-
-      _sortedByUpdateAt = sortedByUpdateAt.sorted(_sortedByCreateAt);
+      return;
     }
 
-    super.didChangeDependencies();
+    final tabController = HomeScope.of(context).tabController;
+    final libraryController = context.watch<LibraryController>();
+    final repo = libraryController.repo;
+
+    _sortedByUpdateAt =
+        (tabController.index == 0 ? repo.noFavorites : repo.favorites)
+            .map(repo.getIsarLinks)
+            .flattened
+            .sorted(_sortedByCreateAt)
+            .getMax(5);
   }
 
   int _sortedItems(HistoryEntity a, HistoryEntity b) {
-    if ((a, b) case (EpisodeEntity data1, EpisodeEntity data2)
-        when data1.numberEpisode != null && data2.numberEpisode != null) {
-      return data2.numberEpisode!.compareTo(data1.numberEpisode!);
+    if ((a, b) case (EpisodeEntity a1, EpisodeEntity b1)
+        when a1.numberEpisode != null && b1.numberEpisode != null) {
+      return b1.numberEpisode!.compareTo(a1.numberEpisode!);
     }
     return -1;
   }
 
   int _sortedByCreateAt(HistoryEntity a, HistoryEntity b) {
-    if ((a, b) case (EpisodeEntity data1, EpisodeEntity data2)
-        when data1.getLastCurrentPosition()?.createdAt != null &&
-            data2.getLastCurrentPosition()?.createdAt != null) {
-      return data2
+    if ((a, b) case (EpisodeEntity a1, EpisodeEntity b1)
+        when a1.getLastCurrentPosition()?.createdAt != null &&
+            b1.getLastCurrentPosition()?.createdAt != null) {
+      return b1
           .getLastCurrentPosition()!
           .createdAt!
-          .compareTo(data1.getLastCurrentPosition()!.createdAt!);
+          .compareTo(a1.getLastCurrentPosition()!.createdAt!);
     }
     return -1;
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget container = _Content(sortedByUpdateAt: _sortedByUpdateAt);
-
-    if (widget.items != null) return container;
-
-    final HomeScope scope = HomeScope.of(context);
-    final TabController tabController = scope.tabController;
-
-    if (_sortedByUpdateAt.isEmpty ||
-        (![0, 1].contains(tabController.index) && widget.items == null)) {
-      container = SliverToBoxAdapter();
-    } else {
-      container = SliverToBoxAdapter(child: container);
+    if (widget.items != null) {
+      return _Content(sortedByUpdateAt: _sortedByUpdateAt);
     }
+
+    final scope = HomeScope.maybeOf(context);
+    final tabController = scope?.tabController;
+    final isValid = _sortedByUpdateAt.isNotEmpty &&
+        ([0, 1].contains(tabController?.index) || widget.items != null);
 
     return SliverAnimatedPaintExtent(
       duration: const Duration(milliseconds: 350),
-      child: container,
+      child: isValid
+          ? SliverToBoxAdapter(
+              child: _Content(sortedByUpdateAt: _sortedByUpdateAt),
+            )
+          : const SliverToBoxAdapter(),
     );
   }
 }
 
 class _Content extends StatelessWidget {
-  const _Content({
-    required List<HistoryEntity> sortedByUpdateAt,
-  }) : _sortedByUpdateAt = sortedByUpdateAt;
-
-  final List<HistoryEntity> _sortedByUpdateAt;
+  const _Content({required this.sortedByUpdateAt});
+  final List<HistoryEntity> sortedByUpdateAt;
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData themeData = Theme.of(context);
-    final TextTheme textTheme = themeData.textTheme;
-    final HomeScope? scope = HomeScope.maybeOf(context);
-    final widthCache = 500;
-    final heightCache = 340;
-    final LibraryController libraryController =
-        context.watch<LibraryController>();
-    final libraryRepo = libraryController.repo;
+    final theme = Theme.of(context);
+    final scope = HomeScope.maybeOf(context);
+    final libraryRepo = context.watch<LibraryController>().repo;
+
     return SizedBox(
       width: double.infinity,
       height: 180,
@@ -123,36 +110,32 @@ class _Content extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 8, left: 20),
               child: FilledButton(
-                style: FilledButton.styleFrom(
-                  disabledIconColor: Colors.white,
-                  disabledBackgroundColor:
-                      Theme.of(context).colorScheme.primaryContainer,
-                  backgroundColor:
-                      Theme.of(context).colorScheme.primaryContainer,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: EdgeInsets.only(left: 12, right: 8),
-                ),
                 onPressed: () {
                   Navigator.of(context).push(
                     SharedAxisTransitionPageWrapper(
-                      transitionKey: ValueKey("watching"),
+                      transitionKey: const ValueKey("watching"),
                       screen: WatchingDestinations(
                         onlyFavorites: scope.tabController.index == 1,
                       ),
                     ).createRoute(context),
                   );
                 },
+                style: FilledButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primaryContainer,
+                  padding: const EdgeInsets.only(left: 12, right: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       'Continuar Assistindo',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            letterSpacing: 1.2,
-                            color: Colors.white,
-                          ),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        letterSpacing: 1.2,
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(width: 4),
                     Icon(MdiIcons.arrowRight, color: Colors.white),
@@ -162,376 +145,146 @@ class _Content extends StatelessWidget {
             ),
           Expanded(
             child: ListView.builder(
-              shrinkWrap: true,
-              // key: PageStorageKey(
-              //   'home_and_library_watching_${_sortedByUpdateAt.length}',
-              // ),
               controller: scope?.keepWatchingScrollController,
+              scrollDirection: Axis.horizontal,
               padding: scope != null
                   ? const EdgeInsets.only(left: 12, top: 8)
                   : const EdgeInsets.only(left: 8, bottom: 8),
-              scrollDirection: Axis.horizontal,
+              itemCount: sortedByUpdateAt.length,
               physics: const BouncingScrollPhysics(),
-              itemCount: _sortedByUpdateAt.length,
               itemBuilder: (context, index) {
-                final HistoryEntity historyEntity =
-                    _sortedByUpdateAt.elementAt(index);
+                final entity = sortedByUpdateAt[index];
+                if (entity is! EpisodeEntity) return const SizedBox.shrink();
 
-                return switch (historyEntity) {
-                  EpisodeEntity data => Builder(builder: (context) {
-                      final anime = libraryRepo.getContentEntityByStringID(
-                          data.animeStringID) as AnimeEntity?;
+                final anime = libraryRepo.getContentEntityByStringID(
+                  entity.animeStringID,
+                ) as AnimeEntity?;
+                final position = entity.getLastCurrentPosition();
 
-                      // if (data.positions.length > 1) {
-                      //   return ListView.builder(
-                      //     scrollDirection: Axis.horizontal,
-                      //     shrinkWrap: true,
-                      //     itemCount: data.positions.length,
-                      //     itemBuilder: (context, index) {
-                      //       final currentPosition =
-                      //           data.positions.elementAt(index);
-                      //       return Padding(
-                      //         padding: const EdgeInsets.only(
-                      //           right: 12,
-                      //           top: 4,
-                      //           bottom: 4,
-                      //         ),
-                      //         child: SizedBox(
-                      //           height: 140,
-                      //           width: 160,
-                      //           child: ClipRRect(
-                      //             borderRadius: BorderRadius.circular(12),
-                      //             child: Stack(
-                      //               fit: StackFit.expand,
-                      //               children: [
-                      //                 ShaderMask(
-                      //                   blendMode: BlendMode.srcOver,
-                      //                   shaderCallback: (bounds) {
-                      //                     return LinearGradient(
-                      //                       begin: Alignment.topCenter,
-                      //                       end: Alignment.bottomCenter,
-                      //                       colors: [
-                      //                         Colors.black38.withAlpha(71),
-                      //                         Colors.black38.withAlpha(71),
-                      //                         // Colors.transparent,
-                      //                       ],
-                      //                       stops: const [0.00, 1.0],
-                      //                     ).createShader(bounds);
-                      //                   },
-                      //                   child: currentPosition
-                      //                               .currentPositionBase64 !=
-                      //                           null
-                      //                       ? _Image(
-                      //                           width: widthCache,
-                      //                           height: heightCache,
-                      //                           currentPositionBase64:
-                      //                               currentPosition
-                      //                                   .currentPositionBase64!,
-                      //                         )
-                      //                       : data.thumbnail != null
-                      //                           ? CachedNetworkImage(
-                      //                               cacheManager:
-                      //                                   App.APP_IMAGE_CACHE,
-                      //                               fit: BoxFit.cover,
-                      //                               memCacheWidth: widthCache,
-                      //                               memCacheHeight: heightCache,
-                      //                               imageUrl: data.thumbnail!,
-                      //                               httpHeaders: App.HEADERS,
-                      //                               errorWidget:
-                      //                                   (context, url, error) {
-                      //                                 return const Material(
-                      //                                   child: Card.filled(),
-                      //                                 );
-                      //                               },
-                      //                             )
-                      //                           : const SizedBox.shrink(),
-                      //                 ),
-                      //                 Container(
-                      //                   alignment: Alignment.topRight,
-                      //                   padding: const EdgeInsets.only(
-                      //                     left: 10,
-                      //                     top: 8,
-                      //                     right: 14,
-                      //                   ),
-                      //                   child: AnimatedDefaultTextStyle(
-                      //                     duration:
-                      //                         const Duration(milliseconds: 350),
-                      //                     style: (textTheme.titleMedium ??
-                      //                             const TextStyle())
-                      //                         .copyWith(fontSize: 12),
-                      //                     child: Text(
-                      //                       data.cdToDuration.label(),
-                      //                       maxLines: 1,
-                      //                       textAlign: TextAlign.start,
-                      //                       overflow: TextOverflow.ellipsis,
-                      //                     ),
-                      //                   ),
-                      //                 ),
-                      //                 if (anime != null)
-                      //                   Column(
-                      //                     mainAxisAlignment:
-                      //                         MainAxisAlignment.end,
-                      //                     mainAxisSize: MainAxisSize.max,
-                      //                     children: [
-                      //                       Container(
-                      //                         alignment: Alignment.bottomLeft,
-                      //                         padding: const EdgeInsets.only(
-                      //                           left: 10,
-                      //                           right: 14,
-                      //                         ),
-                      //                         child: AnimatedDefaultTextStyle(
-                      //                           duration: const Duration(
-                      //                               milliseconds: 350),
-                      //                           style: (textTheme.titleMedium ??
-                      //                                   const TextStyle())
-                      //                               .copyWith(fontSize: 12),
-                      //                           child: Text(
-                      //                             'Episódio ${data.numberEpisode}',
-                      //                             maxLines: 1,
-                      //                             textAlign: TextAlign.start,
-                      //                             overflow:
-                      //                                 TextOverflow.ellipsis,
-                      //                           ),
-                      //                         ),
-                      //                       ),
-                      //                       Container(
-                      //                         alignment: Alignment.topLeft,
-                      //                         padding: const EdgeInsets.only(
-                      //                           left: 10,
-                      //                           right: 6,
-                      //                           bottom: 8,
-                      //                         ),
-                      //                         child: Text(
-                      //                           anime.title,
-                      //                           maxLines: 1,
-                      //                           style: textTheme.titleMedium
-                      //                               ?.copyWith(fontSize: 12),
-                      //                           textAlign: TextAlign.start,
-                      //                           overflow: TextOverflow.ellipsis,
-                      //                           // style: textTheme.labelSmall?.copyWith(),
-                      //                         ),
-                      //                       ),
-                      //                     ],
-                      //                   ),
-                      //                 AnimatedBorderProgressIndicator(
-                      //                   value: currentPosition.percent.isNaN
-                      //                       ? 0.0
-                      //                       : currentPosition.percent,
-                      //                   color: anime?.anilistMedia?.coverImage
-                      //                           ?.color?.fromHex ??
-                      //                       Theme.of(context)
-                      //                           .colorScheme
-                      //                           .primary,
-                      //                   strokeWidth: 4,
-                      //                   borderRadius: 12,
-                      //                 ),
-                      //                 Material(
-                      //                   type: MaterialType.transparency,
-                      //                   child: InkWell(
-                      //                     onTap: () async {
-                      //                       final videoFile =
-                      //                           AppStorage.getReleaseFile(
-                      //                         anime!.toAnime(),
-                      //                         data.toEpisode(anime.isDublado),
-                      //                       );
+                if (position == null) return const SizedBox.shrink();
 
-                      //                       await context.push(
-                      //                         RouteName.PLAYER,
-                      //                         extra: PlayerArgs(
-                      //                           forceEnterFullScreen: true,
-                      //                           data: videoFile != null
-                      //                               ? FileVideoData(
-                      //                                   file: videoFile)
-                      //                               : null,
-                      //                           getAnimeData: false,
-                      //                           anime: anime.toAnime(),
-                      //                           episode: data
-                      //                               .toEpisode(anime.isDublado),
-                      //                           startPossition:
-                      //                               data.cdToDuration,
-                      //                         ),
-                      //                       );
-                      //                     },
-                      //                   ),
-                      //                 ),
-                      //               ],
-                      //             ),
-                      //           ),
-                      //         ),
-                      //       );
-                      //     },
-                      //   );
-                      // }
+                final imageWidget = position.currentPositionBase64 != null
+                    ? _Image(
+                        width: 500,
+                        height: 340,
+                        currentPositionBase64: position.currentPositionBase64!,
+                      )
+                    : (entity.thumbnail != null
+                        ? CachedNetworkImage(
+                            cacheManager: App.APP_IMAGE_CACHE,
+                            imageUrl: entity.thumbnail!,
+                            memCacheWidth: 500,
+                            memCacheHeight: 340,
+                            fit: BoxFit.cover,
+                            httpHeaders: App.HEADERS,
+                            errorWidget: (context, url, error) =>
+                                const Material(child: Card.filled()),
+                          )
+                        : const SizedBox.shrink());
 
-                      final currentPosition = data.getLastCurrentPosition();
-
-                      if (currentPosition == null) {
-                        return const SizedBox.shrink();
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.only(
-                          right: 12,
-                          top: 4,
-                          bottom: 4,
-                        ),
-                        child: SizedBox(
-                          height: 140,
-                          width: 160,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Stack(
-                              fit: StackFit.expand,
+                return Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: SizedBox(
+                    height: 140,
+                    width: 160,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          ShaderMask(
+                            blendMode: BlendMode.srcOver,
+                            shaderCallback: (bounds) => LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.black38.withAlpha(71),
+                                Colors.black38.withAlpha(71),
+                              ],
+                            ).createShader(bounds),
+                            child: imageWidget,
+                          ),
+                          Container(
+                            alignment: Alignment.topRight,
+                            padding: const EdgeInsets.only(
+                                left: 10, top: 8, right: 14),
+                            child: Text(
+                              entity.cdToDuration.label(),
+                              style: theme.textTheme.titleMedium
+                                  ?.copyWith(fontSize: 12),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (anime != null)
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                ShaderMask(
-                                  blendMode: BlendMode.srcOver,
-                                  shaderCallback: (bounds) {
-                                    return LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        Colors.black38.withAlpha(71),
-                                        Colors.black38.withAlpha(71),
-                                        // Colors.transparent,
-                                      ],
-                                      stops: const [0.00, 1.0],
-                                    ).createShader(bounds);
-                                  },
-                                  child: currentPosition
-                                              .currentPositionBase64 !=
-                                          null
-                                      ? _Image(
-                                          width: widthCache,
-                                          height: heightCache,
-                                          currentPositionBase64: currentPosition
-                                              .currentPositionBase64!,
-                                        )
-                                      : data.thumbnail != null
-                                          ? CachedNetworkImage(
-                                              cacheManager: App.APP_IMAGE_CACHE,
-                                              fit: BoxFit.cover,
-                                              memCacheWidth: widthCache,
-                                              memCacheHeight: heightCache,
-                                              imageUrl: data.thumbnail!,
-                                              httpHeaders: App.HEADERS,
-                                              errorWidget:
-                                                  (context, url, error) {
-                                                return const Material(
-                                                  child: Card.filled(),
-                                                );
-                                              },
-                                            )
-                                          : const SizedBox.shrink(),
+                                Container(
+                                  alignment: Alignment.bottomLeft,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10),
+                                  child: Text(
+                                    'Episódio ${entity.numberEpisode}',
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontSize: 12),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                                 Container(
-                                  alignment: Alignment.topRight,
+                                  alignment: Alignment.topLeft,
                                   padding: const EdgeInsets.only(
-                                    left: 10,
-                                    top: 8,
-                                    right: 14,
-                                  ),
-                                  child: AnimatedDefaultTextStyle(
-                                    duration: const Duration(milliseconds: 350),
-                                    style: (textTheme.titleMedium ??
-                                            const TextStyle())
-                                        .copyWith(fontSize: 12),
-                                    child: Text(
-                                      data.cdToDuration.label(),
-                                      maxLines: 1,
-                                      textAlign: TextAlign.start,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                                if (anime != null)
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      Container(
-                                        alignment: Alignment.bottomLeft,
-                                        padding: const EdgeInsets.only(
-                                          left: 10,
-                                          right: 14,
-                                        ),
-                                        child: AnimatedDefaultTextStyle(
-                                          duration:
-                                              const Duration(milliseconds: 350),
-                                          style: (textTheme.titleMedium ??
-                                                  const TextStyle())
-                                              .copyWith(fontSize: 12),
-                                          child: Text(
-                                            'Episódio ${data.numberEpisode}',
-                                            maxLines: 1,
-                                            textAlign: TextAlign.start,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ),
-                                      Container(
-                                        alignment: Alignment.topLeft,
-                                        padding: const EdgeInsets.only(
-                                          left: 10,
-                                          right: 6,
-                                          bottom: 8,
-                                        ),
-                                        child: Text(
-                                          anime.title,
-                                          maxLines: 1,
-                                          style: textTheme.titleMedium
-                                              ?.copyWith(fontSize: 12),
-                                          textAlign: TextAlign.start,
-                                          overflow: TextOverflow.ellipsis,
-                                          // style: textTheme.labelSmall?.copyWith(),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                AnimatedBorderProgressIndicator(
-                                  value: currentPosition.percent.isNaN
-                                      ? 0.0
-                                      : currentPosition.percent,
-                                  color: anime?.anilistMedia?.coverImage?.color
-                                          ?.fromHex ??
-                                      Theme.of(context).colorScheme.primary,
-                                  strokeWidth: 4,
-                                  borderRadius: 12,
-                                ),
-                                Material(
-                                  type: MaterialType.transparency,
-                                  child: InkWell(
-                                    onTap: () async {
-                                      final videoFile =
-                                          AppStorage.getReleaseFile(
-                                        anime!.toAnime(),
-                                        data.toEpisode(anime.isDublado),
-                                      );
-
-                                      await context.push(
-                                        RouteName.PLAYER,
-                                        extra: PlayerArgs(
-                                          forceEnterFullScreen: true,
-                                          data: videoFile != null
-                                              ? FileVideoData(file: videoFile)
-                                              : null,
-                                          getAnimeData: false,
-                                          anime: anime.toAnime(),
-                                          episode:
-                                              data.toEpisode(anime.isDublado),
-                                          startPossition: data.cdToDuration,
-                                        ),
-                                      );
-                                    },
+                                      left: 10, right: 6, bottom: 8),
+                                  child: Text(
+                                    anime.title,
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontSize: 12),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
                             ),
+                          AnimatedBorderProgressIndicator(
+                            value:
+                                position.percent.isNaN ? 0.0 : position.percent,
+                            color: anime?.anilistMedia?.coverImage?.color
+                                    ?.fromHex ??
+                                theme.colorScheme.primary,
+                            strokeWidth: 4,
+                            borderRadius: 12,
                           ),
-                        ),
-                      );
-                    }),
-                  _ => const SizedBox.shrink(),
-                };
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () async {
+                                final videoFile = AppStorage.getReleaseFile(
+                                  anime!.toAnime(),
+                                  entity.toEpisode(anime.isDublado),
+                                );
+                                await context.push(
+                                  RouteName.PLAYER,
+                                  extra: PlayerArgs(
+                                    forceEnterFullScreen: true,
+                                    data: videoFile != null
+                                        ? FileVideoData(file: videoFile)
+                                        : null,
+                                    getAnimeData: false,
+                                    anime: anime.toAnime(),
+                                    episode: entity.toEpisode(anime.isDublado),
+                                    startPossition: entity.cdToDuration,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
               },
             ),
           ),
@@ -547,308 +300,52 @@ class _Image extends StatefulWidget {
     required this.width,
     required this.height,
   });
+  final String currentPositionBase64;
   final int width;
   final int height;
-  final String currentPositionBase64;
 
   @override
   State<_Image> createState() => _ImageState();
 }
 
 class _ImageState extends State<_Image> {
-  late Uint8List _currentPositionUint8List;
-  late ResizeImage _memoryImage;
-  late ImageProvider _placeHolder = ResizeImage(
-    App.IMAGE_BLACK,
-    width: widget.width,
-    height: widget.height,
-  );
-
-  Uint8List _base64ToBytes(String base64String) {
-    return base64Decode(base64String);
-  }
+  late Uint8List _bytes;
+  late ResizeImage _image;
+  late ResizeImage _placeholder;
 
   @override
   void initState() {
-    _currentPositionUint8List = _base64ToBytes(widget.currentPositionBase64);
-
-    _memoryImage = ResizeImage(
-      MemoryImage(_currentPositionUint8List),
-      width: widget.width,
-      height: widget.height,
-    );
-
-    // scheduleMicrotask(_precacheImage);
     super.initState();
+    _initImages();
   }
-
-  // void _precacheImage() {
-  //   precacheImage(_memoryImage, context);
-  //   precacheImage(_placeHolder, context);
-  // }
 
   @override
   void didUpdateWidget(covariant _Image oldWidget) {
-    if (widget.currentPositionBase64 != oldWidget.currentPositionBase64 ||
-        widget.height != oldWidget.height ||
-        widget.width != oldWidget.width) {
-      _currentPositionUint8List = Uint8List.fromList(
-        _base64ToBytes(widget.currentPositionBase64),
-      );
-      _placeHolder = ResizeImage(
-        App.IMAGE_BLACK,
-        width: widget.width,
-        height: widget.height,
-      );
-      _memoryImage = ResizeImage(
-        MemoryImage(_currentPositionUint8List),
-        width: widget.width,
-        height: widget.height,
-      );
-    }
     super.didUpdateWidget(oldWidget);
+    if (widget.currentPositionBase64 != oldWidget.currentPositionBase64 ||
+        widget.width != oldWidget.width ||
+        widget.height != oldWidget.height) {
+      _initImages();
+    }
+  }
+
+  void _initImages() {
+    _bytes = base64Decode(widget.currentPositionBase64);
+    _image = ResizeImage(MemoryImage(_bytes),
+        width: widget.width, height: widget.height);
+    _placeholder = ResizeImage(App.IMAGE_BLACK,
+        width: widget.width, height: widget.height);
   }
 
   @override
   Widget build(BuildContext context) {
     return FadeInImage(
-      fadeOutDuration: const Duration(milliseconds: 150),
-      fadeInDuration: const Duration(milliseconds: 150),
-      placeholder: _placeHolder,
-      image: _memoryImage,
+      image: _image,
+      placeholder: _placeholder,
       fit: BoxFit.cover,
+      fadeInDuration: const Duration(milliseconds: 150),
+      fadeOutDuration: const Duration(milliseconds: 150),
       placeholderFit: BoxFit.cover,
     );
   }
 }
-
-// class KeepWatching2 extends StatefulWidget {
-//   const KeepWatching2({super.key});
-
-//   @override
-//   State<KeepWatching2> createState() => _KeepWatching2State();
-// }
-
-// class _KeepWatching2State extends State<KeepWatching2> {
-//   List<HistoryEntity> _sortedByUpdateAt = [];
-
-//   late LibraryService _libraryService;
-
-//   @override
-//   void didChangeDependencies() {
-//     final TabController tabController = HomeScope.of(context).tabController;
-
-//     _libraryService = context.watch<LibraryService>();
-//     _sortedByUpdateAt = (tabController.index == 0
-//             ? _libraryService.entities
-//             : _libraryService.favorites)
-//         .map(_libraryService.getIsarLinks)
-//         .nonNulls
-//         .flattened
-//         .sorted();
-
-//     super.didChangeDependencies();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final HomeScope scope = HomeScope.of(context);
-
-//     final ThemeData themeData = Theme.of(context);
-
-//     final TextTheme textTheme = themeData.textTheme;
-
-//     final TabController tabController = scope.tabController;
-//     return SliverAnimatedPaintExtent(
-//       duration: const Duration(milliseconds: 350),
-//       child: SliverToBoxAdapter(
-//         child: _sortedByUpdateAt.isEmpty ||
-//                 ![0, 1].contains(tabController.index)
-//             ? null
-//             : Padding(
-//                 padding: const EdgeInsets.only(top: 16),
-//                 child: SizedBox(
-//                   height: 180,
-//                   child: CarouselView.weighted(
-//                     shape: RoundedRectangleBorder(
-//                         borderRadius: BorderRadius.circular(8)),
-//                     flexWeights: [12, 2],
-//                     children: List.generate(
-//                       _sortedByUpdateAt.length,
-//                       (index) {
-//                         final HistoryEntity historyEntity =
-//                             _sortedByUpdateAt.elementAt(index);
-
-//                         return switch (historyEntity) {
-//                           EpisodeEntity data => Builder(builder: (context) {
-//                               final anime =
-//                                   _libraryService.getContentEntityByStringID(
-//                                       data.animeStringID) as AnimeEntity?;
-
-//                               return Padding(
-//                                 padding: EdgeInsets.only(
-//                                   left: index == 0 ? 12 : 0,
-//                                 ),
-//                                 child: ClipRRect(
-//                                   borderRadius: BorderRadius.circular(6),
-//                                   child: Stack(
-//                                     fit: StackFit.expand,
-//                                     children: [
-//                                       ShaderMask(
-//                                         blendMode: BlendMode.srcOver,
-//                                         shaderCallback: (bounds) {
-//                                           return LinearGradient(
-//                                             begin: Alignment.topCenter,
-//                                             end: Alignment.bottomCenter,
-//                                             colors: [
-//                                               Colors.black38.withOpacity(0.28),
-//                                               Colors.black38.withOpacity(0.28),
-//                                               // Colors.transparent,
-//                                             ],
-//                                             stops: const [0.00, 1.0],
-//                                           ).createShader(bounds);
-//                                         },
-//                                         child: data.currentPositionBase64 !=
-//                                                 null
-//                                             ? _Image(
-//                                                 currentPositionBase64:
-//                                                     data.currentPositionBase64!,
-//                                               )
-//                                             : data.thumbnail != null
-//                                                 ? CachedNetworkImage(
-//                                                     fit: BoxFit.cover,
-//                                                     memCacheWidth: 350,
-//                                                     memCacheHeight: 200,
-//                                                     imageUrl: data.thumbnail!,
-//                                                     httpHeaders: App.HEADERS,
-//                                                     errorWidget:
-//                                                         (context, url, error) {
-//                                                       return const Material(
-//                                                         child: Card.filled(),
-//                                                       );
-//                                                     },
-//                                                   )
-//                                                 : const SizedBox.shrink(),
-//                                       ),
-//                                       Container(
-//                                         alignment: Alignment.topRight,
-//                                         padding: const EdgeInsets.only(
-//                                           left: 10,
-//                                           top: 8,
-//                                           right: 14,
-//                                         ),
-//                                         child: AnimatedDefaultTextStyle(
-//                                           duration:
-//                                               const Duration(milliseconds: 350),
-//                                           style: (textTheme.titleMedium ??
-//                                                   const TextStyle())
-//                                               .copyWith(fontSize: 14),
-//                                           child: Text(
-//                                             data.cdToDuration.label(),
-//                                             maxLines: 1,
-//                                             textAlign: TextAlign.start,
-//                                             overflow: TextOverflow.ellipsis,
-//                                           ),
-//                                         ),
-//                                       ),
-//                                       if (anime != null)
-//                                         Column(
-//                                           mainAxisAlignment:
-//                                               MainAxisAlignment.end,
-//                                           mainAxisSize: MainAxisSize.max,
-//                                           children: [
-//                                             Container(
-//                                               alignment: Alignment.bottomLeft,
-//                                               padding: const EdgeInsets.only(
-//                                                 left: 10,
-//                                                 right: 14,
-//                                               ),
-//                                               child: AnimatedDefaultTextStyle(
-//                                                 duration: const Duration(
-//                                                     milliseconds: 350),
-//                                                 style: (textTheme.titleMedium ??
-//                                                         const TextStyle())
-//                                                     .copyWith(fontSize: 14),
-//                                                 child: Text(
-//                                                   'Episódio ${data.numberEpisode}',
-//                                                   maxLines: 1,
-//                                                   textAlign: TextAlign.start,
-//                                                   overflow:
-//                                                       TextOverflow.ellipsis,
-//                                                 ),
-//                                               ),
-//                                             ),
-//                                             Container(
-//                                               alignment: Alignment.topLeft,
-//                                               padding: const EdgeInsets.only(
-//                                                 left: 10,
-//                                                 right: 6,
-//                                                 bottom: 8,
-//                                               ),
-//                                               child: Text(
-//                                                 anime.title,
-//                                                 maxLines: 1,
-//                                                 style: textTheme.titleMedium
-//                                                     ?.copyWith(fontSize: 14),
-//                                                 textAlign: TextAlign.start,
-//                                                 overflow: TextOverflow.ellipsis,
-//                                                 // style: textTheme.labelSmall?.copyWith(),
-//                                               ),
-//                                             ),
-//                                           ],
-//                                         ),
-//                                       Material(
-//                                         type: MaterialType.transparency,
-//                                         child: InkWell(
-//                                           onTap: () async {
-//                                             final videoFile =
-//                                                 AppStorage.getReleaseFile(
-//                                               anime!.toAnime,
-//                                               data.toEpisode(anime.isDublado),
-//                                             );
-
-//                                             await context.push(
-//                                               RouteName.PLAYER,
-//                                               extra: PlayerArgs(
-//                                                 forceEnterFullScreen: true,
-//                                                 data: videoFile != null
-//                                                     ? FileVideoData(
-//                                                         file: videoFile)
-//                                                     : null,
-//                                                 getAnimeData: false,
-//                                                 anime: anime.toAnime,
-//                                                 episode: data
-//                                                     .toEpisode(anime.isDublado),
-//                                                 startPossition:
-//                                                     data.cdToDuration,
-//                                               ),
-//                                             );
-//                                           },
-//                                         ),
-//                                       ),
-//                                       AnimatedBorderProgressIndicator(
-//                                         value: data.percent.isNaN
-//                                             ? 0.0
-//                                             : data.percent,
-//                                         color: Theme.of(context)
-//                                             .colorScheme
-//                                             .primary,
-//                                         strokeWidth: 6,
-//                                         borderRadius: 12,
-//                                       ),
-//                                     ],
-//                                   ),
-//                                 ),
-//                               );
-//                             }),
-//                           _ => const SizedBox.shrink(),
-//                         };
-//                       },
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//       ),
-//     );
-//   }
-// }

@@ -30,8 +30,8 @@ mixin PlayerAudioHandlerMixin
 
   @override
   void initState() {
-    _playerAudioHandler._player = player;
     super.initState();
+    playerAudioHandler._state = this;
   }
 
   void setPlayerMedia(PlayerArgs playerArgs) async {
@@ -100,20 +100,21 @@ mixin PlayerAudioHandlerMixin
 }
 
 abstract class PlayerAudioHandler extends BaseAudioHandler with SeekHandler {
-  Player? _player;
+  PlayerControllerMixin? _state;
 
   void setPlaybackState(PlayerState state);
 }
 
 class _AudioPlayerHandler extends PlayerAudioHandler {
   @override
-  Future<void> pause() async => await _player?.pause();
+  Future<void> pause() async => await _state?.player?.pause();
 
   @override
-  Future<void> play() async => await _player?.play();
+  Future<void> play() async => await _state?.player?.play();
 
   @override
-  Future<void> seek(Duration position) async => await _player?.seek(position);
+  Future<void> seek(Duration position) async =>
+      await _state?.player?.seek(position);
 
   @override
   void setPlaybackState(PlayerState state) {

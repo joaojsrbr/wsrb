@@ -17,19 +17,25 @@ const AppConfigEntitySchema = CollectionSchema(
   name: r'AppConfigEntity',
   id: -6817184198876440529,
   properties: {
-    r'orderBy': PropertySchema(
+    r'filterWatching': PropertySchema(
       id: 0,
+      name: r'filterWatching',
+      type: IsarType.object,
+      target: r'FilterWatching',
+    ),
+    r'orderBy': PropertySchema(
+      id: 1,
       name: r'orderBy',
       type: IsarType.byte,
       enumMap: _AppConfigEntityorderByEnumValueMap,
     ),
     r'reverseContents': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'reverseContents',
       type: IsarType.bool,
     ),
     r'source': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'source',
       type: IsarType.byte,
       enumMap: _AppConfigEntitysourceEnumValueMap,
@@ -42,7 +48,7 @@ const AppConfigEntitySchema = CollectionSchema(
   idName: r'id',
   indexes: {},
   links: {},
-  embeddedSchemas: {},
+  embeddedSchemas: {r'FilterWatching': FilterWatchingSchema},
   getId: _appConfigEntityGetId,
   getLinks: _appConfigEntityGetLinks,
   attach: _appConfigEntityAttach,
@@ -55,6 +61,9 @@ int _appConfigEntityEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 +
+      FilterWatchingSchema.estimateSize(
+          object.filterWatching, allOffsets[FilterWatching]!, allOffsets);
   return bytesCount;
 }
 
@@ -64,9 +73,15 @@ void _appConfigEntitySerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeByte(offsets[0], object.orderBy.index);
-  writer.writeBool(offsets[1], object.reverseContents);
-  writer.writeByte(offsets[2], object.source.index);
+  writer.writeObject<FilterWatching>(
+    offsets[0],
+    allOffsets,
+    FilterWatchingSchema.serialize,
+    object.filterWatching,
+  );
+  writer.writeByte(offsets[1], object.orderBy.index);
+  writer.writeBool(offsets[2], object.reverseContents);
+  writer.writeByte(offsets[3], object.source.index);
 }
 
 AppConfigEntity _appConfigEntityDeserialize(
@@ -76,12 +91,18 @@ AppConfigEntity _appConfigEntityDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = AppConfigEntity(
+    filterWatching: reader.readObjectOrNull<FilterWatching>(
+          offsets[0],
+          FilterWatchingSchema.deserialize,
+          allOffsets,
+        ) ??
+        FilterWatching(),
     orderBy: _AppConfigEntityorderByValueEnumMap[
-            reader.readByteOrNull(offsets[0])] ??
+            reader.readByteOrNull(offsets[1])] ??
         OrderBy.LATEST,
-    reverseContents: reader.readBool(offsets[1]),
+    reverseContents: reader.readBool(offsets[2]),
     source:
-        _AppConfigEntitysourceValueEnumMap[reader.readByteOrNull(offsets[2])] ??
+        _AppConfigEntitysourceValueEnumMap[reader.readByteOrNull(offsets[3])] ??
             Source.ANROLL,
   );
   object.id = id;
@@ -96,12 +117,19 @@ P _appConfigEntityDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
+      return (reader.readObjectOrNull<FilterWatching>(
+            offset,
+            FilterWatchingSchema.deserialize,
+            allOffsets,
+          ) ??
+          FilterWatching()) as P;
+    case 1:
       return (_AppConfigEntityorderByValueEnumMap[
               reader.readByteOrNull(offset)] ??
           OrderBy.LATEST) as P;
-    case 1:
-      return (reader.readBool(offset)) as P;
     case 2:
+      return (reader.readBool(offset)) as P;
+    case 3:
       return (_AppConfigEntitysourceValueEnumMap[
               reader.readByteOrNull(offset)] ??
           Source.ANROLL) as P;
@@ -418,7 +446,14 @@ extension AppConfigEntityQueryFilter
 }
 
 extension AppConfigEntityQueryObject
-    on QueryBuilder<AppConfigEntity, AppConfigEntity, QFilterCondition> {}
+    on QueryBuilder<AppConfigEntity, AppConfigEntity, QFilterCondition> {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
+      filterWatching(FilterQuery<FilterWatching> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'filterWatching');
+    });
+  }
+}
 
 extension AppConfigEntityQueryLinks
     on QueryBuilder<AppConfigEntity, AppConfigEntity, QFilterCondition> {}
@@ -552,6 +587,13 @@ extension AppConfigEntityQueryProperty
     });
   }
 
+  QueryBuilder<AppConfigEntity, FilterWatching, QQueryOperations>
+      filterWatchingProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'filterWatching');
+    });
+  }
+
   QueryBuilder<AppConfigEntity, OrderBy, QQueryOperations> orderByProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'orderBy');
@@ -571,3 +613,493 @@ extension AppConfigEntityQueryProperty
     });
   }
 }
+
+// **************************************************************************
+// IsarEmbeddedGenerator
+// **************************************************************************
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const FilterWatchingSchema = Schema(
+  name: r'FilterWatching',
+  id: 3284857918384764146,
+  properties: {
+    r'end': PropertySchema(
+      id: 0,
+      name: r'end',
+      type: IsarType.dateTime,
+    ),
+    r'genresFilter': PropertySchema(
+      id: 1,
+      name: r'genresFilter',
+      type: IsarType.stringList,
+    ),
+    r'infiniteDate': PropertySchema(
+      id: 2,
+      name: r'infiniteDate',
+      type: IsarType.bool,
+    ),
+    r'start': PropertySchema(
+      id: 3,
+      name: r'start',
+      type: IsarType.dateTime,
+    )
+  },
+  estimateSize: _filterWatchingEstimateSize,
+  serialize: _filterWatchingSerialize,
+  deserialize: _filterWatchingDeserialize,
+  deserializeProp: _filterWatchingDeserializeProp,
+);
+
+int _filterWatchingEstimateSize(
+  FilterWatching object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.genresFilter.length * 3;
+  {
+    for (var i = 0; i < object.genresFilter.length; i++) {
+      final value = object.genresFilter[i];
+      bytesCount += value.length * 3;
+    }
+  }
+  return bytesCount;
+}
+
+void _filterWatchingSerialize(
+  FilterWatching object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeDateTime(offsets[0], object.end);
+  writer.writeStringList(offsets[1], object.genresFilter);
+  writer.writeBool(offsets[2], object.infiniteDate);
+  writer.writeDateTime(offsets[3], object.start);
+}
+
+FilterWatching _filterWatchingDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = FilterWatching(
+    end: reader.readDateTimeOrNull(offsets[0]),
+    genresFilter: reader.readStringList(offsets[1]) ?? const [],
+    infiniteDate: reader.readBoolOrNull(offsets[2]) ?? false,
+    start: reader.readDateTimeOrNull(offsets[3]),
+  );
+  return object;
+}
+
+P _filterWatchingDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 1:
+      return (reader.readStringList(offset) ?? const []) as P;
+    case 2:
+      return (reader.readBoolOrNull(offset) ?? false) as P;
+    case 3:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension FilterWatchingQueryFilter
+    on QueryBuilder<FilterWatching, FilterWatching, QFilterCondition> {
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      endIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'end',
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      endIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'end',
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      endEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'end',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      endGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'end',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      endLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'end',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      endBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'end',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterElementEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'genresFilter',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterElementGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'genresFilter',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterElementLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'genresFilter',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterElementBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'genresFilter',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterElementStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'genresFilter',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterElementEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'genresFilter',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterElementContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'genresFilter',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterElementMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'genresFilter',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterElementIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'genresFilter',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterElementIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'genresFilter',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'genresFilter',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'genresFilter',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'genresFilter',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'genresFilter',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'genresFilter',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      genresFilterLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'genresFilter',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      infiniteDateEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'infiniteDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      startIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'start',
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      startIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'start',
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      startEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'start',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      startGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'start',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      startLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'start',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
+      startBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'start',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+}
+
+extension FilterWatchingQueryObject
+    on QueryBuilder<FilterWatching, FilterWatching, QFilterCondition> {}

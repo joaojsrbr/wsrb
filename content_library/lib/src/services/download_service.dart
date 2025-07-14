@@ -3,14 +3,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:content_library/content_library.dart';
-import 'package:ffmpeg_kit_min_gpl/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_min_gpl/ffprobe_kit.dart';
-import 'package:ffmpeg_kit_min_gpl/return_code.dart';
-import 'package:ffmpeg_kit_min_gpl/statistics.dart';
-// import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
-// import 'package:ffmpeg_kit_flutter_new/ffprobe_kit.dart';
-// import 'package:ffmpeg_kit_flutter_new/return_code.dart';
-// import 'package:ffmpeg_kit_flutter_new/statistics.dart';
+import 'package:ffmpeg_kit_flutter_new_gpl/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_new_gpl/ffprobe_kit.dart';
+import 'package:ffmpeg_kit_flutter_new_gpl/return_code.dart';
+import 'package:ffmpeg_kit_flutter_new_gpl/statistics.dart';
 import 'package:flutter/foundation.dart';
 
 class DownloadService extends ChangeNotifier {
@@ -124,6 +120,8 @@ class DownloadService extends ChangeNotifier {
             await completer.future;
             customLog(args.join(' '));
 
+            // https: //cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/animes/jidou-hanbaiki-ni-umarekawatta-ore-wa-meikyuu-wo-samayou-2/001.mp4/media-1/stream.m3u8
+
             await FFmpegKit.executeAsync(
               args.join(' '),
               (session) async {
@@ -149,7 +147,7 @@ class DownloadService extends ChangeNotifier {
                 }
               },
               (test) {
-                // customLog(test.getMessage());
+                customLog(test.getMessage());
               },
               (status) async {
                 (downloadList.firstWhere(

@@ -5,6 +5,7 @@ import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/dot_text.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer_container.dart';
+import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
@@ -230,14 +231,25 @@ class ContentScaffold extends StatelessWidget {
                                   // _ExpandableText(content!
                                   //     .anilistMedia!.description!
                                   //     .substring(0, 150)),
-                                  Text(
-                                    content.title,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
+                                  GestureDetector(
+                                    onLongPress: () async {
+                                      copyToClipboard(
+                                        context,
+                                        messageSnackBar:
+                                            "Texto copiado para a área de transferência!",
+                                        messageCopy: content.title,
+                                      );
+                                      Feedback.forLongPress(context);
+                                    },
+                                    child: Text(
+                                      content.title,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                   SizedBox(height: 4),

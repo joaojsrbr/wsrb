@@ -17,6 +17,7 @@ enum Source implements _DisableEnum {
   static final Set<Source> _disableSource = {
     Source.NEOX_SCANS,
     Source.DEMON_SECT,
+    Source.SLIMEREAD,
   };
 
   static bool disableSourceMenuFilter(Source source) {

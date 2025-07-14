@@ -22,6 +22,7 @@ export 'src/controllers/theme_controller.dart';
 export 'src/entities/anilist_media.dart';
 export 'src/entities/anime_entity.dart';
 export 'src/entities/anime_skip_entity.dart';
+export 'src/entities/app_config_entity.dart';
 export 'src/entities/book_entity.dart';
 export 'src/entities/category_entity.dart';
 export 'src/entities/chapter_entity.dart';
