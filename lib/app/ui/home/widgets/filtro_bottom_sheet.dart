@@ -1,117 +1,161 @@
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/filtro_dias_com_infinito.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
   FiltroBottomSheetRoute({
     required this.appConfigController,
     required this.bottomSheetAnimationController,
-    required this.genres,
+
+    required this.onlyFavorites,
   });
-  final List<String> genres;
+
+  final bool onlyFavorites;
   final AnimationController bottomSheetAnimationController;
   final AppConfigController appConfigController;
 
   @override
-  Color? get barrierColor => Colors.black54;
+  Color? get barrierColor => Colors.black26;
+  // @override
+  // Color? get barrierColor => Colors.transparent;
 
   @override
   bool get barrierDismissible => true;
 
   @override
+  bool get opaque => false;
+
+  @override
   String? get barrierLabel => 'Dismiss';
 
   @override
-  bool didPop(FilterWatching? result) {
-    final result = newFilterWatching;
+  bool didPop(FilterWatching? result) => super.didPop(newFilterWatching);
 
-    if (result.genresFilter.isEmpty) result.genresFilter.addAll(genres);
-    return super.didPop(result);
-  }
-
-  FilterWatching get _filterWatching =>
-      appConfigController.config.filterWatching;
-
-  void _handleFiltroDeDias(
-    DateTime? start,
-    DateTime? end,
-    bool dataInfinita,
-  ) {
-    newFilterWatching = newFilterWatching.copyWith(
-      start: start,
-      end: end,
-      infiniteDate: dataInfinita,
-    );
+  void _handleFiltroDeDias(DateTime? start, DateTime? end, bool dataInfinita) {
+    newFilterWatching = newFilterWatching.copyWith(start: start, end: end, infiniteDate: dataInfinita);
+    _updateFilter();
   }
 
   void _handleLimparFiltroDeDias() {
-    newFilterWatching = newFilterWatching.copyWith(
-      start: DateTime(0),
-      end: DateTime(0),
-      infiniteDate: false,
-    );
+    newFilterWatching = newFilterWatching.copyWith(start: DateTime(0), end: DateTime(0), infiniteDate: false);
+    _updateFilter();
   }
 
   void _handleGenresFilterChipSelector(List<String> data) {
     newFilterWatching = newFilterWatching.copyWith(genresFilter: data);
+    _updateFilter();
   }
 
   void _handleSourceFilterChipSelector(List<String> data) {
-    newFilterWatching = newFilterWatching.copyWith();
+    if (data.isNotEmpty) {
+      final sources = Source.values.where((source) => data.contains(source.name));
+
+      newFilterWatching = newFilterWatching.copyWith(filterSources: sources.toList());
+    } else {
+      newFilterWatching = newFilterWatching.copyWith(filterSources: []);
+    }
+    _updateFilter();
   }
 
-  late FilterWatching newFilterWatching = _filterWatching;
+  void _updateFilter() {
+    appConfigController.setFilterWatching(newFilterWatching);
+  }
+
+  late FilterWatching newFilterWatching = appConfigController.config.filterWatching;
 
   @override
   Duration get transitionDuration => Duration(milliseconds: 300);
 
   @override
-  Widget buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
+  Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+    final appConfigController = context.watch<AppConfigController>();
+    final libraryController = context.watch<LibraryController>();
+
+    final libraRepo = libraryController.repo;
+    final entities = onlyFavorites ? libraRepo.favorites : libraRepo.noFavorites;
+
     final titleStyle = Theme.of(context).textTheme.titleMedium;
-    return BottomSheet(
-      animationController: bottomSheetAnimationController,
-      onClosing: () {},
-      builder: (context) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                BackButton(),
-                Center(child: Text("Filtro", style: titleStyle)),
-              ],
-            ),
-            Divider(),
-            FiltroDiasComInfinito(
-              onChanged: _handleFiltroDeDias,
-              onClear: _handleLimparFiltroDeDias,
-              isInfinite: _filterWatching.infiniteDate,
-              current: _filterWatching.end != null
-                  ? DateTimeRange(
-                      start: _filterWatching.start ??
-                          DateTime(DateTime.now().year, DateTime.january, 1),
-                      end: _filterWatching.end ?? DateTime.now(),
-                    )
-                  : null,
-            ),
-            FilterChipSelector(
-              title: "Generos",
-              genres: genres.unique(),
-              initialSelected: _filterWatching.genresFilter,
-              onChanged: _handleGenresFilterChipSelector,
-            ),
-            FilterChipSelector(
-              title: "Fonte",
-              genres: Source.list.map((e) => e.label).toList(),
-              onChanged: _handleSourceFilterChipSelector,
-            ),
-          ],
+    final genres = entities.map((content) => content.anilistMedia?.genres).nonNulls.flattened.toList();
+    final filterWatching = appConfigController.config.filterWatching;
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return DraggableScrollableSheet(
+          // showDragHandle: true,
+          maxChildSize: 0.9,
+          minChildSize: 0.4,
+          initialChildSize: 0.6,
+          // animationController: bottomSheetAnimationController,
+          // onClosing: () => Navigator.pop(context),
+          builder: (context, controller) {
+            return Material(
+              child: SingleChildScrollView(
+                controller: controller,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        BackButton(),
+                        Center(child: Text("Filtro", style: titleStyle)),
+                      ],
+                    ),
+                    Divider(),
+                    FiltroDiasComInfinito(
+                      onChanged: _handleFiltroDeDias,
+                      onClear: _handleLimparFiltroDeDias,
+                      isInfinite: filterWatching.infiniteDate,
+                      current: filterWatching.end != null
+                          ? DateTimeRange(
+                              start: filterWatching.start ?? DateTime(DateTime.now().year, DateTime.january, 1),
+                              end: filterWatching.end ?? DateTime.now(),
+                            )
+                          : null,
+                    ),
+                    FilterChipSelector(
+                      limpar: RawChip(
+                        onPressed: () {
+                          appConfigController.setFilterWatching(
+                            filterWatching.copyWith(
+                              filterSources: filterWatching.filterSources.isEmpty ? Source.values : [],
+                            ),
+                          );
+                        },
+                        label: filterWatching.filterSources.isEmpty ? const Text("Reset") : const Text("Limpar"),
+                        padding: EdgeInsets.zero,
+                      ),
+                      title: "Fonte",
+
+                      initialSelected: filterWatching.filterSources.map((e) => e.label).toList(),
+                      genres: Source.list.map((e) => e.label).toList(),
+                      onChanged: _handleSourceFilterChipSelector,
+                    ),
+                    if (genres.isNotEmpty)
+                      FilterChipSelector(
+                        limpar: RawChip(
+                          onPressed: () {
+                            // newFilterWatching = newFilterWatching.copyWith(genresFilter: );
+                            appConfigController.setFilterWatching(
+                              filterWatching.copyWith(
+                                genresFilter: filterWatching.genresFilter.isEmpty ? genres.unique() : [],
+                              ),
+                            );
+                          },
+                          label: filterWatching.genresFilter.isEmpty ? const Text("Reset") : const Text("Limpar"),
+                          padding: EdgeInsets.zero,
+                        ),
+                        title: "Generos",
+                        genres: genres.unique(),
+                        initialSelected: filterWatching.genresFilter,
+                        onChanged: _handleGenresFilterChipSelector,
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
@@ -129,10 +173,7 @@ class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
       position: Tween<Offset>(
         begin: Offset(0, 1),
         end: Offset.zero,
-      ).animate(CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeOut,
-      )),
+      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
       child: child,
     );
   }
@@ -142,13 +183,15 @@ class FilterChipSelector extends StatefulWidget {
   const FilterChipSelector({
     super.key,
     required this.genres,
-    this.initialSelected = const [],
+    this.initialSelected,
+    this.limpar,
     this.onChanged,
     required this.title,
   });
   final String title;
+  final Widget? limpar;
   final List<String> genres;
-  final List<String> initialSelected;
+  final List<String>? initialSelected;
   final ValueChanged<List<String>>? onChanged;
 
   @override
@@ -161,11 +204,21 @@ class FiltereChipSelectorState extends State<FilterChipSelector> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialSelected.isNotEmpty) {
-      _selected = List.from(widget.initialSelected);
+    if (widget.initialSelected != null) {
+      _selected = List.from(widget.initialSelected!);
     } else {
       _selected = List.from(widget.genres);
     }
+  }
+
+  @override
+  void didUpdateWidget(covariant FilterChipSelector oldWidget) {
+    if (widget.initialSelected != null) {
+      _selected = List.from(widget.initialSelected!);
+    } else {
+      _selected = List.from(widget.genres);
+    }
+    super.didUpdateWidget(oldWidget);
   }
 
   void _onChipTapped(String genre) {
@@ -186,23 +239,23 @@ class FiltereChipSelectorState extends State<FilterChipSelector> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            widget.title,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
+          Text(widget.title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 0,
-            children: widget.genres.map((genre) {
-              final selected = _selected.contains(genre);
-              return ChoiceChip(
-                padding: EdgeInsets.zero,
-                label: Text(genre),
-                selected: selected,
-                onSelected: (_) => _onChipTapped(genre),
-              );
-            }).toList(),
+            children: [
+              ...widget.genres.map((genre) {
+                final selected = _selected.contains(genre);
+                return ChoiceChip(
+                  padding: EdgeInsets.zero,
+                  label: Text(genre),
+                  selected: selected,
+                  onSelected: (_) => _onChipTapped(genre),
+                );
+              }),
+              if (widget.limpar != null) widget.limpar!,
+            ],
           ),
         ],
       ),

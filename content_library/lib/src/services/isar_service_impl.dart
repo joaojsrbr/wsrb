@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/entities/app_config_entity.dart';
 import 'package:content_library/src/services/isar_service.dart';
 import 'package:isar/isar.dart';
 
@@ -9,8 +8,7 @@ class IsarServiceImpl implements IsarService {
   final Completer<Isar> _isar = Completer();
 
   @override
-  Future<IsarCollection<T>> collection<T>() async =>
-      (await _isar.future).collection<T>();
+  Future<IsarCollection<T>> collection<T>() async => (await _isar.future).collection<T>();
 
   @override
   Future<Result<(bool, int?)>> add({required Entity entity}) async {
@@ -25,32 +23,24 @@ class IsarServiceImpl implements IsarService {
           currentID = await isar.appConfigEntitys.put(data);
           isSucess = true;
         case ChapterEntity data:
-          await isar.bookEntitys
-              .getByStringID(data.bookStringID)
-              .then((book) async {
+          await isar.bookEntitys.getByStringID(data.bookStringID).then((book) async {
             if (book != null) {
               book.addChapter(data);
               // bookEntity.updatedAt = DateTime.now();
               currentID = await isar.chapterEntitys.putByStringID(data);
               await book.saveChapter();
-              await isar.bookEntitys.put(
-                book.copyWith(updatedAt: DateTime.now()),
-              );
+              await isar.bookEntitys.put(book.copyWith(updatedAt: DateTime.now()));
               isSucess = true;
             }
           });
 
         case EpisodeEntity episode:
-          await isar.animeEntitys
-              .getByStringID(episode.animeStringID)
-              .then((anime) async {
+          await isar.animeEntitys.getByStringID(episode.animeStringID).then((anime) async {
             if (anime != null) {
               anime.addEpisode(episode);
               currentID = await isar.episodeEntitys.putByStringID(episode);
               await anime.saveEpisode();
-              currentID = await isar.animeEntitys.putByStringID(
-                anime.copyWith(updatedAt: DateTime.now()),
-              );
+              currentID = await isar.animeEntitys.putByStringID(anime.copyWith(updatedAt: DateTime.now()));
 
               isSucess = true;
             }
@@ -73,15 +63,10 @@ class IsarServiceImpl implements IsarService {
           break;
 
         case AnimeEntity anime:
-          AnimeEntity? animeEntity = await isar.animeEntitys.getByStringID(
-            anime.stringID,
-          );
+          AnimeEntity? animeEntity = await isar.animeEntitys.getByStringID(anime.stringID);
 
           currentID = await isar.animeEntitys.putByStringID(
-            anime.copyWith(
-              createdAt: animeEntity?.createdAt,
-              updatedAt: DateTime.now(),
-            ),
+            anime.copyWith(createdAt: animeEntity?.createdAt, updatedAt: DateTime.now()),
           );
 
           await anime.saveAnimeSkip();
@@ -89,15 +74,10 @@ class IsarServiceImpl implements IsarService {
           isSucess = true;
           break;
         case BookEntity book:
-          final bookEntity = await isar.bookEntitys.getByStringID(
-            book.stringID,
-          );
+          final bookEntity = await isar.bookEntitys.getByStringID(book.stringID);
 
           currentID = await isar.bookEntitys.putByStringID(
-            book.copyWith(
-              updatedAt: DateTime.now(),
-              createdAt: bookEntity?.createdAt,
-            ),
+            book.copyWith(updatedAt: DateTime.now(), createdAt: bookEntity?.createdAt),
           );
           isSucess = true;
           break;
@@ -123,48 +103,42 @@ class IsarServiceImpl implements IsarService {
 
     bool isSucess = false;
 
-    await isar.writeTxn(() async {
-      switch (entity) {
-        case AnimeEntity data:
-          await isar.episodeEntitys
-              .filter()
-              .animeStringIDEqualTo(data.stringID)
-              .deleteAll();
-          isSucess = await isar.animeEntitys.deleteByStringID(data.stringID);
-          break;
-        case BookEntity data:
-          await isar.chapterEntitys
-              .filter()
-              .bookStringIDEqualTo(data.stringID)
-              .deleteAll();
-          isSucess = await isar.bookEntitys.deleteByStringID(data.stringID);
-          break;
-        case EpisodeEntity data:
-          isSucess = await isar.episodeEntitys.deleteByStringID(data.stringID);
-          break;
-        case ChapterEntity data:
-          isSucess = await isar.chapterEntitys.deleteByStringID(data.stringID);
-          break;
-        case CategoryEntity data:
-          isSucess = await isar.categoryEntitys.deleteByStringID(data.stringID);
-          break;
-        case ContentEntity():
-        //! abstract class
-        case HistoryEntity():
-        //! abstract class
-        case OtherEntity():
-        //! abstract class
-      }
-    }).whenComplete(() {
-      customLog('Isar[remove]: ${entity.id} as ${entity.runtimeType}');
-    });
+    await isar
+        .writeTxn(() async {
+          switch (entity) {
+            case AnimeEntity data:
+              await isar.episodeEntitys.filter().animeStringIDEqualTo(data.stringID).deleteAll();
+              isSucess = await isar.animeEntitys.deleteByStringID(data.stringID);
+              break;
+            case BookEntity data:
+              await isar.chapterEntitys.filter().bookStringIDEqualTo(data.stringID).deleteAll();
+              isSucess = await isar.bookEntitys.deleteByStringID(data.stringID);
+              break;
+            case EpisodeEntity data:
+              isSucess = await isar.episodeEntitys.deleteByStringID(data.stringID);
+              break;
+            case ChapterEntity data:
+              isSucess = await isar.chapterEntitys.deleteByStringID(data.stringID);
+              break;
+            case CategoryEntity data:
+              isSucess = await isar.categoryEntitys.deleteByStringID(data.stringID);
+              break;
+            case ContentEntity():
+            //! abstract class
+            case HistoryEntity():
+            //! abstract class
+            case OtherEntity():
+            //! abstract class
+          }
+        })
+        .whenComplete(() {
+          customLog('Isar[remove]: ${entity.id} as ${entity.runtimeType}');
+        });
     return Result.success((isSucess, entity.id));
   }
 
   @override
-  Future<Result<(bool, List<int>?)>> addAll({
-    required List<Entity> entities,
-  }) async {
+  Future<Result<(bool, List<int>?)>> addAll({required List<Entity> entities}) async {
     List<int> ids = [];
     final isar = await _isar.future;
 
@@ -180,8 +154,7 @@ class IsarServiceImpl implements IsarService {
 
       if (animeSkipEntitys.isNotEmpty) {
         await isar.writeTxn(() async {
-          final addIds =
-              await isar.animeSkipEntitys.putAllByAnimeSkipId(animeSkipEntitys);
+          final addIds = await isar.animeSkipEntitys.putAllByAnimeSkipId(animeSkipEntitys);
 
           ids.addAll(addIds);
         });
@@ -190,56 +163,44 @@ class IsarServiceImpl implements IsarService {
       }
 
       if (animeEntitys.isNotEmpty) {
-        await isar.writeTxn(
-          () async {
-            final futures = animeEntitys.map((anime) async {
-              AnimeEntity? animeEntity = await isar.animeEntitys.getByStringID(
-                anime.stringID,
-              );
+        await isar.writeTxn(() async {
+          final futures = animeEntitys.map((anime) async {
+            AnimeEntity? animeEntity = await isar.animeEntitys.getByStringID(anime.stringID);
 
-              return anime.copyWith(
-                updatedAt: DateTime.now(),
-                createdAt: animeEntity?.createdAt,
-                isFavorite: animeEntity?.isFavorite,
-              );
-            });
+            return anime.copyWith(
+              updatedAt: DateTime.now(),
+              createdAt: animeEntity?.createdAt,
+              isFavorite: animeEntity?.isFavorite,
+            );
+          });
 
-            final animes = await Future.wait(futures);
-            final addIds = await isar.animeEntitys.putAllByStringID(animes);
-            await Future.wait(animes.map((anime) => anime.animeSkip.save()));
-            ids.addAll(addIds);
-          },
-        );
+          final animes = await Future.wait(futures);
+          final addIds = await isar.animeEntitys.putAllByStringID(animes);
+          await Future.wait(animes.map((anime) => anime.animeSkip.save()));
+          ids.addAll(addIds);
+        });
 
         isSucess = true;
       }
 
       if (bookEntitys.isNotEmpty) {
-        await isar.writeTxn(
-          () async {
-            final futures = bookEntitys.map((book) async {
-              final bookEntitys = await isar.bookEntitys.getByStringID(
-                book.stringID,
-              );
+        await isar.writeTxn(() async {
+          final futures = bookEntitys.map((book) async {
+            final bookEntitys = await isar.bookEntitys.getByStringID(book.stringID);
 
-              return book.copyWith(
-                updatedAt: DateTime.now(),
-                createdAt: bookEntitys?.createdAt,
-              );
-            });
-            final books = await Future.wait(futures);
-            final addIds = await isar.bookEntitys.putAllByStringID(books);
-            ids.addAll(addIds);
-          },
-        );
+            return book.copyWith(updatedAt: DateTime.now(), createdAt: bookEntitys?.createdAt);
+          });
+          final books = await Future.wait(futures);
+          final addIds = await isar.bookEntitys.putAllByStringID(books);
+          ids.addAll(addIds);
+        });
 
         isSucess = true;
       }
 
       if (categoryEntitys.isNotEmpty) {
         await isar.writeTxn(() async {
-          final addIds =
-              await isar.categoryEntitys.putAllByStringID(categoryEntitys);
+          final addIds = await isar.categoryEntitys.putAllByStringID(categoryEntitys);
 
           ids.addAll(addIds);
         });
@@ -248,8 +209,7 @@ class IsarServiceImpl implements IsarService {
 
       if (chapterEntitys.isNotEmpty) {
         await isar.writeTxn(() async {
-          final addIds =
-              await isar.chapterEntitys.putAllByStringID(chapterEntitys);
+          final addIds = await isar.chapterEntitys.putAllByStringID(chapterEntitys);
 
           ids.addAll(addIds);
         });
@@ -265,8 +225,7 @@ class IsarServiceImpl implements IsarService {
           if (anime != null) {
             anime.episodes.addAll(episodeEntitys);
 
-            final epIds =
-                await isar.episodeEntitys.putAllByStringID(episodeEntitys);
+            final epIds = await isar.episodeEntitys.putAllByStringID(episodeEntitys);
 
             // epIds.forEachIndexed((index, id) {
             //   episodeEntitys[index] = episodeEntitys[index]..id = id;
@@ -318,10 +277,7 @@ class IsarServiceImpl implements IsarService {
 
     if (entities != null) {
       final futures = await Future.wait(entities.map((e) => remove(entity: e)));
-      futures
-          .map((e) => e.fold(onSuccess: (data) => data.$2))
-          .nonNulls
-          .forEach(ids.add);
+      futures.map((e) => e.fold(onSuccess: (data) => data.$2)).nonNulls.forEach(ids.add);
     }
 
     return Result.success((isSucess, ids));
@@ -354,7 +310,7 @@ class IsarServiceImpl implements IsarService {
         AnimeSkipEntitySchema,
         AppConfigEntitySchema,
       ],
-      maxSizeMiB: 2048,
+      maxSizeMiB: 3062,
       directory: isarPath,
       inspector: inspector,
     );

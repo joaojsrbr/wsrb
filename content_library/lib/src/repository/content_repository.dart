@@ -59,49 +59,29 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   final Source? initialSource;
   final AnimeSkipRepository _animeSkipRepository;
 
-  AppConfigEntity get config =>
-      _appConfigController?.repo.config ?? AppConfigEntity.init();
+  AppConfigEntity get config => _appConfigController?.repo.config ?? AppConfigEntity.init();
 
-  ContentRepository._internal(
-    this._appConfigController,
-    this._dio,
-    this._animeSkipRepository,
-    this.initialSource,
-  ) {
-    _sources = [
-      NeoxSource(this),
-      GoyabuSource(this),
-      SlimeReadSource(this),
-      AnrollSource(this),
-      DemonSect(this),
-    ];
+  ContentRepository._internal(this._appConfigController, this._dio, this._animeSkipRepository, this.initialSource) {
+    _sources = [NeoxSource(this), GoyabuSource(this), SlimeReadSource(this), AnrollSource(this), DemonSect(this)];
 
     if (_appConfigController != null) {
-      _appConfigController?.orderOrSourceUpdate = () {
+      _appConfigController.orderOrSourceUpdate = () {
         _listen();
       };
     }
   }
 
   void _listen() {
-    ui.WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) => refresh(true),
-    );
+    ui.WidgetsBinding.instance.addPostFrameCallback((timeStamp) => refresh(true));
   }
 
   bool get addMore => isSuccess && _hasMore;
 
-  factory ContentRepository(AppConfigController appConfig, DioClient dio,
-          AnimeSkipRepository animeSkipRepository) =>
-      _ContentRepositoryImp(appConfig, dio, animeSkipRepository, null);
+  factory ContentRepository(AppConfigController appConfig, DioClient dio, AnimeSkipRepository animeSkipRepository) => _ContentRepositoryImp(appConfig, dio, animeSkipRepository, null);
 
-  factory ContentRepository.test(DioClient dio,
-          AnimeSkipRepository animeSkipRepository, Source initialSource) =>
-      _ContentRepositoryImp.test(animeSkipRepository, dio, initialSource);
+  factory ContentRepository.test(DioClient dio, AnimeSkipRepository animeSkipRepository, Source initialSource) => _ContentRepositoryImp.test(animeSkipRepository, dio, initialSource);
 
-  RSource source(Source source) => _sources.firstWhere(
-        (element) => source == element.source,
-      );
+  RSource source(Source source) => _sources.firstWhere((element) => source == element.source);
 
   Future<Result<Content>> getData(Content content);
 
@@ -109,11 +89,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
 
   Future<Result<Content>> getReleases(Content content, int page);
 
-  Future<void> searchContents(
-    String query, {
-    required List<Source> searchSources,
-    required ui.ValueChanged<(Source, List<Content>)> onSuccess,
-  });
+  Future<void> searchContents(String query, {required List<Source> searchSources, required ui.ValueChanged<(Source, List<Content>)> onSuccess});
 
   Future<AnilistMedia?> getAnilistMedia(Content content) async {
     final charSelect = AnilistCharacterSelect()
@@ -124,11 +100,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       ..withName()
       ..withImage();
 
-    final title = content.title
-        .replaceAll(' - Dublado', '')
-        .replaceAll('dublado', '')
-        .replaceAll('Dublado', '')
-        .trim();
+    final title = content.title.replaceAll(' - Dublado', '').replaceAll('dublado', '').replaceAll('Dublado', '').trim();
 
     final request = AnilistMediaRequest(client: _dio.client)
       ..withIdMal()
@@ -163,19 +135,12 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       ..withTagsName()
       ..withCharcters(AnilistSubquery(page: 1, perPage: 5, charSelect))
       ..withStaff(AnilistSubquery(page: 1, perPage: 5, staffSelect))
-      ..queryType(
-          content is Anime ? AnilistMediaType.ANIME : AnilistMediaType.MANGA)
+      ..queryType(content is Anime ? AnilistMediaType.ANIME : AnilistMediaType.MANGA)
       ..querySearch(title);
 
     try {
       final results = (await request.list(2, 1)).results;
-      final animeMedia = results?.firstWhereOrNull(
-        (media) =>
-            media.type ==
-            (content is Anime
-                ? AnilistMediaType.ANIME
-                : AnilistMediaType.MANGA),
-      );
+      final animeMedia = results?.firstWhereOrNull((media) => media.type == (content is Anime ? AnilistMediaType.ANIME : AnilistMediaType.MANGA));
       return animeMedia;
     } catch (e) {
       customLog(e.toString());
@@ -183,10 +148,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
     }
   }
 
-  RSource get currentSource =>
-      source(_appConfigController?.repo.config.source ??
-          initialSource ??
-          Source.ANROLL);
+  RSource get currentSource => source(_appConfigController?.repo.config.source ?? initialSource ?? Source.ANROLL);
 
   @override
   Future<bool> refresh([bool notifyStateChanged = false]) async {
@@ -210,21 +172,14 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
 }
 
 class _ContentRepositoryImp extends ContentRepository {
-  _ContentRepositoryImp(
-    super._hiveController,
-    super.dio,
-    super._animeSkipRepository,
-    super.initialSource,
-  ) : super._internal();
+  _ContentRepositoryImp(super._hiveController, super.dio, super._animeSkipRepository, super.initialSource) : super._internal();
 
-  factory _ContentRepositoryImp.test(AnimeSkipRepository animeSkipRepository,
-      DioClient dio, Source initialSource) {
+  factory _ContentRepositoryImp.test(AnimeSkipRepository animeSkipRepository, DioClient dio, Source initialSource) {
     return _ContentRepositoryImp(null, dio, animeSkipRepository, initialSource);
   }
 
   @override
-  Future<bool> loadData([bool isLoadMoreAction = false]) async =>
-      await currentSource.loadData();
+  Future<bool> loadData([bool isLoadMoreAction = false]) async => await currentSource.loadData();
 
   @override
   Future<Result<Content>> getData(Content content) async {
@@ -235,12 +190,8 @@ class _ContentRepositoryImp extends ContentRepository {
 
       if (anilistMedia != null) {
         anime = anime.copyWith(
-          sinopse: anime.sinopse?.isEmpty == true || anime.sinopse == null
-              ? anilistMedia.description
-              : null,
-          anilistMedia: AniListMedia.fromJson(
-            AnilistMedia.toJson(anilistMedia),
-          ),
+          sinopse: anime.sinopse?.isEmpty == true || anime.sinopse == null ? anilistMedia.description : null,
+          anilistMedia: AniListMedia.fromJson(AnilistMedia.toJson(anilistMedia)),
           largeImage: anilistMedia.coverImage?.large,
           mediumImage: anilistMedia.coverImage?.medium,
         );
@@ -252,24 +203,16 @@ class _ContentRepositoryImp extends ContentRepository {
   }
 
   @override
-  Future<Result<List<Data>>> getContent(Release release) async =>
-      await currentSource.getContent(release);
+  Future<Result<List<Data>>> getContent(Release release) async => await currentSource.getContent(release);
 
   @override
-  Future<Result<Content>> getReleases(Content content, int page) async =>
-      await currentSource.getReleases(content, page);
+  Future<Result<Content>> getReleases(Content content, int page) async => await currentSource.getReleases(content, page);
 
   @override
-  Future<void> searchContents(
-    String query, {
-    required List<Source> searchSources,
-    required ui.ValueChanged<(Source, List<Content>)> onSuccess,
-  }) async {
-    final futures =
-        _sources.where((source) => searchSources.contains(source.source)).map(
-              (source) => source.search(query).then((value) => value.fold(
-                  onSuccess: (data) => onSuccess((source.source, data)))),
-            );
+  Future<void> searchContents(String query, {required List<Source> searchSources, required ui.ValueChanged<(Source, List<Content>)> onSuccess}) async {
+    final futures = _sources
+        .where((source) => searchSources.contains(source.source))
+        .map((source) => source.search(query).then((value) => value.fold(onSuccess: (data) => onSuccess((source.source, data)))));
     for (final future in futures) {
       try {
         await future;

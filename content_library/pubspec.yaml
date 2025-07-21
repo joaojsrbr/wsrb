@@ -6,7 +6,8 @@ homepage:
 publish_to: none
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ">=3.8.0 <4.0.0"
+
 
 dependencies:
   collection: ^1.18.0
@@ -33,7 +34,7 @@ dependencies:
   flutter_auto_cache: ^0.0.4
   graphql_flutter: ^5.1.2
   flutter_dotenv: ^5.2.1
-  intl: ^0.19.0
+  intl: ^0.20.2
   anilist_dart:
     git: https://github.com/joaojsrbr/anilist_dart
   gql: ^1.0.0

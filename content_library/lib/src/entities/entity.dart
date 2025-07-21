@@ -21,18 +21,12 @@ abstract class ContentEntity implements Entity {
   @Index(replace: true, unique: true)
   final String stringID;
   final AniListMedia? anilistMedia;
+  final Source source;
   final bool isFavorite;
 
-  ContentEntity({
-    required this.stringID,
-    this.anilistMedia,
-    required this.isFavorite,
-  }) : super();
+  ContentEntity({required this.stringID, this.anilistMedia, required this.source, required this.isFavorite}) : super();
 
-  ContentEntity copyWith({
-    AniListMedia? anilistMedia,
-    bool? isFavorite,
-  });
+  ContentEntity copyWith({AniListMedia? anilistMedia, bool? isFavorite});
 
   @override
   Id id = Isar.autoIncrement;

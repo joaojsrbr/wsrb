@@ -14,8 +14,7 @@ class SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<SettingsView> {
   // late final ThemeController _themeController;
 
-  final Debouncer _debouncerColor =
-      Debouncer(duration: const Duration(milliseconds: 200));
+  final Debouncer _debouncerColor = Debouncer(duration: const Duration(milliseconds: 200));
 
   // List<Color> _recentColors = [];
 
@@ -53,8 +52,7 @@ class _SettingsViewState extends State<SettingsView> {
     customLog('$widget[build]');
 
     final ThemeData themeData = Theme.of(context);
-    final AppConfigController appConfigController =
-        context.watch<AppConfigController>();
+    final AppConfigController appConfigController = context.watch<AppConfigController>();
     // final ThemeController themeController = context.watch<ThemeController>();
 
     return Scaffold(
@@ -62,14 +60,8 @@ class _SettingsViewState extends State<SettingsView> {
       body: SettingsList(
         contentPadding: const EdgeInsets.only(top: 8, bottom: 20),
         brightness: themeData.brightness,
-        darkTheme: SettingsThemeData(
-          tileHighlightColor: themeData.highlightColor,
-          settingsListBackground: themeData.scaffoldBackgroundColor,
-        ),
-        lightTheme: SettingsThemeData(
-          tileHighlightColor: themeData.highlightColor,
-          settingsListBackground: themeData.scaffoldBackgroundColor,
-        ),
+        darkTheme: SettingsThemeData(tileHighlightColor: themeData.highlightColor, settingsListBackground: themeData.scaffoldBackgroundColor),
+        lightTheme: SettingsThemeData(tileHighlightColor: themeData.highlightColor, settingsListBackground: themeData.scaffoldBackgroundColor),
         sections: [
           // _CustomSettingsSection(
           //   title: Text(
@@ -268,12 +260,7 @@ class _SettingsViewState extends State<SettingsView> {
           //   ],
           // ),
           _CustomSettingsSection(
-            title: Text(
-              'Player',
-              style: themeData.textTheme.titleLarge?.copyWith(
-                color: themeData.colorScheme.primary,
-              ),
-            ),
+            title: Text('Player', style: themeData.textTheme.titleLarge?.copyWith(color: themeData.colorScheme.primary)),
             tiles: [
               // SettingsTile(
               //   onPressed: null,
@@ -294,14 +281,9 @@ class _SettingsViewState extends State<SettingsView> {
               //     ),
               //   ),
               // ),
-              SettingsTile.switchTile(
-                onToggle: (value) {},
-                initialValue: false,
-                leading: Icon(MdiIcons.brightness7),
-                title: const Text('Salvar Brilho'),
-              ),
+              SettingsTile.switchTile(onToggle: (value) {}, initialValue: false, leading: Icon(MdiIcons.brightness7), title: const Text('Salvar Brilho')),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -309,10 +291,7 @@ class _SettingsViewState extends State<SettingsView> {
 }
 
 class _CustomSettingsSection extends SettingsSection {
-  const _CustomSettingsSection({
-    required super.tiles,
-    super.title,
-  });
+  const _CustomSettingsSection({required super.tiles, super.title});
 
   @override
   Widget build(BuildContext context) {
@@ -327,16 +306,16 @@ class _CustomSettingsSection extends SettingsSection {
   }
 }
 
-class _PersonCustomSettingsTile extends CustomSettingsTile {
-  const _PersonCustomSettingsTile({required super.child});
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      semanticContainer: true,
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
-        child: super.build(context),
-      ),
-    );
-  }
-}
+// class _PersonCustomSettingsTile extends CustomSettingsTile {
+//   const _PersonCustomSettingsTile({required super.child});
+//   @override
+//   Widget build(BuildContext context) {
+//     return Card(
+//       semanticContainer: true,
+//       child: ClipRRect(
+//         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
+//         child: super.build(context),
+//       ),
+//     );
+//   }
+// }

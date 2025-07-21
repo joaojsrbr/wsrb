@@ -12,22 +12,15 @@ import 'package:isar/isar.dart';
 
 part 'anime_entity.g.dart';
 
-@Collection(ignore: {
-  'props',
-  'imageUrl',
-  'stringify',
-  'hashCode',
-  'toAnime',
-  'map',
-  'aniList',
-})
+@Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toAnime', 'map', 'aniList'})
 class AnimeEntity extends ContentEntity {
   final DateTime? createdAt;
   final String? animeID;
   final DateTime? updatedAt;
   final String? sinopse;
+  @override
   @enumerated
-  final Source source;
+  Source get source => super.source;
   final bool isDublado;
 
   final String? slugSerie;
@@ -49,7 +42,7 @@ class AnimeEntity extends ContentEntity {
     required this.url,
     required this.totalOfEpisodes,
     required this.title,
-    required this.source,
+    required super.source,
     super.anilistMedia,
     this.createdAt,
     this.animeID,
@@ -66,32 +59,31 @@ class AnimeEntity extends ContentEntity {
     this.mediumImage,
   });
 
-  String get imageUrl =>
-      extraLarge ?? largeImage ?? mediumImage ?? originalImage;
+  String get imageUrl => extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   @override
   List<Object?> get props => [
-        animeID,
-        stringID,
-        episodes,
-        createdAt,
-        totalOfPages,
-        sinopse,
-        updatedAt,
-        source,
-        isDublado,
-        isFavorite,
-        slugSerie,
-        url,
-        title,
-        originalImage,
-        extraLarge,
-        largeImage,
-        animeSkip.value,
-        mediumImage,
-        generateID,
-        totalOfEpisodes,
-      ];
+    animeID,
+    stringID,
+    episodes,
+    createdAt,
+    totalOfPages,
+    sinopse,
+    updatedAt,
+    source,
+    isDublado,
+    isFavorite,
+    slugSerie,
+    url,
+    title,
+    originalImage,
+    extraLarge,
+    largeImage,
+    animeSkip.value,
+    mediumImage,
+    generateID,
+    totalOfEpisodes,
+  ];
 
   void addEpisode(EpisodeEntity entity) {
     episodes.add(entity);
@@ -116,9 +108,7 @@ class AnimeEntity extends ContentEntity {
       slugSerie: slugSerie,
       source: source,
       sinopse: sinopse,
-      releases: EpisodeReleases.from(
-        episodes.map((entity) => entity.toEpisode(isDublado)).toList(),
-      ),
+      releases: EpisodeReleases.from(episodes.map((entity) => entity.toEpisode(isDublado)).toList()),
       originalImage: originalImage,
       extraLarge: extraLarge,
       largeImage: largeImage,

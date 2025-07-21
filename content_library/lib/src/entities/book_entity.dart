@@ -11,22 +11,16 @@ import 'package:isar/isar.dart';
 
 part 'book_entity.g.dart';
 
-@Collection(ignore: {
-  'props',
-  'imageUrl',
-  'stringify',
-  'hashCode',
-  'toBook',
-  'map',
-})
+@Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toBook', 'map'})
 class BookEntity extends ContentEntity {
   final String title;
   final String url;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
+  @override
   @enumerated
-  final Source source;
+  Source get source => super.source;
   final String? sinopse;
   final String? alternativeTitle;
 
@@ -41,7 +35,7 @@ class BookEntity extends ContentEntity {
     required super.stringID,
     required this.title,
     required this.url,
-    required this.source,
+    required super.source,
     required this.originalImage,
     this.createdAt,
     super.anilistMedia,
@@ -54,26 +48,25 @@ class BookEntity extends ContentEntity {
     super.isFavorite = false,
   });
 
-  String get imageUrl =>
-      extraLarge ?? largeImage ?? mediumImage ?? originalImage;
+  String get imageUrl => extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   @override
   List<Object?> get props => [
-        stringID,
-        title,
-        url,
-        createdAt,
-        updatedAt,
-        source,
-        sinopse,
-        alternativeTitle,
-        isFavorite,
-        originalImage,
-        extraLarge,
-        largeImage,
-        mediumImage,
-        chapters,
-      ];
+    stringID,
+    title,
+    url,
+    createdAt,
+    updatedAt,
+    source,
+    sinopse,
+    alternativeTitle,
+    isFavorite,
+    originalImage,
+    extraLarge,
+    largeImage,
+    mediumImage,
+    chapters,
+  ];
 
   void addChapter(ChapterEntity entity) {
     chapters.add(entity);
@@ -88,9 +81,7 @@ class BookEntity extends ContentEntity {
       source: source,
       url: url,
       title: title,
-      releases: ChapterReleases.from(
-        chapters.map((entity) => entity.toChapter()),
-      ),
+      releases: ChapterReleases.from(chapters.map((entity) => entity.toChapter())),
       extraLarge: extraLarge,
       largeImage: largeImage,
       mediumImage: mediumImage,

@@ -15,9 +15,7 @@ class AppConfigController extends ChangeNotifier {
     _repository = AppConfigRepository();
   }
 
-  final Debouncer _updateDebouncer = Debouncer(
-    duration: const Duration(milliseconds: 200),
-  );
+  final Debouncer _updateDebouncer = Debouncer(duration: const Duration(milliseconds: 200));
 
   AppConfigEntity get config => repo.config;
 

@@ -19,45 +19,25 @@ class ItemContent extends StatelessWidget {
   final Content content;
   final void Function(Content content)? onTap;
 
-  const ItemContent({
-    super.key,
-    required this.content,
-    this.width,
-    this.onTap,
-    this.height,
-  })  : _isSearch = false,
-        _isLibrary = false,
-        _isContent = false;
+  const ItemContent({super.key, required this.content, this.width, this.onTap, this.height})
+    : _isSearch = false,
+      _isLibrary = false,
+      _isContent = false;
 
-  const ItemContent.library({
-    super.key,
-    required this.content,
-    this.width,
-    this.onTap,
-    this.height,
-  })  : _isSearch = false,
-        _isLibrary = true,
-        _isContent = false;
+  const ItemContent.library({super.key, required this.content, this.width, this.onTap, this.height})
+    : _isSearch = false,
+      _isLibrary = true,
+      _isContent = false;
 
-  const ItemContent.search({
-    super.key,
-    required this.content,
-    this.width,
-    this.onTap,
-    this.height,
-  })  : _isSearch = true,
-        _isLibrary = false,
-        _isContent = false;
+  const ItemContent.search({super.key, required this.content, this.width, this.onTap, this.height})
+    : _isSearch = true,
+      _isLibrary = false,
+      _isContent = false;
 
-  const ItemContent.content({
-    super.key,
-    required this.content,
-    this.width,
-    this.onTap,
-    this.height,
-  })  : _isSearch = false,
-        _isLibrary = false,
-        _isContent = true;
+  const ItemContent.content({super.key, required this.content, this.width, this.onTap, this.height})
+    : _isSearch = false,
+      _isLibrary = false,
+      _isContent = true;
 
   static ItemContent? maybeOf(BuildContext context) {
     return context.findAncestorWidgetOfExactType<ItemContent>();
@@ -71,11 +51,9 @@ class ItemContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ValueNotifierList valueNotifierList =
-        context.watch<ValueNotifierList>();
+    final ValueNotifierList valueNotifierList = context.watch<ValueNotifierList>();
 
-    final AppConfigController appConfigController =
-        context.watch<AppConfigController>();
+    final AppConfigController appConfigController = context.watch<AppConfigController>();
 
     final ThemeData themeData = Theme.of(context);
 
@@ -98,13 +76,13 @@ class ItemContent extends StatelessWidget {
     final memCacheHeight = _isLibrary || _isSearch
         ? 450
         : _isContent
-            ? 150
-            : 300;
+        ? 150
+        : 300;
     final memCacheWidth = _isLibrary || _isSearch
         ? 600
         : _isContent
-            ? 200
-            : 300;
+        ? 200
+        : 300;
 
     if (_isContent) {
       return Padding(
@@ -112,22 +90,17 @@ class ItemContent extends StatelessWidget {
         child: InkWell(
           onLongPress: () {
             if (valueNotifierList.isEmpty) {
-              customLog(
-                'InkWell long tapped title: ${content.title} - id: ${content.stringID}',
-              );
+              customLog('InkWell long tapped title: ${content.title} - id: ${content.stringID}');
               valueNotifierList.toggle(content.stringID);
             }
           },
           onTap: () async {
-            if (searchController?.isAttached == true &&
-                searchController?.isOpen == true) {
+            if (searchController?.isAttached == true && searchController?.isOpen == true) {
               context.unFocusKeyBoard();
             }
             if (valueNotifierList.isNotEmpty) {
               valueNotifierList.toggle(content.stringID);
-              customLog(
-                'InkWell tapped title: ${content.title} - id: ${content.stringID}',
-              );
+              customLog('InkWell tapped title: ${content.title} - id: ${content.stringID}');
             } else {
               if (content case Anime data) {
                 // final result = await ContentUtils.selectTypePlayer(
@@ -137,10 +110,7 @@ class ItemContent extends StatelessWidget {
                 // customLog(result);
                 await context.push(
                   RouteName.PLAYER,
-                  extra: PlayerArgs(
-                    anime: data,
-                    episode: content.releases.last,
-                  ),
+                  extra: PlayerArgs(anime: data, episode: content.releases.last),
                 );
               }
             }
@@ -159,18 +129,13 @@ class ItemContent extends StatelessWidget {
             dense: true,
             subtitle: Row(
               children: [
-                Text(
-                  'Episódio ${content.releases.last.number}',
-                ),
+                Text('Episódio ${content.releases.last.number}'),
                 if (content is Anime) ...[
                   Text.rich(
                     TextSpan(
                       children: [
                         const TextSpan(text: ' - '),
-                        TextSpan(
-                          text: content.isDublado ? 'DUB' : 'LEG',
-                          style: TextStyle(),
-                        ),
+                        TextSpan(text: content.isDublado ? 'DUB' : 'LEG', style: TextStyle()),
                       ],
                     ),
                   ),
@@ -190,8 +155,7 @@ class ItemContent extends StatelessWidget {
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 350),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8)
-                          .add(BorderRadius.circular(2)),
+                      borderRadius: BorderRadius.circular(8).add(BorderRadius.circular(2)),
                       border: valueNotifierList.contains(content.stringID)
                           ? Border.all(color: Colors.white, width: 1.5)
                           : null,
@@ -207,13 +171,8 @@ class ItemContent extends StatelessWidget {
                         memCacheHeight: memCacheHeight,
                         fit: BoxFit.cover,
                         alignment: FractionalOffset.center,
-                        errorWidget: (context, url, error) =>
-                            const _Placeholder(),
-                        httpHeaders: {
-                          ...App.HEADERS,
-                          'Referer':
-                              '${appConfigController.config.source.baseURL}/',
-                        },
+                        errorWidget: (context, url, error) => const _Placeholder(),
+                        httpHeaders: {...App.HEADERS, 'Referer': '${appConfigController.config.source.baseURL}/'},
                       ),
                     ),
                   ),
@@ -222,21 +181,16 @@ class ItemContent extends StatelessWidget {
                     child: InkWell(
                       borderRadius: BorderRadius.circular(8),
                       onTap: () async {
-                        if (searchController?.isAttached == true &&
-                            searchController?.isOpen == true) {
+                        if (searchController?.isAttached == true && searchController?.isOpen == true) {
                           context.unFocusKeyBoard();
                         }
                         if (valueNotifierList.isNotEmpty) {
                           valueNotifierList.toggle(content.stringID);
-                          customLog(
-                            'InkWell tapped title: ${content.title} - id: ${content.stringID}',
-                          );
+                          customLog('InkWell tapped title: ${content.title} - id: ${content.stringID}');
                           return;
                         }
 
-                        customLog(
-                          'InkWell tapped title: ${content.title} - id: ${content.stringID}',
-                        );
+                        customLog('InkWell tapped title: ${content.title} - id: ${content.stringID}');
 
                         // final cache = await AutoCache.data.getJson(
                         //   key: content.stringID,
@@ -251,9 +205,7 @@ class ItemContent extends StatelessWidget {
                         if (context.mounted) {
                           final result = await context.push(
                             RouteName.CONTENTINFO,
-                            extra: ContentInformationArgs(
-                              content: content,
-                            ),
+                            extra: ContentInformationArgs(content: content),
                           );
                           if (result != null) {
                             await appSnackBar.onError(result);
@@ -277,9 +229,7 @@ class ItemContent extends StatelessWidget {
       width: width,
       decoration: BoxDecoration(
         borderRadius: ItemContent._borderRadius.add(BorderRadius.circular(2)),
-        border: valueNotifierList.contains(content.stringID)
-            ? Border.all(color: Colors.white, width: 1.5)
-            : null,
+        border: valueNotifierList.contains(content.stringID) ? Border.all(color: Colors.white, width: 1.5) : null,
       ),
       child: ClipRRect(
         borderRadius: ItemContent._borderRadius,
@@ -306,10 +256,7 @@ class ItemContent extends StatelessWidget {
                 errorWidget: (context, url, error) => const _Placeholder(),
                 memCacheHeight: memCacheHeight,
                 memCacheWidth: memCacheWidth,
-                httpHeaders: {
-                  ...App.HEADERS,
-                  'Referer': '${appConfigController.config.source.baseURL}/',
-                },
+                httpHeaders: {...App.HEADERS, 'Referer': '${appConfigController.config.source.baseURL}/'},
               ),
             ),
             Positioned(
@@ -324,26 +271,20 @@ class ItemContent extends StatelessWidget {
                   if (!_isLibrary && !_isSearch)
                     AnimatedDefaultTextStyle(
                       duration: const Duration(milliseconds: 350),
-                      style: (textTheme.titleSmall ?? const TextStyle())
-                          .copyWith(fontSize: textTheme.titleSmall!.fontSize),
+                      style: (textTheme.titleSmall ?? const TextStyle()).copyWith(
+                        fontSize: textTheme.titleSmall!.fontSize,
+                      ),
                       child: Text.rich(
                         TextSpan(
                           children: [
                             if (content.releases.length == 1) ...[
-                              TextSpan(
-                                text:
-                                    'Episódio ${content.releases.first.number}',
-                              ),
+                              TextSpan(text: 'Episódio ${content.releases.first.number}'),
                               const TextSpan(text: ' - '),
                             ],
                             if (content is Anime) ...[
                               TextSpan(
                                 text: content.isDublado ? 'DUB' : 'LEG',
-                                style: TextStyle(
-                                  color: content.isDublado
-                                      ? Colors.green
-                                      : Colors.blue,
-                                ),
+                                style: TextStyle(color: content.isDublado ? Colors.green : Colors.blue),
                               ),
                             ],
                           ],
@@ -355,9 +296,7 @@ class ItemContent extends StatelessWidget {
                     ),
                   AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 350),
-                    style: _isLibrary
-                        ? textTheme.titleMedium!
-                        : textTheme.titleSmall!.copyWith(),
+                    style: _isLibrary ? textTheme.titleSmall! : textTheme.titleSmall!.copyWith(),
                     child: Text(
                       content.title,
                       maxLines: _isLibrary ? 2 : 1,
@@ -378,9 +317,7 @@ class ItemContent extends StatelessWidget {
                     ? null
                     : () {
                         if (valueNotifierList.isEmpty) {
-                          customLog(
-                            'InkWell long tapped title: ${content.title} - id: ${content.stringID}',
-                          );
+                          customLog('InkWell long tapped title: ${content.title} - id: ${content.stringID}');
                           valueNotifierList.toggle(content.stringID);
                         }
                         // HomeRailMenu.menuControllerMaybeOf(context)?.open();
@@ -390,20 +327,12 @@ class ItemContent extends StatelessWidget {
 
                   if (valueNotifierList.isNotEmpty) {
                     valueNotifierList.toggle(content.stringID);
-                    customLog(
-                      'InkWell tapped title: ${content.title} - id: ${content.stringID}',
-                    );
+                    customLog('InkWell tapped title: ${content.title} - id: ${content.stringID}');
                   } else {
-                    if (content is Anime &&
-                        content.releases.length == 1 &&
-                        !_isLibrary &&
-                        !_isSearch) {
+                    if (content is Anime && content.releases.length == 1 && !_isLibrary && !_isSearch) {
                       await context.push(
                         RouteName.PLAYER,
-                        extra: PlayerArgs(
-                          anime: content,
-                          episode: content.releases.first,
-                        ),
+                        extra: PlayerArgs(anime: content, episode: content.releases.first),
                       );
                     } else {
                       // final saveContent =
@@ -426,10 +355,7 @@ class ItemContent extends StatelessWidget {
                       if (context.mounted) {
                         final result = await context.push(
                           RouteName.CONTENTINFO,
-                          extra: ContentInformationArgs(
-                            content: content,
-                            isLibrary: _isLibrary,
-                          ),
+                          extra: ContentInformationArgs(content: content, isLibrary: _isLibrary),
                         );
 
                         if (result != null) {
@@ -456,9 +382,7 @@ class ItemContent extends StatelessWidget {
 
                           final result = await context.push(
                             RouteName.CONTENTINFO,
-                            extra: ContentInformationArgs(
-                              content: content,
-                            ),
+                            extra: ContentInformationArgs(content: content),
                           );
                           if (result != null) {
                             await appSnackBar.onError(result);
@@ -466,10 +390,7 @@ class ItemContent extends StatelessWidget {
                         }
                       : null,
                   style: ButtonStyle(overlayColor: overlayColor),
-                  visualDensity: const VisualDensity(
-                    horizontal: -2,
-                    vertical: -2,
-                  ),
+                  visualDensity: const VisualDensity(horizontal: -2, vertical: -2),
                   iconSize: 22,
                   icon: Icon(MdiIcons.information),
                 ),
@@ -488,10 +409,7 @@ class _Placeholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
-    return Card.filled(
-      margin: EdgeInsets.zero,
-      color: themeData.colorScheme.primary.withAlpha(10),
-    );
+    return Card.filled(margin: EdgeInsets.zero, color: themeData.colorScheme.primary.withAlpha(10));
   }
 }
 

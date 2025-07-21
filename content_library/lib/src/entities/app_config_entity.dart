@@ -5,13 +5,7 @@ import 'package:isar/isar.dart';
 
 part 'app_config_entity.g.dart';
 
-@Collection(
-  ignore: {
-    'props',
-    'stringify',
-    'hashCode',
-  },
-)
+@Collection(ignore: {'props', 'stringify', 'hashCode'})
 class AppConfigEntity extends OtherEntity {
   @enumerated
   final OrderBy orderBy;
@@ -24,11 +18,7 @@ class AppConfigEntity extends OtherEntity {
   final Source source;
 
   @override
-  List<Object?> get props => [
-        orderBy,
-        reverseContents,
-        source,
-      ];
+  List<Object?> get props => [orderBy, reverseContents, source];
 
   AppConfigEntity({
     required this.orderBy,
@@ -38,11 +28,11 @@ class AppConfigEntity extends OtherEntity {
   });
 
   factory AppConfigEntity.init() => AppConfigEntity(
-        orderBy: OrderBy.LATEST,
-        filterWatching: FilterWatching.dafult(),
-        source: Source.ANROLL,
-        reverseContents: true,
-      );
+    orderBy: OrderBy.LATEST,
+    filterWatching: FilterWatching.dafult(),
+    source: Source.ANROLL,
+    reverseContents: true,
+  );
 
   AppConfigEntity copyWith({
     OrderBy? orderBy,
@@ -72,17 +62,20 @@ class FilterWatching with EquatableMixin {
   final DateTime? end;
   final bool infiniteDate;
   final List<String> genresFilter;
+  @enumerated
+  final List<Source> filterSources;
 
-  factory FilterWatching.dafult() => FilterWatching();
+  factory FilterWatching.dafult() => FilterWatching(filterSources: Source.list);
 
   @override
-  List<Object?> get props => [start, end, infiniteDate, genresFilter];
+  List<Object?> get props => [start, end, infiniteDate, genresFilter, filterSources];
 
   FilterWatching({
     this.start,
     this.end,
     this.infiniteDate = false,
     this.genresFilter = const [],
+    this.filterSources = const [],
   });
 
   FilterWatching copyWith({
@@ -90,12 +83,14 @@ class FilterWatching with EquatableMixin {
     DateTime? end,
     bool? infiniteDate,
     List<String>? genresFilter,
+    List<Source>? filterSources,
   }) {
     return FilterWatching(
       start: start == DateTime(0) ? null : start ?? this.start,
       end: end == DateTime(0) ? null : end ?? this.end,
       infiniteDate: infiniteDate ?? this.infiniteDate,
       genresFilter: genresFilter ?? this.genresFilter,
+      filterSources: filterSources ?? this.filterSources,
     );
   }
 }

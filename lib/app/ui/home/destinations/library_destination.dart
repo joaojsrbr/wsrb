@@ -16,14 +16,11 @@ class LibraryDestination extends StatefulWidget {
   State<LibraryDestination> createState() => LibraryeDestinationState();
 }
 
-class LibraryeDestinationState extends State<LibraryDestination>
-    with AutomaticKeepAliveClientMixin {
+class LibraryeDestinationState extends State<LibraryDestination> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
-  final Debouncer _debouncer = Debouncer(
-    duration: const Duration(milliseconds: 200),
-  );
+  final Debouncer _debouncer = Debouncer(duration: const Duration(milliseconds: 200));
 
   List<List<Content>> _contents = [];
   int? _initialIndex;
@@ -35,15 +32,12 @@ class LibraryeDestinationState extends State<LibraryDestination>
   void initState() {
     super.initState();
 
-    _libraryController = context.read<LibraryController>()
-      ..addListener(_setChildren);
+    _libraryController = context.read<LibraryController>()..addListener(_setChildren);
 
-    _categoryController = context.read<CategoryController>()
-      ..addListener(_setChildren);
+    _categoryController = context.read<CategoryController>()..addListener(_setChildren);
 
     scheduleMicrotask(() {
-      final libraryTabController =
-          HomeScope.of(context).subordinateLibraryTabController;
+      final libraryTabController = HomeScope.of(context).subordinateLibraryTabController;
 
       libraryTabController.parent(context);
     });
@@ -52,10 +46,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
   }
 
   void _setChildren() {
-    final noCategories = _libraryController.repo
-        .byCategories(_categoryController, true)
-        .getContent
-        .toList();
+    final noCategories = _libraryController.repo.byCategories(_categoryController, true).getContent.toList();
 
     final yesCategories = _libraryController.repo.entities
         .categoryByID(context)
@@ -93,21 +84,19 @@ class LibraryeDestinationState extends State<LibraryDestination>
     final searchController = HomeScope.of(context).searchController;
     final String text = searchController.text.toLowerCase().trim();
 
-    final SubordinateLibraryTabController subordinateLibraryTabController =
-        HomeScope.of(context).subordinateLibraryTabController;
+    final SubordinateLibraryTabController subordinateLibraryTabController = HomeScope.of(
+      context,
+    ).subordinateLibraryTabController;
     if (text.isEmpty) {
-      _debouncer.call(
-        () {
-          subordinateLibraryTabController.animateTo(_initialIndex!);
-          _initialIndex = null;
-        },
-      );
+      _debouncer.call(() {
+        subordinateLibraryTabController.animateTo(_initialIndex!);
+        _initialIndex = null;
+      });
 
       return;
     }
 
-    final index = _contents.indexWhere((list) =>
-        list.any((content) => content.title.toLowerCase().contains(text)));
+    final index = _contents.indexWhere((list) => list.any((content) => content.title.toLowerCase().contains(text)));
 
     if (index != -1 && index != subordinateLibraryTabController.index) {
       _initialIndex = subordinateLibraryTabController.index;
@@ -117,11 +106,11 @@ class LibraryeDestinationState extends State<LibraryDestination>
 
   static const _gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
     // maxCrossAxisExtent: 170,
-    crossAxisCount: 2,
+    crossAxisCount: 3,
     childAspectRatio: 1.0,
     crossAxisSpacing: 8,
     mainAxisSpacing: 8,
-    mainAxisExtent: 180,
+    mainAxisExtent: 150,
   );
 
   @override
@@ -130,8 +119,9 @@ class LibraryeDestinationState extends State<LibraryDestination>
 
     // _setChildren();
     customLog('$widget[build]');
-    final SubordinateLibraryTabController subordinateLibraryTabController =
-        HomeScope.of(context).subordinateLibraryTabController;
+    final SubordinateLibraryTabController subordinateLibraryTabController = HomeScope.of(
+      context,
+    ).subordinateLibraryTabController;
     final searchController = HomeScope.of(context).searchController;
     return NotificationListener<ScrollNotification>(
       onNotification: subordinateLibraryTabController.handleScrollNotification,
@@ -219,35 +209,25 @@ class LibraryeDestinationState extends State<LibraryDestination>
           // );
           return TabBarView(
             controller: subordinateLibraryTabController,
-            children: _contents.map(
-              (items) {
-                if (items.isEmpty) return const SizedBox.shrink();
-                final filter = value.text.isNotEmpty
-                    ? items.where((content) => content.title
-                        .toLowerCase()
-                        .trim()
-                        .contains(value.text.toLowerCase().trim()))
-                    : items;
-                if (filter.isEmpty) return const SizedBox.shrink();
-                return GridView.builder(
-                  itemCount: filter.length,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: _gridDelegate,
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.only(
-                    bottom: 40,
-                    left: 8,
-                    right: 8,
-                    top: 12,
-                  ),
-                  itemBuilder: (context, index) {
-                    return ItemContent.library(
-                      content: filter.elementAt(index),
-                    );
-                  },
-                );
-              },
-            ).toList(),
+            children: _contents.map((items) {
+              if (items.isEmpty) return const SizedBox.shrink();
+              final filter = value.text.isNotEmpty
+                  ? items.where(
+                      (content) => content.title.toLowerCase().trim().contains(value.text.toLowerCase().trim()),
+                    )
+                  : items;
+              if (filter.isEmpty) return const SizedBox.shrink();
+              return GridView.builder(
+                itemCount: filter.length,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: _gridDelegate,
+                shrinkWrap: true,
+                padding: const EdgeInsets.only(bottom: 40, left: 8, right: 8, top: 12),
+                itemBuilder: (context, index) {
+                  return ItemContent.library(content: filter.elementAt(index));
+                },
+              );
+            }).toList(),
           );
         },
       ),

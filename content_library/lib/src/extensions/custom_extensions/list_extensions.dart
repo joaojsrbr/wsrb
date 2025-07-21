@@ -11,9 +11,7 @@ extension CustomIterable<E, Id> on Iterable<E> {
   }
 
   List<E> getMax(int max) {
-    return max > length
-        ? toList().sublist(0, length)
-        : toList().sublist(0, max);
+    return max > length ? toList().sublist(0, length) : toList().sublist(0, max);
   }
 }
 
@@ -31,9 +29,9 @@ extension CustomListExtensions<E, Id> on List<E> {
   }
 
   void addIfNoContains(E element, [bool Function(E)? test]) {
-    final _ = any(test ?? (e) => contains(element));
+    final result = any(test ?? (e) => contains(element));
 
-    if (!_) add(element);
+    if (!result) add(element);
   }
 
   void addOrUpdateWhere(E element, bool Function(E) test) {
@@ -45,10 +43,7 @@ extension CustomListExtensions<E, Id> on List<E> {
     }
   }
 
-  bool updateWhere(
-    bool Function(E) test,
-    E Function(E old) update,
-  ) {
+  bool updateWhere(bool Function(E) test, E Function(E old) update) {
     final int indexOf = indexWhere(test);
     if (indexOf != -1) {
       this[indexOf] = update.call(this[indexOf]);
@@ -80,29 +75,32 @@ extension CustomListExtensions<E, Id> on List<E> {
 }
 
 extension EntityListExtensions on Iterable<Entity> {
-  Iterable<Content> get getContent => map((entity) => switch (entity) {
-        AnimeEntity data => data.toAnime(),
-        BookEntity data => data.toBook(),
-        _ => null,
-      }).nonNulls;
+  Iterable<Content> get getContent => map(
+    (entity) => switch (entity) {
+      AnimeEntity data => data.toAnime(),
+      BookEntity data => data.toBook(),
+      _ => null,
+    },
+  ).nonNulls;
 
-  Iterable<Entity> get getCotentEntity => map((entity) => switch (entity) {
-        AnimeEntity data => data,
-        BookEntity data => data,
-        _ => null,
-      }).nonNulls;
+  Iterable<Entity> get getCotentEntity => map(
+    (entity) => switch (entity) {
+      AnimeEntity data => data,
+      BookEntity data => data,
+      _ => null,
+    },
+  ).nonNulls;
 
   Iterable<Iterable<Entity>> categoryByID(BuildContext context) {
-    return context
-        .read<CategoryController>()
-        .categories
-        .map((category) => where((entity) => switch (entity) {
-              AnimeEntity data when data.isFavorite =>
-                category.ids.contains(data.stringID),
-              BookEntity data when data.isFavorite =>
-                category.ids.contains(data.stringID),
-              _ => false,
-            }));
+    return context.read<CategoryController>().categories.map(
+      (category) => where(
+        (entity) => switch (entity) {
+          AnimeEntity data when data.isFavorite => category.ids.contains(data.stringID),
+          BookEntity data when data.isFavorite => category.ids.contains(data.stringID),
+          _ => false,
+        },
+      ),
+    );
   }
 }
 

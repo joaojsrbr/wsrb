@@ -2,9 +2,7 @@
 part of '../content_repository.dart';
 
 class DemonSect extends RSource {
-  DemonSect(
-    super.contentRepository,
-  ) : super(initialIndex: 1);
+  DemonSect(super.contentRepository) : super(initialIndex: 1);
 
   @override
   Source get source => Source.DEMON_SECT;
@@ -33,16 +31,11 @@ class DemonSect extends RSource {
   @override
   Future<bool> loadData() async {
     try {
-      final String subKey =
-          'manga/page/${contentRepository.index}/?s&post_type=wp-manga&m_orderby=${contentRepository.config.orderBy.label}';
+      final String subKey = 'manga/page/${contentRepository.index}/?s&post_type=wp-manga&m_orderby=${contentRepository.config.orderBy.label}';
 
       final String mainURL = '$BASE_URL/$subKey';
 
-      final Response response = await contentRepository._dio.get(
-        mainURL,
-        responseType: ResponseType.plain,
-        headers: App.HEADERS,
-      );
+      final Response response = await contentRepository._dio.get(mainURL, responseType: ResponseType.plain, headers: App.HEADERS);
 
       final Document document = parse(response.data);
 
@@ -53,10 +46,10 @@ class DemonSect extends RSource {
       contentRepository.isSuccess = true;
       contentRepository._hasMore = true;
       return Future.value(false);
-    } on DioException catch (_, __) {
+    } on DioException catch (error, stack) {
       contentRepository.isSuccess = false;
       contentRepository._hasMore = false;
-      customLog('Algo ruím aconteceu', error: _, stackTrace: __);
+      customLog('Algo ruím aconteceu', error: error, stackTrace: stack);
       return Future.value(false);
     }
   }

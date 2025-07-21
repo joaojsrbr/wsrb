@@ -5,4 +5,5 @@
   "dart.sdkPath": "C:\\Users\\joaov\\.puro\\envs\\stable\\flutter\\bin\\cache\\dart-sdk",
   "editor.defaultFormatter": "Dart-Code.dart-code",
   "editor.formatOnSave": true,
+  "dart.lineLength": 120,
 }

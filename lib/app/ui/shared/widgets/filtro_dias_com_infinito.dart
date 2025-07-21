@@ -2,18 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class FiltroDiasComInfinito extends StatefulWidget {
-  final void Function(DateTime? start, DateTime? end, bool dataInfinita)?
-      onChanged;
+  final void Function(DateTime? start, DateTime? end, bool dataInfinita)? onChanged;
   final VoidCallback? onClear;
   final DateTimeRange? current;
   final bool? isInfinite;
-  const FiltroDiasComInfinito({
-    super.key,
-    this.onChanged,
-    this.onClear,
-    this.current,
-    this.isInfinite,
-  });
+  const FiltroDiasComInfinito({super.key, this.onChanged, this.onClear, this.current, this.isInfinite});
 
   @override
   State<FiltroDiasComInfinito> createState() => _FiltroDiasComInfinitoState();
@@ -38,8 +31,7 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
       final end = widget.current!.end;
 
       isInfinite = widget.isInfinite ?? start == DateTime(0);
-      final startDays =
-          isInfinite ? 0.0 : start.difference(startDate).inDays.toDouble();
+      final startDays = isInfinite ? 0.0 : start.difference(startDate).inDays.toDouble();
       final endDays = end.difference(startDate).inDays.toDouble();
 
       _range = RangeValues(startDays, endDays);
@@ -65,9 +57,7 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
         RangeValues tempRange = _range ?? RangeValues(0, totalDays.toDouble());
         bool tempInfinito = isInfinite;
@@ -79,17 +69,12 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Intervalo de dias',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('Intervalo de dias', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(tempInfinito
-                          ? 'De ∞'
-                          : 'De ${_formatDay(tempRange.start)}'),
+                      Text(tempInfinito ? 'De ∞' : 'De ${_formatDay(tempRange.start)}'),
                       Text('Até ${_formatDay(tempRange.end)}'),
                     ],
                   ),
@@ -100,10 +85,7 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
                       min: 0,
                       max: totalDays.toDouble(),
                       divisions: totalDays,
-                      labels: RangeLabels(
-                        tempInfinito ? '∞' : _formatDay(tempRange.start),
-                        _formatDay(tempRange.end),
-                      ),
+                      labels: RangeLabels(tempInfinito ? '∞' : _formatDay(tempRange.start), _formatDay(tempRange.end)),
                       onChanged: (RangeValues values) {
                         setModalState(() {
                           tempRange = values;
@@ -142,18 +124,13 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
 
                           final DateTime? start = tempInfinito
                               ? null
-                              : startDate
-                                  .add(Duration(days: tempRange.start.toInt()));
-                          final DateTime end = startDate
-                              .add(Duration(days: tempRange.end.toInt()));
+                              : startDate.add(Duration(days: tempRange.start.toInt()));
+                          final DateTime end = startDate.add(Duration(days: tempRange.end.toInt()));
 
                           widget.onChanged?.call(start, end, isInfinite);
                           Navigator.pop(context);
                         },
-                        child: Text(
-                          "Aplicar",
-                          style: TextStyle(color: Colors.red),
-                        ),
+                        child: Text("Aplicar", style: TextStyle(color: Colors.red)),
                       ),
                     ],
                   ),
@@ -175,10 +152,7 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Intervalo de dias",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            const Text("Intervalo de dias", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             GestureDetector(
               onTap: _abrirModal,
@@ -187,25 +161,13 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
                 runSpacing: 8,
                 children: [
                   if (_range == null) ...[
-                    Chip(
-                      label: const Text("Selecione..."),
-                      avatar: const Icon(Icons.date_range),
-                    )
+                    Chip(label: const Text("Selecione..."), avatar: const Icon(Icons.date_range)),
                   ] else ...[
                     if (!isInfinite)
-                      Chip(
-                        label: Text('De ${_formatDay(_range!.start)}'),
-                        avatar: const Icon(Icons.calendar_today),
-                      )
+                      Chip(label: Text('De ${_formatDay(_range!.start)}'), avatar: const Icon(Icons.calendar_today))
                     else
-                      const Chip(
-                        label: Text('De ∞'),
-                        avatar: Icon(Icons.calendar_today),
-                      ),
-                    Chip(
-                      label: Text('Até ${_formatDay(_range!.end)}'),
-                      avatar: const Icon(Icons.arrow_forward),
-                    ),
+                      const Chip(label: Text('De ∞'), avatar: Icon(Icons.calendar_today)),
+                    Chip(label: Text('Até ${_formatDay(_range!.end)}'), avatar: const Icon(Icons.arrow_forward)),
                     ActionChip(
                       label: const Text("Limpar"),
                       onPressed: () {
@@ -215,7 +177,7 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
                         });
                         widget.onClear?.call();
                       },
-                    )
+                    ),
                   ],
                 ],
               ),
