@@ -40,6 +40,8 @@ app.*.symbols
 app.*.map.json
 /pubspec.lock
 
+/video_downloader
+
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile
