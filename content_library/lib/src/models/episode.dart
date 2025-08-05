@@ -34,17 +34,17 @@ class Episode extends Release {
 
   @override
   List<Object?> get props => [
-        stringID,
-        title,
-        url,
-        pageNumber,
-        generateID,
-        isDublado,
-        thumbnail,
-        numberEpisode,
-        sinopse,
-        slugSerie,
-      ];
+    stringID,
+    title,
+    url,
+    pageNumber,
+    generateID,
+    isDublado,
+    thumbnail,
+    numberEpisode,
+    sinopse,
+    slugSerie,
+  ];
 
   @override
   String get number {
@@ -60,22 +60,21 @@ class Episode extends Release {
     required Anime anime,
     DateTime? updatedAt,
     DateTime? createdAt,
-  }) =>
-      EpisodeEntity(
-        registrationData: registrationData,
-        title: title,
-        pageNumber: pageNumber,
-        animeStringID: anime.stringID,
-        generateID: generateID,
-        slugSerie: slugSerie,
-        url: url,
-        thumbnail: thumbnail,
-        createdAt: createdAt ?? DateTime.now(),
-        updatedAt: updatedAt ?? DateTime.now(),
-        stringID: stringID,
-        sinopse: sinopse,
-        numberEpisode: int.tryParse(number),
-      );
+  }) => EpisodeEntity(
+    registrationData: registrationData,
+    title: title,
+    pageNumber: pageNumber,
+    animeStringID: anime.stringID,
+    generateID: generateID,
+    slugSerie: slugSerie,
+    url: url,
+    thumbnail: thumbnail,
+    createdAt: createdAt ?? DateTime.now(),
+    updatedAt: updatedAt ?? DateTime.now(),
+    stringID: stringID,
+    sinopse: sinopse,
+    numberEpisode: int.tryParse(number),
+  );
 
   Map<String, dynamic> get toMap {
     return <String, dynamic>{
@@ -97,17 +96,22 @@ class Episode extends Release {
       url: map['url'],
       sinopse: map['sinopse'] != null ? map['sinopse'] as String : null,
       pageNumber: map['pageNumber'] != null ? map['pageNumber'] as int : null,
-      numberEpisode:
-          map['numberEpisode'] != null ? map['numberEpisode'] as int : null,
-      generateID:
-          map['generateID'] != null ? map['generateID'] as String : null,
+      numberEpisode: map['numberEpisode'] != null
+          ? map['numberEpisode'] as int
+          : null,
+      generateID: map['generateID'] != null
+          ? map['generateID'] as String
+          : null,
       thumbnail: map['thumbnail'] != null ? map['thumbnail'] as String : null,
       isDublado: map['isDublado'] as bool,
       slugSerie: map['slugSerie'] != null ? map['slugSerie'] as String : null,
     );
   }
-  factory Episode.fromReleaseMap(Map<String, dynamic> map, Anime anime,
-      [int? pageNumber]) {
+  factory Episode.fromReleaseMap(
+    Map<String, dynamic> map,
+    Anime anime, [
+    int? pageNumber,
+  ]) {
     final number = int.parse(map['n_episodio']);
     final titleEpisode = map['titulo_episodio'] as String;
     final sinopseEpisode = map['sinopse_episodio'] as String?;

@@ -61,7 +61,7 @@ class ReadingScope extends InheritedModel<_ReadingScopeAspect> {
   final bool showFooterWidget;
   final ReaderController readerController;
   final void Function(BuildContext context, TapDownDetails details)
-      onDoubleTapDown;
+  onDoubleTapDown;
   final List<Widget> contents;
   final Chapter? chapter;
 
@@ -81,8 +81,10 @@ class ReadingScope extends InheritedModel<_ReadingScopeAspect> {
   }
 
   static List<Widget> contentsOf(BuildContext context) {
-    final contents =
-        _of(context, _ReadingScopeAspect.READING_CONTENTS).contents;
+    final contents = _of(
+      context,
+      _ReadingScopeAspect.READING_CONTENTS,
+    ).contents;
     return contents;
   }
 
@@ -103,7 +105,9 @@ class ReadingScope extends InheritedModel<_ReadingScopeAspect> {
 
   @override
   bool updateShouldNotifyDependent(
-      ReadingScope oldWidget, Set<_ReadingScopeAspect> dependencies) {
+    ReadingScope oldWidget,
+    Set<_ReadingScopeAspect> dependencies,
+  ) {
     for (final Object dependency in dependencies) {
       if (dependency is _ReadingScopeAspect) {
         switch (dependency) {

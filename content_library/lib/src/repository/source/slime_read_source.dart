@@ -30,15 +30,23 @@ class SlimeReadSource extends RSource {
   Future<bool> loadData() async {
     if (contentRepository.addMore) contentRepository.index++;
 
-    final String apiURL = 'https://morria.slimeread.com:8443/books?page=${contentRepository.index}';
+    final String apiURL =
+        'https://morria.slimeread.com:8443/books?page=${contentRepository.index}';
 
     try {
       // contentRepository._dio.removeInterceptor(_DefaultAppHeadersInterceptor());
-      final Response response = await contentRepository._dio.get(apiURL, headers: {'user-agent': 'PostmanRuntime/7.43.0'}, responseType: ResponseType.json);
+      final Response response = await contentRepository._dio.get(
+        apiURL,
+        headers: {'user-agent': 'PostmanRuntime/7.43.0'},
+        responseType: ResponseType.json,
+      );
 
-      final SlimeReadBookResponse responseDto = SlimeReadBookResponse.fromJson(response.data);
+      final SlimeReadBookResponse responseDto = SlimeReadBookResponse.fromJson(
+        response.data,
+      );
 
-      if (responseDto.pages == contentRepository.index || responseDto.data.isEmpty) {
+      if (responseDto.pages == contentRepository.index ||
+          responseDto.data.isEmpty) {
         contentRepository.isSuccess = false;
         contentRepository._hasMore = false;
         return Future.value(false);
@@ -55,7 +63,9 @@ class SlimeReadSource extends RSource {
           nsfw: responseDto.nsfw,
           slugId: url,
           alternativeTitle: responseDto.bookNameAlternatives,
-          genres: responseDto.bookCategories.map((cat) => Genre(cat.categories.catNamePtBR)).toList(),
+          genres: responseDto.bookCategories
+              .map((cat) => Genre(cat.categories.catNamePtBR))
+              .toList(),
           bookId: responseDto.bookId.toString(),
           releases: releases,
           title: responseDto.bookNameOriginal,
@@ -66,9 +76,16 @@ class SlimeReadSource extends RSource {
 
         final firstBookTempCap = responseDto.bookTemp.first.bookTempCaps.first;
 
-        final chapterUrl = '$BASE_URL/ler/$bookId/cap-${firstBookTempCap.btcCap}';
+        final chapterUrl =
+            '$BASE_URL/ler/$bookId/cap-${firstBookTempCap.btcCap}';
 
-        releases.add(Chapter(url: chapterUrl, bookStringID: book.stringID, title: 'Cap. ${firstBookTempCap.btcCap}'));
+        releases.add(
+          Chapter(
+            url: chapterUrl,
+            bookStringID: book.stringID,
+            title: 'Cap. ${firstBookTempCap.btcCap}',
+          ),
+        );
 
         contentRepository.addIfNoContains(book);
       }

@@ -26,11 +26,13 @@ class AppSnackBar {
 
     // Use SnackBarThemeData if available, otherwise M3-like defaults.
     final backgroundColor =
-        snackBarTheme.backgroundColor ?? Color.lerp(colorScheme.surface, colorScheme.primary, 0.08)!;
+        snackBarTheme.backgroundColor ??
+        Color.lerp(colorScheme.surface, colorScheme.primary, 0.08)!;
 
     // For a tinted surface background, `onSurface` provides better contrast.
     final textStyle =
-        snackBarTheme.contentTextStyle ?? theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface);
+        snackBarTheme.contentTextStyle ??
+        theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface);
 
     await Flushbar(
       backgroundColor: backgroundColor,
@@ -55,7 +57,10 @@ class AppSnackBar {
       flushbarPosition: FlushbarPosition.TOP,
       duration: const Duration(seconds: 4), // Longer duration for errors
       flushbarStyle: FlushbarStyle.GROUNDED,
-      messageText: Text(error.toString().trim(), style: TextStyle(color: colorScheme.onErrorContainer)),
+      messageText: Text(
+        error.toString().trim(),
+        style: TextStyle(color: colorScheme.onErrorContainer),
+      ),
     ).show(context);
   }
 }
@@ -77,5 +82,6 @@ extension AppSnackBarBuildContextExtensions on BuildContext {
   );
 
   /// Shows an error snackbar.
-  Future<void> showErrorSnackBar(Object error) => AppSnackBar.onError(this, error);
+  Future<void> showErrorSnackBar(Object error) =>
+      AppSnackBar.onError(this, error);
 }

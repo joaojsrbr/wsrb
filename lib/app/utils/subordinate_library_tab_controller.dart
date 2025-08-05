@@ -65,7 +65,11 @@ class SubordinateLibraryTabController extends TabController {
   }
 
   /// Cria uma nova instância com estado preservado e descarta a atual
-  SubordinateLibraryTabController copyWithAndDispose({required TickerProvider vsync, int? length, int? initialIndex}) {
+  SubordinateLibraryTabController copyWithAndDispose({
+    required TickerProvider vsync,
+    int? length,
+    int? initialIndex,
+  }) {
     final newController = SubordinateLibraryTabController(
       vsync: vsync,
       length: length ?? this.length,
@@ -82,7 +86,9 @@ class SubordinateScrollController extends ScrollController {
     : super(
         initialScrollOffset: _parent.initialScrollOffset,
         keepScrollOffset: _parent.keepScrollOffset,
-        debugLabel: subordinateDebugLabel != null ? '${_parent.debugLabel}/$subordinateDebugLabel' : _parent.debugLabel,
+        debugLabel: subordinateDebugLabel != null
+            ? '${_parent.debugLabel}/$subordinateDebugLabel'
+            : _parent.debugLabel,
       );
 
   final ScrollController _parent;

@@ -7,7 +7,8 @@ class InLibraryRepository extends InRepository<ContentEntity> {
 
   InLibraryRepository(this._appConfigController);
 
-  UnmodifiableListView<String> get allDownIds => UnmodifiableListView(entities.map(_map2).nonNulls);
+  UnmodifiableListView<String> get allDownIds =>
+      UnmodifiableListView(entities.map(_map2).nonNulls);
 
   UnmodifiableListView<String> get favoritesIDS => UnmodifiableListView(
     entities
@@ -26,8 +27,12 @@ class InLibraryRepository extends InRepository<ContentEntity> {
     entities
         .where(
           (entity) => switch (entity) {
-            AnimeEntity data => data.episodes.any((episode) => episode.isComplete),
-            BookEntity data => data.chapters.any((episode) => episode.isComplete),
+            AnimeEntity data => data.episodes.any(
+              (episode) => episode.isComplete,
+            ),
+            BookEntity data => data.chapters.any(
+              (episode) => episode.isComplete,
+            ),
             _ => false,
           },
         )
@@ -58,30 +63,48 @@ class InLibraryRepository extends InRepository<ContentEntity> {
 
   List<HistoricEntity> getIsarLinks(ContentEntity element) {
     return switch (element) {
-      AnimeEntity data => data.episodes.where((episode) => !episode.isComplete && episode.percent > 0.0).toList(),
-      BookEntity data => data.chapters.where((episode) => !episode.isComplete && episode.percent > 0.0).toList(),
+      AnimeEntity data =>
+        data.episodes
+            .where((episode) => !episode.isComplete && episode.percent > 0.0)
+            .toList(),
+      BookEntity data =>
+        data.chapters
+            .where((episode) => !episode.isComplete && episode.percent > 0.0)
+            .toList(),
       _ => [],
     };
   }
 
   Iterable<HistoricEntity>? getAll(ContentEntity element) {
     return switch (element) {
-      AnimeEntity data => data.episodes.where((episode) => !episode.isComplete && episode.percent > 0.0).toList(),
-      BookEntity data => data.chapters.where((episode) => !episode.isComplete && episode.percent > 0.0).toList(),
+      AnimeEntity data =>
+        data.episodes
+            .where((episode) => !episode.isComplete && episode.percent > 0.0)
+            .toList(),
+      BookEntity data =>
+        data.chapters
+            .where((episode) => !episode.isComplete && episode.percent > 0.0)
+            .toList(),
       _ => null,
     };
   }
 
-  UnmodifiableListView<ContentEntity> get noFavorites =>
-      UnmodifiableListView(entities.where((entity) => !entity.isFavorite).nonNulls);
+  UnmodifiableListView<ContentEntity> get noFavorites => UnmodifiableListView(
+    entities.where((entity) => !entity.isFavorite).nonNulls,
+  );
 
-  UnmodifiableListView<ContentEntity> get favorites =>
-      UnmodifiableListView(entities.where((entity) => entity.isFavorite).nonNulls);
+  UnmodifiableListView<ContentEntity> get favorites => UnmodifiableListView(
+    entities.where((entity) => entity.isFavorite).nonNulls,
+  );
 
-  UnmodifiableListView<String> get noFavoritesIDS =>
-      UnmodifiableListView(entities.where((entity) => !entity.isFavorite).map(_map).nonNulls);
+  UnmodifiableListView<String> get noFavoritesIDS => UnmodifiableListView(
+    entities.where((entity) => !entity.isFavorite).map(_map).nonNulls,
+  );
 
-  CategoryEntity? getContentByStringId(CategoryController categoryController, Content? content) {
+  CategoryEntity? getContentByStringId(
+    CategoryController categoryController,
+    Content? content,
+  ) {
     return switch (content) {
       AnimeEntity data => categoryController.categories.firstWhereOrNull(
         (category) => category.ids.contains(data.stringID),
@@ -93,18 +116,33 @@ class InLibraryRepository extends InRepository<ContentEntity> {
     };
   }
 
-  List<Entity> byCategories(CategoryController categoryController, [bool noCategory = false]) {
+  List<Entity> byCategories(
+    CategoryController categoryController, [
+    bool noCategory = false,
+  ]) {
     return entities
         .where(
           (content) => switch (content) {
-            AnimeEntity data when favoritesIDS.contains(data.stringID) && noCategory =>
-              !categoryController.categories.any((element) => element.ids.contains(data.stringID)),
-            BookEntity data when favoritesIDS.contains(data.stringID) && noCategory =>
-              !categoryController.categories.any((element) => element.ids.contains(data.stringID)),
-            AnimeEntity data when favoritesIDS.contains(data.stringID) && !noCategory =>
-              categoryController.categories.any((element) => element.ids.contains(data.stringID)),
-            BookEntity data when favoritesIDS.contains(data.stringID) && !noCategory =>
-              categoryController.categories.any((element) => element.ids.contains(data.stringID)),
+            AnimeEntity data
+                when favoritesIDS.contains(data.stringID) && noCategory =>
+              !categoryController.categories.any(
+                (element) => element.ids.contains(data.stringID),
+              ),
+            BookEntity data
+                when favoritesIDS.contains(data.stringID) && noCategory =>
+              !categoryController.categories.any(
+                (element) => element.ids.contains(data.stringID),
+              ),
+            AnimeEntity data
+                when favoritesIDS.contains(data.stringID) && !noCategory =>
+              categoryController.categories.any(
+                (element) => element.ids.contains(data.stringID),
+              ),
+            BookEntity data
+                when favoritesIDS.contains(data.stringID) && !noCategory =>
+              categoryController.categories.any(
+                (element) => element.ids.contains(data.stringID),
+              ),
             _ => false,
           },
         )
@@ -119,26 +157,42 @@ class InLibraryRepository extends InRepository<ContentEntity> {
     };
   }
 
-  T? getContentEntityByStringID<T extends ContentEntity>(String animeStringID, {T Function()? orElse}) {
-    return (entities.firstWhereOrNull((content) => _byStringID(content, animeStringID)) ?? orElse?.call()) as T?;
+  T? getContentEntityByStringID<T extends ContentEntity>(
+    String animeStringID, {
+    T Function()? orElse,
+  }) {
+    return (entities.firstWhereOrNull(
+              (content) => _byStringID(content, animeStringID),
+            ) ??
+            orElse?.call())
+        as T?;
   }
 
   bool _byStringID(ContentEntity content, String animeStringID) {
     return switch (content) {
-      AnimeEntity data => data.stringID.contains(animeStringID) || data.animeID?.contains(animeStringID) == true,
+      AnimeEntity data =>
+        data.stringID.contains(animeStringID) ||
+            data.animeID?.contains(animeStringID) == true,
       BookEntity data => data.stringID.contains(animeStringID),
       _ => false,
     };
   }
 
-  ContentEntity? getContentEntityByStringIDAll(String animeStringID, {ContentEntity? Function()? orElse}) {
-    final first = entities.firstWhereOrNull((content) => _byStringID(content, animeStringID));
+  ContentEntity? getContentEntityByStringIDAll(
+    String animeStringID, {
+    ContentEntity? Function()? orElse,
+  }) {
+    final first = entities.firstWhereOrNull(
+      (content) => _byStringID(content, animeStringID),
+    );
 
     return first ?? orElse?.call();
   }
 
   bool containsFav({ContentEntity? contentEntity, Content? content}) {
-    return favoritesIDS.contains(contentEntity?.stringID ?? content?.stringID ?? "");
+    return favoritesIDS.contains(
+      contentEntity?.stringID ?? content?.stringID ?? "",
+    );
   }
 
   String? _map(ContentEntity contentEntity) {

@@ -36,7 +36,8 @@ class CustomCachedNetworkImage extends StatelessWidget {
   final Widget Function(BuildContext, String)? placeholder;
   final Widget Function(BuildContext, String, Object)? errorWidget;
   final Widget Function(BuildContext, ImageProvider<Object>)? imageBuilder;
-  final Widget Function(BuildContext, String, DownloadProgress)? progressIndicatorBuilder;
+  final Widget Function(BuildContext, String, DownloadProgress)?
+  progressIndicatorBuilder;
   final int? memCacheHeight;
   final Map<String, String>? httpHeaders;
   final int? memCacheWidth;
@@ -70,8 +71,16 @@ class CustomCachedNetworkImage extends StatelessWidget {
       );
     } else if (base64 != null) {
       final decode = base64Decode(base64!);
-      final image = ResizeImage(MemoryImage(decode), width: memCacheWidth, height: memCacheHeight);
-      final placeholder = ResizeImage(App.IMAGE_BLACK, width: memCacheWidth, height: memCacheHeight);
+      final image = ResizeImage(
+        MemoryImage(decode),
+        width: memCacheWidth,
+        height: memCacheHeight,
+      );
+      final placeholder = ResizeImage(
+        App.IMAGE_BLACK,
+        width: memCacheWidth,
+        height: memCacheHeight,
+      );
       container = FadeInImage(
         image: image,
         placeholder: placeholder,
@@ -87,10 +96,15 @@ class CustomCachedNetworkImage extends StatelessWidget {
     }
 
     if (shaderCallback != null) {
-      container = ShaderMask(blendMode: blendMode, shaderCallback: shaderCallback!, child: container);
+      container = ShaderMask(
+        blendMode: blendMode,
+        shaderCallback: shaderCallback!,
+        child: container,
+      );
     }
 
-    if (height != null || width != null) container = SizedBox(height: height, width: width, child: container);
+    if (height != null || width != null)
+      container = SizedBox(height: height, width: width, child: container);
 
     if (onTap != null) {
       container = SizedBox(
@@ -102,7 +116,11 @@ class CustomCachedNetworkImage extends StatelessWidget {
             container,
             Material(
               color: Colors.transparent,
-              child: InkWell(onTap: onTap, borderRadius: borderRadius, onLongPress: onLongPress),
+              child: InkWell(
+                onTap: onTap,
+                borderRadius: borderRadius,
+                onLongPress: onLongPress,
+              ),
             ),
           ],
         ),

@@ -30,72 +30,80 @@ class MenuButton<T> extends StatelessWidget {
         padding: const EdgeInsets.only(left: 20, bottom: 4),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 140, maxHeight: 38),
-          child: Builder(builder: (context) {
-            return FilledButton(
-              style: FilledButton.styleFrom(
-                disabledIconColor: Colors.white,
-                disabledBackgroundColor:
-                    Theme.of(context).colorScheme.primaryContainer,
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          child: Builder(
+            builder: (context) {
+              return FilledButton(
+                style: FilledButton.styleFrom(
+                  disabledIconColor: Colors.white,
+                  disabledBackgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-              ),
-              onPressed: (data.length == 1)
-                  ? null
-                  : () async {
-                      final timer = Timer(
-                        const Duration(seconds: 10),
-                        Navigator.of(context).pop,
-                      );
-
-                      final RenderBox? button =
-                          context.findRenderObject() as RenderBox?;
-
-                      final RenderBox? overlay = Navigator.of(context)
-                          .overlay
-                          ?.context
-                          .findRenderObject() as RenderBox?;
-                      if (overlay != null && button != null) {
-                        final size = button.size;
-
-                        final RelativeRect position = RelativeRect.fromRect(
-                          Rect.fromPoints(
-                            button.localToGlobal(size.bottomLeft(Offset.zero)),
-                            button.localToGlobal(size.bottomLeft(Offset.zero)),
-                          ),
-                          Offset(size.width > 100 ? -5 : size.width, -5) &
-                              overlay.size,
+                onPressed: (data.length == 1)
+                    ? null
+                    : () async {
+                        final timer = Timer(
+                          const Duration(seconds: 10),
+                          Navigator.of(context).pop,
                         );
 
-                        final result = await showMenu(
-                          context: context,
-                          position: position,
-                          clipBehavior: Clip.hardEdge,
-                          items: data
-                              .map(
-                                (e) => PopupMenuItem(
-                                  value: e,
-                                  enabled: enableMenuItem?.call(e) ?? true,
-                                  child: ListTile(
-                                    leading: leadingMenuItem?.call(e),
-                                    title: Text(
-                                      e.toString(),
+                        final RenderBox? button =
+                            context.findRenderObject() as RenderBox?;
+
+                        final RenderBox? overlay =
+                            Navigator.of(
+                                  context,
+                                ).overlay?.context.findRenderObject()
+                                as RenderBox?;
+                        if (overlay != null && button != null) {
+                          final size = button.size;
+
+                          final RelativeRect position = RelativeRect.fromRect(
+                            Rect.fromPoints(
+                              button.localToGlobal(
+                                size.bottomLeft(Offset.zero),
+                              ),
+                              button.localToGlobal(
+                                size.bottomLeft(Offset.zero),
+                              ),
+                            ),
+                            Offset(size.width > 100 ? -5 : size.width, -5) &
+                                overlay.size,
+                          );
+
+                          final result = await showMenu(
+                            context: context,
+                            position: position,
+                            clipBehavior: Clip.hardEdge,
+                            items: data
+                                .map(
+                                  (e) => PopupMenuItem(
+                                    value: e,
+                                    enabled: enableMenuItem?.call(e) ?? true,
+                                    child: ListTile(
+                                      leading: leadingMenuItem?.call(e),
+                                      title: Text(e.toString()),
                                     ),
                                   ),
-                                ),
-                              )
-                              .toList(),
-                        );
-                        timer.cancel();
-                        if (result != null) {
-                          onTap?.call(result);
+                                )
+                                .toList(),
+                          );
+                          timer.cancel();
+                          if (result != null) {
+                            onTap?.call(result);
+                          }
                         }
-                      }
-                    },
-              child: child,
-            );
-          }),
+                      },
+                child: child,
+              );
+            },
+          ),
         ),
       ),
     );

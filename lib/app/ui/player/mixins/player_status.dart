@@ -18,11 +18,11 @@ class PlayerStatus with EquatableMixin {
     Duration duration = Duration.zero,
     Duration buffer = Duration.zero,
     bool completed = false,
-  })  : _playing = playing,
-        _position = position,
-        _duration = duration,
-        _buffer = buffer,
-        _completed = completed;
+  }) : _playing = playing,
+       _position = position,
+       _duration = duration,
+       _buffer = buffer,
+       _completed = completed;
 
   PlayerStatus setValue({
     bool? playing,
@@ -53,10 +53,10 @@ class PlayerStatus with EquatableMixin {
 
   @override
   List<Object?> get props => [
-        _playing,
-        _position,
-        _duration,
-        _buffer,
-        _completed,
-      ];
+    _playing,
+    _position,
+    _duration,
+    _buffer,
+    _completed,
+  ];
 }

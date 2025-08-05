@@ -34,9 +34,8 @@ class ReleaseContent<T extends Release> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final DownloadService downloadService = context.watch<DownloadService>();
-    final DownloadInfo? downloadInfo = downloadService.downloadList.firstWhereOrNull(
-      (info) => info.releaseId.contains(release.stringID),
-    );
+    final DownloadInfo? downloadInfo = downloadService.downloadList
+        .firstWhereOrNull((info) => info.releaseId.contains(release.stringID));
 
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -72,7 +71,10 @@ class ReleaseContent<T extends Release> extends StatelessWidget {
     );
 
     if (downloadInfo != null) {
-      container = ChangeNotifierProvider.value(value: downloadInfo, child: container);
+      container = ChangeNotifierProvider.value(
+        value: downloadInfo,
+        child: container,
+      );
     }
 
     return InkWell(
@@ -101,7 +103,13 @@ class _ReleaseSubtitle extends StatelessWidget {
           children: [
             Icon(MdiIcons.clock, size: 16),
             const SizedBox(width: 4),
-            Flexible(child: Text(data.formatRegistrationData(), overflow: TextOverflow.ellipsis, maxLines: 1)),
+            Flexible(
+              child: Text(
+                data.formatRegistrationData(),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
           ],
         ),
       );
@@ -132,7 +140,9 @@ class ReleaseLeading extends StatelessWidget {
     final historicController = context.watch<HistoricController>();
     // final appConfigController = context.watch<AppConfigController>();
     final downloadInfo = context.watch<DownloadInfo?>();
-    final bottomMenuController = BottomMenu.menuControllerMaybeOf<List<String>>(context);
+    final bottomMenuController = BottomMenu.menuControllerMaybeOf<List<String>>(
+      context,
+    );
 
     // Dados do Histórico
     final historic = historicController.repo.getHistoric(release: release);
@@ -146,8 +156,11 @@ class ReleaseLeading extends StatelessWidget {
     // Estado da UI
     final selectedIDs = bottomMenuController?.args ?? const [];
     final isSelected = selectedIDs.contains(release.stringID);
-    final progressColor = isWatched ? colorScheme.primary : colorScheme.secondary;
-    final showDurationLabel = episodeCurrentDuration != Duration.zero && watchPercent > 0;
+    final progressColor = isWatched
+        ? colorScheme.primary
+        : colorScheme.secondary;
+    final showDurationLabel =
+        episodeCurrentDuration != Duration.zero && watchPercent > 0;
 
     // --- 2. Construção do Widget ---
     return AnimatedContainer(
@@ -176,7 +189,10 @@ class ReleaseLeading extends StatelessWidget {
             ),
 
             // Camada 3: Indicador de Progresso de Download (sobrepõe o de visualização se ativo)
-            BuildDownloadProgressIndicator(downloadInfo: downloadInfo, progressColor: progressColor),
+            BuildDownloadProgressIndicator(
+              downloadInfo: downloadInfo,
+              progressColor: progressColor,
+            ),
 
             // Camada 4: Rótulo de Duração (se aplicável)
             if (showDurationLabel)
@@ -216,7 +232,11 @@ class BuildDurationLabel extends StatelessWidget {
 }
 
 class BuildDownloadProgressIndicator extends StatelessWidget {
-  const BuildDownloadProgressIndicator({super.key, required this.downloadInfo, required this.progressColor});
+  const BuildDownloadProgressIndicator({
+    super.key,
+    required this.downloadInfo,
+    required this.progressColor,
+  });
 
   final DownloadInfo? downloadInfo;
   final Color progressColor;
@@ -250,11 +270,15 @@ class BuildThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final thumbnail = (release is Episode) ? (release as Episode).thumbnail : null;
+    final thumbnail = (release is Episode)
+        ? (release as Episode).thumbnail
+        : null;
 
     if (thumbnail == null) {
       // Retorna um placeholder se não houver thumbnail.
-      return Card.filled(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)));
+      return Card.filled(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      );
     }
 
     // final appConfigController = context.read<AppConfigController>();
@@ -300,14 +324,23 @@ class BuildWatchProgressIndicator extends StatelessWidget {
         return currentChild ?? const SizedBox.shrink();
       },
       child: !isSelected
-          ? AnimatedBorderProgressIndicator(value: watchPercent, color: progressColor, strokeWidth: 3, borderRadius: 8)
+          ? AnimatedBorderProgressIndicator(
+              value: watchPercent,
+              color: progressColor,
+              strokeWidth: 3,
+              borderRadius: 8,
+            )
           : const SizedBox.shrink(),
     );
   }
 }
 
 class ReleaseTrailing extends StatelessWidget {
-  const ReleaseTrailing({super.key, required this.release, required this.content});
+  const ReleaseTrailing({
+    super.key,
+    required this.release,
+    required this.content,
+  });
 
   final Release release;
   final Content content;
@@ -322,7 +355,9 @@ class ReleaseTrailing extends StatelessWidget {
     final isDownloaded = releaseFile?.existsSync() ?? false;
 
     // Verifica se o download em progresso é para este 'release' específico.
-    final isDownloadingThisRelease = downloadInfo?.isDownloading == true && downloadInfo?.releaseId == release.stringID;
+    final isDownloadingThisRelease =
+        downloadInfo?.isDownloading == true &&
+        downloadInfo?.releaseId == release.stringID;
 
     final downloadRelease = ContentScope.maybeOf(context)?.downloadRelease;
 
@@ -367,7 +402,8 @@ class ReleaseTrailing extends StatelessWidget {
           final confirm = await _showConfirmationDialog(
             context,
             title: 'Cancelar Download?',
-            content: 'Deseja cancelar o download do episódio ${release.number}?',
+            content:
+                'Deseja cancelar o download do episódio ${release.number}?',
             confirmText: 'SIM, CANCELAR',
           );
           if (confirm && downloadInfo?.id != null && context.mounted) {
@@ -389,12 +425,16 @@ class ReleaseTrailing extends StatelessWidget {
           final confirm = await _showConfirmationDialog(
             context,
             title: 'Deletar Episódio?',
-            content: 'O arquivo baixado do episódio ${release.number} será removido.',
+            content:
+                'O arquivo baixado do episódio ${release.number} será removido.',
             confirmText: 'DELETAR',
             isDestructive: true,
           );
           if (confirm && context.mounted) {
-            await downloadService.deleteReleaseFile(content: content, release: release);
+            await downloadService.deleteReleaseFile(
+              content: content,
+              release: release,
+            );
           }
         },
       );
@@ -418,14 +458,21 @@ class _DownloadProgressIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasProgress = downloadInfo?.videoDuration != null && (downloadInfo?.time ?? 0) > 0.0;
+    final hasProgress =
+        downloadInfo?.videoDuration != null && (downloadInfo?.time ?? 0) > 0.0;
 
     if (!hasProgress) {
       // Exibe um spinner genérico se o progresso ainda não for conhecido.
-      return const SizedBox(width: 28, height: 28, child: CircularProgressIndicator.adaptive(strokeWidth: 3));
+      return const SizedBox(
+        width: 28,
+        height: 28,
+        child: CircularProgressIndicator.adaptive(strokeWidth: 3),
+      );
     }
 
-    final percent = (downloadInfo!.time * 100) / downloadInfo!.videoDuration!.inMilliseconds;
+    final percent =
+        (downloadInfo!.time * 100) /
+        downloadInfo!.videoDuration!.inMilliseconds;
 
     return SizedBox(
       width: 28,
@@ -440,7 +487,12 @@ class _DownloadProgressIndicator extends StatelessWidget {
             backgroundColor: Colors.grey.withOpacity(0.3),
           ),
           Center(
-            child: Text('${percent.ceil()}%', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 9)),
+            child: Text(
+              '${percent.ceil()}%',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontSize: 9),
+            ),
           ),
         ],
       ),
@@ -463,11 +515,18 @@ Future<bool> _showConfirmationDialog(
         title: Text(title),
         content: Text(content),
         actions: [
-          TextButton(child: const Text('NÃO'), onPressed: () => Navigator.of(context).pop(false)),
+          TextButton(
+            child: const Text('NÃO'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
           TextButton(
             child: Text(
               confirmText,
-              style: TextStyle(color: isDestructive ? Colors.red : Theme.of(context).primaryColor),
+              style: TextStyle(
+                color: isDestructive
+                    ? Colors.red
+                    : Theme.of(context).primaryColor,
+              ),
             ),
             onPressed: () => Navigator.of(context).pop(true),
           ),

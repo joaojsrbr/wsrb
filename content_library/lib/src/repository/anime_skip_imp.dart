@@ -33,9 +33,7 @@ class AnimeSkipRepository implements IAnimeSkip {
         },
       ),
       link: HttpLink(
-        defaultHeaders: {
-          'x-client-id': apiKey,
-        },
+        defaultHeaders: {'x-client-id': apiKey},
         App.ANIME_SKIP_API,
       ),
     );

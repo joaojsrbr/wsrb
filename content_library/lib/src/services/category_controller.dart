@@ -30,9 +30,11 @@ class CategoryController extends ChangeNotifier {
   Future<Result<bool>> add(CategoryEntity entity) async {
     final result = await _isarService.add(entity: entity);
     bool dataResult = false;
-    result.fold(onSuccess: (data) {
-      dataResult = data.$1;
-    });
+    result.fold(
+      onSuccess: (data) {
+        dataResult = data.$1;
+      },
+    );
 
     return Result.success(dataResult);
   }
@@ -60,11 +62,9 @@ class CategoryController extends ChangeNotifier {
 
     final categoryColetions = await _isarService.collection<CategoryEntity>();
 
-    _subscriptions.addAll(
-      [
-        categoryColetions.watchLazy().listen(_watchCollection),
-      ],
-    );
+    _subscriptions.addAll([
+      categoryColetions.watchLazy().listen(_watchCollection),
+    ]);
 
     _categories = await categoryColetions.where().findAll();
     elapsed.printAndStop(runtimeType.toString());

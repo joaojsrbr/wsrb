@@ -12,7 +12,9 @@ class _BetterAnimeInterceptor extends Interceptor {
     final betterAnimeCookies = appConfigController.config.betterAnimeCookies;
 
     if (betterAnimeCookies.isNotEmpty && options.path.contains("betteranime")) {
-      final betterAnimeCookieString = ContentCookie.stringifyCookies(betterAnimeCookies);
+      final betterAnimeCookieString = ContentCookie.stringifyCookies(
+        betterAnimeCookies,
+      );
       options.headers["Cookie"] = betterAnimeCookieString;
     }
 
@@ -39,7 +41,9 @@ class BetterAnimeSource extends RSource {
 
       final imageElement = document.querySelector(".infos-img img");
 
-      final originalImage = imageElement != null ? "https:${imageElement.attributes["src"]}" : null;
+      final originalImage = imageElement != null
+          ? "https:${imageElement.attributes["src"]}"
+          : null;
 
       final animeInfoElement = document.querySelector(".anime-info");
 
@@ -50,17 +54,30 @@ class BetterAnimeSource extends RSource {
 
       final title = animeInfoElement?.querySelector("h2.pt-5")?.text;
 
-      final sinopse = animeInfoElement?.querySelector(".anime-description")?.text;
+      final sinopse = animeInfoElement
+          ?.querySelector(".anime-description")
+          ?.text;
 
-      anime = anime.copyWith(title: title, genres: genres, sinopse: sinopse, originalImage: originalImage);
+      anime = anime.copyWith(
+        title: title,
+        genres: genres,
+        sinopse: sinopse,
+        originalImage: originalImage,
+      );
 
-      final episodesElements = document.querySelectorAll(".list-group-item.list-group-item-action");
+      final episodesElements = document.querySelectorAll(
+        ".list-group-item.list-group-item-action",
+      );
 
       for (final Element episodeElement in episodesElements) {
         final url = episodeElement.querySelector("a")?.attributes["href"];
         final episodeTitle = episodeElement.querySelector("a h3")?.text.trim();
         if ({url, episodeTitle}.contains(null)) continue;
-        final episode = Episode(url: url!, title: episodeTitle!, isDublado: anime.isDublado);
+        final episode = Episode(
+          url: url!,
+          title: episodeTitle!,
+          isDublado: anime.isDublado,
+        );
         anime.releases.addOrUpdateWhere(episode, episode.isEqualStringID);
       }
 
@@ -82,21 +99,27 @@ class BetterAnimeSource extends RSource {
         contentRepository.index++;
       }
 
-      final String url = 'https://betteranime.net/ultimosLancamentos?page=${contentRepository.index}';
+      final String url =
+          'https://betteranime.net/ultimosLancamentos?page=${contentRepository.index}';
 
       final response = await contentRepository._dio.get(url);
       final Document document = parse(response.data);
 
-      final elements = document.querySelector("div.list-animes")?.children ?? [];
+      final elements =
+          document.querySelector("div.list-animes")?.children ?? [];
 
       for (final Element articleElement in elements) {
-        final src = articleElement.querySelector(".card-img img")?.attributes["src"];
+        final src = articleElement
+            .querySelector(".card-img img")
+            ?.attributes["src"];
         final thumbnail = "https:$src";
         final cardElement = articleElement.querySelector(".card-title");
 
         if (cardElement == null) continue;
 
-        final episodeUrl = articleElement.querySelector("a")?.attributes["href"];
+        final episodeUrl = articleElement
+            .querySelector("a")
+            ?.attributes["href"];
         final episodeTitle = cardElement.querySelector("h4")?.text;
 
         final parts = episodeUrl?.split(RegExp(r'(?<!/)/(?!/)'));
@@ -106,7 +129,14 @@ class BetterAnimeSource extends RSource {
         final isDublado = parts!.contains("dublado");
 
         final episodeReleases = EpisodeReleases()
-          ..add(Episode(url: episodeUrl!, title: episodeTitle!, isDublado: isDublado, thumbnail: thumbnail));
+          ..add(
+            Episode(
+              url: episodeUrl!,
+              title: episodeTitle!,
+              isDublado: isDublado,
+              thumbnail: thumbnail,
+            ),
+          );
 
         final animeTitle = cardElement.querySelector("h3")?.text;
         final slugSerie = parts[parts.length - 2];
@@ -150,13 +180,19 @@ class BetterAnimeSource extends RSource {
       final response = await contentRepository._dio.get(url);
       final Document document = parse(response.data);
 
-      final episodesElements = document.querySelectorAll(".list-group-item.list-group-item-action");
+      final episodesElements = document.querySelectorAll(
+        ".list-group-item.list-group-item-action",
+      );
 
       for (final Element episodeElement in episodesElements) {
         final url = episodeElement.querySelector("a")?.attributes["href"];
         final episodeTitle = episodeElement.querySelector("a h3")?.text.trim();
         if ({url, episodeTitle}.contains(null)) continue;
-        final episode = Episode(url: url!, title: episodeTitle!, isDublado: anime.isDublado);
+        final episode = Episode(
+          url: url!,
+          title: episodeTitle!,
+          isDublado: anime.isDublado,
+        );
         content.releases.addOrUpdateWhere(episode, episode.isEqualStringID);
       }
       return Result.success(anime);
@@ -188,7 +224,9 @@ class BetterAnimeSource extends RSource {
       final videoDataList = await _fetchAllQualities(qualityMap, token, url);
       final validData = videoDataList.whereType<VideoData>().toList();
 
-      return validData.isNotEmpty ? Result.success(validData) : Result.failure(Exception("Nenhum vídeo encontrado"));
+      return validData.isNotEmpty
+          ? Result.success(validData)
+          : Result.failure(Exception("Nenhum vídeo encontrado"));
     } on DioException catch (error) {
       return Result.failure(error);
     } on LoadDataException catch (error) {
@@ -226,16 +264,22 @@ class BetterAnimeSource extends RSource {
   Source get source => Source.BETTER_ANIME;
 
   void _onSolve(List<ContentCookie> cookies) async {
-    await contentRepository._appConfigController?.setBetterAnimeCookies(cookies);
+    await contentRepository._appConfigController?.setBetterAnimeCookies(
+      cookies,
+    );
     contentRepository.contentChallenge.value = NoChallenge();
     await contentRepository.refresh(true);
   }
 
   Future<bool> _needLogin() async {
-    final response = await contentRepository._dio.get("https://betteranime.net");
+    final response = await contentRepository._dio.get(
+      "https://betteranime.net",
+    );
     final Document document = parse(response.data);
 
-    final form = document.querySelector('form[action="https://betteranime.net/validateCaptcha"]');
+    final form = document.querySelector(
+      'form[action="https://betteranime.net/validateCaptcha"]',
+    );
 
     if (form != null) {
       contentRepository.contentChallenge.value = BetterAnimeChallenge(
@@ -246,9 +290,12 @@ class BetterAnimeSource extends RSource {
       return true;
     }
 
-    final betterAnimeCookies = contentRepository._appConfigController?.config.betterAnimeCookies ?? [];
+    final betterAnimeCookies =
+        contentRepository._appConfigController?.config.betterAnimeCookies ?? [];
 
-    final sessionCookie = betterAnimeCookies.firstWhereOrNull((cookie) => cookie.key.contains("betteranime_session"));
+    final sessionCookie = betterAnimeCookies.firstWhereOrNull(
+      (cookie) => cookie.key.contains("betteranime_session"),
+    );
 
     if (sessionCookie == null) {
       contentRepository.contentChallenge.value = BetterAnimeChallenge(
@@ -275,7 +322,9 @@ class BetterAnimeSource extends RSource {
 
   Element? _findScriptWithToken(Document doc) {
     final regex = RegExp(r'_token\s*:\s*"([^"]+)"');
-    return doc.getElementsByTagName('script').firstWhereOrNull((el) => regex.hasMatch(el.text));
+    return doc
+        .getElementsByTagName('script')
+        .firstWhereOrNull((el) => regex.hasMatch(el.text));
   }
 
   String? _extractToken(String scriptText) {
@@ -298,7 +347,11 @@ class BetterAnimeSource extends RSource {
     return map;
   }
 
-  Future<List<VideoData?>> _fetchAllQualities(Map<String, String> qualityMap, String token, String refererUrl) async {
+  Future<List<VideoData?>> _fetchAllQualities(
+    Map<String, String> qualityMap,
+    String token,
+    String refererUrl,
+  ) async {
     final futures = qualityMap.entries.map((entry) async {
       try {
         final response = await contentRepository._dio.post(
@@ -321,7 +374,9 @@ class BetterAnimeSource extends RSource {
           httpHeaders: {'referer': refererUrl, 'user-agent': 'Mozilla/5.0'},
           quality:
               Quality.values.firstWhereOrNull(
-                (quality) => quality.label.toLowerCase().contains(entry.key.toLowerCase()),
+                (quality) => quality.label.toLowerCase().contains(
+                  entry.key.toLowerCase(),
+                ),
               ) ??
               Quality.NONE,
         );

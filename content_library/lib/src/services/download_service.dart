@@ -20,11 +20,17 @@ class DownloadService extends ChangeNotifier {
     required int sessionId,
   }) async {
     await FFmpegKit.cancel(sessionId);
-    downloadList.removeWhere((element) => release.stringID == element.releaseId);
+    downloadList.removeWhere(
+      (element) => release.stringID == element.releaseId,
+    );
     notifyListeners();
   }
 
-  Future<bool> deleteReleaseFile({String? path, required Content content, required Release release}) async {
+  Future<bool> deleteReleaseFile({
+    String? path,
+    required Content content,
+    required Release release,
+  }) async {
     final file = AppStorage.getReleaseFile(content, release);
 
     if (file != null) {
@@ -51,13 +57,16 @@ class DownloadService extends ChangeNotifier {
     void Function(Result result)? onResult,
   }) async {
     if (await PermissionUtils.manageExternalStorage() && content is Anime) {
-      final videoData = await repository.source(content.source).getContent(release);
+      final videoData = await repository
+          .source(content.source)
+          .getContent(release);
 
       videoData.fold(
         onSuccess: (success) async {
           final selected = success.first as VideoData;
 
-          if (selected.videoContent.contains('m3u8') || content.source == Source.GOYABU) {
+          if (selected.videoContent.contains('m3u8') ||
+              content.source == Source.GOYABU) {
             final releaseDir = Directory(
               '${AppStorage.DOWNLOAD_DIR.path}/${content.source.label.capitalize}/${content.title.toID}',
             );
@@ -67,7 +76,8 @@ class DownloadService extends ChangeNotifier {
             }
 
             List<String> args = [
-              for (final header in (selected.httpHeaders ?? <String, String>{}).entries)
+              for (final header
+                  in (selected.httpHeaders ?? <String, String>{}).entries)
                 '-headers "${header.key.capitalize}: ${header.value}"',
               '-i',
               '"${selected.videoContent}"',
@@ -80,7 +90,8 @@ class DownloadService extends ChangeNotifier {
 
             await FFprobeKit.getMediaInformationFromCommand(
               [
-                for (final header in (selected.httpHeaders ?? <String, String>{}).entries)
+                for (final header
+                    in (selected.httpHeaders ?? <String, String>{}).entries)
                   '-headers "${header.key.capitalize}: ${header.value}"',
                 '-i',
                 '"${selected.videoContent}"',
@@ -119,7 +130,9 @@ class DownloadService extends ChangeNotifier {
               (session) async {
                 final returnCode = await session.getReturnCode();
 
-                final info = downloadList.firstWhereOrNull((info) => info.releaseId == release.stringID);
+                final info = downloadList.firstWhereOrNull(
+                  (info) => info.releaseId == release.stringID,
+                );
 
                 if (info != null) {
                   info.setValue(isDownloading: false);
@@ -201,7 +214,8 @@ class DownloadInfo with ChangeNotifier {
     this.isDownloading = false,
   });
 
-  String getStringDownloadPercent() => '${(((time * 100) / videoDuration!.inMilliseconds)).ceil().toString()}%';
+  String getStringDownloadPercent() =>
+      '${(((time * 100) / videoDuration!.inMilliseconds)).ceil().toString()}%';
 
   String getSpeedString() => ' - speed: ${speed.toStringAsFixed(2)}';
 

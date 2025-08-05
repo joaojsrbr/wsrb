@@ -28,13 +28,7 @@ class Chapter extends Release {
   }
 
   @override
-  List<Object?> get props => [
-        title,
-        url,
-        read,
-        stringID,
-        bookStringID,
-      ];
+  List<Object?> get props => [title, url, read, stringID, bookStringID];
 
   Map<String, dynamic> get toMap {
     return <String, dynamic>{

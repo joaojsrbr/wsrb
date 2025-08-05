@@ -37,20 +37,29 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _bottomSheetAnimationController = BottomSheet.createAnimationController(this);
-    _tabController = TabController(vsync: this, length: 3)..addListener(_tabControllerListener);
+    _bottomSheetAnimationController = BottomSheet.createAnimationController(
+      this,
+    );
+    _tabController = TabController(vsync: this, length: 3)
+      ..addListener(_tabControllerListener);
 
-    _scrollController = ScrollController()..addListener(_scrollControllerListener);
+    _scrollController = ScrollController()
+      ..addListener(_scrollControllerListener);
 
     _keepWatchingScrollController = ScrollController();
 
     _searchController = CustomSearchController();
 
-    _categoryController = context.read<CategoryController>()..addListener(_startTabController);
+    _categoryController = context.read<CategoryController>()
+      ..addListener(_startTabController);
 
-    _valueNotifierList = context.read<ValueNotifierList>()..addListener(_valueNotifierListListener);
+    _valueNotifierList = context.read<ValueNotifierList>()
+      ..addListener(_valueNotifierListListener);
 
-    _bottomMenuController = BottomMenuController(minHeight: 60, initialArgs: null);
+    _bottomMenuController = BottomMenuController(
+      minHeight: 60,
+      initialArgs: null,
+    );
 
     _startTabController(false);
   }
@@ -73,23 +82,33 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
     if (dispose) {
       setState(() {
-        _subordinateLibraryTabController = _subordinateLibraryTabController.copyWithAndDispose(
-          length: length,
-          vsync: this,
-          initialIndex: _subordinateLibraryTabController.index > length - 1
-              ? _subordinateLibraryTabController.index - 1
-              : _subordinateLibraryTabController.index,
-        );
+        _subordinateLibraryTabController = _subordinateLibraryTabController
+            .copyWithAndDispose(
+              length: length,
+              vsync: this,
+              initialIndex: _subordinateLibraryTabController.index > length - 1
+                  ? _subordinateLibraryTabController.index - 1
+                  : _subordinateLibraryTabController.index,
+            );
       });
     } else {
-      _subordinateLibraryTabController = SubordinateLibraryTabController(vsync: this, initialIndex: 0, length: length);
+      _subordinateLibraryTabController = SubordinateLibraryTabController(
+        vsync: this,
+        initialIndex: 0,
+        length: length,
+      );
     }
   }
 
   void _scrollControllerListener() {
     addPostFrameCallback((timer) {
-      if (_scrollController.position.pixels <= 10.0 && _keepWatchingScrollController.hasClients) {
-        _keepWatchingScrollController.animateTo(0, duration: const Duration(milliseconds: 450), curve: Curves.ease);
+      if (_scrollController.position.pixels <= 10.0 &&
+          _keepWatchingScrollController.hasClients) {
+        _keepWatchingScrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.ease,
+        );
       }
     });
   }
@@ -101,7 +120,11 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     addPostFrameCallback((timer) {
       if (mounted) context.unFocusKeyBoard();
 
-      _scrollController.animateTo(0, duration: const Duration(milliseconds: 450), curve: Curves.ease);
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.ease,
+      );
     });
   }
 
@@ -128,6 +151,29 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     await contentRepository.refresh(true);
   }
 
+  List<Widget> _headerSliverBuilder(
+    BuildContext context,
+    bool innerBoxIsScrolled,
+  ) {
+    final tabController = HomeScope.of(context).tabController;
+    final List<Widget> slivers = [];
+
+    slivers.add(const HomeSliverAppBar());
+
+    if (tabController.index == 0) {
+      slivers.add(
+        CupertinoSliverRefreshControl(
+          refreshTriggerPullDistance: 130,
+          onRefresh: _onRefresh,
+        ),
+      );
+    }
+
+    slivers.add(const _HomeButtonMenuSliver());
+
+    return slivers;
+  }
+
   @override
   Widget build(BuildContext context) {
     customLog('$widget[build]');
@@ -140,33 +186,27 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         homeController: _scrollController,
         subordinateLibraryTabController: _subordinateLibraryTabController,
         searchController: _searchController,
-        enabled: TickerMode.of(context),
+
         tabController: _tabController,
-        builder: (context) {
-          final tabController = HomeScope.of(context).tabController;
-          return BottomMenu(
-            isDismissible: false,
-            bottomMenuController: _bottomMenuController,
-            child: NestedScrollViewPlus(
-              overscrollBehavior: OverscrollBehavior.outer,
-              controller: _scrollController,
-              physics: _mainPhysics,
-              headerSliverBuilder: (context, innerBoxIsScrolled) {
-                return [
-                  const HomeSliverAppBar(),
-                  if (tabController.index == 0)
-                    CupertinoSliverRefreshControl(refreshTriggerPullDistance: 130, onRefresh: _onRefresh),
-                  const _HomeButtonMenuSliver(),
-                ];
-              },
-              body: TabBarView(
-                physics: _tabPhysics,
-                controller: _tabController,
-                children: const [ContentDestination(), HistoryDestination(), LibraryDestination()],
-              ),
+        child: BottomMenu(
+          isDismissible: false,
+          bottomMenuController: _bottomMenuController,
+          child: NestedScrollViewPlus(
+            overscrollBehavior: OverscrollBehavior.outer,
+            controller: _scrollController,
+            physics: _mainPhysics,
+            headerSliverBuilder: _headerSliverBuilder,
+            body: TabBarView(
+              physics: _tabPhysics,
+              controller: _tabController,
+              children: const [
+                ContentDestination(),
+                HistoryDestination(),
+                LibraryDestination(),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -194,9 +234,13 @@ class _HomeButtonMenuSliver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TabController tabController = HomeScope.of(context).tabController;
-    final subordinateLibraryTabController = HomeScope.of(context).subordinateLibraryTabController;
-    final CategoryController categoryController = context.watch<CategoryController>();
-    final AppConfigController appConfigController = context.watch<AppConfigController>();
+    final subordinateLibraryTabController = HomeScope.of(
+      context,
+    ).subordinateLibraryTabController;
+    final CategoryController categoryController = context
+        .watch<CategoryController>();
+    final AppConfigController appConfigController = context
+        .watch<AppConfigController>();
     return SliverAnimatedPaintExtent(
       duration: const Duration(milliseconds: 350),
       child: SliverToBoxAdapter(
@@ -204,7 +248,9 @@ class _HomeButtonMenuSliver extends StatelessWidget {
             ? TabBar(
                 tabAlignment: TabAlignment.start,
                 controller: subordinateLibraryTabController,
-                tabs: categoryController.categories.map<Widget>((CategoryEntity entity) {
+                tabs: categoryController.categories.map<Widget>((
+                  CategoryEntity entity,
+                ) {
                   return GestureDetector(
                     onLongPress: () {
                       CategoryHelper.openCategoryCreator(context, entity);
@@ -218,7 +264,9 @@ class _HomeButtonMenuSliver extends StatelessWidget {
                 width: double.infinity,
                 height: tabController.index == 0 ? 58 : 0,
                 child: ListView(
-                  padding: tabController.index != 0 ? EdgeInsets.zero : EdgeInsets.only(right: 12, top: 12),
+                  padding: tabController.index != 0
+                      ? EdgeInsets.zero
+                      : EdgeInsets.only(right: 12, top: 12),
                   physics: const BouncingScrollPhysics(),
                   scrollDirection: Axis.horizontal,
                   shrinkWrap: true,
@@ -227,12 +275,14 @@ class _HomeButtonMenuSliver extends StatelessWidget {
                       data: Source.list,
                       onTap: appConfigController.setSource,
                       enableSecondChild: tabController.index != 0,
-                      enableMenuItem: (data) => !(appConfigController.config.source == data),
+                      enableMenuItem: (data) =>
+                          !(appConfigController.config.source == data),
                       child: Text(
                         appConfigController.config.source.toString(),
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleSmall?.copyWith(letterSpacing: 1.2, color: Colors.white),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          letterSpacing: 1.2,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
 

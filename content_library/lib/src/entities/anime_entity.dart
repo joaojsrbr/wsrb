@@ -12,7 +12,17 @@ import 'package:isar/isar.dart';
 
 part 'anime_entity.g.dart';
 
-@Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toAnime', 'map', 'aniList'})
+@Collection(
+  ignore: {
+    'props',
+    'imageUrl',
+    'stringify',
+    'hashCode',
+    'toAnime',
+    'map',
+    'aniList',
+  },
+)
 class AnimeEntity extends ContentEntity {
   final String? animeID;
 
@@ -56,7 +66,8 @@ class AnimeEntity extends ContentEntity {
   });
 
   @override
-  String get imageUrl => extraLarge ?? largeImage ?? mediumImage ?? originalImage;
+  String get imageUrl =>
+      extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   @override
   List<Object?> get props => [
@@ -105,7 +116,9 @@ class AnimeEntity extends ContentEntity {
       slugSerie: slugSerie,
       source: source,
       sinopse: sinopse,
-      releases: EpisodeReleases.from(episodes.map((entity) => entity.toEpisode(isDublado)).toList()),
+      releases: EpisodeReleases.from(
+        episodes.map((entity) => entity.toEpisode(isDublado)).toList(),
+      ),
       originalImage: originalImage,
       extraLarge: extraLarge,
       largeImage: largeImage,

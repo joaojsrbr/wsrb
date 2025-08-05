@@ -12,9 +12,13 @@ class CategoryHelper {
     final ValueNotifierList selection = context.read<ValueNotifierList>();
     final CategoryController controller = context.read<CategoryController>();
 
-    final filteredCategories = controller.categories.where((item) => item.ids.containsOneElement(selection));
+    final filteredCategories = controller.categories.where(
+      (item) => item.ids.containsOneElement(selection),
+    );
 
-    final _CategorySelection selectionState = _CategorySelection(filteredCategories);
+    final _CategorySelection selectionState = _CategorySelection(
+      filteredCategories,
+    );
 
     final dialogResult = await showDialog(
       context: context,
@@ -32,13 +36,16 @@ class CategoryHelper {
                 : SingleChildScrollView(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: List.generate(controller.categories.length, (i) {
+                      children: List.generate(controller.categories.length, (
+                        i,
+                      ) {
                         final category = controller.categories.elementAt(i);
                         return CheckboxListTile.adaptive(
                           value: selectionNotifier.contains(category),
                           title: Text(category.title),
                           onChanged: (isChecked) {
-                            if (isChecked != null) selectionNotifier.toggle(category);
+                            if (isChecked != null)
+                              selectionNotifier.toggle(category);
                           },
                         );
                       }),
@@ -46,21 +53,31 @@ class CategoryHelper {
                   ),
             actions: [
               TextButton(
-                style: const ButtonStyle(visualDensity: VisualDensity(horizontal: -4)),
+                style: const ButtonStyle(
+                  visualDensity: VisualDensity(horizontal: -4),
+                ),
                 onPressed: () => Navigator.of(context).pop("newCategory"),
-                child: controller.categories.isEmpty ? const Text('Editar Categorias') : const Text('Editar'),
+                child: controller.categories.isEmpty
+                    ? const Text('Editar Categorias')
+                    : const Text('Editar'),
               ),
               if (controller.categories.isNotEmpty)
                 OverflowBar(
                   children: [
                     TextButton(
-                      style: const ButtonStyle(visualDensity: VisualDensity(horizontal: -4)),
+                      style: const ButtonStyle(
+                        visualDensity: VisualDensity(horizontal: -4),
+                      ),
                       onPressed: Navigator.of(context).pop,
                       child: const Text('Cancelar'),
                     ),
                     TextButton(
-                      style: const ButtonStyle(visualDensity: VisualDensity(horizontal: -4)),
-                      onPressed: () => Navigator.of(context).pop(('applyChanges', selectionNotifier)),
+                      style: const ButtonStyle(
+                        visualDensity: VisualDensity(horizontal: -4),
+                      ),
+                      onPressed: () => Navigator.of(
+                        context,
+                      ).pop(('applyChanges', selectionNotifier)),
                       child: const Text('OK'),
                     ),
                   ],
@@ -80,17 +97,24 @@ class CategoryHelper {
           await openCategoryCreator(context);
         });
         break;
-      case (String tag, List<CategoryEntity> selected) when tag.contains('applyChanges'):
+      case (String tag, List<CategoryEntity> selected)
+          when tag.contains('applyChanges'):
         final List<Future<void>> operations = [];
 
         for (final category in controller.categories) {
-          final shouldRetain = selected.contains(category) && category.ids.containsOneElement(selection);
+          final shouldRetain =
+              selected.contains(category) &&
+              category.ids.containsOneElement(selection);
           if (!shouldRetain) {
             final newIds = List<String>.from(category.ids)
               ..removeWhere(selection.contains)
               ..unique();
 
-            operations.add(controller.add(category.copyWith(ids: newIds, updatedAt: DateTime.now())));
+            operations.add(
+              controller.add(
+                category.copyWith(ids: newIds, updatedAt: DateTime.now()),
+              ),
+            );
           }
         }
 
@@ -99,7 +123,11 @@ class CategoryHelper {
             ..addAll(selection)
             ..unique();
 
-          operations.add(controller.add(category.copyWith(ids: newIds, updatedAt: DateTime.now())));
+          operations.add(
+            controller.add(
+              category.copyWith(ids: newIds, updatedAt: DateTime.now()),
+            ),
+          );
         }
 
         await Future.wait(operations);
@@ -108,7 +136,10 @@ class CategoryHelper {
     }
   }
 
-  static Future<void> openCategoryCreator(BuildContext context, [CategoryEntity? entity]) async {
+  static Future<void> openCategoryCreator(
+    BuildContext context, [
+    CategoryEntity? entity,
+  ]) async {
     final textController = TextEditingController();
     final formKey = GlobalKey<FormState>();
     final updateEntity = ValueNotifier<CategoryEntity?>(entity);
@@ -117,13 +148,18 @@ class CategoryHelper {
     final controller = context.read<CategoryController>();
     if (entity != null) {
       textController.text = entity.title.trim();
-      textController.selection = TextSelection.collapsed(offset: textController.text.length);
+      textController.selection = TextSelection.collapsed(
+        offset: textController.text.length,
+      );
     }
 
     void persistCategory() async {
       if (formKey.currentState?.validate() ?? false) {
         final title = textController.text.trim();
-        final newEntity = CategoryEntity(title: title, createdAt: DateTime.now());
+        final newEntity = CategoryEntity(
+          title: title,
+          createdAt: DateTime.now(),
+        );
         textController.clear();
         await controller.add(newEntity);
       }
@@ -142,7 +178,9 @@ class CategoryHelper {
         ],
         builder: (context, _) {
           final ctrl = context.watch<TextEditingController>();
-          final currentEntity = context.watch<ValueNotifier<CategoryEntity?>>().value;
+          final currentEntity = context
+              .watch<ValueNotifier<CategoryEntity?>>()
+              .value;
           final widgetStates = context.watch<WidgetStatesController>();
 
           return Form(
@@ -167,7 +205,13 @@ class CategoryHelper {
                           overlayColor: _Defaults(context).overlayColor,
                           customBorder: _InputShape()
                               .resolve(states.value)
-                              ?.copyWith(side: _Defaults(context).side?.resolve(states.value) ?? BorderSide.none),
+                              ?.copyWith(
+                                side:
+                                    _Defaults(
+                                      context,
+                                    ).side?.resolve(states.value) ??
+                                    BorderSide.none,
+                              ),
                           statesController: widgetStates,
                           child: TextFormField(
                             controller: ctrl,
@@ -176,14 +220,20 @@ class CategoryHelper {
                             validator: (text) {
                               final trimmed = text?.trim() ?? '';
                               if (trimmed.isEmpty) return 'campo obrigatório*';
-                              if (trimmed.length < 3) return 'mínimo de 3 caracteres.';
+                              if (trimmed.length < 3)
+                                return 'mínimo de 3 caracteres.';
                               return null;
                             },
                             onFieldSubmitted: (_) {
                               if (currentEntity != null) {
-                                if (!(formKey.currentState?.validate() ?? false)) return;
+                                if (!(formKey.currentState?.validate() ??
+                                    false))
+                                  return;
                                 context.read<CategoryController>().add(
-                                  currentEntity.copyWith(title: ctrl.text.trim(), updatedAt: DateTime.now()),
+                                  currentEntity.copyWith(
+                                    title: ctrl.text.trim(),
+                                    updatedAt: DateTime.now(),
+                                  ),
                                 );
                                 ctrl.clear();
                                 updateEntity.value = null;
@@ -195,19 +245,33 @@ class CategoryHelper {
                             },
                             decoration: InputDecoration(
                               labelText: 'Nome',
-                              hintStyle: _Defaults(context).hintStyle?.resolve(states.value),
+                              hintStyle: _Defaults(
+                                context,
+                              ).hintStyle?.resolve(states.value),
                               border: _inputBorder(context),
                               enabledBorder: _inputBorder(context),
                               focusedBorder: _inputBorder(context),
-                              focusedErrorBorder: _inputBorder(context, error: true),
+                              focusedErrorBorder: _inputBorder(
+                                context,
+                                error: true,
+                              ),
                               errorBorder: _inputBorder(context, error: true),
                               suffixIcon: IconButton(
-                                icon: Icon(currentEntity != null ? MdiIcons.pencilBox : MdiIcons.plus),
+                                icon: Icon(
+                                  currentEntity != null
+                                      ? MdiIcons.pencilBox
+                                      : MdiIcons.plus,
+                                ),
                                 onPressed: () {
                                   if (currentEntity != null) {
-                                    if (!(formKey.currentState?.validate() ?? false)) return;
+                                    if (!(formKey.currentState?.validate() ??
+                                        false))
+                                      return;
                                     context.read<CategoryController>().add(
-                                      currentEntity.copyWith(title: ctrl.text.trim(), updatedAt: DateTime.now()),
+                                      currentEntity.copyWith(
+                                        title: ctrl.text.trim(),
+                                        updatedAt: DateTime.now(),
+                                      ),
                                     );
                                     ctrl.clear();
                                     updateEntity.value = null;
@@ -217,14 +281,23 @@ class CategoryHelper {
                                   persistCategory();
                                 },
                               ),
-                              suffixIconColor: Theme.of(context).colorScheme.primary,
-                              suffixIconConstraints: const BoxConstraints(maxWidth: 50),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 15),
+                              suffixIconColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
+                              suffixIconConstraints: const BoxConstraints(
+                                maxWidth: 50,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 15,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                      const Padding(padding: EdgeInsets.only(top: 20, bottom: 12, left: 18), child: Text('Categorias')),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 20, bottom: 12, left: 18),
+                        child: Text('Categorias'),
+                      ),
                       Expanded(
                         child: Consumer<CategoryController>(
                           builder: (_, provider, __) => ListView.builder(
@@ -236,7 +309,9 @@ class CategoryHelper {
                                 title: Text(cat.title),
                                 onLongPress: () {
                                   ctrl.text = cat.title;
-                                  ctrl.selection = TextSelection.collapsed(offset: ctrl.text.length);
+                                  ctrl.selection = TextSelection.collapsed(
+                                    offset: ctrl.text.length,
+                                  );
                                   updateEntity.value = cat;
                                   focus.requestFocus();
                                 },
@@ -274,25 +349,34 @@ class _Defaults extends SearchBarThemeData {
   late final TextTheme text = Theme.of(context).textTheme;
 
   @override
-  WidgetStateProperty<TextStyle?>? get hintStyle =>
-      WidgetStatePropertyAll(text.bodyLarge?.copyWith(color: colors.onSurfaceVariant));
+  WidgetStateProperty<TextStyle?>? get hintStyle => WidgetStatePropertyAll(
+    text.bodyLarge?.copyWith(color: colors.onSurfaceVariant),
+  );
 
   @override
-  WidgetStateProperty<Color?>? get overlayColor => WidgetStateProperty.resolveWith((states) {
-    if (states.contains(WidgetState.pressed)) return colors.onSurface.withAlpha(30);
-    if (states.contains(WidgetState.hovered)) return colors.onSurface.withAlpha(20);
-    return Colors.transparent;
-  });
+  WidgetStateProperty<Color?>? get overlayColor =>
+      WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.pressed))
+          return colors.onSurface.withAlpha(30);
+        if (states.contains(WidgetState.hovered))
+          return colors.onSurface.withAlpha(20);
+        return Colors.transparent;
+      });
 
   @override
-  WidgetStateProperty<BorderSide?>? get side => WidgetStatePropertyAll(BorderSide(color: colors.primary.withAlpha(26)));
+  WidgetStateProperty<BorderSide?>? get side =>
+      WidgetStatePropertyAll(BorderSide(color: colors.primary.withAlpha(26)));
 }
 
 OutlineInputBorder _inputBorder(BuildContext context, {bool error = false}) {
   final radius = BorderRadius.circular(12);
   return OutlineInputBorder(
     borderRadius: radius,
-    borderSide: BorderSide(color: error ? Colors.red : Theme.of(context).colorScheme.primary.withAlpha(26)),
+    borderSide: BorderSide(
+      color: error
+          ? Colors.red
+          : Theme.of(context).colorScheme.primary.withAlpha(26),
+    ),
   );
 }
 

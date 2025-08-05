@@ -3,7 +3,8 @@
 import 'package:flutter/material.dart';
 
 extension ColorExtentions on Color {
-  String toHex({bool leadingHashSign = true}) => '${leadingHashSign ? '#' : ''}'
+  String toHex({bool leadingHashSign = true}) =>
+      '${leadingHashSign ? '#' : ''}'
       '${alpha.toRadixString(16).padLeft(2, '0')}'
       '${red.toRadixString(16).padLeft(2, '0')}'
       '${green.toRadixString(16).padLeft(2, '0')}'
@@ -11,7 +12,8 @@ extension ColorExtentions on Color {
 }
 
 extension HexColor on Color {
-  String toHex({bool leadingHashSign = true}) => '${leadingHashSign ? '#' : ''}'
+  String toHex({bool leadingHashSign = true}) =>
+      '${leadingHashSign ? '#' : ''}'
       '${alpha.toRadixString(16).padLeft(2, '0')}'
       '${red.toRadixString(16).padLeft(2, '0')}'
       '${green.toRadixString(16).padLeft(2, '0')}'

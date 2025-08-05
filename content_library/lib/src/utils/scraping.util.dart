@@ -87,7 +87,9 @@ class ScrapingUtil {
   // }
 
   double? getScore({String? selector}) {
-    return double.tryParse(element.querySelector('.post-total-rating span')?.text.trim() ?? '');
+    return double.tryParse(
+      element.querySelector('.post-total-rating span')?.text.trim() ?? '',
+    );
   }
 
   String getURL({String? selector}) {
@@ -128,11 +130,19 @@ class ScrapingUtil {
   }
 
   String? createdAt({String? selector}) {
-    return (element.querySelector(selector ?? 'span a')?.attributes['title'] ?? element.querySelector('span i')?.text ?? (element.children.isEmpty ? null : element.children.elementAt(1).text))
+    return (element.querySelector(selector ?? 'span a')?.attributes['title'] ??
+            element.querySelector('span i')?.text ??
+            (element.children.isEmpty
+                ? null
+                : element.children.elementAt(1).text))
         ?.trim();
   }
 
-  Element? getOneByMany({required int index, required String selector, bool Function(Element element)? filter}) {
+  Element? getOneByMany({
+    required int index,
+    required String selector,
+    bool Function(Element element)? filter,
+  }) {
     List<Element> $ = element.querySelectorAll(selector);
 
     if (filter != null) $ = $.where(filter).toList();
@@ -143,11 +153,24 @@ class ScrapingUtil {
   String _bySrcSet(String src, [bool? last]) {
     if (src.isEmpty) return '';
     final reges = RegExp(r'[0-9]+w');
-    final lista = '$src,'.replaceAll(RegExp(r'([1-9])\w+,'), '').trim().split(' ')..removeWhere((element) => element.isEmpty);
+    final lista =
+        '$src,'.replaceAll(RegExp(r'([1-9])\w+,'), '').trim().split(' ')
+          ..removeWhere((element) => element.isEmpty);
     // final _ = '$src,'.replaceAll(RegExp(r'([1-9])\w+,'), '').trim().split(' ');
-    final w = reges.allMatches('$src,').map((e) => int.parse('$src,'.substring(e.start, e.end).replaceAll(r'w', '').trim())).toList();
+    final w = reges
+        .allMatches('$src,')
+        .map(
+          (e) => int.parse(
+            '$src,'.substring(e.start, e.end).replaceAll(r'w', '').trim(),
+          ),
+        )
+        .toList();
 
-    final index = w.indexOf(w.reduceIndexed((index, previous, element) => element < previous ? previous : element));
+    final index = w.indexOf(
+      w.reduceIndexed(
+        (index, previous, element) => element < previous ? previous : element,
+      ),
+    );
     // .map((e) => int.parse(e.input.replaceAll(RegExp(r'[^0-9]'), '')));
     // .reduceIndexed((index, previous, element) => element < previous ? previous : element);
 

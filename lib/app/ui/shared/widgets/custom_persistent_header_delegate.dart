@@ -6,12 +6,14 @@ class CustomPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
     double progress,
-  ) buildWidget;
+  )
+  buildWidget;
 
   final bool Function(
     CustomPersistentHeaderDelegate oldDelegate,
     CustomPersistentHeaderDelegate delegate,
-  )? delegateShouldRebuild;
+  )?
+  delegateShouldRebuild;
 
   const CustomPersistentHeaderDelegate({
     required this.maxExtent,

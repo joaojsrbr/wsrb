@@ -25,17 +25,15 @@ class DotText extends StatelessWidget {
         Center(
           child: Container(
             margin: EdgeInsets.only(
-              top: (textStyle?.fontSize ??
+              top:
+                  (textStyle?.fontSize ??
                           DefaultTextStyle.of(context).style.fontSize!) /
                       2 -
                   dotSize / 2,
             ),
             width: dotSize,
             height: dotSize,
-            decoration: BoxDecoration(
-              color: dotColor,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
           ),
         ),
         SizedBox(width: spacing),

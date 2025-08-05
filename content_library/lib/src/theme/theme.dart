@@ -334,12 +334,12 @@ class MaterialTheme {
   }
 
   ThemeData theme(ColorScheme colorScheme) => ThemeData(
-        useMaterial3: true,
-        brightness: colorScheme.brightness,
-        colorScheme: colorScheme,
-        scaffoldBackgroundColor: colorScheme.surface,
-        canvasColor: colorScheme.surface,
-      );
+    useMaterial3: true,
+    brightness: colorScheme.brightness,
+    colorScheme: colorScheme,
+    scaffoldBackgroundColor: colorScheme.surface,
+    canvasColor: colorScheme.surface,
+  );
 
   List<ExtendedColor> get extendedColors => [];
 }

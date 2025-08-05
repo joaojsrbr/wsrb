@@ -89,7 +89,11 @@ class Anime extends Content {
   }
 
   @override
-  AnimeEntity toEntity({DateTime? createdAt, DateTime? updatedAt, bool isFavorite = false}) {
+  AnimeEntity toEntity({
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool isFavorite = false,
+  }) {
     final content = AnimeEntity(
       totalOfPages: totalOfPages,
       anilistMedia: anilistMedia,
@@ -109,10 +113,14 @@ class Anime extends Content {
       largeImage: largeImage,
       createdAt: createdAt,
       updatedAt: updatedAt,
-      originalImage: originalImage.isEmpty ? releases.firstOrNull?.thumbnail ?? '' : originalImage,
+      originalImage: originalImage.isEmpty
+          ? releases.firstOrNull?.thumbnail ?? ''
+          : originalImage,
     );
 
-    content.episodes.addAll(releases.map((episode) => episode.toEntity(anime: this)));
+    content.episodes.addAll(
+      releases.map((episode) => episode.toEntity(anime: this)),
+    );
 
     content.animeSkip.value = animeSkip?.toEntity;
 

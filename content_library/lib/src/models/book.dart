@@ -45,7 +45,8 @@ class Book extends Content {
   ChapterReleases get releases => super.releases as ChapterReleases;
 
   @override
-  String get imageUrl => extraLarge ?? largeImage ?? mediumImage ?? originalImage;
+  String get imageUrl =>
+      extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   bool get searchNewImage {
     if ([extraLarge, largeImage, mediumImage].contains(null)) {
@@ -104,7 +105,11 @@ class Book extends Content {
   }
 
   @override
-  BookEntity toEntity({DateTime? createdAt, DateTime? updatedAt, bool isFavorite = false}) {
+  BookEntity toEntity({
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool isFavorite = false,
+  }) {
     final book = BookEntity(
       sinopse: sinopse,
       anilistMedia: anilistMedia,
@@ -122,7 +127,9 @@ class Book extends Content {
       source: source,
     );
 
-    book.chapters.addAll(releases.map((chapter) => chapter.toEntity(0.0, createdAt, updatedAt)));
+    book.chapters.addAll(
+      releases.map((chapter) => chapter.toEntity(0.0, createdAt, updatedAt)),
+    );
 
     return book;
   }

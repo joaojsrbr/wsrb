@@ -26,12 +26,14 @@ class FadeThroughTransitionSwitcher extends StatelessWidget {
     required this.child,
     bool? enableSecondChild,
     this.duration = const Duration(milliseconds: 300),
-  })  : _onlySwitch = true,
-        enableSecondChild = enableSecondChild ?? false,
-        secondChild = const SizedBox.shrink();
+  }) : _onlySwitch = true,
+       enableSecondChild = enableSecondChild ?? false,
+       secondChild = const SizedBox.shrink();
 
   static Widget defaultLayoutBuilder(
-      Widget? currentChild, List<Widget> previousChildren) {
+    Widget? currentChild,
+    List<Widget> previousChildren,
+  ) {
     return SliverStack(
       children: <Widget>[
         ...previousChildren,
@@ -55,14 +57,14 @@ class FadeThroughTransitionSwitcher extends StatelessWidget {
       child: _onlySwitch
           ? child
           : enableSecondChild
-              ? KeyedSubtree(
-                  key: ValueKey('${secondChild.runtimeType} secondChild'),
-                  child: secondChild,
-                )
-              : KeyedSubtree(
-                  key: ValueKey('${child.runtimeType} firstChild'),
-                  child: child,
-                ),
+          ? KeyedSubtree(
+              key: ValueKey('${secondChild.runtimeType} secondChild'),
+              child: secondChild,
+            )
+          : KeyedSubtree(
+              key: ValueKey('${child.runtimeType} firstChild'),
+              child: child,
+            ),
     );
   }
 }
@@ -78,9 +80,9 @@ class TabBarSwitcher extends FadeThroughTransitionSwitcher
     required Widget secondTabBar,
     super.duration = const Duration(milliseconds: 300),
     super.enableSecondChild = false,
-  })  : _firstChild = tabBar,
-        // _secondChild = secondTabBar,
-        super(child: tabBar, secondChild: secondTabBar);
+  }) : _firstChild = tabBar,
+       // _secondChild = secondTabBar,
+       super(child: tabBar, secondChild: secondTabBar);
 
   // final Widget _secondChild;
   final Widget _firstChild;

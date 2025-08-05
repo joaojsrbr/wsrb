@@ -18,11 +18,23 @@ final class CategoryEntity extends OtherEntity {
   @Index(replace: true, unique: true)
   final String stringID;
 
-  CategoryEntity({required this.title, this.description, this.createdAt, this.updatedAt, this.ids = const []})
-    : stringID = const Uuid().v5(Namespace.url.value, title);
+  CategoryEntity({
+    required this.title,
+    this.description,
+    this.createdAt,
+    this.updatedAt,
+    this.ids = const [],
+  }) : stringID = const Uuid().v5(Namespace.url.value, title);
 
   @override
-  List<Object?> get props => [title, description, ids, createdAt, updatedAt, stringID];
+  List<Object?> get props => [
+    title,
+    description,
+    ids,
+    createdAt,
+    updatedAt,
+    stringID,
+  ];
 
   CategoryEntity copyWith({
     String? title,

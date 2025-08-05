@@ -25,10 +25,14 @@ class ContentPage extends StatelessWidget {
 
     return NestedScrollViewPlus(
       overscrollBehavior: OverscrollBehavior.outer,
-      physics: isLoading ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
+      physics: isLoading
+          ? const NeverScrollableScrollPhysics()
+          : const BouncingScrollPhysics(),
       headerSliverBuilder: (context, __) => [_Header()],
       body: TabBarView(
-        physics: isLoading || noContent ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
+        physics: isLoading || noContent
+            ? const NeverScrollableScrollPhysics()
+            : const PageScrollPhysics(),
         children: const [ReleaseDestination(), InformationDestination()],
       ),
     );
@@ -51,8 +55,13 @@ class _Header extends StatelessWidget {
       pinned: true,
       floating: true,
       leading: IconButton(
-        icon: Icon(isOpen ? Icons.close : Icons.arrow_back, color: Colors.white),
-        onPressed: isOpen ? () => menu?.close() : () => Navigator.of(context).pop(),
+        icon: Icon(
+          isOpen ? Icons.close : Icons.arrow_back,
+          color: Colors.white,
+        ),
+        onPressed: isOpen
+            ? () => menu?.close()
+            : () => Navigator.of(context).pop(),
       ),
       actions: isLoading ? null : [_ShareButton(), _FavoriteButton()],
       flexibleSpace: FlexibleSpaceBar(
@@ -138,16 +147,24 @@ class _ContentDetails extends StatelessWidget {
                   child: Row(
                     spacing: 8,
                     mainAxisSize: MainAxisSize.min,
-                    children: List.generate((content.anilistMedia?.genres ?? []).getMax(3).length, (index) {
-                      final txt = content.anilistMedia!.genres.getMax(3).elementAt(index);
-                      return DotText(
-                        text: txt,
-                        dotSize: 6,
-                        spacing: 6,
-                        textStyle: TextStyle(color: Colors.white70, fontSize: 12),
-                        dotColor: Colors.white70,
-                      );
-                    }),
+                    children: List.generate(
+                      (content.anilistMedia?.genres ?? []).getMax(3).length,
+                      (index) {
+                        final txt = content.anilistMedia!.genres
+                            .getMax(3)
+                            .elementAt(index);
+                        return DotText(
+                          text: txt,
+                          dotSize: 6,
+                          spacing: 6,
+                          textStyle: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                          dotColor: Colors.white70,
+                        );
+                      },
+                    ),
                   ),
                 ),
               const SizedBox(height: 4),
@@ -155,7 +172,8 @@ class _ContentDetails extends StatelessWidget {
                 onLongPress: () {
                   copyToClipboard(
                     context,
-                    messageSnackBar: "Texto copiado para a área de transferência!",
+                    messageSnackBar:
+                        "Texto copiado para a área de transferência!",
                     messageCopy: content.title,
                   );
                   Feedback.forLongPress(context);
@@ -164,7 +182,11 @@ class _ContentDetails extends StatelessWidget {
                   content.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               const SizedBox(height: 4),
@@ -176,11 +198,21 @@ class _ContentDetails extends StatelessWidget {
                   spacing: 12,
                   children: [
                     if (content.anilistMedia?.popularity != null)
-                      _IconText(ico: Icons.people, txt: content.anilistMedia!.popularity!.toString()),
+                      _IconText(
+                        ico: Icons.people,
+                        txt: content.anilistMedia!.popularity!.toString(),
+                      ),
                     if (content.anilistMedia?.favourites != null)
-                      _IconText(ico: MdiIcons.heart, txt: content.anilistMedia!.favourites.toString()),
+                      _IconText(
+                        ico: MdiIcons.heart,
+                        txt: content.anilistMedia!.favourites.toString(),
+                      ),
                     if (content.anilistMedia?.averageScore != null)
-                      _IconText(ico: MdiIcons.star, txt: (content.anilistMedia!.averageScore! / 10).toStringAsFixed(1)),
+                      _IconText(
+                        ico: MdiIcons.star,
+                        txt: (content.anilistMedia!.averageScore! / 10)
+                            .toStringAsFixed(1),
+                      ),
                   ],
                 ),
               ),
@@ -218,9 +250,15 @@ class _TabHeader extends StatelessWidget implements PreferredSizeWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(data.getIconData(content), color: disabled ? theme.disabledColor : null),
+              Icon(
+                data.getIconData(content),
+                color: disabled ? theme.disabledColor : null,
+              ),
               const SizedBox(width: 8),
-              Text(data.getTitle(content), style: TextStyle(color: disabled ? theme.disabledColor : null)),
+              Text(
+                data.getTitle(content),
+                style: TextStyle(color: disabled ? theme.disabledColor : null),
+              ),
             ],
           ),
         );

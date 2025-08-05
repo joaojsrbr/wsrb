@@ -12,10 +12,7 @@ abstract class RSource {
 
   final ContentRepository contentRepository;
 
-  const RSource(
-    this.contentRepository, {
-    required this.initialIndex,
-  });
+  const RSource(this.contentRepository, {required this.initialIndex});
 
   Source get source;
 

@@ -56,12 +56,14 @@ sealed class Result<T extends Object> {
     Map<Type, S? Function<O>(O data)>? map,
   }) {
     if (map != null) {
-      final result = map[runtimeType]?.call(fold(
-        onSuccess: (success) => success,
-        onError: (error) => error,
-        onCancel: () => this,
-        onEmpty: () => this,
-      ));
+      final result = map[runtimeType]?.call(
+        fold(
+          onSuccess: (success) => success,
+          onError: (error) => error,
+          onCancel: () => this,
+          onEmpty: () => this,
+        ),
+      );
       if (result != null) return result;
     }
 

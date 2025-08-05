@@ -13,11 +13,13 @@ class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
   }
 
   List<Map<String, dynamic>> get toMap {
-    return map<Map<String, dynamic>>((e) => switch (e) {
-          Chapter data => data.toMap,
-          Episode data => data.toMap,
-          _ => {},
-        }).toList();
+    return map<Map<String, dynamic>>(
+      (e) => switch (e) {
+        Chapter data => data.toMap,
+        Episode data => data.toMap,
+        _ => {},
+      },
+    ).toList();
   }
 
   final List<T> _array = [];
@@ -67,7 +69,8 @@ class EpisodeReleases extends Releases<Episode> {
 
   UnmodifiableListView<Episode> get _sorted {
     return UnmodifiableListView(
-        _array.sortedBy<num>((episode) => episode.numberInt));
+      _array.sortedBy<num>((episode) => episode.numberInt),
+    );
   }
 
   @override
@@ -82,7 +85,8 @@ class ChapterReleases extends Releases<Chapter> {
 
   UnmodifiableListView<Chapter> get _sorted {
     return UnmodifiableListView(
-        _array.sortedBy<num>((episode) => int.parse(episode.number)));
+      _array.sortedBy<num>((episode) => int.parse(episode.number)),
+    );
   }
 
   @override

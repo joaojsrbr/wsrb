@@ -12,7 +12,11 @@ void main() {
 
     final livewireElement = document
         .querySelectorAll('script')
-        .firstWhereOrNull((element) => element.attributes.values.any((value) => value.contains("livewire")));
+        .firstWhereOrNull(
+          (element) => element.attributes.values.any(
+            (value) => value.contains("livewire"),
+          ),
+        );
 
     final dataCsrf = livewireElement?.attributes["data-csrf"];
 

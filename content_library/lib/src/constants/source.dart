@@ -12,10 +12,19 @@ enum Source implements _DisableEnum {
   NEOX_SCANS('Neox Scans', App.NEOX_URL, 'Neox Scans', ContentType.BOOK),
   DEMON_SECT('Demon Sect', App.DEMON_SECT_URL, 'Demon Sect', ContentType.BOOK),
   GOYABU('Goyabu', App.GOYABU_URL, 'Goyabu', ContentType.ANIME),
-  BETTER_ANIME('BetterAnime', App.BETTER_ANIME_URL, 'Better Anime', ContentType.ANIME),
+  BETTER_ANIME(
+    'BetterAnime',
+    App.BETTER_ANIME_URL,
+    'Better Anime',
+    ContentType.ANIME,
+  ),
   SLIMEREAD('SlimeRead', App.SLIME_READ_URL, 'SlimeRead', ContentType.BOOK);
 
-  static final Set<Source> _disableSource = {Source.NEOX_SCANS, Source.DEMON_SECT, Source.SLIMEREAD};
+  static final Set<Source> _disableSource = {
+    Source.NEOX_SCANS,
+    Source.DEMON_SECT,
+    Source.SLIMEREAD,
+  };
 
   static bool disableSourceMenuFilter(Source source) {
     return {Source.ANROLL, Source.GOYABU, Source.BETTER_ANIME}.contains(source);
@@ -34,5 +43,7 @@ enum Source implements _DisableEnum {
   @override
   bool get disable => _disableSource.contains(this);
 
-  static List<Source> list = Source.values.where((source) => !source.disable).toList();
+  static List<Source> list = Source.values
+      .where((source) => !source.disable)
+      .toList();
 }

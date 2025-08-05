@@ -13,7 +13,9 @@ class SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<SettingsView> {
   // late final ThemeController _themeController;
 
-  final Debouncer _debouncerColor = Debouncer(duration: const Duration(milliseconds: 200));
+  final Debouncer _debouncerColor = Debouncer(
+    duration: const Duration(milliseconds: 200),
+  );
 
   // List<Color> _recentColors = [];
 
@@ -266,7 +268,9 @@ class _SettingsViewState extends State<SettingsView> {
           _CustomSettingsSection(
             title: Text(
               'Player',
-              style: themeData.textTheme.titleLarge?.copyWith(color: themeData.colorScheme.primary),
+              style: themeData.textTheme.titleLarge?.copyWith(
+                color: themeData.colorScheme.primary,
+              ),
             ),
             tiles: [
               // SettingsTile(

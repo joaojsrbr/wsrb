@@ -49,10 +49,10 @@ abstract class CustomOverlayState<T extends StatefulWidget> extends State<T>
   Animation<Offset> get animation => _overlayAnimation;
 
   Animation<double> get curved => CurvedAnimation(
-        parent: _overlayAnimationController,
-        curve: Curves.ease,
-        reverseCurve: Curves.ease,
-      );
+    parent: _overlayAnimationController,
+    curve: Curves.ease,
+    reverseCurve: Curves.ease,
+  );
 
   Offset? begin;
 
@@ -61,12 +61,10 @@ abstract class CustomOverlayState<T extends StatefulWidget> extends State<T>
   @override
   void initState() {
     super.initState();
-    _overlayAnimationController = AnimationController(
-      vsync: this,
-      duration: animationDuration,
-    )
-      ..addStatusListener(animationStatusListener)
-      ..addListener(animationListener);
+    _overlayAnimationController =
+        AnimationController(vsync: this, duration: animationDuration)
+          ..addStatusListener(animationStatusListener)
+          ..addListener(animationListener);
 
     Offset offset = const Offset(0, 1);
 
@@ -79,14 +77,8 @@ abstract class CustomOverlayState<T extends StatefulWidget> extends State<T>
     scheduleMicrotask(onStartAnimation);
   }
 
-  void changeAnimation({
-    required Offset begin,
-    Offset end = Offset.zero,
-  }) {
-    _overlayAnimation = Tween(
-      begin: begin,
-      end: end,
-    ).animate(curved);
+  void changeAnimation({required Offset begin, Offset end = Offset.zero}) {
+    _overlayAnimation = Tween(begin: begin, end: end).animate(curved);
   }
 
   TickerFuture forward() => _overlayAnimationController.forward();

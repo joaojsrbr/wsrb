@@ -7,15 +7,10 @@ void main() {
   test('anime skip query ...', () async {
     final DocumentNode doc = lang.parseString(AnimeSkipQuery.TIMESTAMPSBYNAME);
 
-    final DocumentNode withTypenames = transform(
-      doc,
-      [
-        // AddTypenames(),
-      ],
-    );
+    final DocumentNode withTypenames = transform(doc, [
+      // AddTypenames(),
+    ]);
 
-    print(
-      lang.printNode(withTypenames),
-    );
+    print(lang.printNode(withTypenames));
   });
 }

@@ -26,57 +26,61 @@ class OpenContainerWrapper<T> extends OpenContainer<T> {
     super.routeSettings,
     super.closedElevation,
   }) : super(
-          closedShape: RoundedRectangleBorder(
-            borderRadius: borderRadius ?? BorderRadius.zero,
-          ),
-          openShape: RoundedRectangleBorder(
-            borderRadius: borderRadius ?? BorderRadius.zero,
-          ),
-          closedBuilder: (context, action) {
-            return _OpenContainerInherited(
-              action: action,
-              child: Builder(builder: (context) {
-                return tappable
-                    ? InkWell(
-                        autofocus: true,
-                        enableFeedback: true,
-                        onDoubleTap: onDoubleTap,
-                        splashColor: splashColor,
-                        highlightColor: highlightColor,
-                        borderRadius: borderRadius ??
-                            const BorderRadius.all(Radius.circular(8)),
-                        onLongPress: onLongPress,
-                        onTap: () => OpenContainerWrapper.action(context),
-                        child: closedChild.call(context),
-                      )
-                    : closedChild.call(context);
-              }),
-            );
-          },
-          openBuilder: (context, closedContainer) {
-            Widget nPage;
+         closedShape: RoundedRectangleBorder(
+           borderRadius: borderRadius ?? BorderRadius.zero,
+         ),
+         openShape: RoundedRectangleBorder(
+           borderRadius: borderRadius ?? BorderRadius.zero,
+         ),
+         closedBuilder: (context, action) {
+           return _OpenContainerInherited(
+             action: action,
+             child: Builder(
+               builder: (context) {
+                 return tappable
+                     ? InkWell(
+                         autofocus: true,
+                         enableFeedback: true,
+                         onDoubleTap: onDoubleTap,
+                         splashColor: splashColor,
+                         highlightColor: highlightColor,
+                         borderRadius:
+                             borderRadius ??
+                             const BorderRadius.all(Radius.circular(8)),
+                         onLongPress: onLongPress,
+                         onTap: () => OpenContainerWrapper.action(context),
+                         child: closedChild.call(context),
+                       )
+                     : closedChild.call(context);
+               },
+             ),
+           );
+         },
+         openBuilder: (context, closedContainer) {
+           Widget nPage;
 
-            if (page != null) {
-              nPage = page.call(context);
-            } else if (routeName != null) {
-              final mtApp =
-                  context.findAncestorWidgetOfExactType<MaterialApp>();
-              assert(mtApp != null);
+           if (page != null) {
+             nPage = page.call(context);
+           } else if (routeName != null) {
+             final mtApp = context.findAncestorWidgetOfExactType<MaterialApp>();
+             assert(mtApp != null);
 
-              final Map<String, Widget Function(BuildContext)> routes =
-                  mtApp!.routes!;
+             final Map<String, Widget Function(BuildContext)> routes =
+                 mtApp!.routes!;
 
-              assert(routes.containsKey(routeName));
+             assert(routes.containsKey(routeName));
 
-              nPage = routes[routeName]!(context);
-            } else {
-              nPage = Scaffold(body: Center(child: Icon(MdiIcons.alert)));
-            }
+             nPage = routes[routeName]!(context);
+           } else {
+             nPage = Scaffold(body: Center(child: Icon(MdiIcons.alert)));
+           }
 
-            return _OpenContainerInherited(
-                closedContainer: closedContainer, child: nPage);
-          },
-        );
+           return _OpenContainerInherited(
+             closedContainer: closedContainer,
+             child: nPage,
+           );
+         },
+       );
 
   static void action(BuildContext context) =>
       _OpenContainerInherited.of(context).action?.call();

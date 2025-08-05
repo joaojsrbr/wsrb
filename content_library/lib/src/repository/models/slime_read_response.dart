@@ -72,16 +72,19 @@ class SlimeReadBook {
       bookPublicationYear: json['book_publication_year'],
       bookFlagged: json['book_flagged'],
       bookRedirectLink: json['book_redirect_link'],
-      bookTag: (json['book_tag'] as List?)
+      bookTag:
+          (json['book_tag'] as List?)
               ?.map((e) => BookTag.fromJson(e))
               .toList() ??
           [],
       bookDateCreated: json['book_date_created'],
-      bookCategories: (json['book_categories'] as List?)
+      bookCategories:
+          (json['book_categories'] as List?)
               ?.map((e) => BookCategory.fromJson(e))
               .toList() ??
           [],
-      bookTemp: (json['book_temp'] as List?)
+      bookTemp:
+          (json['book_temp'] as List?)
               ?.map((e) => BookTemp.fromJson(e))
               .toList() ??
           [],
@@ -160,7 +163,8 @@ class BookTemp {
 
   factory BookTemp.fromJson(Map<String, dynamic> json) {
     return BookTemp(
-      bookTempCaps: (json['book_temp_caps'] as List?)
+      bookTempCaps:
+          (json['book_temp_caps'] as List?)
               ?.map((e) => BookTempCap.fromJson(e))
               .toList() ??
           [],

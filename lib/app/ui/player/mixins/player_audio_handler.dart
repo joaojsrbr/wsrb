@@ -35,8 +35,9 @@ mixin PlayerAudioHandlerMixin
   }
 
   void setPlayerMedia(PlayerArgs playerArgs) async {
-    final mediaItem =
-        await _playerAudioHandler.getMediaItem(playerArgs.episode.stringID);
+    final mediaItem = await _playerAudioHandler.getMediaItem(
+      playerArgs.episode.stringID,
+    );
     // customLog("[${player!.state.duration}]setPlayerMedia()");
     if (mediaItem == null) {
       final mediaItem = MediaItem(
@@ -118,14 +119,16 @@ class _AudioPlayerHandler extends PlayerAudioHandler {
 
   @override
   void setPlaybackState(PlayerState state) {
-    playbackState.add(playbackState.value.copyWith.call(
-      controls: [state.playing ? MediaControl.play : MediaControl.pause],
-      systemActions: MediaAction.values.toSet(),
-      processingState: AudioProcessingState.ready,
-      playing: state.playing,
-      updatePosition: state.position,
-      bufferedPosition: state.buffer,
-      speed: state.rate,
-    ));
+    playbackState.add(
+      playbackState.value.copyWith.call(
+        controls: [state.playing ? MediaControl.play : MediaControl.pause],
+        systemActions: MediaAction.values.toSet(),
+        processingState: AudioProcessingState.ready,
+        playing: state.playing,
+        updatePosition: state.position,
+        bufferedPosition: state.buffer,
+        speed: state.rate,
+      ),
+    );
   }
 }

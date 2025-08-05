@@ -8,13 +8,9 @@ abstract interface class IsarService {
     required List<Entity> entities,
   });
 
-  Future<Result<(bool, int?)>> add({
-    required Entity entity,
-  });
+  Future<Result<(bool, int?)>> add({required Entity entity});
 
-  Future<Result<(bool, List<int>?)>> addAll({
-    required List<Entity> entities,
-  });
+  Future<Result<(bool, List<int>?)>> addAll({required List<Entity> entities});
 
   Future<IsarCollection<T>> collection<T>();
 

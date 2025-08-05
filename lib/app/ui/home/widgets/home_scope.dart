@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 class HomeScope extends InheritedNotifier<Listenable> {
   HomeScope({
     super.key,
-    required this.enabled,
+
     required this.tabController,
     required this.homeController,
     required this.searchController,
@@ -14,10 +14,13 @@ class HomeScope extends InheritedNotifier<Listenable> {
     required this.keepWatchingScrollController,
     required this.subordinateLibraryTabController,
     required this.bottomSheetAnimationController,
-    required WidgetBuilder builder,
+    WidgetBuilder? builder,
+    Widget? child,
   }) : super(
          notifier: Listenable.merge([tabController, bottomMenuController]),
-         child: Builder(builder: builder),
+         child: Builder(
+           builder: builder ?? (context) => child ?? SizedBox.shrink(),
+         ),
        );
 
   final AnimationController bottomSheetAnimationController;
@@ -26,7 +29,6 @@ class HomeScope extends InheritedNotifier<Listenable> {
   final TabController tabController;
   final ScrollController homeController;
   final SubordinateLibraryTabController subordinateLibraryTabController;
-  final bool enabled;
   final ScrollController keepWatchingScrollController;
 
   static HomeScope? maybeOf(BuildContext context) {
@@ -39,9 +41,9 @@ class HomeScope extends InheritedNotifier<Listenable> {
 
   @override
   bool updateShouldNotify(HomeScope oldWidget) {
-    return enabled != oldWidget.enabled ||
-        tabController.index != oldWidget.tabController.index ||
+    return tabController.index != oldWidget.tabController.index ||
         bottomMenuController.isOpen != oldWidget.bottomMenuController.isOpen ||
-        subordinateLibraryTabController != oldWidget.subordinateLibraryTabController;
+        subordinateLibraryTabController !=
+            oldWidget.subordinateLibraryTabController;
   }
 }

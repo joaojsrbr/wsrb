@@ -32,7 +32,9 @@ final class ReleaseUtils {
                 padding: const EdgeInsets.symmetric(vertical: 12.0),
                 child: Text(
                   'Sinopse',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
               Padding(
@@ -51,7 +53,12 @@ final class ReleaseUtils {
     }
   }
 
-  static Future<void> onTap(BuildContext context, Release release, Content content, int index) async {
+  static Future<void> onTap(
+    BuildContext context,
+    Release release,
+    Content content,
+    int index,
+  ) async {
     final releaseFile = AppStorage.getReleaseFile(content, release);
 
     customLog('tapped name: ${release.title} - id: ${release.stringID}');
@@ -63,7 +70,10 @@ final class ReleaseUtils {
         await goRouter.push(
           RouteName.READ,
           extra: ReadingViewArgs(
-            capturedThemes: InheritedTheme.capture(from: context, to: Navigator.of(context).context),
+            capturedThemes: InheritedTheme.capture(
+              from: context,
+              to: Navigator.of(context).context,
+            ),
             chapter: data,
             currentIndex: index,
             book: content,
@@ -82,7 +92,11 @@ final class ReleaseUtils {
     }
   }
 
-  static Future<List<Data>?> _fileOrURL(Release release, File? file, BuildContext context) async {
+  static Future<List<Data>?> _fileOrURL(
+    Release release,
+    File? file,
+    BuildContext context,
+  ) async {
     final repository = context.read<ContentRepository>();
 
     // final colorScheme = Theme.of(context).colorScheme;
@@ -131,7 +145,9 @@ final class ReleaseUtils {
                             Center(
                               child: Text(
                                 video is VideoData ? 'Online' : 'Local',
-                                style: textTheme.labelMedium?.copyWith(color: color),
+                                style: textTheme.labelMedium?.copyWith(
+                                  color: color,
+                                ),
                               ),
                             ),
                             Material(
@@ -140,7 +156,12 @@ final class ReleaseUtils {
                                 onTap: video == null
                                     ? null
                                     : () {
-                                        Navigator.of(context).pop(data.where((data) => data != null).nonNulls.toList());
+                                        Navigator.of(context).pop(
+                                          data
+                                              .where((data) => data != null)
+                                              .nonNulls
+                                              .toList(),
+                                        );
                                       },
                               ),
                             ),
@@ -150,12 +171,16 @@ final class ReleaseUtils {
 
                       if (video == null) {
                         container = Card.filled(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           child: container,
                         );
                       } else {
                         container = Card.outlined(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           child: container,
                         );
                       }

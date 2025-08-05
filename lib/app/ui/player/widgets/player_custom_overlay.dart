@@ -123,10 +123,7 @@ class _PlayerCustomOverlayState
 
     if (isPortrait) content = SafeArea(child: content);
 
-    return SlideTransition(
-      position: animation,
-      child: content,
-    );
+    return SlideTransition(position: animation, child: content);
   }
 
   @override

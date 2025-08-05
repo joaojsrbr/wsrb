@@ -34,7 +34,8 @@ class _ReleaseControllState extends State<ReleaseControll> {
   }
 
   void _initSelectChips() {
-    if (widget.content case Anime data when data.totalOfEpisodes != null && data.totalOfPages != null) {
+    if (widget.content case Anime data
+        when data.totalOfEpisodes != null && data.totalOfPages != null) {
       _totalPage = List.generate(data.totalOfPages!, (index) => index + 1);
     } else {
       _totalPage = List.generate(1, (index) => index + 1);
@@ -67,7 +68,8 @@ class _ReleaseControllState extends State<ReleaseControll> {
       return const SizedBox(height: 0, width: 0);
     }
     final isLoading = ContentScope.isLoadingOf(context);
-    final AppConfigController appConfigController = context.watch<AppConfigController>();
+    final AppConfigController appConfigController = context
+        .watch<AppConfigController>();
     final setListIndex = ContentScope.of(context).setListIndex;
 
     // final chipsWidgets = List.generate(_selectChips.length, (index) {
@@ -90,7 +92,9 @@ class _ReleaseControllState extends State<ReleaseControll> {
       height: 50,
       child: ListView.builder(
         shrinkWrap: true,
-        physics: isLoading ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
+        physics: isLoading
+            ? const NeverScrollableScrollPhysics()
+            : const BouncingScrollPhysics(),
         padding: const EdgeInsets.only(left: 8, right: 8, top: 10, bottom: 6),
         scrollDirection: Axis.horizontal,
         itemCount: _selectChips.length + 2,
@@ -103,11 +107,18 @@ class _ReleaseControllState extends State<ReleaseControll> {
                 width: 40,
                 enable: isLoading,
                 child: IconButton.filled(
-                  style: IconButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                  style: IconButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                   iconSize: 21,
-                  onPressed: () => appConfigController.setReverseContents(!appConfigController.config.reverseContents),
+                  onPressed: () => appConfigController.setReverseContents(
+                    !appConfigController.config.reverseContents,
+                  ),
                   icon: FadeThroughTransitionSwitcher(
-                    enableSecondChild: !appConfigController.config.reverseContents,
+                    enableSecondChild:
+                        !appConfigController.config.reverseContents,
                     duration: const Duration(milliseconds: 350),
                     secondChild: Icon(MdiIcons.sortNumericAscending),
                     child: Icon(MdiIcons.sortNumericDescending),
@@ -122,7 +133,9 @@ class _ReleaseControllState extends State<ReleaseControll> {
           int page = _totalPage[index - 2];
 
           return Padding(
-            padding: isLoading ? const EdgeInsets.only(left: 8, right: 8) : EdgeInsets.zero,
+            padding: isLoading
+                ? const EdgeInsets.only(left: 8, right: 8)
+                : EdgeInsets.zero,
             child: ShimmerContainer(
               height: 50,
               borderRadius: BorderRadius.circular(8),
@@ -131,7 +144,9 @@ class _ReleaseControllState extends State<ReleaseControll> {
               child: ChoiceChip(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 selected: _selectChips[index - 2],
-                onSelected: releasesIsLoading ? null : (value) => setListIndex.call(index - 2),
+                onSelected: releasesIsLoading
+                    ? null
+                    : (value) => setListIndex.call(index - 2),
                 label: Text('$page'),
               ),
             ),

@@ -26,8 +26,10 @@ class AppStorage {
     };
   }
 
-  static Future<FileSystemEntity> deleteFile(String path,
-      {bool recursive = false}) async {
+  static Future<FileSystemEntity> deleteFile(
+    String path, {
+    bool recursive = false,
+  }) async {
     return await Directory(path).delete(recursive: recursive);
   }
 

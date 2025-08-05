@@ -91,22 +91,34 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
   }
 
   static PlayerArgs playerArgsOf(BuildContext context) {
-    final playerArgs = _of(context, _PlayerScopeAspect.Player_PLAYERARGS).playerArgs;
+    final playerArgs = _of(
+      context,
+      _PlayerScopeAspect.Player_PLAYERARGS,
+    ).playerArgs;
     return playerArgs;
   }
 
   static bool isLoadingOf(BuildContext context) {
-    final isLoading = _of(context, _PlayerScopeAspect.Player_ISLOADING).isLoading;
+    final isLoading = _of(
+      context,
+      _PlayerScopeAspect.Player_ISLOADING,
+    ).isLoading;
     return isLoading;
   }
 
   static bool isPipActivatedOf(BuildContext context) {
-    final isPipActivated = _of(context, _PlayerScopeAspect.Player_PIP).isPipActivated;
+    final isPipActivated = _of(
+      context,
+      _PlayerScopeAspect.Player_PIP,
+    ).isPipActivated;
     return isPipActivated;
   }
 
   static bool isPipAvailableOf(BuildContext context) {
-    final isPipAvailable = _of(context, _PlayerScopeAspect.Player_PIP).isPipAvailable;
+    final isPipAvailable = _of(
+      context,
+      _PlayerScopeAspect.Player_PIP,
+    ).isPipAvailable;
     return isPipAvailable;
   }
 
@@ -119,7 +131,10 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
   }
 
   static BoxFit activeFitOf(BuildContext context) {
-    final activeFit = _of(context, _PlayerScopeAspect.Player_ACTIVEFIT).activeFit;
+    final activeFit = _of(
+      context,
+      _PlayerScopeAspect.Player_ACTIVEFIT,
+    ).activeFit;
     return activeFit;
   }
 
@@ -130,21 +145,29 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
   // }
 
   @override
-  bool updateShouldNotifyDependent(PlayerScope oldWidget, Set<_PlayerScopeAspect> dependencies) {
+  bool updateShouldNotifyDependent(
+    PlayerScope oldWidget,
+    Set<_PlayerScopeAspect> dependencies,
+  ) {
     for (final Object dependency in dependencies) {
       if (dependency is _PlayerScopeAspect) {
         switch (dependency) {
-          case _PlayerScopeAspect.Player_PLAYERARGS when playerArgs != oldWidget.playerArgs:
+          case _PlayerScopeAspect.Player_PLAYERARGS
+              when playerArgs != oldWidget.playerArgs:
             return true;
-          case _PlayerScopeAspect.Player_ISLOADING when isLoading != oldWidget.isLoading:
+          case _PlayerScopeAspect.Player_ISLOADING
+              when isLoading != oldWidget.isLoading:
             return true;
           case _PlayerScopeAspect.Player_PIP
-              when isPipAvailable != oldWidget.isPipAvailable || isPipActivated != oldWidget.isPipActivated:
+              when isPipAvailable != oldWidget.isPipAvailable ||
+                  isPipActivated != oldWidget.isPipActivated:
             return true;
-          case _PlayerScopeAspect.Player_ACTIVEFIT when activeFit != oldWidget.activeFit:
+          case _PlayerScopeAspect.Player_ACTIVEFIT
+              when activeFit != oldWidget.activeFit:
             return true;
           case _PlayerScopeAspect.Player_CURRENTVALUECIRULARANIMATION
-              when currentValueCircularAnimation != oldWidget.currentValueCircularAnimation:
+              when currentValueCircularAnimation !=
+                  oldWidget.currentValueCircularAnimation:
             return true;
           default:
             return true;
@@ -161,7 +184,8 @@ class PlayerScope extends InheritedModel<_PlayerScopeAspect> {
         isLoading != oldWidget.isLoading ||
         isPipActivated != oldWidget.isPipActivated ||
         isPipAvailable != oldWidget.isPipAvailable ||
-        currentValueCircularAnimation != oldWidget.currentValueCircularAnimation ||
+        currentValueCircularAnimation !=
+            oldWidget.currentValueCircularAnimation ||
         activeFit != oldWidget.activeFit;
   }
 }

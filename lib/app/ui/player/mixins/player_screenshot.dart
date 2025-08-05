@@ -10,7 +10,10 @@ import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 
-mixin PlayerScreenshotMixin on SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs>, PlayerControllerMixin {
+mixin PlayerScreenshotMixin
+    on
+        SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs>,
+        PlayerControllerMixin {
   /// Captura a imagem do vídeo, redimensiona, comprime e retorna base64 compactado
   Future<String?> videoScreenshotBase64() async {
     final capture = await player?.screenshot(); // captura em Uint8List
@@ -24,7 +27,10 @@ mixin PlayerScreenshotMixin on SubscriptionsByStateArgumentMixin<PlayerView, Pla
       final resized = img.copyResize(original, width: 500, height: 340);
 
       // compress to JPEG with quality (0-100)
-      final compressed = img.encodeJpg(resized, quality: 35); // qualidade ajustável
+      final compressed = img.encodeJpg(
+        resized,
+        quality: 35,
+      ); // qualidade ajustável
 
       // convert to base64
       return base64Encode(compressed);
@@ -37,7 +43,9 @@ mixin PlayerScreenshotMixin on SubscriptionsByStateArgumentMixin<PlayerView, Pla
   Future<String> imageProviderToBase64(ImageProvider imageProvider) async {
     final Completer<ui.Image> completer = Completer<ui.Image>();
 
-    final ImageStream stream = imageProvider.resolve(const ImageConfiguration());
+    final ImageStream stream = imageProvider.resolve(
+      const ImageConfiguration(),
+    );
     final listener = ImageStreamListener((ImageInfo info, bool _) {
       completer.complete(info.image);
     });
@@ -46,7 +54,9 @@ mixin PlayerScreenshotMixin on SubscriptionsByStateArgumentMixin<PlayerView, Pla
     final ui.Image image = await completer.future;
     stream.removeListener(listener);
 
-    final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    final ByteData? byteData = await image.toByteData(
+      format: ui.ImageByteFormat.rawRgba,
+    );
     if (byteData == null) {
       throw Exception("Erro ao converter imagem para bytes.");
     }

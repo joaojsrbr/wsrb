@@ -14,16 +14,25 @@ class GoyabuSource extends RSource {
   @override
   Future<Result<List<Data>>> getContent(Release release) async {
     if (release is! Episode) {
-      return Result.failure(AnimeGetDataException(message: "A instancia content precisa ser do tipo Episode"));
+      return Result.failure(
+        AnimeGetDataException(
+          message: "A instancia content precisa ser do tipo Episode",
+        ),
+      );
     }
 
     try {
       final List<Data> data = [];
 
-      final Response response = await contentRepository._dio.get(release.url, responseType: ResponseType.plain);
+      final Response response = await contentRepository._dio.get(
+        release.url,
+        responseType: ResponseType.plain,
+      );
       final Document document = parse(response.data);
 
-      final fremeSrc = document.querySelector('.metaframe.rptss')?.attributes['src'];
+      final fremeSrc = document
+          .querySelector('.metaframe.rptss')
+          ?.attributes['src'];
 
       if (fremeSrc != null) {
         Completer<Data> completer = Completer();
@@ -67,14 +76,20 @@ class GoyabuSource extends RSource {
               //         "X-Goog-Api-Key": "AIzaSyDyT5W0Jh49F30Pqqtyfdf7pDLFKLJoAnw"
               //       }),
               // ]);
-              await controller.runJavaScript(r'''document.querySelector('.play-button').click();''');
+              await controller.runJavaScript(
+                r'''document.querySelector('.play-button').click();''',
+              );
 
               await Future.delayed(const Duration(seconds: 2));
 
-              var videoConfig = await controller.runJavaScriptReturningResult(r"VIDEO_CONFIG;");
+              var videoConfig = await controller.runJavaScriptReturningResult(
+                r"VIDEO_CONFIG;",
+              );
 
               final videoConfigJson = jsonDecode(videoConfig.toString());
-              final playURL = (videoConfigJson['streams'] as List).first['play_url'] as String;
+              final playURL =
+                  (videoConfigJson['streams'] as List).first['play_url']
+                      as String;
               if (completer.isCompleted) return;
               completer.complete(
                 Data.videoData(
@@ -105,7 +120,10 @@ class GoyabuSource extends RSource {
     final Releases cacheRelease = Releases();
 
     try {
-      final Response response = await contentRepository._dio.get(content.url, responseType: ResponseType.plain);
+      final Response response = await contentRepository._dio.get(
+        content.url,
+        responseType: ResponseType.plain,
+      );
 
       final Document document = parse(response.data);
 
@@ -115,13 +133,20 @@ class GoyabuSource extends RSource {
 
       final ScrapingUtil scrapingUtil = ScrapingUtil(pageElement);
 
-      final episodesElements = scrapingUtil.element.querySelectorAll('.listaEps li');
+      final episodesElements = scrapingUtil.element.querySelectorAll(
+        '.listaEps li',
+      );
 
       for (final episodeElement in episodesElements) {
         final ScrapingUtil episodeScrapingUtil = ScrapingUtil(episodeElement);
 
         final int? numberEpisode = int.tryParse(
-          episodeScrapingUtil.getByText(selector: 'a').trim().split('-').last.replaceAll(RegExp(r'[^0-9]'), ''),
+          episodeScrapingUtil
+              .getByText(selector: 'a')
+              .trim()
+              .split('-')
+              .last
+              .replaceAll(RegExp(r'[^0-9]'), ''),
         );
 
         final String episodeURL = episodeScrapingUtil.getURL(selector: 'a');
@@ -147,18 +172,25 @@ class GoyabuSource extends RSource {
     try {
       if (content is! Anime) throw AnimeGetDataException();
 
-      final Response<dynamic> responseAnimeURL = await contentRepository._dio.get(
-        content.releases.first.url,
-        responseType: ResponseType.plain,
-      );
+      final Response<dynamic> responseAnimeURL = await contentRepository._dio
+          .get(content.releases.first.url, responseType: ResponseType.plain);
 
       final Document episodeDocument = parse(responseAnimeURL.data);
 
-      final String animeURL = episodeDocument.querySelectorAll('.paginationEP a').elementAt(1).attributes['href']!;
+      final String animeURL = episodeDocument
+          .querySelectorAll('.paginationEP a')
+          .elementAt(1)
+          .attributes['href']!;
 
-      final Anime anime = content.copyWith(releases: EpisodeReleases(), url: animeURL);
+      final Anime anime = content.copyWith(
+        releases: EpisodeReleases(),
+        url: animeURL,
+      );
 
-      final Response response = await contentRepository._dio.get(anime.url, responseType: ResponseType.plain);
+      final Response response = await contentRepository._dio.get(
+        anime.url,
+        responseType: ResponseType.plain,
+      );
 
       final Document document = parse(response.data);
 
@@ -170,7 +202,9 @@ class GoyabuSource extends RSource {
 
       final ScrapingUtil scrapingUtil = ScrapingUtil(pageElement);
 
-      final String originalImage = scrapingUtil.getImage(selector: '.thumb img');
+      final String originalImage = scrapingUtil.getImage(
+        selector: '.thumb img',
+      );
       final String sinopse = scrapingUtil.getByText(selector: '.sinopse h3');
 
       final List<Genre> genres = scrapingUtil.element
@@ -178,13 +212,19 @@ class GoyabuSource extends RSource {
           .map((element) => Genre(element.text.trim()))
           .toList();
 
-      final List<Element> episodesElements = scrapingUtil.element.querySelectorAll('.listaEps li');
+      final List<Element> episodesElements = scrapingUtil.element
+          .querySelectorAll('.listaEps li');
 
       for (final Element episodeElement in episodesElements) {
         final ScrapingUtil episodeScrapingUtil = ScrapingUtil(episodeElement);
 
         final int? numberEpisode = int.tryParse(
-          episodeScrapingUtil.getByText(selector: 'a').trim().split('-').last.replaceAll(RegExp(r'[^0-9]'), ''),
+          episodeScrapingUtil
+              .getByText(selector: 'a')
+              .trim()
+              .split('-')
+              .last
+              .replaceAll(RegExp(r'[^0-9]'), ''),
         );
 
         final String episodeURL = episodeScrapingUtil.getURL(selector: 'a');
@@ -209,7 +249,10 @@ class GoyabuSource extends RSource {
     } on DioException catch (error) {
       return Result.failure(error);
     } on AnimeGetDataException catch (error, stack) {
-      customLog('ERROR[${error.runtimeType}]: ${error.message}', stackTrace: stack);
+      customLog(
+        'ERROR[${error.runtimeType}]: ${error.message}',
+        stackTrace: stack,
+      );
       return Result.failure(error);
     }
   }
@@ -223,7 +266,10 @@ class GoyabuSource extends RSource {
 
       final String mainURL = '$BASE_URL/$subKey';
 
-      final Response response = await contentRepository._dio.get(mainURL, responseType: ResponseType.plain);
+      final Response response = await contentRepository._dio.get(
+        mainURL,
+        responseType: ResponseType.plain,
+      );
 
       final Document document = parse(response.data);
 
@@ -238,8 +284,12 @@ class GoyabuSource extends RSource {
 
         final String episodeURL = scrapingUtil.getURL(selector: '.boxEP a');
         final String thumbnail = scrapingUtil.getImage(selector: 'img');
-        final String episodeTitle = scrapingUtil.getByText(selector: '.titleEP');
-        final bool isDublado = (element.attributes['data-tar']?.toLowerCase().contains('dub')) ?? false;
+        final String episodeTitle = scrapingUtil.getByText(
+          selector: '.titleEP',
+        );
+        final bool isDublado =
+            (element.attributes['data-tar']?.toLowerCase().contains('dub')) ??
+            false;
 
         final Episode episode = Episode(
           isDublado: isDublado,

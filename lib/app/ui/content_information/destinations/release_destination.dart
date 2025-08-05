@@ -16,7 +16,8 @@ class ReleaseDestination extends StatefulWidget {
   State<ReleaseDestination> createState() => _ReleaseDestinationState();
 }
 
-class _ReleaseDestinationState extends State<ReleaseDestination> with AutomaticKeepAliveClientMixin {
+class _ReleaseDestinationState extends State<ReleaseDestination>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -27,14 +28,19 @@ class _ReleaseDestinationState extends State<ReleaseDestination> with AutomaticK
     final themeData = Theme.of(context);
 
     final bool releasesIsLoading = ContentScope.releasesIsLoadingOf(context);
-    final AppConfigController appConfigController = context.watch<AppConfigController>();
+    final AppConfigController appConfigController = context
+        .watch<AppConfigController>();
 
     final isLoading = ContentScope.isLoadingOf(context);
     //  ContentScope.isLoadingOf(context);
 
-    final releases = content.releases.sorted().reverse(appConfigController.config.reverseContents);
+    final releases = content.releases.sorted().reverse(
+      appConfigController.config.reverseContents,
+    );
 
-    final bottomMenuController = BottomMenu.menuControllerMaybeOf<List<String>>(context);
+    final bottomMenuController = BottomMenu.menuControllerMaybeOf<List<String>>(
+      context,
+    );
 
     final list = bottomMenuController?.args ?? const [];
 
@@ -52,33 +58,56 @@ class _ReleaseDestinationState extends State<ReleaseDestination> with AutomaticK
               ? SizedBox(
                   height: 400,
                   child: Center(
-                    child: LoadingAnimationWidget.halfTriangleDot(color: themeData.colorScheme.primary, size: 120),
+                    child: LoadingAnimationWidget.halfTriangleDot(
+                      color: themeData.colorScheme.primary,
+                      size: 120,
+                    ),
                   ),
                 )
               : Column(
-                  children: List.generate(isLoading ? 12 : releases.length, (index) {
+                  children: List.generate(isLoading ? 12 : releases.length, (
+                    index,
+                  ) {
                     if (isLoading) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 2),
                         child: ListTile(
                           dense: true,
                           isThreeLine: false,
-                          subtitle: ShimmerContainer(height: 20, enable: isLoading, child: const SizedBox.expand()),
+                          subtitle: ShimmerContainer(
+                            height: 20,
+                            enable: isLoading,
+                            child: const SizedBox.expand(),
+                          ),
                           horizontalTitleGap: 20,
-                          contentPadding: const EdgeInsets.only(left: 16.0, right: 8),
+                          contentPadding: const EdgeInsets.only(
+                            left: 16.0,
+                            right: 8,
+                          ),
                           leading: ShimmerContainer(
                             width: 110,
                             borderRadius: BorderRadius.circular(8),
                             enable: isLoading,
                             child: const SizedBox.expand(),
                           ),
-                          titleTextStyle: Theme.of(
-                            context,
-                          ).textTheme.titleMedium?.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+                          titleTextStyle: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
                           minVerticalPadding: 0,
                           minTileHeight: 76,
-                          visualDensity: const VisualDensity(vertical: 4, horizontal: -2),
-                          title: ShimmerContainer(height: 20, enable: isLoading, child: const SizedBox.expand()),
+                          visualDensity: const VisualDensity(
+                            vertical: 4,
+                            horizontal: -2,
+                          ),
+                          title: ShimmerContainer(
+                            height: 20,
+                            enable: isLoading,
+                            child: const SizedBox.expand(),
+                          ),
                         ),
                       );
                     }
@@ -90,10 +119,16 @@ class _ReleaseDestinationState extends State<ReleaseDestination> with AutomaticK
                       release: release,
                       index: index,
                       onLongPress: (release) => onLongPressed?.call(release),
-                      onDoubleTap: (release) => ReleaseUtils.onDoubleTap(context, release),
+                      onDoubleTap: (release) =>
+                          ReleaseUtils.onDoubleTap(context, release),
                       onTap: (release) => list.isNotEmpty
                           ? onLongPressed?.call(release)
-                          : ReleaseUtils.onTap(context, release, content, index),
+                          : ReleaseUtils.onTap(
+                              context,
+                              release,
+                              content,
+                              index,
+                            ),
                     );
                   }),
                 ),

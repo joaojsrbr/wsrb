@@ -4,7 +4,16 @@ import 'package:flutter/widgets.dart';
 
 abstract class Content extends Equatable {
   @override
-  List<Object?> get props => [imageUrl, stringID, url, sinopse, _releases, genres, title, source];
+  List<Object?> get props => [
+    imageUrl,
+    stringID,
+    url,
+    sinopse,
+    _releases,
+    genres,
+    title,
+    source,
+  ];
 
   String get imageUrl;
 
@@ -55,5 +64,9 @@ abstract class Content extends Equatable {
   @override
   String toString() => title.trim();
 
-  ContentEntity toEntity({DateTime? createdAt, DateTime? updatedAt, bool isFavorite = false});
+  ContentEntity toEntity({
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool isFavorite = false,
+  });
 }

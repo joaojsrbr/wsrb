@@ -24,12 +24,10 @@ mixin PlayerAudioSessionMixin
   Future<void> _startAudioSession() async {
     _session = await AudioSession.instance;
     await _configureAudioSession();
-    subscriptions.addAll(
-      [
-        _session.interruptionEventStream.listen(_interruptionEventListener),
-        _session.devicesChangedEventStream.listen(_devicesChangedListener),
-      ],
-    );
+    subscriptions.addAll([
+      _session.interruptionEventStream.listen(_interruptionEventListener),
+      _session.devicesChangedEventStream.listen(_devicesChangedListener),
+    ]);
   }
 
   void _interruptionEventListener(AudioInterruptionEvent event) {
@@ -56,9 +54,11 @@ mixin PlayerAudioSessionMixin
 
   void _devicesChangedListener(AudioDevicesChangedEvent event) {
     customLog(
-        '[Devices added: ${event.devicesAdded}]_devicesChangedListener()');
+      '[Devices added: ${event.devicesAdded}]_devicesChangedListener()',
+    );
     customLog(
-        '[Devices removed: ${event.devicesRemoved}]_devicesChangedListener()');
+      '[Devices removed: ${event.devicesRemoved}]_devicesChangedListener()',
+    );
   }
 
   Future<void> _configureAudioSession() async {

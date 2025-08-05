@@ -52,7 +52,9 @@ class App {
 
   static const String ANI_LIST = 'https://graphql.anilist.co';
 
-  static const ImageProvider DEFAULT_IMAGE_PLACEHOLDER = AssetImage('assets/default-placeholder.png');
+  static const ImageProvider DEFAULT_IMAGE_PLACEHOLDER = AssetImage(
+    'assets/default-placeholder.png',
+  );
 
   static const ImageProvider IMAGE_GRAY = AssetImage('assets/gray_color.png');
   static const ImageProvider IMAGE_BLACK = AssetImage('assets/black_color.jpg');

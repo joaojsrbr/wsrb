@@ -32,12 +32,20 @@ class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
   bool didPop(FilterWatching? result) => super.didPop(newFilterWatching);
 
   void _handleFiltroDeDias(DateTime? start, DateTime? end, bool dataInfinita) {
-    newFilterWatching = newFilterWatching.copyWith(start: start, end: end, infiniteDate: dataInfinita);
+    newFilterWatching = newFilterWatching.copyWith(
+      start: start,
+      end: end,
+      infiniteDate: dataInfinita,
+    );
     _updateFilter();
   }
 
   void _handleLimparFiltroDeDias() {
-    newFilterWatching = newFilterWatching.copyWith(start: DateTime(0), end: DateTime(0), infiniteDate: false);
+    newFilterWatching = newFilterWatching.copyWith(
+      start: DateTime(0),
+      end: DateTime(0),
+      infiniteDate: false,
+    );
     _updateFilter();
   }
 
@@ -60,21 +68,32 @@ class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
     newFilterWatching = appConfigController.config.filterWatching;
   }
 
-  late FilterWatching newFilterWatching = appConfigController.config.filterWatching;
+  late FilterWatching newFilterWatching =
+      appConfigController.config.filterWatching;
 
   @override
   Duration get transitionDuration => Duration(milliseconds: 300);
 
   @override
-  Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
     final appConfigController = context.watch<AppConfigController>();
     final libraryController = context.watch<LibraryController>();
 
     final libraRepo = libraryController.repo;
-    final entities = onlyFavorites ? libraRepo.favorites : libraRepo.noFavorites;
+    final entities = onlyFavorites
+        ? libraRepo.favorites
+        : libraRepo.noFavorites;
 
     final titleStyle = Theme.of(context).textTheme.titleMedium;
-    final genres = entities.map((content) => content.anilistMedia?.genres).nonNulls.flattened.toList();
+    final genres = entities
+        .map((content) => content.anilistMedia?.genres)
+        .nonNulls
+        .flattened
+        .toList();
     final filterWatching = appConfigController.config.filterWatching;
     return StatefulBuilder(
       builder: (context, setState) {
@@ -107,7 +126,13 @@ class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
                       isInfinite: filterWatching.infiniteDate,
                       current: filterWatching.end != null
                           ? DateTimeRange(
-                              start: filterWatching.start ?? DateTime(DateTime.now().year, DateTime.january, 1),
+                              start:
+                                  filterWatching.start ??
+                                  DateTime(
+                                    DateTime.now().year,
+                                    DateTime.january,
+                                    1,
+                                  ),
                               end: filterWatching.end ?? DateTime.now(),
                             )
                           : null,
@@ -117,11 +142,16 @@ class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
                         onPressed: () {
                           appConfigController.setFilterWatching(
                             filterWatching.copyWith(
-                              filterSources: filterWatching.filterSources.isEmpty ? Source.values : [],
+                              filterSources:
+                                  filterWatching.filterSources.isEmpty
+                                  ? Source.values
+                                  : [],
                             ),
                           );
                         },
-                        label: filterWatching.filterSources.isEmpty ? const Text("Reset") : const Text("Limpar"),
+                        label: filterWatching.filterSources.isEmpty
+                            ? const Text("Reset")
+                            : const Text("Limpar"),
                         padding: EdgeInsets.zero,
                       ),
                       title: "Fonte",
@@ -135,7 +165,8 @@ class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
                         limpar: filterWatching.genresFilter.isEmpty
                             ? const SizedBox.shrink()
                             : RawChip(
-                                isEnabled: filterWatching.genresFilter.isNotEmpty,
+                                isEnabled:
+                                    filterWatching.genresFilter.isNotEmpty,
                                 onPressed: () {
                                   // newFilterWatching = newFilterWatching.copyWith(genresFilter: );
                                   appConfigController.setFilterWatching(
@@ -244,7 +275,10 @@ class FiltereChipSelectorState<T> extends State<FilterChipSelector<T>> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(widget.title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(
+            widget.title,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,

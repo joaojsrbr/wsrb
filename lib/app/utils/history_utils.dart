@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 class HistoryUtils {
   HistoryUtils._();
 
-  static Future<bool> questionDelete(BuildContext context, HistoricEntity entity) async {
+  static Future<bool> questionDelete(
+    BuildContext context,
+    HistoricEntity entity,
+  ) async {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -16,7 +19,10 @@ class HistoryUtils {
             onPressed: () => Navigator.pop(context, false),
             child: Text("Cancelar", style: TextStyle(color: Colors.red)),
           ),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text("Sim")),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text("Sim"),
+          ),
         ],
       ),
     );

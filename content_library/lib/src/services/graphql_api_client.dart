@@ -2,11 +2,17 @@ import 'package:content_library/content_library.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
 class GraphQLApiClient {
-  late GraphQLClient _graphQLClient = GraphQLClient(cache: GraphQLCache(), link: HttpLink(''));
+  late GraphQLClient _graphQLClient = GraphQLClient(
+    cache: GraphQLCache(),
+    link: HttpLink(''),
+  );
 
   GraphQLApiClient();
 
-  Future<Result<QueryResult>> query(QueryOptions options, {required Link link}) async {
+  Future<Result<QueryResult>> query(
+    QueryOptions options, {
+    required Link link,
+  }) async {
     try {
       _graphQLClient = _graphQLClient.copyWith(link: link);
 

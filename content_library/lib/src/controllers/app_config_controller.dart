@@ -11,14 +11,17 @@ class AppConfigController extends ChangeNotifier {
 
   final Subscriptions _subscriptions = Subscriptions();
 
-  final StreamController<AppConfigController> _updateController = StreamController.broadcast();
+  final StreamController<AppConfigController> _updateController =
+      StreamController.broadcast();
   Stream<AppConfigController> get update => _updateController.stream;
 
   AppConfigController(this._isarService) {
     _repository = AppConfigRepository();
   }
 
-  final Debouncer _updateDebouncer = Debouncer(duration: const Duration(milliseconds: 200));
+  final Debouncer _updateDebouncer = Debouncer(
+    duration: const Duration(milliseconds: 200),
+  );
 
   AppConfigEntity get config => repo.config;
 

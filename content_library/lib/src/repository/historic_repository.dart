@@ -2,7 +2,8 @@ import 'package:content_library/content_library.dart';
 import 'package:content_library/src/utils/in_repository.dart';
 
 class InHistoricRepository extends InRepository<HistoricEntity> {
-  UnmodifiableListView<String> get ids => UnmodifiableListView(entities.map(_map).nonNulls);
+  UnmodifiableListView<String> get ids =>
+      UnmodifiableListView(entities.map(_map).nonNulls);
 
   String? _map(HistoricEntity entity) {
     return switch (entity) {
@@ -35,7 +36,10 @@ class InHistoricRepository extends InRepository<HistoricEntity> {
   T? getHistoricEntityByID<T extends HistoricEntity>(List<String> ids) {
     final entity = entities.firstWhereOrNull(
       (entity) => switch (entity) {
-        EpisodeEntity data => ids.containsOneElement([data.stringID, data.animeStringID]),
+        EpisodeEntity data => ids.containsOneElement([
+          data.stringID,
+          data.animeStringID,
+        ]),
         _ => false,
       },
     );
@@ -47,7 +51,10 @@ class InHistoricRepository extends InRepository<HistoricEntity> {
     return entities
         .where(
           (entity) => switch (entity) {
-            EpisodeEntity data => ids.containsOneElement([data.stringID, data.animeStringID]),
+            EpisodeEntity data => ids.containsOneElement([
+              data.stringID,
+              data.animeStringID,
+            ]),
             _ => false,
           },
         )
@@ -56,11 +63,17 @@ class InHistoricRepository extends InRepository<HistoricEntity> {
   }
 
   UnmodifiableListView<HistoricEntity> get sortedByCreatedAt =>
-      UnmodifiableListView(entities.sorted((historic1, historic2) => historic2.compareTo(historic1)));
+      UnmodifiableListView(
+        entities.sorted(
+          (historic1, historic2) => historic2.compareTo(historic1),
+        ),
+      );
 
-  UnmodifiableListView<ChapterEntity> get chapterHistoric => UnmodifiableListView<ChapterEntity>(entities.whereType());
+  UnmodifiableListView<ChapterEntity> get chapterHistoric =>
+      UnmodifiableListView<ChapterEntity>(entities.whereType());
 
-  UnmodifiableListView<EpisodeEntity> get episodeHistoric => UnmodifiableListView<EpisodeEntity>(entities.whereType());
+  UnmodifiableListView<EpisodeEntity> get episodeHistoric =>
+      UnmodifiableListView<EpisodeEntity>(entities.whereType());
 
   T? getHistoric<T extends HistoricEntity>({
     Release? release,
@@ -74,7 +87,8 @@ class InHistoricRepository extends InRepository<HistoricEntity> {
         EpisodeEntity data =>
           data.stringID.contains(release?.stringID ?? "") &&
               int.tryParse(release?.number ?? "") == data.numberEpisode &&
-              (content == null || data.animeStringID.contains(content.stringID)),
+              (content == null ||
+                  data.animeStringID.contains(content.stringID)),
         _ => false,
       };
     }
@@ -94,7 +108,8 @@ class InHistoricRepository extends InRepository<HistoricEntity> {
       }
     }
 
-    final value = entities.firstWhereOrNull(matchesEntity) as T? ?? orElse?.call();
+    final value =
+        entities.firstWhereOrNull(matchesEntity) as T? ?? orElse?.call();
     return value;
   }
 }

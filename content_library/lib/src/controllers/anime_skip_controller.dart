@@ -28,15 +28,13 @@ class AnimeSkipController extends ChangeNotifier {
   Future<void> start() async {
     final Elapsed elapsed = Elapsed()..start();
 
-    final animeSkipCollections =
-        await _isarService.collection<AnimeSkipEntity>();
+    final animeSkipCollections = await _isarService
+        .collection<AnimeSkipEntity>();
 
     final animeskips = await animeSkipCollections.where().findAll();
-    _subscriptions.addAll(
-      [
-        animeSkipCollections.watchLazy().listen(_watchColletion),
-      ],
-    );
+    _subscriptions.addAll([
+      animeSkipCollections.watchLazy().listen(_watchColletion),
+    ]);
 
     repo.updateRepository([animeskips]);
 
@@ -44,8 +42,8 @@ class AnimeSkipController extends ChangeNotifier {
   }
 
   void _watchColletion(data) async {
-    final animeSkipCollections =
-        await _isarService.collection<AnimeSkipEntity>();
+    final animeSkipCollections = await _isarService
+        .collection<AnimeSkipEntity>();
     final animeskips = await animeSkipCollections.where().findAll();
 
     repo.updateRepository([animeskips]);
@@ -54,9 +52,7 @@ class AnimeSkipController extends ChangeNotifier {
   }
 
   Future<Result<(bool, int?)>> save(AnimeSkipEntity animeSkipEntity) async {
-    final result = await _isarService.add(
-      entity: animeSkipEntity,
-    );
+    final result = await _isarService.add(entity: animeSkipEntity);
 
     return result;
   }

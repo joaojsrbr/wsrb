@@ -90,5 +90,9 @@ abstract class HistoricEntity implements Entity, Comparable<HistoricEntity> {
   @override
   bool? get stringify => true;
 
-  HistoricEntity copyWith({List<CurrentPosition>? positions, DateTime? createdAt, DateTime? updatedAt});
+  HistoricEntity copyWith({
+    List<CurrentPosition>? positions,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  });
 }

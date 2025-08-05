@@ -15,7 +15,8 @@ class WebViewPage extends StatefulWidget {
   State<WebViewPage> createState() => _WebViewPageState();
 }
 
-class _WebViewPageState extends State<WebViewPage> with SingleTickerProviderStateMixin {
+class _WebViewPageState extends State<WebViewPage>
+    with SingleTickerProviderStateMixin {
   String _url = '';
   // final GlobalKey webViewKey = GlobalKey();
 
@@ -72,7 +73,9 @@ class _WebViewPageState extends State<WebViewPage> with SingleTickerProviderStat
   void handleClick(int item) async {
     switch (item) {
       case 0:
-        await InAppBrowser.openWithSystemBrowser(url: WebUri.uri(Uri.parse(_url)));
+        await InAppBrowser.openWithSystemBrowser(
+          url: WebUri.uri(Uri.parse(_url)),
+        );
         break;
       case 1:
         await InAppWebViewController.clearAllCache();
@@ -143,7 +146,8 @@ class _WebViewPageState extends State<WebViewPage> with SingleTickerProviderStat
               """,
               ),
             ]),
-            onConsoleMessage: (controller, consoleMessage) => log(consoleMessage.message),
+            onConsoleMessage: (controller, consoleMessage) =>
+                log(consoleMessage.message),
             initialUrlRequest: URLRequest(url: WebUri.uri(Uri.parse(_url))),
             onWebViewCreated: (controller) {
               _webViewController = controller;
@@ -187,7 +191,8 @@ class _WebViewPageState extends State<WebViewPage> with SingleTickerProviderStat
 
               final sslCertificate = await controller.getCertificate();
               setState(() {
-                _isSecure = sslCertificate != null || (url != null && urlIsSecure(url));
+                _isSecure =
+                    sslCertificate != null || (url != null && urlIsSecure(url));
               });
             },
             onUpdateVisitedHistory: (controller, url, isReload) {
@@ -245,7 +250,15 @@ class _WebViewPageState extends State<WebViewPage> with SingleTickerProviderStat
 
               if (navigationAction.isForMainFrame &&
                   url != null &&
-                  !['http', 'https', 'file', 'chrome', 'data', 'javascript', 'about'].contains(url.scheme)) {
+                  ![
+                    'http',
+                    'https',
+                    'file',
+                    'chrome',
+                    'data',
+                    'javascript',
+                    'about',
+                  ].contains(url.scheme)) {
                 if (await canLaunchUrl(url)) {
                   launchUrl(url);
                   return NavigationActionPolicy.CANCEL;
@@ -275,7 +288,9 @@ class _WebViewPageState extends State<WebViewPage> with SingleTickerProviderStat
               ),
               child: IconButton(
                 icon: Icon(MdiIcons.share),
-                onPressed: () => SharePlus.instance.share(ShareParams(text: _url, subject: _title)),
+                onPressed: () => SharePlus.instance.share(
+                  ShareParams(text: _url, subject: _title),
+                ),
               ),
             ),
             IconButton(
@@ -291,7 +306,12 @@ class _WebViewPageState extends State<WebViewPage> with SingleTickerProviderStat
                   enabled: false,
                   child: Column(
                     children: [
-                      Center(child: Text('Outras opções', style: Theme.of(context).textTheme.titleMedium)),
+                      Center(
+                        child: Text(
+                          'Outras opções',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
                       const Divider(),
                     ],
                   ),
@@ -302,7 +322,10 @@ class _WebViewPageState extends State<WebViewPage> with SingleTickerProviderStat
                     children: [
                       Icon(MdiIcons.openInApp),
                       const SizedBox(width: 5),
-                      Text('Abrir no navegador', style: Theme.of(context).textTheme.titleMedium),
+                      Text(
+                        'Abrir no navegador',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                     ],
                   ),
                 ),
@@ -312,7 +335,10 @@ class _WebViewPageState extends State<WebViewPage> with SingleTickerProviderStat
                     children: [
                       Icon(MdiIcons.notificationClearAll),
                       const SizedBox(width: 5),
-                      Text('Limpar dados de navegação', style: Theme.of(context).textTheme.titleMedium),
+                      Text(
+                        'Limpar dados de navegação',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                     ],
                   ),
                 ),
@@ -369,7 +395,11 @@ class _AppBarWrapper extends StatelessWidget implements PreferredSizeWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(title, overflow: TextOverflow.fade, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  title,
+                  overflow: TextOverflow.fade,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 Row(
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -386,7 +416,10 @@ class _AppBarWrapper extends StatelessWidget implements PreferredSizeWidget {
                     Flexible(
                       child: Text(
                         url,
-                        style: const TextStyle(fontSize: 12, color: Colors.white70),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.white70,
+                        ),
                         overflow: TextOverflow.fade,
                       ),
                     ),
@@ -409,7 +442,10 @@ class _AppBarWrapper extends StatelessWidget implements PreferredSizeWidget {
           ),
         ],
       ),
-      leading: IconButton(onPressed: () => Navigator.of(context).pop(), icon: Icon(MdiIcons.close)),
+      leading: IconButton(
+        onPressed: () => Navigator.of(context).pop(),
+        icon: Icon(MdiIcons.close),
+      ),
     );
   }
 }

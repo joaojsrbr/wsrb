@@ -22,7 +22,8 @@ class ReadingView extends StatefulWidget {
   State<ReadingView> createState() => _ReadingViewState();
 }
 
-class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs> with _ReadingVars, _ReadingScroll {
+class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
+    with _ReadingVars, _ReadingScroll {
   late final BoxScrollObserver<RenderObject> _observer;
 
   @override
@@ -78,8 +79,16 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs> wi
           );
         case TextData content:
           widget = Padding(
-            padding: EdgeInsets.only(right: 8, left: 8, bottom: 8, top: index == 0 ? 60 : 8),
-            child: Text(content.text, style: Theme.of(context).textTheme.bodyMedium),
+            padding: EdgeInsets.only(
+              right: 8,
+              left: 8,
+              bottom: 8,
+              top: index == 0 ? 60 : 8,
+            ),
+            child: Text(
+              content.text,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           );
         case _:
           widget = const SizedBox.shrink();
@@ -97,7 +106,10 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs> wi
 
   double get _percent => _readerController.percent;
 
-  void _handleDoubleTapDown(BuildContext context, TapDownDetails details) async {
+  void _handleDoubleTapDown(
+    BuildContext context,
+    TapDownDetails details,
+  ) async {
     final height = MediaQuery.sizeOf(context).height;
     final position = details.globalPosition;
     // double maxScrollExtent = 0.0;
@@ -179,7 +191,12 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs> wi
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (_isLoading) const _LoadContent() else ...[const _BuildContent(), const _FooterWidget()],
+              if (_isLoading)
+                const _LoadContent()
+              else ...[
+                const _BuildContent(),
+                const _FooterWidget(),
+              ],
             ],
           ),
         ),
@@ -312,7 +329,9 @@ class _FooterWidgetState extends State<_FooterWidget> {
 
     final textTheme = Theme.of(context).textTheme;
     final caption = textTheme.labelLarge?.copyWith(
-      color: Theme.of(context).brightness == Brightness.light ? Colors.grey[350] : Colors.grey[200],
+      color: Theme.of(context).brightness == Brightness.light
+          ? Colors.grey[350]
+          : Colors.grey[200],
     );
 
     final locale = Localizations.localeOf(context);
@@ -341,9 +360,21 @@ class _FooterWidgetState extends State<_FooterWidget> {
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(children: [Icon(MdiIcons.clock, size: 16), const SizedBox(width: 4), Text(date)]),
+                Row(
+                  children: [
+                    Icon(MdiIcons.clock, size: 16),
+                    const SizedBox(width: 4),
+                    Text(date),
+                  ],
+                ),
                 const SizedBox(width: 20),
-                Row(children: [Icon(MdiIcons.percent, size: 16), const SizedBox(width: 4), Text('$title%')]),
+                Row(
+                  children: [
+                    Icon(MdiIcons.percent, size: 16),
+                    const SizedBox(width: 4),
+                    Text('$title%'),
+                  ],
+                ),
               ],
             );
           },

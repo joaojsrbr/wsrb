@@ -14,14 +14,20 @@ class AnrollLoginService {
   dio.Interceptor get getInterceptorToken => _AnrollGetTokenInterceptor();
 
   Future<bool> login(String email, String password) async {
-    if (await checkLogin() case (bool result, int? id) when (result && id != null)) {
+    if (await checkLogin() case (
+      bool result,
+      int? id,
+    ) when (result && id != null)) {
       return true;
     }
     try {
       final interceptor = _AnrollSaveTokenInterceptor();
       _dioClient.addInterceptor(interceptor);
 
-      await _dioClient.post("${App.ANROLL_USER_URL}/auth/login", data: {"email": email, "keepConnected": true, "password": password});
+      await _dioClient.post(
+        "${App.ANROLL_USER_URL}/auth/login",
+        data: {"email": email, "keepConnected": true, "password": password},
+      );
 
       _dioClient.removeInterceptor(interceptor);
 
@@ -33,7 +39,10 @@ class AnrollLoginService {
   }
 
   Future<(bool result, String message)> logout() async {
-    if (await checkLogin() case (bool result, int? id) when (result && id != null)) {
+    if (await checkLogin() case (
+      bool result,
+      int? id,
+    ) when (result && id != null)) {
       // await _hiveService.delete('anrollData_token', debug: false);
       return (true, "Deslogado com sucesso!");
     }
@@ -41,7 +50,10 @@ class AnrollLoginService {
   }
 
   Future<String> _getBuildID() async {
-    final Response responseTest = await _dioClient.get(App.ANROLL_URL, responseType: ResponseType.plain);
+    final Response responseTest = await _dioClient.get(
+      App.ANROLL_URL,
+      responseType: ResponseType.plain,
+    );
 
     final element = parse(responseTest.data).querySelector('#__NEXT_DATA__');
 
@@ -64,9 +76,15 @@ class AnrollLoginService {
     try {
       final buildID = await _getBuildID();
       _dioClient.addInterceptor(getInterceptorToken);
-      final response = await _dioClient.get("${App.ANROLL_URL}/_next/data/$buildID/conta.json", responseType: ResponseType.plain);
+      final response = await _dioClient.get(
+        "${App.ANROLL_URL}/_next/data/$buildID/conta.json",
+        responseType: ResponseType.plain,
+      );
       _dioClient.removeInterceptor(getInterceptorToken);
-      return (true, jsonDecode(response.data)['pageProps']['data_user']['id_user'] as int);
+      return (
+        true,
+        jsonDecode(response.data)['pageProps']['data_user']['id_user'] as int,
+      );
     } on DioException catch (error, stack) {
       customLog(error.message, error: error, stackTrace: stack);
       return (false, null);
@@ -83,7 +101,10 @@ class _AnrollGetTokenInterceptor extends dio.Interceptor {
   _AnrollGetTokenInterceptor();
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     options.headers = App.HEADERS;
 
     // final AnrollData? anrollData = await _hiveService.load('anrollData_token', null, debug: false);
@@ -125,10 +146,20 @@ class AnrollData {
   AnrollData({required this.token, this.refreshToken, required this.email});
 
   Map<dynamic, dynamic> get toMap {
-    return <String, dynamic>{'token': token, 'refreshToken': refreshToken, 'email': email};
+    return <String, dynamic>{
+      'token': token,
+      'refreshToken': refreshToken,
+      'email': email,
+    };
   }
 
   factory AnrollData.fromMap(Map<dynamic, dynamic> map) {
-    return AnrollData(token: map['token'] as String, refreshToken: map['refreshToken'] != null ? map['refreshToken'] as String : null, email: map['email'] as String);
+    return AnrollData(
+      token: map['token'] as String,
+      refreshToken: map['refreshToken'] != null
+          ? map['refreshToken'] as String
+          : null,
+      email: map['email'] as String,
+    );
   }
 }

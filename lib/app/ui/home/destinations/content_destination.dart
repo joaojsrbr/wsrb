@@ -13,7 +13,8 @@ class ContentDestination extends StatefulWidget {
   State<ContentDestination> createState() => _ContentDestinationState();
 }
 
-class _ContentDestinationState extends State<ContentDestination> with AutomaticKeepAliveClientMixin {
+class _ContentDestinationState extends State<ContentDestination>
+    with AutomaticKeepAliveClientMixin {
   late final ContentRepository _contentRepository;
 
   @override
@@ -59,9 +60,10 @@ class _ContentDestinationState extends State<ContentDestination> with AutomaticK
     final isNewPageHeader = lastOrNull != null && lastOrNull == index;
 
     if (isNewPageHeader) {
-      final style = Theme.of(
-        context,
-      ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold, color: Colors.grey[400]);
+      final style = Theme.of(context).textTheme.labelLarge?.copyWith(
+        fontWeight: FontWeight.bold,
+        color: Colors.grey[400],
+      );
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -79,20 +81,27 @@ class _ContentDestinationState extends State<ContentDestination> with AutomaticK
             ),
           ),
           const SizedBox(height: 12),
-          ContentTile.list(content: content, padding: const EdgeInsets.only(bottom: 4)),
+          ContentTile.list(
+            content: content,
+            padding: const EdgeInsets.only(bottom: 4),
+          ),
         ],
       );
     }
 
     return ContentTile.list(
       content: content,
-      padding: isNewPageHeader ? EdgeInsets.zero : const EdgeInsets.only(bottom: 4),
+      padding: isNewPageHeader
+          ? EdgeInsets.zero
+          : const EdgeInsets.only(bottom: 4),
     );
   }
 
   @override
   void dispose() {
-    _contentRepository.contentChallenge.removeListener(_contentChallengeListener);
+    _contentRepository.contentChallenge.removeListener(
+      _contentChallengeListener,
+    );
     super.dispose();
   }
 }

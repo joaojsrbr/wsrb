@@ -6,7 +6,10 @@ import 'package:provider/provider.dart';
 class ContentUtils {
   const ContentUtils._();
 
-  static Future<bool> selectTypePlayer(BuildContext context, Episode episode) async {
+  static Future<bool> selectTypePlayer(
+    BuildContext context,
+    Episode episode,
+  ) async {
     final result = await showModalBottomSheet<bool>(
       context: context,
       builder: (context) {
@@ -34,7 +37,10 @@ class ContentUtils {
                   Container(
                     height: 80,
                     width: 110,
-                    decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(8)),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
@@ -52,7 +58,10 @@ class ContentUtils {
                   Container(
                     height: 80,
                     width: 110,
-                    decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(8)),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
@@ -120,14 +129,20 @@ class ContentUtils {
     );
   }
 
-  static Future<void> saveOrUpdate(BuildContext context, Content content) async {
+  static Future<void> saveOrUpdate(
+    BuildContext context,
+    Content content,
+  ) async {
     final libraryController = context.read<LibraryController>();
     final historicController = context.read<HistoricController>();
     final animeSkipController = context.read<AnimeSkipController>();
 
     // Obtém ou cria a ContentEntity
     ContentEntity? contentEntity = libraryController.repo
-        .getContentEntityByStringIDAll(content.stringID, orElse: () => content.toEntity(createdAt: DateTime.now()))
+        .getContentEntityByStringIDAll(
+          content.stringID,
+          orElse: () => content.toEntity(createdAt: DateTime.now()),
+        )
         ?.copyWith(isFavorite: true);
 
     // final bool shouldSave = _libraryController.repo.contains(content: content);
@@ -136,7 +151,10 @@ class ContentUtils {
 
     // Garante que os dados do Anilist estejam presentes
     if (contentEntity.anilistMedia == null) {
-      contentEntity = contentEntity.copyWith(isFavorite: true, anilistMedia: content.anilistMedia);
+      contentEntity = contentEntity.copyWith(
+        isFavorite: true,
+        anilistMedia: content.anilistMedia,
+      );
     }
 
     final List<HistoricEntity> historyEntities = [];
@@ -162,7 +180,11 @@ class ContentUtils {
 
       switch (contentEntity) {
         case AnimeEntity anime when value is EpisodeEntity:
-          final saveEpisode = EpisodeEntity.save(episode: release as Episode, anime: content as Anime, entity: value);
+          final saveEpisode = EpisodeEntity.save(
+            episode: release as Episode,
+            anime: content as Anime,
+            entity: value,
+          );
           anime.episodes.add(saveEpisode);
           historyEntities.add(saveEpisode);
 
@@ -173,7 +195,8 @@ class ContentUtils {
     }
 
     // Salva configurações de pulo de anime se existirem
-    if (contentEntity case AnimeEntity anime when anime.animeSkip.value != null) {
+    if (contentEntity case AnimeEntity anime
+        when anime.animeSkip.value != null) {
       await animeSkipController.save(anime.animeSkip.value!);
     }
 

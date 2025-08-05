@@ -14,7 +14,8 @@ class SliverAppBarFlexibleSpace extends StatefulWidget {
   final CustomSearchController searchController;
 
   @override
-  State<SliverAppBarFlexibleSpace> createState() => _SliverAppBarFlexibleSpaceState();
+  State<SliverAppBarFlexibleSpace> createState() =>
+      _SliverAppBarFlexibleSpaceState();
 }
 
 class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
@@ -24,7 +25,9 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
 
   final Map<Source, List<Content>> _contents = {};
 
-  final Debouncer _searchDebouncer = Debouncer(duration: const Duration(seconds: 1));
+  final Debouncer _searchDebouncer = Debouncer(
+    duration: const Duration(seconds: 1),
+  );
 
   CustomSearchController get _searchController => widget.searchController;
 
@@ -40,7 +43,10 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
   }
 
   Future<void> _searchContents(String query, [forceSearch = false]) async {
-    if (_contents.values.flattened.any((content) => content.title.toLowerCase().contains(query.toLowerCase())) &&
+    if (_contents.values.flattened.any(
+          (content) =>
+              content.title.toLowerCase().contains(query.toLowerCase()),
+        ) &&
         !forceSearch) {
       return;
     }
@@ -63,7 +69,8 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
 
     final TabController tabController = HomeScope.of(context).tabController;
 
-    final ValueNotifierList valueNotifierList = context.watch<ValueNotifierList>();
+    final ValueNotifierList valueNotifierList = context
+        .watch<ValueNotifierList>();
 
     return IgnorePointer(
       ignoring: tabController.index == 2,
@@ -85,7 +92,8 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
         dividerWidget: AnimatedBuilder(
           animation: _isLoading,
           child: const LinearProgressIndicator(minHeight: 2),
-          builder: (context, child) => _isLoading.value ? child! : const Divider(height: 2),
+          builder: (context, child) =>
+              _isLoading.value ? child! : const Divider(height: 2),
         ),
         // onChanged: (String value) {
         //   if (tabController.index != 0) return;
@@ -100,7 +108,9 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
             animation: _searchController,
             builder: (context, child) {
               return FadeThroughTransitionSwitcher(
-                enableSecondChild: tabController.index != 1 || _searchController.text.trim().isEmpty,
+                enableSecondChild:
+                    tabController.index != 1 ||
+                    _searchController.text.trim().isEmpty,
                 duration: const Duration(seconds: 1),
                 child: IconButton(
                   onPressed: () {
@@ -116,7 +126,10 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
         barLeading: FadeThroughTransitionSwitcher(
           enableSecondChild: valueNotifierList.isNotEmpty,
           duration: const Duration(milliseconds: 350),
-          secondChild: IconButton(onPressed: valueNotifierList.clear, icon: Icon(MdiIcons.close)),
+          secondChild: IconButton(
+            onPressed: valueNotifierList.clear,
+            icon: Icon(MdiIcons.close),
+          ),
           child: Icon(MdiIcons.magnify),
         ),
         searchController: _searchController,
@@ -131,8 +144,12 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
     );
   }
 
-  String _labelText(ValueNotifierList valueNotifierList, TabController tabController) {
-    if (valueNotifierList.isNotEmpty) return 'itens ${valueNotifierList.length}';
+  String _labelText(
+    ValueNotifierList valueNotifierList,
+    TabController tabController,
+  ) {
+    if (valueNotifierList.isNotEmpty)
+      return 'itens ${valueNotifierList.length}';
     return switch (tabController.index) {
       0 => 'Pesquisa',
       1 => 'Historico',
@@ -141,7 +158,10 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
     };
   }
 
-  FutureOr<Widget> _suggestionsBuilder(BuildContext context, CustomSearchController controller) async {
+  FutureOr<Widget> _suggestionsBuilder(
+    BuildContext context,
+    CustomSearchController controller,
+  ) async {
     return ValueListenableBuilder(
       valueListenable: _isLoading,
       builder: (context, loading, child) {
@@ -150,9 +170,15 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
         return ListView.builder(
           itemCount: _contents.entries.length,
           itemBuilder: (context, index) {
-            final MapEntry<Source, List<Content>> entry = _contents.entries.elementAt(index);
+            final MapEntry<Source, List<Content>> entry = _contents.entries
+                .elementAt(index);
             return ExpansionTile(
-              shape: Border(bottom: BorderSide(width: 1, color: DividerTheme.of(context).color ?? Colors.transparent)),
+              shape: Border(
+                bottom: BorderSide(
+                  width: 1,
+                  color: DividerTheme.of(context).color ?? Colors.transparent,
+                ),
+              ),
               title: Text(entry.key.name),
               initiallyExpanded: entry.value.isNotEmpty,
               maintainState: true,
@@ -174,7 +200,8 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
                           child: ContentTile.search(
                             content: content,
                             onTap: (content) {
-                              if (_searchController.isAttached && _searchController.isOpen) {
+                              if (_searchController.isAttached &&
+                                  _searchController.isOpen) {
                                 context.unFocusKeyBoard();
                               }
                             },
@@ -201,8 +228,11 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
   }
 }
 
-class _BarShapeMaterialState extends WidgetStateProperty<RoundedRectangleBorder?> {
-  final _defaultBarShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(12));
+class _BarShapeMaterialState
+    extends WidgetStateProperty<RoundedRectangleBorder?> {
+  final _defaultBarShape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(12),
+  );
 
   _BarShapeMaterialState();
 

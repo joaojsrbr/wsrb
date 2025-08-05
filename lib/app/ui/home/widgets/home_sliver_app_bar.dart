@@ -19,7 +19,9 @@ class HomeSliverAppBar extends StatelessWidget {
       FiltroBottomSheetRoute(
         // genres: _map.keys.map((entity) => entity.anilistMedia?.genres).nonNulls.flattened.toList(),
         appConfigController: context.read(),
-        bottomSheetAnimationController: HomeScope.of(context).bottomSheetAnimationController,
+        bottomSheetAnimationController: HomeScope.of(
+          context,
+        ).bottomSheetAnimationController,
       ),
     );
 
@@ -32,15 +34,21 @@ class HomeSliverAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TabController tabController = HomeScope.of(context).tabController;
-    final CustomSearchController searchController = HomeScope.of(context).searchController;
-    final LibraryController libraryController = context.watch<LibraryController>();
+    final CustomSearchController searchController = HomeScope.of(
+      context,
+    ).searchController;
+    final LibraryController libraryController = context
+        .watch<LibraryController>();
     final libraryRepo = libraryController.repo;
     return SliverAppBar(
       automaticallyImplyLeading: false,
       title: SliverAppBarFlexibleSpace(searchController: searchController),
       bottom: TabBar(
         controller: tabController,
-        dividerColor: (libraryRepo.notCompleted.isNotEmpty || libraryRepo.completed.isEmpty) && tabController.index == 2
+        dividerColor:
+            (libraryRepo.notCompleted.isNotEmpty ||
+                    libraryRepo.completed.isEmpty) &&
+                tabController.index == 2
             ? Colors.transparent
             : null,
         tabs: [
@@ -57,7 +65,8 @@ class HomeSliverAppBar extends StatelessWidget {
               child: IconButton(
                 visualDensity: const VisualDensity(horizontal: -4),
                 onPressed: () async {
-                  if (await PermissionUtils.manageExternalStorage() && context.mounted) {
+                  if (await PermissionUtils.manageExternalStorage() &&
+                      context.mounted) {
                     context.push(RouteName.DOWNLOAD);
                   }
                 },
@@ -65,7 +74,12 @@ class HomeSliverAppBar extends StatelessWidget {
               ),
             ),
           ],
-          1 => [IconButton(onPressed: () => _pushTofilter(context), icon: Icon(MdiIcons.filter))],
+          1 => [
+            IconButton(
+              onPressed: () => _pushTofilter(context),
+              icon: Icon(MdiIcons.filter),
+            ),
+          ],
           2 => [
             Padding(
               padding: const EdgeInsets.only(right: 12),

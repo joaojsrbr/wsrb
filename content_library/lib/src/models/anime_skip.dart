@@ -21,18 +21,13 @@ class AnimeSkip {
     final times = (map['episodes'] as List)
         .map((episode) => MapEntry(episode, episode['timestamps'] as List))
         .map(
-          (entry) => entry.value.map(
-            (obj) => AnimeTimeStamp.fromMap(entry.key, obj),
-          ),
+          (entry) =>
+              entry.value.map((obj) => AnimeTimeStamp.fromMap(entry.key, obj)),
         )
         .flattened
         .toList();
 
-    return AnimeSkip(
-      name: map['name'],
-      animeSkipId: map['id'],
-      times: times,
-    );
+    return AnimeSkip(name: map['name'], animeSkipId: map['id'], times: times);
   }
 
   Map<String, dynamic> get toMap {
@@ -57,9 +52,7 @@ class AnimeSkip {
     final obj = AnimeSkipEntity(
       animeSkipId: animeSkipId,
       name: name,
-      times: jsonEncode(
-        times.map((skip) => skip.toMap).toList(),
-      ),
+      times: jsonEncode(times.map((skip) => skip.toMap).toList()),
     );
 
     return obj;
@@ -92,29 +85,28 @@ class AnimeTimeStamp {
     this.timeStampType = AnimeTimeStampType.UNKNOWN,
   });
 
-  factory AnimeTimeStamp.fromMap(
-    dynamic episodeMap,
-    dynamic map,
-  ) {
+  factory AnimeTimeStamp.fromMap(dynamic episodeMap, dynamic map) {
     final timeStamp = episodeMap['animeTimeStampType'] != null
         ? AnimeTimeStampType.values.elementAt(episodeMap['animeTimeStampType'])
         : AnimeTimeStampType.values.firstWhereOrNull((time) {
-            return map['type']['name']
-                .toString()
-                .toID
-                .toUpperCase()
-                .contains(time.name.toUpperCase());
+            return map['type']['name'].toString().toID.toUpperCase().contains(
+              time.name.toUpperCase(),
+            );
           });
 
     return AnimeTimeStamp(
-      absoluteNumber: int.tryParse(((episodeMap['absoluteNumber'] ??
-                  map['episode']['absoluteNumber'] ??
-                  map['episode']['number']))
-              .toString()) ??
+      absoluteNumber:
+          int.tryParse(
+            ((episodeMap['absoluteNumber'] ??
+                    map['episode']['absoluteNumber'] ??
+                    map['episode']['number']))
+                .toString(),
+          ) ??
           0,
       id: map['id'] ?? episodeMap['episodeId'],
       episodeId: episodeMap['episodeId'] ?? episodeMap['id'],
-      at: episodeMap['at'] ??
+      at:
+          episodeMap['at'] ??
           (double.parse(map['at'].toString()) * 1000000).toInt(),
       createdAt: DateTime.parse(episodeMap['createdAt'] ?? map['createdAt']),
       updatedBy:
@@ -126,9 +118,7 @@ class AnimeTimeStamp {
     );
   }
 
-  factory AnimeTimeStamp._fromMap2(
-    dynamic map,
-  ) {
+  factory AnimeTimeStamp._fromMap2(dynamic map) {
     return AnimeTimeStamp(
       absoluteNumber: map['absoluteNumber'],
       id: map['id'],
@@ -138,8 +128,9 @@ class AnimeTimeStamp {
       updatedBy: map['updatedBy'],
       updatedAt: DateTime.parse(map['updatedAt']),
       createdBy: map['createdBy'],
-      timeStampType:
-          AnimeTimeStampType.values.elementAt(map['animeTimeStampType']),
+      timeStampType: AnimeTimeStampType.values.elementAt(
+        map['animeTimeStampType'],
+      ),
     );
   }
 

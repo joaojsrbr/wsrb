@@ -18,10 +18,12 @@ class RefContentInformationView extends StatefulWidget {
   const RefContentInformationView({super.key});
 
   @override
-  State<RefContentInformationView> createState() => _RefContentkInformationViewState();
+  State<RefContentInformationView> createState() =>
+      _RefContentkInformationViewState();
 }
 
-class _RefContentkInformationViewState extends State<RefContentInformationView> {
+class _RefContentkInformationViewState
+    extends State<RefContentInformationView> {
   late Content _content;
   late Completer _initialRefresh;
   late ContentInformationArgs _informationArgs;
@@ -33,7 +35,8 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   late final DownloadService _downloadService;
 
   final Debouncer _changeTabBarIndex = Debouncer(duration: Duration.zero);
-  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
   final Map<int, Releases> _releases = {};
 
   bool _isLoading = true;
@@ -43,7 +46,10 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   @override
   void initState() {
     super.initState();
-    _bottomMenuController = BottomMenuController(minHeight: 60, initialArgs: []);
+    _bottomMenuController = BottomMenuController(
+      minHeight: 60,
+      initialArgs: [],
+    );
     _historicController = read<HistoricController>();
     _libraryController = read<LibraryController>();
     _downloadService = read<DownloadService>();
@@ -97,7 +103,11 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
     if (mounted) super.setState(fn);
   }
 
-  void _onSuccess(Content data, [bool refresh = false, bool forceSaveCache = false]) async {
+  void _onSuccess(
+    Content data, [
+    bool refresh = false,
+    bool forceSaveCache = false,
+  ]) async {
     setState(() {
       _content = data.copyWith(releases: _releases[_index], cached: true);
       _releases[_index] = data.releases;
@@ -132,9 +142,13 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   }
 
   Future<void> _downloadRelease(Release release) async {
-    final localContext = GoRouter.of(context).routerDelegate.navigatorKey.currentContext;
-    final LibraryController libraryController = context.read<LibraryController>();
-    final HistoricController historicController = context.read<HistoricController>();
+    final localContext = GoRouter.of(
+      context,
+    ).routerDelegate.navigatorKey.currentContext;
+    final LibraryController libraryController = context
+        .read<LibraryController>();
+    final HistoricController historicController = context
+        .read<HistoricController>();
 
     final historicRepo = historicController.repo;
 
@@ -148,10 +162,11 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
           statisticsCallback: (statistics) async {},
           onResult: (result) async {
             if (result is Success) {
-              final animeEntity = _libraryController.repo.getContentEntityByStringID(
-                anime.stringID,
-                orElse: () => anime.toEntity(createdAt: DateTime.now()),
-              );
+              final animeEntity = _libraryController.repo
+                  .getContentEntityByStringID(
+                    anime.stringID,
+                    orElse: () => anime.toEntity(createdAt: DateTime.now()),
+                  );
               if (animeEntity == null) return;
 
               final EpisodeEntity episodeEntity =
@@ -178,7 +193,9 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
               case Failure _:
                 break;
               case Success _:
-                localContext?.showAppSnackBar(Text('Baixado com sucesso: ${data.title}'));
+                localContext?.showAppSnackBar(
+                  Text('Baixado com sucesso: ${data.title}'),
+                );
 
                 break;
               case Empty _:
@@ -271,7 +288,9 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
 
   void _shareButton() async {
     final args = _bottomMenuController.args;
-    final releases = _content.releases.where((release) => args.contains(release.stringID));
+    final releases = _content.releases.where(
+      (release) => args.contains(release.stringID),
+    );
     final release = releases.single;
     final uri = Uri.parse(release.url);
     _bottomMenuController.args.clear();
@@ -292,19 +311,28 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
       if (animeEntity == null) return;
       final args = _bottomMenuController.args;
 
-      final toEntities = data.releases.where((test) => args.contains(test.stringID)).map((map) {
-        final entity = _historicController.repo.getHistoric<EpisodeEntity>(
-          release: map,
-          orElse: () => map.toEntity(anime: data, createdAt: DateTime.now()),
-        );
+      final toEntities = data.releases
+          .where((test) => args.contains(test.stringID))
+          .map((map) {
+            final entity = _historicController.repo.getHistoric<EpisodeEntity>(
+              release: map,
+              orElse: () =>
+                  map.toEntity(anime: data, createdAt: DateTime.now()),
+            );
 
-        return entity?.copyWith(isComplete: true, updatedAt: DateTime.now());
-      }).toList();
+            return entity?.copyWith(
+              isComplete: true,
+              updatedAt: DateTime.now(),
+            );
+          })
+          .toList();
 
       animeEntity.episodes.addAll(toEntities.nonNulls);
 
       await _libraryController.add(contentEntity: animeEntity);
-      await _historicController.addAll(historyEntities: toEntities.nonNulls.toList());
+      await _historicController.addAll(
+        historyEntities: toEntities.nonNulls.toList(),
+      );
       _bottomMenuController.args.clear();
       _bottomMenuController.close();
     }
@@ -313,7 +341,8 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   void _deleteSelectEpisodeEntity() async {
     final args = _bottomMenuController.args;
     if (_content case Anime _) {
-      final historicEntities = _historicController.repo.getAllHistoricEntityByID(args);
+      final historicEntities = _historicController.repo
+          .getAllHistoricEntityByID(args);
       await _historicController.removeAll(historyEntities: historicEntities);
       _bottomMenuController.args.clear();
       _bottomMenuController.close();
@@ -343,9 +372,12 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
             bottomMenuController: _bottomMenuController,
             buttons: (context) {
               final args = _bottomMenuController.args;
-              final releases = _content.releases.where((release) => args.contains(release.stringID));
+              final releases = _content.releases.where(
+                (release) => args.contains(release.stringID),
+              );
 
-              final historicEntities = _historicController.repo.getAllHistoricEntityByID(args);
+              final historicEntities = _historicController.repo
+                  .getAllHistoricEntityByID(args);
 
               return Align(
                 alignment: Alignment.centerLeft,
@@ -360,12 +392,16 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
                     ),
                     IconButton(
                       padding: EdgeInsets.zero,
-                      onPressed: historicEntities.isNotEmpty ? null : _saveSelectEpisodeEntity,
+                      onPressed: historicEntities.isNotEmpty
+                          ? null
+                          : _saveSelectEpisodeEntity,
                       icon: Icon(MdiIcons.eyeCheck),
                     ),
                     IconButton(
                       padding: EdgeInsets.zero,
-                      onPressed: historicEntities.isEmpty ? null : _deleteSelectEpisodeEntity,
+                      onPressed: historicEntities.isEmpty
+                          ? null
+                          : _deleteSelectEpisodeEntity,
                       icon: Icon(MdiIcons.eyeMinus),
                     ),
                   ],

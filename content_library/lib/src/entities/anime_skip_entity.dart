@@ -6,15 +6,7 @@ import 'package:isar/isar.dart';
 
 part 'anime_skip_entity.g.dart';
 
-@Collection(
-  ignore: {
-    'props',
-    'stringify',
-    'hashCode',
-    'toObj',
-    'toMap',
-  },
-)
+@Collection(ignore: {'props', 'stringify', 'hashCode', 'toObj', 'toMap'})
 class AnimeSkipEntity extends OtherEntity {
   final String name;
   @Index(replace: true, unique: true)
@@ -36,10 +28,8 @@ class AnimeSkipEntity extends OtherEntity {
       animeSkipId: animeSkipId,
       times: times.isNotEmpty
           ? (jsonDecode(times) as List)
-              .map(
-                (e) => AnimeTimeStamp.fromJson(e),
-              )
-              .toList()
+                .map((e) => AnimeTimeStamp.fromJson(e))
+                .toList()
           : [],
     );
   }

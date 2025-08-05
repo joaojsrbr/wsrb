@@ -2,9 +2,7 @@
 
 class BookGetDataException implements Exception {
   String message = "A instancia content precisa ser do tipo Book";
-  BookGetDataException({
-    String? message,
-  }) {
+  BookGetDataException({String? message}) {
     if (message != null) this.message = message;
   }
 

@@ -49,7 +49,8 @@ class CustomPopup<E> extends StatefulWidget {
   final ShapeBorder? shape;
   final List<E> items;
   final Widget Function(BuildContext context)? builder;
-  final Widget Function(BuildContext context, int index, E item)? builderFunction;
+  final Widget Function(BuildContext context, int index, E item)?
+  builderFunction;
 
   final double height;
   final double width;
@@ -58,10 +59,15 @@ class CustomPopup<E> extends StatefulWidget {
   State<CustomPopup<E>> createState() => _CustomPopupState<E>();
 }
 
-class _CustomPopupState<E> extends State<CustomPopup<E>> with TickerProviderStateMixin {
+class _CustomPopupState<E> extends State<CustomPopup<E>>
+    with TickerProviderStateMixin {
   late final ScrollController _localController;
-  final Debouncer _debouncer = Debouncer(duration: const Duration(milliseconds: 250));
-  final Debouncer _debouncerShowWiget = Debouncer(duration: const Duration(milliseconds: 250));
+  final Debouncer _debouncer = Debouncer(
+    duration: const Duration(milliseconds: 250),
+  );
+  final Debouncer _debouncerShowWiget = Debouncer(
+    duration: const Duration(milliseconds: 250),
+  );
   late final AnimationController _animationController;
   late Animation<double> _animationHeight;
   late Animation<double> _animationWidth;
@@ -75,14 +81,19 @@ class _CustomPopupState<E> extends State<CustomPopup<E>> with TickerProviderStat
     _animationController = AnimationController(
       vsync: this,
       duration: widget.duration ?? const Duration(milliseconds: 300),
-      reverseDuration: widget.reverseDuration ?? const Duration(milliseconds: 300),
+      reverseDuration:
+          widget.reverseDuration ?? const Duration(milliseconds: 300),
     )..addListener(_animationShowWidgetListener);
 
     _localController = ScrollController();
 
-    _animationHeight = _animationController.drive(Tween(begin: 0.0, end: widget.height));
+    _animationHeight = _animationController.drive(
+      Tween(begin: 0.0, end: widget.height),
+    );
 
-    _animationWidth = _animationController.drive(Tween(begin: 0.0, end: widget.width));
+    _animationWidth = _animationController.drive(
+      Tween(begin: 0.0, end: widget.width),
+    );
 
     // _animationWidth = Tween(
     //   begin: 0.0,
@@ -124,14 +135,18 @@ class _CustomPopupState<E> extends State<CustomPopup<E>> with TickerProviderStat
     // }
 
     if (widget.height != oldWidget.height) {
-      _animationHeight = _animationController.drive(Tween(begin: 0.0, end: widget.height));
+      _animationHeight = _animationController.drive(
+        Tween(begin: 0.0, end: widget.height),
+      );
     }
     if (widget.width != oldWidget.width) {
       // _animationWidth = Tween(
       //   begin: 0.0,
       //   end: widget.width,
       // ).animate(_animationHeight);
-      _animationWidth = _animationController.drive(Tween(begin: 0.0, end: widget.width));
+      _animationWidth = _animationController.drive(
+        Tween(begin: 0.0, end: widget.width),
+      );
     }
 
     if (oldWidget.show != widget.show) {
@@ -198,7 +213,9 @@ class _CustomPopupState<E> extends State<CustomPopup<E>> with TickerProviderStat
                           return widget.builder != null
                               ? FadeTransition(
                                   opacity: _animationController,
-                                  child: !_showWidget ? const SizedBox.shrink() : widget.builder!(context),
+                                  child: !_showWidget
+                                      ? const SizedBox.shrink()
+                                      : widget.builder!(context),
                                 )
                               : ListView.builder(
                                   primary: false,
@@ -217,7 +234,11 @@ class _CustomPopupState<E> extends State<CustomPopup<E>> with TickerProviderStat
                                       opacity: _animationController,
                                       child: !_showWidget
                                           ? const SizedBox.shrink()
-                                          : widget.builderFunction!(context, index, widget.items[index]),
+                                          : widget.builderFunction!(
+                                              context,
+                                              index,
+                                              widget.items[index],
+                                            ),
                                     );
                                   },
                                 );
@@ -228,11 +249,18 @@ class _CustomPopupState<E> extends State<CustomPopup<E>> with TickerProviderStat
                 : widget.builder != null
                 ? FadeTransition(
                     opacity: _animationController,
-                    child: !_showWidget ? const SizedBox.shrink() : widget.builder!(context),
+                    child: !_showWidget
+                        ? const SizedBox.shrink()
+                        : widget.builder!(context),
                   )
                 : ListView.builder(
                     primary: false,
-                    padding: EdgeInsets.only(top: widget.paddingTop ? padding.top : 0, right: 0, left: 0, bottom: 0),
+                    padding: EdgeInsets.only(
+                      top: widget.paddingTop ? padding.top : 0,
+                      right: 0,
+                      left: 0,
+                      bottom: 0,
+                    ),
                     shrinkWrap: true,
                     controller: _localController,
                     scrollDirection: widget.scrollDirection,
@@ -242,7 +270,11 @@ class _CustomPopupState<E> extends State<CustomPopup<E>> with TickerProviderStat
                         opacity: _animationController,
                         child: !_showWidget
                             ? const SizedBox.shrink()
-                            : widget.builderFunction!(context, index, widget.items[index]),
+                            : widget.builderFunction!(
+                                context,
+                                index,
+                                widget.items[index],
+                              ),
                       );
                     },
                   ),

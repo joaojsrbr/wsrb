@@ -24,7 +24,8 @@ Widget contentIndicatorBuilder(BuildContext context, IndicatorStatus status) {
       //   break;
       // }
 
-      final refreshIndicatorState = context.findAncestorStateOfType<RefreshIndicatorState>();
+      final refreshIndicatorState = context
+          .findAncestorStateOfType<RefreshIndicatorState>();
       if (refreshIndicatorState != null) {
         refreshIndicatorState.show();
         widget = const SizedBox.shrink();
@@ -67,7 +68,13 @@ class _StatusNotifier extends InheritedWidget {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
 
-    properties.add(EnumProperty<IndicatorStatus>('IndicatorStatus', status, defaultValue: IndicatorStatus.none));
+    properties.add(
+      EnumProperty<IndicatorStatus>(
+        'IndicatorStatus',
+        status,
+        defaultValue: IndicatorStatus.none,
+      ),
+    );
   }
 
   // ignore: unused_element
@@ -78,7 +85,8 @@ class _StatusNotifier extends InheritedWidget {
   }
 
   @override
-  bool updateShouldNotify(_StatusNotifier oldWidget) => status != oldWidget.status;
+  bool updateShouldNotify(_StatusNotifier oldWidget) =>
+      status != oldWidget.status;
 }
 
 // class _DefaultWidget extends StatelessWidget {
@@ -98,7 +106,8 @@ class _EmptyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver =
+        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
     Widget child = const SizedBox.shrink();
     if (isSliver) child = SliverToBoxAdapter(child: child);
@@ -111,7 +120,8 @@ class _NoMoreLoadWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver =
+        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
     final size = MediaQuery.sizeOf(context);
     Widget child = SizedBox(
       height: size.height * .06,
@@ -119,7 +129,10 @@ class _NoMoreLoadWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Padding(padding: const EdgeInsets.all(8.0), child: Icon(MdiIcons.alertCircleOutline)),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(MdiIcons.alertCircleOutline),
+          ),
           Text('Última página', style: Theme.of(context).textTheme.titleMedium),
         ],
       ),
@@ -150,7 +163,8 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
     _contentRepository = context.read<ContentRepository>();
     // _connectionChecker = context.read<ConnectionChecker>();
     _contentRepository.clear();
-    if (_contentRepository.indicatorStatus == IndicatorStatus.fullScreenBusying) {
+    if (_contentRepository.indicatorStatus ==
+        IndicatorStatus.fullScreenBusying) {
       scheduleMicrotask(_showSnackBar);
     }
 
@@ -164,7 +178,9 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
       final fullScreenError = _contentRepository.fullScreenError;
       setStateIfMounted(() {});
       if (fullScreenError is DioException) {
-        this.context.showAppSnackBar(const Text('Verifique sua conexão com a internet.'));
+        this.context.showAppSnackBar(
+          const Text('Verifique sua conexão com a internet.'),
+        );
       }
     });
   }
@@ -191,7 +207,8 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver =
+        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
     Widget child = Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -223,7 +240,11 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
           children: [
             if (widget.btnAtualizar)
               FilledButton(
-                style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
                 onPressed: () {
                   _contentRepository.refresh(true);
                 },
@@ -270,7 +291,8 @@ class _ErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver =
+        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
     final size = MediaQuery.sizeOf(context);
     Widget child = SizedBox(
       height: size.height * .06,
@@ -278,7 +300,10 @@ class _ErrorWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Padding(padding: const EdgeInsets.all(8.0), child: Icon(MdiIcons.alertCircleOutline)),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(MdiIcons.alertCircleOutline),
+          ),
           Text('Última página', style: Theme.of(context).textTheme.titleMedium),
         ],
       ),
@@ -293,7 +318,8 @@ class _NoneWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver =
+        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
     Widget child = const SizedBox.shrink();
     if (isSliver) child = SliverToBoxAdapter(child: child);
@@ -316,7 +342,8 @@ class _FullScreenBusyingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver =
+        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
     Widget child = const _BuildCircularWidget();
     if (isSliver) child = SliverFillRemaining(child: child);

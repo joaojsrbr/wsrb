@@ -80,8 +80,8 @@ class AniListMedia {
       description: json['description'] as String?,
       startDate:
           (json['startDate'] is Map && (json['startDate'] as Map).isNotEmpty)
-              ? Date.fromJson(json['startDate'] as Map<String, dynamic>)
-              : null,
+          ? Date.fromJson(json['startDate'] as Map<String, dynamic>)
+          : null,
       endDate: (json['endDate'] is Map && (json['endDate'] as Map).isNotEmpty)
           ? Date.fromJson(json['endDate'] as Map<String, dynamic>)
           : null,
@@ -97,17 +97,15 @@ class AniListMedia {
       updatedAt: json['updatedAt'] as int?,
       coverImage:
           (json['coverImage'] is Map && (json['coverImage'] as Map).isNotEmpty)
-              ? CoverImage.fromJson(json['coverImage'] as Map<String, dynamic>)
-              : null,
-      bannerImage: (json['bannerImage'] is Map &&
+          ? CoverImage.fromJson(json['coverImage'] as Map<String, dynamic>)
+          : null,
+      bannerImage:
+          (json['bannerImage'] is Map &&
               (json['bannerImage'] as Map).isNotEmpty)
           ? BannerImage.fromJson(json['bannerImage'] as Map<String, dynamic>)
           : (json['bannerImage'] is String)
-              ? (BannerImage(
-                  extraLarge: json['bannerImage'],
-                  isBanner: true,
-                ))
-              : null,
+          ? (BannerImage(extraLarge: json['bannerImage'], isBanner: true))
+          : null,
       genres: List<String>.from(json['genres'] as List? ?? []),
       synonyms: List<String>.from(json['synonyms'] as List? ?? []),
       averageScore: json['averageScore'] as int?,
@@ -116,17 +114,20 @@ class AniListMedia {
       isLocked: json['isLocked'] as bool?,
       trending: json['trending'] as int?,
       favourites: json['favourites'] as int?,
-      tags: (json['tags'] as List<dynamic>?)
+      tags:
+          (json['tags'] as List<dynamic>?)
               ?.map((e) => Tag.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      characters: ((json['characters'] is List)
+      characters:
+          ((json['characters'] is List)
                   ? json['characters'] as List?
                   : (json['characters']?['nodes'] as List?))
               ?.map((e) => Character.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      staff: ((json['staff'] is List)
+      staff:
+          ((json['staff'] is List)
                   ? json['staff'] as List?
                   : (json['staff']?['nodes'] as List?))
               ?.map((e) => Staff.fromJson(e as Map<String, dynamic>))
@@ -224,11 +225,7 @@ class Title {
   final String? english;
   final String? native;
 
-  Title({
-    this.romaji,
-    this.english,
-    this.native,
-  });
+  Title({this.romaji, this.english, this.native});
 
   factory Title.fromJson(Map<String, dynamic> json) {
     return Title(
@@ -239,11 +236,7 @@ class Title {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'romaji': romaji,
-      'english': english,
-      'native': native,
-    };
+    return {'romaji': romaji, 'english': english, 'native': native};
   }
 }
 
@@ -255,26 +248,14 @@ class Date {
 
   bool get isEmpty => year == -1 && month == -1 && day == -1;
 
-  Date({
-    this.year = -1,
-    this.month = -1,
-    this.day = -1,
-  });
+  Date({this.year = -1, this.month = -1, this.day = -1});
 
   factory Date.fromJson(Map<String, dynamic> json) {
-    return Date(
-      year: json['year'],
-      month: json['month'],
-      day: json['day'],
-    );
+    return Date(year: json['year'], month: json['month'], day: json['day']);
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'year': year,
-      'month': month,
-      'day': day,
-    };
+    return {'year': year, 'month': month, 'day': day};
   }
 }
 
@@ -284,11 +265,7 @@ class Trailer {
   final String? site;
   final String? thumbnail;
 
-  Trailer({
-    this.id,
-    this.site,
-    this.thumbnail,
-  });
+  Trailer({this.id, this.site, this.thumbnail});
 
   factory Trailer.fromJson(Map<String, dynamic> json) {
     return Trailer(
@@ -299,11 +276,7 @@ class Trailer {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'site': site,
-      'thumbnail': thumbnail,
-    };
+    return {'id': id, 'site': site, 'thumbnail': thumbnail};
   }
 }
 
@@ -314,12 +287,7 @@ class CoverImage {
   final String? medium;
   final String? color;
 
-  const CoverImage({
-    this.extraLarge,
-    this.large,
-    this.medium,
-    this.color,
-  });
+  const CoverImage({this.extraLarge, this.large, this.medium, this.color});
 
   factory CoverImage.fromJson(Map<String, dynamic> json) {
     return CoverImage(
@@ -345,23 +313,14 @@ class Tag {
   final int? id;
   final String name;
 
-  const Tag({
-    this.id = -1,
-    this.name = "",
-  });
+  const Tag({this.id = -1, this.name = ""});
 
   factory Tag.fromJson(Map<String, dynamic> json) {
-    return Tag(
-      id: json['id'],
-      name: json['name'] ?? "",
-    );
+    return Tag(id: json['id'], name: json['name'] ?? "");
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-    };
+    return {'id': id, 'name': name};
   }
 
   @override
@@ -375,10 +334,7 @@ class Character {
   final CharacterName? name;
   final CharacterImage? image;
 
-  Character({
-    this.image,
-    this.name,
-  });
+  Character({this.image, this.name});
 
   factory Character.fromJson(Map<String, dynamic> json) {
     return Character(
@@ -392,10 +348,7 @@ class Character {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'name': name?.toJson(),
-      'image': image?.toJson(),
-    };
+    return {'name': name?.toJson(), 'image': image?.toJson()};
   }
 }
 
@@ -437,23 +390,14 @@ class CharacterImage {
   final String? large;
   final String? medium;
 
-  CharacterImage({
-    this.large,
-    this.medium,
-  });
+  CharacterImage({this.large, this.medium});
 
   factory CharacterImage.fromJson(Map<String, dynamic> json) {
-    return CharacterImage(
-      large: json['large'],
-      medium: json['medium'],
-    );
+    return CharacterImage(large: json['large'], medium: json['medium']);
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'large': large,
-      'medium': medium,
-    };
+    return {'large': large, 'medium': medium};
   }
 }
 
@@ -462,10 +406,7 @@ class Staff {
   final StaffName? name;
   final StaffImage? image;
 
-  const Staff({
-    this.name,
-    this.image,
-  });
+  const Staff({this.name, this.image});
 
   factory Staff.fromJson(Map<String, dynamic> json) {
     return Staff(
@@ -479,10 +420,7 @@ class Staff {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'name': name?.toJson(),
-      'image': image?.toJson(),
-    };
+    return {'name': name?.toJson(), 'image': image?.toJson()};
   }
 }
 
@@ -528,22 +466,13 @@ class StaffImage {
   final String? large;
   final String? medium;
 
-  StaffImage({
-    this.large,
-    this.medium,
-  });
+  StaffImage({this.large, this.medium});
 
   factory StaffImage.fromJson(Map<String, dynamic> json) {
-    return StaffImage(
-      large: json['large'],
-      medium: json['medium'],
-    );
+    return StaffImage(large: json['large'], medium: json['medium']);
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'large': large,
-      'medium': medium,
-    };
+    return {'large': large, 'medium': medium};
   }
 }

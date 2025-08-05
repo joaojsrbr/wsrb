@@ -48,5 +48,12 @@ class PlayerArgs with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [episode, anime, startPossition, data, forceEnterFullScreen, getAnimeData];
+  List<Object?> get props => [
+    episode,
+    anime,
+    startPossition,
+    data,
+    forceEnterFullScreen,
+    getAnimeData,
+  ];
 }
