@@ -17,7 +17,7 @@ class CategoryController extends ChangeNotifier {
       UnmodifiableListView(_categories);
 
   UnmodifiableListView<String> get ids =>
-      UnmodifiableListView(categories.map((e) => e.stringID).cast());
+      UnmodifiableListView(categories.map((e) => e.stringID));
 
   @override
   void dispose() {
