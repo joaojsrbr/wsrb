@@ -25,23 +25,14 @@ class AnimeSkipRepository implements IAnimeSkip {
     final result = await _graphQLClient.query(
       QueryOptions(
         document: gql(AnimeSkipQuery.TIMESTAMPSBYNAME),
-        variables: {
-          'search': search,
-          'offset': offset,
-          'limit': limit,
-          'sort': sort,
-        },
+        variables: {'search': search, 'offset': offset, 'limit': limit, 'sort': sort},
       ),
-      link: HttpLink(
-        defaultHeaders: {'x-client-id': apiKey},
-        App.ANIME_SKIP_API,
-      ),
+      link: HttpLink(defaultHeaders: {'x-client-id': apiKey}, App.ANIME_SKIP_API),
     );
 
     return switch (result) {
       Empty<QueryResult<Object?>> _ => const Empty(),
-      Success<QueryResult<Object?>> data
-          when data.data.data?.isEmpty != false =>
+      Success<QueryResult<Object?>> data when data.data.data?.isEmpty != false =>
         const Empty(),
       Success<QueryResult<Object?>> data => _getSuccess(data),
       Failure<QueryResult<Object?>> error => Result.failure(error.error),

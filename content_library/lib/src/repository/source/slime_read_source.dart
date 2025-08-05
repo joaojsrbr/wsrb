@@ -45,8 +45,7 @@ class SlimeReadSource extends RSource {
         response.data,
       );
 
-      if (responseDto.pages == contentRepository.index ||
-          responseDto.data.isEmpty) {
+      if (responseDto.pages == contentRepository.index || responseDto.data.isEmpty) {
         contentRepository.isSuccess = false;
         contentRepository._hasMore = false;
         return Future.value(false);
@@ -76,8 +75,7 @@ class SlimeReadSource extends RSource {
 
         final firstBookTempCap = responseDto.bookTemp.first.bookTempCaps.first;
 
-        final chapterUrl =
-            '$BASE_URL/ler/$bookId/cap-${firstBookTempCap.btcCap}';
+        final chapterUrl = '$BASE_URL/ler/$bookId/cap-${firstBookTempCap.btcCap}';
 
         releases.add(
           Chapter(

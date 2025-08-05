@@ -9,17 +9,12 @@ typedef CustomSearchAnchorChildBuilder =
     Widget Function(BuildContext context, CustomSearchController controller);
 
 typedef CustomSearchSuggestionsBuilder =
-    FutureOr<Widget> Function(
-      BuildContext context,
-      CustomSearchController controller,
-    );
+    FutureOr<Widget> Function(BuildContext context, CustomSearchController controller);
 
 typedef CustomSearchViewBuilder = Widget Function(Widget suggestion);
 
 const int _kOpenViewMilliseconds = 600;
-const Duration _kOpenViewDuration = Duration(
-  milliseconds: _kOpenViewMilliseconds,
-);
+const Duration _kOpenViewDuration = Duration(milliseconds: _kOpenViewMilliseconds);
 const Duration _kAnchorFadeDuration = Duration(milliseconds: 150);
 const Curve _kViewFadeOnInterval = Interval(0.0, 1 / 2);
 const Curve _kViewIconsFadeOnInterval = Interval(1 / 6, 2 / 6);
@@ -155,8 +150,7 @@ class _CustomSearchAnchorState extends State<CustomSearchAnchor> {
   bool get _viewIsOpen => !_anchorIsVisible;
   CustomSearchController? _internalSearchController;
   CustomSearchController get _searchController =>
-      widget.searchController ??
-      (_internalSearchController ??= CustomSearchController());
+      widget.searchController ?? (_internalSearchController ??= CustomSearchController());
 
   @override
   void initState() {
@@ -220,10 +214,7 @@ class _CustomSearchAnchorState extends State<CustomSearchAnchor> {
         searchController: _searchController,
         suggestionsBuilder: widget.suggestionsBuilder,
         textCapitalization: widget.textCapitalization,
-        capturedThemes: InheritedTheme.capture(
-          from: context,
-          to: navigator.context,
-        ),
+        capturedThemes: InheritedTheme.capture(from: context, to: navigator.context),
         textInputAction: widget.textInputAction,
         keyboardType: widget.keyboardType,
       ),
@@ -378,10 +369,7 @@ class _SearchViewRoute extends PopupRoute<_SearchViewRoute> {
   }
 
   void updateViewConfig(BuildContext context) {
-    viewDefaults = _SearchViewDefaultsM3(
-      context,
-      isFullScreen: showFullScreenView,
-    );
+    viewDefaults = _SearchViewDefaultsM3(context, isFullScreen: showFullScreenView);
     viewTheme = SearchViewTheme.of(context);
   }
 
@@ -472,11 +460,7 @@ class _SearchViewRoute extends PopupRoute<_SearchViewRoute> {
 
           final Rect viewRect = _rectTween.evaluate(curvedAnimation)!;
           final double topPadding = showFullScreenView
-              ? lerpDouble(
-                  0.0,
-                  MediaQuery.paddingOf(context).top,
-                  curvedAnimation.value,
-                )!
+              ? lerpDouble(0.0, MediaQuery.paddingOf(context).top, curvedAnimation.value)!
               : 0.0;
 
           return FadeTransition(
@@ -638,10 +622,7 @@ class _ViewContentState extends State<_ViewContent> {
   }
 
   Future<void> updateSuggestions() async {
-    final Widget suggestion = await widget.suggestionsBuilder(
-      context,
-      _controller,
-    );
+    final Widget suggestion = await widget.suggestionsBuilder(context, _controller);
 
     setStateIfMounted(() => result = suggestion);
   }
@@ -756,24 +737,21 @@ class _ViewContentState extends State<_ViewContent> {
                               autoFocus: false,
                               constraints: widget.showFullScreenView
                                   ? BoxConstraints(
-                                      minHeight: _SearchViewDefaultsM3
-                                          .fullScreenBarHeight,
+                                      minHeight:
+                                          _SearchViewDefaultsM3.fullScreenBarHeight,
                                     )
                                   : null,
                               leading: widget.viewLeading ?? defaultLeading,
                               trailing: widget.viewTrailing ?? defaultTrailing,
                               hintText: widget.viewHintText,
                               fillColor: Colors.transparent,
-                              backgroundColor:
-                                  const WidgetStatePropertyAll<Color>(
-                                    Colors.transparent,
-                                  ),
+                              backgroundColor: const WidgetStatePropertyAll<Color>(
+                                Colors.transparent,
+                              ),
                               overlayColor: const WidgetStatePropertyAll<Color>(
                                 Colors.transparent,
                               ),
-                              elevation: const WidgetStatePropertyAll<double>(
-                                0.0,
-                              ),
+                              elevation: const WidgetStatePropertyAll<double>(0.0),
                               textStyle: WidgetStatePropertyAll<TextStyle?>(
                                 effectiveTextStyle,
                               ),
@@ -807,9 +785,7 @@ class _ViewContentState extends State<_ViewContent> {
                       ),
                       Expanded(
                         child: DividerTheme(
-                          data: dividerTheme.copyWith(
-                            color: effectiveDividerColor,
-                          ),
+                          data: dividerTheme.copyWith(color: effectiveDividerColor),
                           child: FadeTransition(
                             opacity: CurvedAnimation(
                               parent: widget.animation,
@@ -1030,8 +1006,7 @@ class CustomSearchBar extends StatefulWidget {
 class _CustomSearchBarState extends State<CustomSearchBar> {
   late final WidgetStatesController _internalStatesController;
   FocusNode? _internalFocusNode;
-  FocusNode get _focusNode =>
-      widget.focusNode ?? (_internalFocusNode ??= FocusNode());
+  FocusNode get _focusNode => widget.focusNode ?? (_internalFocusNode ??= FocusNode());
 
   @override
   void initState() {
@@ -1097,12 +1072,11 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
       searchBarTheme.surfaceTintColor,
       defaults.surfaceTintColor,
     );
-    final RoundedRectangleBorder? effectiveShape =
-        resolve<RoundedRectangleBorder?>(
-          widget.shape,
-          const WidgetStatePropertyAll(RoundedRectangleBorder()),
-          const WidgetStatePropertyAll(RoundedRectangleBorder()),
-        );
+    final RoundedRectangleBorder? effectiveShape = resolve<RoundedRectangleBorder?>(
+      widget.shape,
+      const WidgetStatePropertyAll(RoundedRectangleBorder()),
+      const WidgetStatePropertyAll(RoundedRectangleBorder()),
+    );
     final BorderSide? effectiveSide = resolve<BorderSide?>(
       widget.side,
       searchBarTheme.side,
@@ -1111,9 +1085,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
     // final EdgeInsetsGeometry? effectivePadding = resolve<EdgeInsetsGeometry?>(
     //     widget.padding, searchBarTheme.padding, defaults.padding);
     final WidgetStateProperty<Color?>? effectiveOverlayColor =
-        widget.overlayColor ??
-        searchBarTheme.overlayColor ??
-        defaults.overlayColor;
+        widget.overlayColor ?? searchBarTheme.overlayColor ?? defaults.overlayColor;
     final TextCapitalization effectiveTextCapitalization =
         widget.textCapitalization ??
         searchBarTheme.textCapitalization ??
@@ -1173,9 +1145,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
 
     return ConstrainedBox(
       constraints:
-          widget.constraints ??
-          searchBarTheme.constraints ??
-          defaults.constraints!,
+          widget.constraints ?? searchBarTheme.constraints ?? defaults.constraints!,
       child: AnimatedOpacity(
         opacity: !isScrolledUnder ? 1 : 0,
         // opacity: 1,
@@ -1218,25 +1188,17 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                   onLiveTextInput: null,
                   anchors: editableTextState.contextMenuAnchors,
                   clipboardStatus: ClipboardStatus.notPasteable,
-                  onCopy:
-                      editableTextState.currentTextEditingValue.text
-                          .trim()
-                          .isNotEmpty
-                      ? () => editableTextState.copySelection(
-                          SelectionChangedCause.toolbar,
-                        )
+                  onCopy: editableTextState.currentTextEditingValue.text.trim().isNotEmpty
+                      ? () =>
+                            editableTextState.copySelection(SelectionChangedCause.toolbar)
                       : null,
                   onCut: null,
                   onPaste: () {
                     editableTextState.pasteText(SelectionChangedCause.tap);
                   },
                   onSelectAll:
-                      editableTextState.currentTextEditingValue.text
-                          .trim()
-                          .isNotEmpty
-                      ? () => editableTextState.selectAll(
-                          SelectionChangedCause.toolbar,
-                        )
+                      editableTextState.currentTextEditingValue.text.trim().isNotEmpty
+                      ? () => editableTextState.selectAll(SelectionChangedCause.toolbar)
                       : null,
                 );
               },
@@ -1248,16 +1210,14 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                       effectiveShape?.copyWith(side: effectiveSide).borderRadius
                           as BorderRadius,
                   borderSide:
-                      effectiveSide ??
-                      const BorderSide(color: Colors.transparent),
+                      effectiveSide ?? const BorderSide(color: Colors.transparent),
                 ),
                 border: OutlineInputBorder(
                   borderRadius:
                       effectiveShape?.copyWith(side: effectiveSide).borderRadius
                           as BorderRadius,
                   borderSide:
-                      effectiveSide ??
-                      const BorderSide(color: Colors.transparent),
+                      effectiveSide ?? const BorderSide(color: Colors.transparent),
                 ),
                 filled: true,
                 fillColor: Colors.transparent,
@@ -1278,8 +1238,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                       effectiveShape?.copyWith(side: effectiveSide).borderRadius
                           as BorderRadius,
                   borderSide:
-                      effectiveSide ??
-                      const BorderSide(color: Colors.transparent),
+                      effectiveSide ?? const BorderSide(color: Colors.transparent),
                 ),
               ),
               textCapitalization: effectiveTextCapitalization,
@@ -1311,8 +1270,7 @@ class _SearchBarDefaultsM3 extends SearchBarThemeData {
   // WidgetStatePropertyAll<Color>(_colors.surface);
 
   @override
-  WidgetStateProperty<double>? get elevation =>
-      const WidgetStatePropertyAll<double>(6.0);
+  WidgetStateProperty<double>? get elevation => const WidgetStatePropertyAll<double>(6.0);
 
   @override
   WidgetStateProperty<Color>? get shadowColor =>
@@ -1350,16 +1308,14 @@ class _SearchBarDefaultsM3 extends SearchBarThemeData {
       );
 
   @override
-  WidgetStateProperty<TextStyle?> get textStyle =>
-      WidgetStatePropertyAll<TextStyle?>(
-        _textTheme.bodyLarge?.copyWith(color: _colors.onSurface),
-      );
+  WidgetStateProperty<TextStyle?> get textStyle => WidgetStatePropertyAll<TextStyle?>(
+    _textTheme.bodyLarge?.copyWith(color: _colors.onSurface),
+  );
 
   @override
-  WidgetStateProperty<TextStyle?> get hintStyle =>
-      WidgetStatePropertyAll<TextStyle?>(
-        _textTheme.bodyLarge?.copyWith(color: _colors.onSurfaceVariant),
-      );
+  WidgetStateProperty<TextStyle?> get hintStyle => WidgetStatePropertyAll<TextStyle?>(
+    _textTheme.bodyLarge?.copyWith(color: _colors.onSurfaceVariant),
+  );
 
   @override
   BoxConstraints get constraints =>

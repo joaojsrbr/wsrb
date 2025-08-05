@@ -45,8 +45,7 @@ class OpenContainerWrapper<T> extends OpenContainer<T> {
                          splashColor: splashColor,
                          highlightColor: highlightColor,
                          borderRadius:
-                             borderRadius ??
-                             const BorderRadius.all(Radius.circular(8)),
+                             borderRadius ?? const BorderRadius.all(Radius.circular(8)),
                          onLongPress: onLongPress,
                          onTap: () => OpenContainerWrapper.action(context),
                          child: closedChild.call(context),
@@ -65,8 +64,7 @@ class OpenContainerWrapper<T> extends OpenContainer<T> {
              final mtApp = context.findAncestorWidgetOfExactType<MaterialApp>();
              assert(mtApp != null);
 
-             final Map<String, Widget Function(BuildContext)> routes =
-                 mtApp!.routes!;
+             final Map<String, Widget Function(BuildContext)> routes = mtApp!.routes!;
 
              assert(routes.containsKey(routeName));
 
@@ -75,10 +73,7 @@ class OpenContainerWrapper<T> extends OpenContainer<T> {
              nPage = Scaffold(body: Center(child: Icon(MdiIcons.alert)));
            }
 
-           return _OpenContainerInherited(
-             closedContainer: closedContainer,
-             child: nPage,
-           );
+           return _OpenContainerInherited(closedContainer: closedContainer, child: nPage);
          },
        );
 

@@ -6,9 +6,7 @@ import 'package:isar/isar.dart';
 class HistoricController extends ChangeNotifier {
   final IsarServiceImpl _isarService;
   final Subscriptions _subscriptions = Subscriptions();
-  final Debouncer _debouncer = Debouncer(
-    duration: const Duration(milliseconds: 200),
-  );
+  final Debouncer _debouncer = Debouncer(duration: const Duration(milliseconds: 200));
 
   HistoricController(this._isarService) {
     _repository = InHistoricRepository();
@@ -54,9 +52,7 @@ class HistoricController extends ChangeNotifier {
     _debouncer.call(notifyListeners);
   }
 
-  Future<Result<(bool, List<int>?)>> add({
-    required HistoricEntity HistoricEntity,
-  }) async {
+  Future<Result<(bool, List<int>?)>> add({required HistoricEntity HistoricEntity}) async {
     bool isSucess = false;
     final List<int> ids = [];
 

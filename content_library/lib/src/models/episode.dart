@@ -48,8 +48,7 @@ class Episode extends Release {
 
   @override
   String get number {
-    return numberEpisode?.toString() ??
-        title.replaceAll(RegExp(r'[^0-9]'), '').trim();
+    return numberEpisode?.toString() ?? title.replaceAll(RegExp(r'[^0-9]'), '').trim();
   }
 
   int get numberInt {
@@ -96,12 +95,8 @@ class Episode extends Release {
       url: map['url'],
       sinopse: map['sinopse'] != null ? map['sinopse'] as String : null,
       pageNumber: map['pageNumber'] != null ? map['pageNumber'] as int : null,
-      numberEpisode: map['numberEpisode'] != null
-          ? map['numberEpisode'] as int
-          : null,
-      generateID: map['generateID'] != null
-          ? map['generateID'] as String
-          : null,
+      numberEpisode: map['numberEpisode'] != null ? map['numberEpisode'] as int : null,
+      generateID: map['generateID'] != null ? map['generateID'] as String : null,
       thumbnail: map['thumbnail'] != null ? map['thumbnail'] as String : null,
       isDublado: map['isDublado'] as bool,
       slugSerie: map['slugSerie'] != null ? map['slugSerie'] as String : null,

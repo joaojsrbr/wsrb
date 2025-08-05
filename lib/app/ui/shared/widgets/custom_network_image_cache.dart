@@ -36,8 +36,7 @@ class CustomCachedNetworkImage extends StatelessWidget {
   final Widget Function(BuildContext, String)? placeholder;
   final Widget Function(BuildContext, String, Object)? errorWidget;
   final Widget Function(BuildContext, ImageProvider<Object>)? imageBuilder;
-  final Widget Function(BuildContext, String, DownloadProgress)?
-  progressIndicatorBuilder;
+  final Widget Function(BuildContext, String, DownloadProgress)? progressIndicatorBuilder;
   final int? memCacheHeight;
   final Map<String, String>? httpHeaders;
   final int? memCacheWidth;

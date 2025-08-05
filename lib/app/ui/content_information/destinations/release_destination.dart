@@ -28,8 +28,7 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
     final themeData = Theme.of(context);
 
     final bool releasesIsLoading = ContentScope.releasesIsLoadingOf(context);
-    final AppConfigController appConfigController = context
-        .watch<AppConfigController>();
+    final AppConfigController appConfigController = context.watch<AppConfigController>();
 
     final isLoading = ContentScope.isLoadingOf(context);
     //  ContentScope.isLoadingOf(context);
@@ -38,9 +37,7 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
       appConfigController.config.reverseContents,
     );
 
-    final bottomMenuController = BottomMenu.menuControllerMaybeOf<List<String>>(
-      context,
-    );
+    final bottomMenuController = BottomMenu.menuControllerMaybeOf<List<String>>(context);
 
     final list = bottomMenuController?.args ?? const [];
 
@@ -65,9 +62,7 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
                   ),
                 )
               : Column(
-                  children: List.generate(isLoading ? 12 : releases.length, (
-                    index,
-                  ) {
+                  children: List.generate(isLoading ? 12 : releases.length, (index) {
                     if (isLoading) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 2),
@@ -80,29 +75,18 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
                             child: const SizedBox.expand(),
                           ),
                           horizontalTitleGap: 20,
-                          contentPadding: const EdgeInsets.only(
-                            left: 16.0,
-                            right: 8,
-                          ),
+                          contentPadding: const EdgeInsets.only(left: 16.0, right: 8),
                           leading: ShimmerContainer(
                             width: 110,
                             borderRadius: BorderRadius.circular(8),
                             enable: isLoading,
                             child: const SizedBox.expand(),
                           ),
-                          titleTextStyle: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          titleTextStyle: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
                           minVerticalPadding: 0,
                           minTileHeight: 76,
-                          visualDensity: const VisualDensity(
-                            vertical: 4,
-                            horizontal: -2,
-                          ),
+                          visualDensity: const VisualDensity(vertical: 4, horizontal: -2),
                           title: ShimmerContainer(
                             height: 20,
                             enable: isLoading,
@@ -123,12 +107,7 @@ class _ReleaseDestinationState extends State<ReleaseDestination>
                           ReleaseUtils.onDoubleTap(context, release),
                       onTap: (release) => list.isNotEmpty
                           ? onLongPressed?.call(release)
-                          : ReleaseUtils.onTap(
-                              context,
-                              release,
-                              content,
-                              index,
-                            ),
+                          : ReleaseUtils.onTap(context, release, content, index),
                     );
                   }),
                 ),

@@ -37,8 +37,7 @@ class HomeSliverAppBar extends StatelessWidget {
     final CustomSearchController searchController = HomeScope.of(
       context,
     ).searchController;
-    final LibraryController libraryController = context
-        .watch<LibraryController>();
+    final LibraryController libraryController = context.watch<LibraryController>();
     final libraryRepo = libraryController.repo;
     return SliverAppBar(
       automaticallyImplyLeading: false,
@@ -46,8 +45,7 @@ class HomeSliverAppBar extends StatelessWidget {
       bottom: TabBar(
         controller: tabController,
         dividerColor:
-            (libraryRepo.notCompleted.isNotEmpty ||
-                    libraryRepo.completed.isEmpty) &&
+            (libraryRepo.notCompleted.isNotEmpty || libraryRepo.completed.isEmpty) &&
                 tabController.index == 2
             ? Colors.transparent
             : null,
@@ -65,8 +63,7 @@ class HomeSliverAppBar extends StatelessWidget {
               child: IconButton(
                 visualDensity: const VisualDensity(horizontal: -4),
                 onPressed: () async {
-                  if (await PermissionUtils.manageExternalStorage() &&
-                      context.mounted) {
+                  if (await PermissionUtils.manageExternalStorage() && context.mounted) {
                     context.push(RouteName.DOWNLOAD);
                   }
                 },

@@ -75,11 +75,7 @@ int _appConfigEntityEstimateSize(
     final offsets = allOffsets[ContentCookie]!;
     for (var i = 0; i < object.betterAnimeCookies.length; i++) {
       final value = object.betterAnimeCookies[i];
-      bytesCount += ContentCookieSchema.estimateSize(
-        value,
-        offsets,
-        allOffsets,
-      );
+      bytesCount += ContentCookieSchema.estimateSize(value, offsets, allOffsets);
     }
   }
   bytesCount +=
@@ -138,9 +134,7 @@ AppConfigEntity _appConfigEntityDeserialize(
         ) ??
         FilterWatching(),
     orderBy:
-        _AppConfigEntityorderByValueEnumMap[reader.readByteOrNull(
-          offsets[2],
-        )] ??
+        _AppConfigEntityorderByValueEnumMap[reader.readByteOrNull(offsets[2])] ??
         OrderBy.LATEST,
     reverseContents: reader.readBool(offsets[3]),
     source:
@@ -176,17 +170,13 @@ P _appConfigEntityDeserializeProp<P>(
               FilterWatching())
           as P;
     case 2:
-      return (_AppConfigEntityorderByValueEnumMap[reader.readByteOrNull(
-                offset,
-              )] ??
+      return (_AppConfigEntityorderByValueEnumMap[reader.readByteOrNull(offset)] ??
               OrderBy.LATEST)
           as P;
     case 3:
       return (reader.readBool(offset)) as P;
     case 4:
-      return (_AppConfigEntitysourceValueEnumMap[reader.readByteOrNull(
-                offset,
-              )] ??
+      return (_AppConfigEntitysourceValueEnumMap[reader.readByteOrNull(offset)] ??
               Source.ANROLL)
           as P;
     default:
@@ -237,11 +227,7 @@ List<IsarLinkBase<dynamic>> _appConfigEntityGetLinks(AppConfigEntity object) {
   return [];
 }
 
-void _appConfigEntityAttach(
-  IsarCollection<dynamic> col,
-  Id id,
-  AppConfigEntity object,
-) {
+void _appConfigEntityAttach(IsarCollection<dynamic> col, Id id, AppConfigEntity object) {
   object.id = id;
 }
 
@@ -256,39 +242,30 @@ extension AppConfigEntityQueryWhereSort
 
 extension AppConfigEntityQueryWhere
     on QueryBuilder<AppConfigEntity, AppConfigEntity, QWhereClause> {
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterWhereClause> idEqualTo(
-    Id id,
-  ) {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterWhereClause>
-  idNotEqualTo(Id id) {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            )
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            );
+            .addWhereClause(IdWhereClause.lessThan(upper: id, includeUpper: false))
+            .addWhereClause(IdWhereClause.greaterThan(lower: id, includeLower: false));
       } else {
         return query
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            )
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            );
+            .addWhereClause(IdWhereClause.greaterThan(lower: id, includeLower: false))
+            .addWhereClause(IdWhereClause.lessThan(upper: id, includeUpper: false));
       }
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterWhereClause>
-  idGreaterThan(Id id, {bool include = false}) {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterWhereClause> idGreaterThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -331,13 +308,7 @@ extension AppConfigEntityQueryFilter
   QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
   betterAnimeCookiesLengthEqualTo(int length) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'betterAnimeCookies',
-        length,
-        true,
-        length,
-        true,
-      );
+      return query.listLength(r'betterAnimeCookies', length, true, length, true);
     });
   }
 
@@ -365,13 +336,7 @@ extension AppConfigEntityQueryFilter
   QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
   betterAnimeCookiesLengthGreaterThan(int length, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'betterAnimeCookies',
-        length,
-        include,
-        999999,
-        true,
-      );
+      return query.listLength(r'betterAnimeCookies', length, include, 999999, true);
     });
   }
 
@@ -393,8 +358,9 @@ extension AppConfigEntityQueryFilter
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
-  idEqualTo(Id value) {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition> idEqualTo(
+    Id value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'id', value: value),
@@ -402,34 +368,29 @@ extension AppConfigEntityQueryFilter
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
-  idGreaterThan(Id value, {bool include = false}) {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition> idGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
+        FilterCondition.greaterThan(include: include, property: r'id', value: value),
       );
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
-  idLessThan(Id value, {bool include = false}) {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition> idLessThan(
+    Id value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'id', value: value),
       );
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
-  idBetween(
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition> idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
@@ -448,8 +409,9 @@ extension AppConfigEntityQueryFilter
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
-  orderByEqualTo(OrderBy value) {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition> orderByEqualTo(
+    OrderBy value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'orderBy', value: value),
@@ -461,30 +423,23 @@ extension AppConfigEntityQueryFilter
   orderByGreaterThan(OrderBy value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'orderBy',
-          value: value,
-        ),
+        FilterCondition.greaterThan(include: include, property: r'orderBy', value: value),
       );
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
-  orderByLessThan(OrderBy value, {bool include = false}) {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition> orderByLessThan(
+    OrderBy value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'orderBy',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'orderBy', value: value),
       );
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
-  orderByBetween(
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition> orderByBetween(
     OrderBy lower,
     OrderBy upper, {
     bool includeLower = true,
@@ -512,8 +467,9 @@ extension AppConfigEntityQueryFilter
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
-  sourceEqualTo(Source value) {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition> sourceEqualTo(
+    Source value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'source', value: value),
@@ -521,34 +477,29 @@ extension AppConfigEntityQueryFilter
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
-  sourceGreaterThan(Source value, {bool include = false}) {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition> sourceGreaterThan(
+    Source value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'source',
-          value: value,
-        ),
+        FilterCondition.greaterThan(include: include, property: r'source', value: value),
       );
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
-  sourceLessThan(Source value, {bool include = false}) {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition> sourceLessThan(
+    Source value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'source',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'source', value: value),
       );
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
-  sourceBetween(
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition> sourceBetween(
     Source lower,
     Source upper, {
     bool includeLower = true,
@@ -577,8 +528,9 @@ extension AppConfigEntityQueryObject
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
-  filterWatching(FilterQuery<FilterWatching> q) {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition> filterWatching(
+    FilterQuery<FilterWatching> q,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'filterWatching');
     });
@@ -596,15 +548,13 @@ extension AppConfigEntityQuerySortBy
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterSortBy>
-  sortByOrderByDesc() {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterSortBy> sortByOrderByDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'orderBy', Sort.desc);
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterSortBy>
-  sortByReverseContents() {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterSortBy> sortByReverseContents() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'reverseContents', Sort.asc);
     });
@@ -623,8 +573,7 @@ extension AppConfigEntityQuerySortBy
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterSortBy>
-  sortBySourceDesc() {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterSortBy> sortBySourceDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'source', Sort.desc);
     });
@@ -651,15 +600,13 @@ extension AppConfigEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterSortBy>
-  thenByOrderByDesc() {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterSortBy> thenByOrderByDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'orderBy', Sort.desc);
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterSortBy>
-  thenByReverseContents() {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterSortBy> thenByReverseContents() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'reverseContents', Sort.asc);
     });
@@ -678,8 +625,7 @@ extension AppConfigEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterSortBy>
-  thenBySourceDesc() {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterSortBy> thenBySourceDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'source', Sort.desc);
     });
@@ -688,15 +634,13 @@ extension AppConfigEntityQuerySortThenBy
 
 extension AppConfigEntityQueryWhereDistinct
     on QueryBuilder<AppConfigEntity, AppConfigEntity, QDistinct> {
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QDistinct>
-  distinctByOrderBy() {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QDistinct> distinctByOrderBy() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'orderBy');
     });
   }
 
-  QueryBuilder<AppConfigEntity, AppConfigEntity, QDistinct>
-  distinctByReverseContents() {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QDistinct> distinctByReverseContents() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'reverseContents');
     });
@@ -737,8 +681,7 @@ extension AppConfigEntityQueryProperty
     });
   }
 
-  QueryBuilder<AppConfigEntity, bool, QQueryOperations>
-  reverseContentsProperty() {
+  QueryBuilder<AppConfigEntity, bool, QQueryOperations> reverseContentsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'reverseContents');
     });
@@ -762,11 +705,7 @@ const ContentCookieSchema = Schema(
   name: r'ContentCookie',
   id: 4391955152024032846,
   properties: {
-    r'expiresDate': PropertySchema(
-      id: 0,
-      name: r'expiresDate',
-      type: IsarType.long,
-    ),
+    r'expiresDate': PropertySchema(id: 0, name: r'expiresDate', type: IsarType.long),
     r'key': PropertySchema(id: 1, name: r'key', type: IsarType.string),
     r'value': PropertySchema(id: 2, name: r'value', type: IsarType.string),
   },
@@ -832,8 +771,7 @@ P _contentCookieDeserializeProp<P>(
 
 extension ContentCookieQueryFilter
     on QueryBuilder<ContentCookie, ContentCookie, QFilterCondition> {
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  expiresDateIsNull() {
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> expiresDateIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNull(property: r'expiresDate'),
@@ -850,8 +788,9 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  expiresDateEqualTo(int? value) {
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> expiresDateEqualTo(
+    int? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'expiresDate', value: value),
@@ -872,8 +811,10 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  expiresDateLessThan(int? value, {bool include = false}) {
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> expiresDateLessThan(
+    int? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.lessThan(
@@ -885,8 +826,7 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  expiresDateBetween(
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> expiresDateBetween(
     int? lower,
     int? upper, {
     bool includeLower = true,
@@ -920,8 +860,7 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  keyGreaterThan(
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> keyGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -976,8 +915,10 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  keyStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> keyStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -1034,8 +975,7 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  keyIsEmpty() {
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> keyIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'key', value: ''),
@@ -1043,8 +983,7 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  keyIsNotEmpty() {
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> keyIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'key', value: ''),
@@ -1052,8 +991,10 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  valueEqualTo(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> valueEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -1065,8 +1006,7 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  valueGreaterThan(
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> valueGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1083,8 +1023,7 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  valueLessThan(
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> valueLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1101,8 +1040,7 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  valueBetween(
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> valueBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -1123,8 +1061,10 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  valueStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> valueStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -1136,8 +1076,10 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  valueEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> valueEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -1149,8 +1091,10 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  valueContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> valueContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -1162,8 +1106,10 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  valueMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> valueMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -1175,8 +1121,7 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  valueIsEmpty() {
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> valueIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'value', value: ''),
@@ -1184,8 +1129,7 @@ extension ContentCookieQueryFilter
     });
   }
 
-  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
-  valueIsNotEmpty() {
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> valueIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'value', value: ''),
@@ -1216,11 +1160,7 @@ const FilterWatchingSchema = Schema(
       name: r'genresFilter',
       type: IsarType.stringList,
     ),
-    r'infiniteDate': PropertySchema(
-      id: 3,
-      name: r'infiniteDate',
-      type: IsarType.bool,
-    ),
+    r'infiniteDate': PropertySchema(id: 3, name: r'infiniteDate', type: IsarType.bool),
     r'start': PropertySchema(id: 4, name: r'start', type: IsarType.dateTime),
   },
   estimateSize: _filterWatchingEstimateSize,
@@ -1253,10 +1193,7 @@ void _filterWatchingSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeDateTime(offsets[0], object.end);
-  writer.writeByteList(
-    offsets[1],
-    object.filterSources.map((e) => e.index).toList(),
-  );
+  writer.writeByteList(offsets[1], object.filterSources.map((e) => e.index).toList());
   writer.writeStringList(offsets[2], object.genresFilter);
   writer.writeBool(offsets[3], object.infiniteDate);
   writer.writeDateTime(offsets[4], object.start);
@@ -1273,10 +1210,7 @@ FilterWatching _filterWatchingDeserialize(
     filterSources:
         reader
             .readByteList(offsets[1])
-            ?.map(
-              (e) =>
-                  _FilterWatchingfilterSourcesValueEnumMap[e] ?? Source.ANROLL,
-            )
+            ?.map((e) => _FilterWatchingfilterSourcesValueEnumMap[e] ?? Source.ANROLL)
             .toList() ??
         const [],
     genresFilter: reader.readStringList(offsets[2]) ?? const [],
@@ -1299,9 +1233,7 @@ P _filterWatchingDeserializeProp<P>(
       return (reader
                   .readByteList(offset)
                   ?.map(
-                    (e) =>
-                        _FilterWatchingfilterSourcesValueEnumMap[e] ??
-                        Source.ANROLL,
+                    (e) => _FilterWatchingfilterSourcesValueEnumMap[e] ?? Source.ANROLL,
                   )
                   .toList() ??
               const [])
@@ -1336,26 +1268,21 @@ const _FilterWatchingfilterSourcesValueEnumMap = {
 
 extension FilterWatchingQueryFilter
     on QueryBuilder<FilterWatching, FilterWatching, QFilterCondition> {
-  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
-  endIsNull() {
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition> endIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'end'),
-      );
+      return query.addFilterCondition(const FilterCondition.isNull(property: r'end'));
     });
   }
 
-  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
-  endIsNotNull() {
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition> endIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'end'),
-      );
+      return query.addFilterCondition(const FilterCondition.isNotNull(property: r'end'));
     });
   }
 
-  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
-  endEqualTo(DateTime? value) {
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition> endEqualTo(
+    DateTime? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'end', value: value),
@@ -1363,34 +1290,29 @@ extension FilterWatchingQueryFilter
     });
   }
 
-  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
-  endGreaterThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition> endGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'end',
-          value: value,
-        ),
+        FilterCondition.greaterThan(include: include, property: r'end', value: value),
       );
     });
   }
 
-  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
-  endLessThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition> endLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'end',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'end', value: value),
       );
     });
   }
 
-  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
-  endBetween(
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition> endBetween(
     DateTime? lower,
     DateTime? upper, {
     bool includeLower = true,
@@ -1507,13 +1429,7 @@ extension FilterWatchingQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'filterSources',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
+      return query.listLength(r'filterSources', lower, includeLower, upper, includeUpper);
     });
   }
 
@@ -1701,18 +1617,13 @@ extension FilterWatchingQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'genresFilter',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
+      return query.listLength(r'genresFilter', lower, includeLower, upper, includeUpper);
     });
   }
 
-  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
-  infiniteDateEqualTo(bool value) {
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition> infiniteDateEqualTo(
+    bool value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'infiniteDate', value: value),
@@ -1720,17 +1631,13 @@ extension FilterWatchingQueryFilter
     });
   }
 
-  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
-  startIsNull() {
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition> startIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'start'),
-      );
+      return query.addFilterCondition(const FilterCondition.isNull(property: r'start'));
     });
   }
 
-  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
-  startIsNotNull() {
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition> startIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNotNull(property: r'start'),
@@ -1738,8 +1645,9 @@ extension FilterWatchingQueryFilter
     });
   }
 
-  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
-  startEqualTo(DateTime? value) {
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition> startEqualTo(
+    DateTime? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'start', value: value),
@@ -1747,34 +1655,29 @@ extension FilterWatchingQueryFilter
     });
   }
 
-  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
-  startGreaterThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition> startGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'start',
-          value: value,
-        ),
+        FilterCondition.greaterThan(include: include, property: r'start', value: value),
       );
     });
   }
 
-  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
-  startLessThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition> startLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'start',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'start', value: value),
       );
     });
   }
 
-  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition>
-  startBetween(
+  QueryBuilder<FilterWatching, FilterWatching, QAfterFilterCondition> startBetween(
     DateTime? lower,
     DateTime? upper, {
     bool includeLower = true,

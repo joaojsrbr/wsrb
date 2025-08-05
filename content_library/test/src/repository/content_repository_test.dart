@@ -9,9 +9,7 @@ void main() {
   test('content repository ...', () async {
     final DioClient client = DioClient();
     final GraphQLApiClient graphQLApiClient = GraphQLApiClient();
-    final AnimeSkipRepository animeSkipRepository = AnimeSkipRepository(
-      graphQLApiClient,
-    );
+    final AnimeSkipRepository animeSkipRepository = AnimeSkipRepository(graphQLApiClient);
     final ContentRepository contentRepository = ContentRepository.test(
       client,
       animeSkipRepository,

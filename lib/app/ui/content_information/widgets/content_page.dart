@@ -55,13 +55,8 @@ class _Header extends StatelessWidget {
       pinned: true,
       floating: true,
       leading: IconButton(
-        icon: Icon(
-          isOpen ? Icons.close : Icons.arrow_back,
-          color: Colors.white,
-        ),
-        onPressed: isOpen
-            ? () => menu?.close()
-            : () => Navigator.of(context).pop(),
+        icon: Icon(isOpen ? Icons.close : Icons.arrow_back, color: Colors.white),
+        onPressed: isOpen ? () => menu?.close() : () => Navigator.of(context).pop(),
       ),
       actions: isLoading ? null : [_ShareButton(), _FavoriteButton()],
       flexibleSpace: FlexibleSpaceBar(
@@ -157,10 +152,7 @@ class _ContentDetails extends StatelessWidget {
                           text: txt,
                           dotSize: 6,
                           spacing: 6,
-                          textStyle: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
+                          textStyle: TextStyle(color: Colors.white70, fontSize: 12),
                           dotColor: Colors.white70,
                         );
                       },
@@ -172,8 +164,7 @@ class _ContentDetails extends StatelessWidget {
                 onLongPress: () {
                   copyToClipboard(
                     context,
-                    messageSnackBar:
-                        "Texto copiado para a área de transferência!",
+                    messageSnackBar: "Texto copiado para a área de transferência!",
                     messageCopy: content.title,
                   );
                   Feedback.forLongPress(context);
@@ -210,8 +201,9 @@ class _ContentDetails extends StatelessWidget {
                     if (content.anilistMedia?.averageScore != null)
                       _IconText(
                         ico: MdiIcons.star,
-                        txt: (content.anilistMedia!.averageScore! / 10)
-                            .toStringAsFixed(1),
+                        txt: (content.anilistMedia!.averageScore! / 10).toStringAsFixed(
+                          1,
+                        ),
                       ),
                   ],
                 ),

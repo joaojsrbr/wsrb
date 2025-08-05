@@ -11,9 +11,7 @@ extension CustomIterable<E, Id> on Iterable<E> {
   }
 
   List<E> getMax(int max) {
-    return max > length
-        ? toList().sublist(0, length)
-        : toList().sublist(0, max);
+    return max > length ? toList().sublist(0, length) : toList().sublist(0, max);
   }
 }
 
@@ -97,12 +95,8 @@ extension EntityListExtensions on Iterable<Entity> {
     return context.read<CategoryController>().categories.map(
       (category) => where(
         (entity) => switch (entity) {
-          AnimeEntity data when data.isFavorite => category.ids.contains(
-            data.stringID,
-          ),
-          BookEntity data when data.isFavorite => category.ids.contains(
-            data.stringID,
-          ),
+          AnimeEntity data when data.isFavorite => category.ids.contains(data.stringID),
+          BookEntity data when data.isFavorite => category.ids.contains(data.stringID),
           _ => false,
         },
       ),

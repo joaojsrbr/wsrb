@@ -4,9 +4,7 @@ import 'package:isar/isar.dart';
 abstract interface class IsarService {
   Future<Result<(bool, int?)>> remove({required Entity entity});
 
-  Future<Result<(bool, List<int>?)>> removeAll({
-    required List<Entity> entities,
-  });
+  Future<Result<(bool, List<int>?)>> removeAll({required List<Entity> entities});
 
   Future<Result<(bool, int?)>> add({required Entity entity});
 

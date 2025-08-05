@@ -85,10 +85,7 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
               bottom: 8,
               top: index == 0 ? 60 : 8,
             ),
-            child: Text(
-              content.text,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            child: Text(content.text, style: Theme.of(context).textTheme.bodyMedium),
           );
         case _:
           widget = const SizedBox.shrink();
@@ -106,10 +103,7 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
 
   double get _percent => _readerController.percent;
 
-  void _handleDoubleTapDown(
-    BuildContext context,
-    TapDownDetails details,
-  ) async {
+  void _handleDoubleTapDown(BuildContext context, TapDownDetails details) async {
     final height = MediaQuery.sizeOf(context).height;
     final position = details.globalPosition;
     // double maxScrollExtent = 0.0;

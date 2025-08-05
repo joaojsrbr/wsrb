@@ -60,8 +60,7 @@ class ReadingScope extends InheritedModel<_ReadingScopeAspect> {
   final Book? book;
   final bool showFooterWidget;
   final ReaderController readerController;
-  final void Function(BuildContext context, TapDownDetails details)
-  onDoubleTapDown;
+  final void Function(BuildContext context, TapDownDetails details) onDoubleTapDown;
   final List<Widget> contents;
   final Chapter? chapter;
 
@@ -81,18 +80,12 @@ class ReadingScope extends InheritedModel<_ReadingScopeAspect> {
   }
 
   static List<Widget> contentsOf(BuildContext context) {
-    final contents = _of(
-      context,
-      _ReadingScopeAspect.READING_CONTENTS,
-    ).contents;
+    final contents = _of(context, _ReadingScopeAspect.READING_CONTENTS).contents;
     return contents;
   }
 
   static bool showFooterWidgetOf(BuildContext context) {
-    final data = _of(
-      context,
-      _ReadingScopeAspect.READING_FOOTERWIDGET,
-    ).showFooterWidget;
+    final data = _of(context, _ReadingScopeAspect.READING_FOOTERWIDGET).showFooterWidget;
     return data;
   }
 
@@ -113,8 +106,7 @@ class ReadingScope extends InheritedModel<_ReadingScopeAspect> {
         switch (dependency) {
           case _ReadingScopeAspect.READING_BOOK when book != oldWidget.book:
             return true;
-          case _ReadingScopeAspect.READING_CHAPTER
-              when chapter != oldWidget.chapter:
+          case _ReadingScopeAspect.READING_CHAPTER when chapter != oldWidget.chapter:
             return true;
           case _ReadingScopeAspect.READING_FOOTERWIDGET
               when showFooterWidget != oldWidget.showFooterWidget:

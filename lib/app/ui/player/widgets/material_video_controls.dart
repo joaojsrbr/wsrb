@@ -97,8 +97,9 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
   late bool visible = theme.visibleOnMount;
 
   Timer? _timer;
-  final ValueNotifier<Duration> _seekBarDeltaValueNotifier =
-      ValueNotifier<Duration>(Duration.zero);
+  final ValueNotifier<Duration> _seekBarDeltaValueNotifier = ValueNotifier<Duration>(
+    Duration.zero,
+  );
 
   late final PlayerScope _playerScope = PlayerScope.of(
     PlayerView.videoStateKey.currentContext!,
@@ -209,15 +210,13 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
       try {
         _brightnessValue = await ScreenBrightness.instance.application;
         subscriptions.add(
-          ScreenBrightness.instance.onApplicationScreenBrightnessChanged.listen(
-            (value) {
-              if (mounted) {
-                setState(() {
-                  _brightnessValue = value;
-                });
-              }
-            },
-          ),
+          ScreenBrightness.instance.onApplicationScreenBrightnessChanged.listen((value) {
+            if (mounted) {
+              setState(() {
+                _brightnessValue = value;
+              });
+            }
+          }),
         );
       } catch (_) {}
     });
@@ -272,9 +271,9 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
 
   void unshiftSubtitle() {
     if (theme.shiftSubtitlesOnControlsVisibilityChange) {
-      state(context).setSubtitleViewPadding(
-        state(context).widget.subtitleViewConfiguration.padding,
-      );
+      state(
+        context,
+      ).setSubtitleViewPadding(state(context).widget.subtitleViewConfiguration.padding);
     }
   }
 
@@ -368,8 +367,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
     final duration = controller.player.state.duration.inSeconds;
     final position = controller.player.state.position.inSeconds;
 
-    final seconds = -(diff * duration / theme.horizontalGestureSensitivity)
-        .round();
+    final seconds = -(diff * duration / theme.horizontalGestureSensitivity).round();
     final relativePosition = position + seconds;
 
     if (relativePosition <= duration && relativePosition >= 0) {
@@ -385,10 +383,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
     if (swipeDuration != 0) {
       Duration newPosition =
           controller.player.state.position + Duration(seconds: swipeDuration);
-      newPosition = newPosition.clamp(
-        Duration.zero,
-        controller.player.state.duration,
-      );
+      newPosition = newPosition.clamp(Duration.zero, controller.player.state.duration);
       controller.player.seek(newPosition);
     }
 
@@ -405,9 +400,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
     final orientation = MediaQuery.orientationOf(context);
     final isPortrait = orientation == Orientation.portrait;
 
-    PlayerScope scope = PlayerScope.of(
-      PlayerView.videoStateKey.currentContext!,
-    );
+    PlayerScope scope = PlayerScope.of(PlayerView.videoStateKey.currentContext!);
 
     final seekOnDoubleTapEnabledWhileControlsAreVisible =
         (_theme(context).seekOnDoubleTap &&
@@ -430,11 +423,8 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
         videoState: widget.state,
         builder: (context) {
           final showAnimeSkip = ControlScope.of(context).showAnimeSkip;
-          final openMenuInFullScreen = ControlScope.of(
-            context,
-          ).openMenuInFullScreen;
-          final size =
-              isFullscreen(context) && (showAnimeSkip || openMenuInFullScreen)
+          final openMenuInFullScreen = ControlScope.of(context).openMenuInFullScreen;
+          final size = isFullscreen(context) && (showAnimeSkip || openMenuInFullScreen)
               ? 150.0
               : scope.showButtonQuality.value && isFullscreen(context)
               ? 60.0
@@ -442,12 +432,9 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
           final videoData = scope.data.whereType<VideoData>();
           return PopScope(
             onPopInvokedWithResult: (didPop, result) {
-              if (scope.playerArgs.forceEnterFullScreen &&
-                  isFullscreen(context)) {
+              if (scope.playerArgs.forceEnterFullScreen && isFullscreen(context)) {
                 addPostFrameCallback(
-                  (timer) => Navigator.of(
-                    PlayerView.videoStateKey.currentContext!,
-                  ).pop(),
+                  (timer) => Navigator.of(PlayerView.videoStateKey.currentContext!).pop(),
                 );
               }
             },
@@ -510,9 +497,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                                     final brightness =
                                         _brightnessValue -
                                         delta /
-                                            _theme(
-                                              context,
-                                            ).verticalGestureSensitivity;
+                                            _theme(context).verticalGestureSensitivity;
                                     final result = brightness.clamp(0.0, 1.0);
                                     setBrightness(result);
                                   }
@@ -521,9 +506,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                                     final volume =
                                         _volumeValue -
                                         delta /
-                                            _theme(
-                                              context,
-                                            ).verticalGestureSensitivity;
+                                            _theme(context).verticalGestureSensitivity;
                                     final result = volume.clamp(0.0, 1.0);
                                     setVolume(result);
                                   }
@@ -535,9 +518,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                           duration: _theme(context).controlsTransitionDuration,
                           child: Container(
                             padding: EdgeInsets.zero,
-                            color:
-                                _theme(context).backdropColor ??
-                                Colors.transparent,
+                            color: _theme(context).backdropColor ?? Colors.transparent,
                           ),
                         ),
                       ),
@@ -552,18 +533,11 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                                     ? TweenAnimationBuilder<double>(
                                         tween: Tween<double>(
                                           begin: 0.0,
-                                          end: _hideSeekBackwardButton
-                                              ? 0.0
-                                              : 1.0,
+                                          end: _hideSeekBackwardButton ? 0.0 : 1.0,
                                         ),
-                                        duration: const Duration(
-                                          milliseconds: 200,
-                                        ),
+                                        duration: const Duration(milliseconds: 200),
                                         builder: (context, value, child) =>
-                                            Opacity(
-                                              opacity: value,
-                                              child: child,
-                                            ),
+                                            Opacity(opacity: value, child: child),
                                         onEnd: () {
                                           if (_hideSeekBackwardButton) {
                                             setState(() {
@@ -574,19 +548,14 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                                         },
                                         child: _BackwardSeekIndicator(
                                           onChanged: (value) {
-                                            _seekBarDeltaValueNotifier.value =
-                                                -value;
+                                            _seekBarDeltaValueNotifier.value = -value;
                                           },
                                           onSubmitted: (value) {
                                             setState(() {
                                               _hideSeekBackwardButton = true;
                                             });
                                             var result =
-                                                controller
-                                                    .player
-                                                    .state
-                                                    .position -
-                                                value;
+                                                controller.player.state.position - value;
                                             result = result.clamp(
                                               Duration.zero,
                                               controller.player.state.duration,
@@ -602,18 +571,11 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                                     ? TweenAnimationBuilder<double>(
                                         tween: Tween<double>(
                                           begin: 0.0,
-                                          end: _hideSeekForwardButton
-                                              ? 0.0
-                                              : 1.0,
+                                          end: _hideSeekForwardButton ? 0.0 : 1.0,
                                         ),
-                                        duration: const Duration(
-                                          milliseconds: 200,
-                                        ),
+                                        duration: const Duration(milliseconds: 200),
                                         builder: (context, value, child) =>
-                                            Opacity(
-                                              opacity: value,
-                                              child: child,
-                                            ),
+                                            Opacity(opacity: value, child: child),
                                         onEnd: () {
                                           if (_hideSeekForwardButton) {
                                             setState(() {
@@ -624,19 +586,14 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                                         },
                                         child: _ForwardSeekIndicator(
                                           onChanged: (value) {
-                                            _seekBarDeltaValueNotifier.value =
-                                                value;
+                                            _seekBarDeltaValueNotifier.value = value;
                                           },
                                           onSubmitted: (value) {
                                             setState(() {
                                               _hideSeekForwardButton = true;
                                             });
                                             var result =
-                                                controller
-                                                    .player
-                                                    .state
-                                                    .position +
-                                                value;
+                                                controller.player.state.position + value;
                                             result = result.clamp(
                                               Duration.zero,
                                               controller.player.state.duration,
@@ -676,13 +633,8 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                               dense: true,
                               onTap: () => scope.onClickSkipAnime.call(item),
                               selected:
-                                  selectedAnimeTimeStamp?.id.contains(
-                                    item.id,
-                                  ) ??
-                                  false,
-                              leading: Text(
-                                Duration(microseconds: item.at).label(),
-                              ),
+                                  selectedAnimeTimeStamp?.id.contains(item.id) ?? false,
+                              leading: Text(Duration(microseconds: item.at).label()),
                               title: Text(item.timeStampType.label),
                               visualDensity: const VisualDensity(vertical: -4),
                             );
@@ -695,9 +647,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                       paddingTop: true,
                       height: MediaQuery.sizeOf(context).height,
                       width: 80,
-                      show:
-                          scope.showButtonQuality.value &&
-                          isFullscreen(context),
+                      show: scope.showButtonQuality.value && isFullscreen(context),
                       card: true,
                       items: videoData.toList(),
                       builderFunction: (context, index, data) {
@@ -735,34 +685,18 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.only(
                                   topLeft: index == 0
-                                      ? borderRadius?.topLeft ??
-                                            const Radius.circular(8)
+                                      ? borderRadius?.topLeft ?? const Radius.circular(8)
                                       : Radius.zero,
                                   topRight: index == 0
-                                      ? borderRadius?.topLeft ??
-                                            const Radius.circular(8)
+                                      ? borderRadius?.topLeft ?? const Radius.circular(8)
                                       : Radius.zero,
                                   bottomLeft:
-                                      index ==
-                                          scope
-                                                  .playerArgs
-                                                  .anime
-                                                  .releases
-                                                  .length -
-                                              1
-                                      ? borderRadius?.topLeft ??
-                                            const Radius.circular(8)
+                                      index == scope.playerArgs.anime.releases.length - 1
+                                      ? borderRadius?.topLeft ?? const Radius.circular(8)
                                       : Radius.zero,
                                   bottomRight:
-                                      index ==
-                                          scope
-                                                  .playerArgs
-                                                  .anime
-                                                  .releases
-                                                  .length -
-                                              1
-                                      ? borderRadius?.topLeft ??
-                                            const Radius.circular(8)
+                                      index == scope.playerArgs.anime.releases.length - 1
+                                      ? borderRadius?.topLeft ?? const Radius.circular(8)
                                       : Radius.zero,
                                 ),
                               ),
@@ -778,13 +712,8 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                               selected: episode.stringID.contains(
                                 scope.playerArgs.episode.stringID,
                               ),
-                              titleTextStyle: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              titleTextStyle: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
                               title: Text('Episódio ${episode.number}'),
                             );
                           },
@@ -799,9 +728,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
-                          IgnorePointer(
-                            child: Center(child: _CustomIndicator(this)),
-                          ),
+                          IgnorePointer(child: Center(child: _CustomIndicator(this))),
                           IgnorePointer(child: _BufferingIndicator(this)),
                           _Controlls(this),
                           IgnorePointer(
@@ -810,9 +737,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                                   ? MediaQuery.of(context).padding
                                   : EdgeInsets.zero),
                               child: AnimatedOpacity(
-                                duration: _theme(
-                                  context,
-                                ).controlsTransitionDuration,
+                                duration: _theme(context).controlsTransitionDuration,
                                 opacity: _speedUpIndicator ? 1 : 0,
                                 child: Container(
                                   alignment: Alignment.center,
@@ -827,10 +752,8 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                                     width: 108.0,
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
                                       children: [
                                         const SizedBox(width: 16.0),
                                         Expanded(
@@ -862,8 +785,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                             ),
                           ),
                           if (!mount)
-                            if (_mountSeekBackwardButton |
-                                    _mountSeekForwardButton ||
+                            if (_mountSeekBackwardButton | _mountSeekForwardButton ||
                                 showSwipeDuration)
                               Positioned(
                                 bottom: 0,
@@ -889,9 +811,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                           IgnorePointer(
                             child: Center(
                               child: AnimatedOpacity(
-                                duration: _theme(
-                                  context,
-                                ).controlsTransitionDuration,
+                                duration: _theme(context).controlsTransitionDuration,
                                 opacity: showSwipeDuration ? 1 : 0,
                                 child:
                                     _theme(context).seekIndicatorBuilder?.call(
@@ -902,9 +822,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                                       alignment: Alignment.center,
                                       decoration: BoxDecoration(
                                         color: const Color(0x88000000),
-                                        borderRadius: BorderRadius.circular(
-                                          64.0,
-                                        ),
+                                        borderRadius: BorderRadius.circular(64.0),
                                       ),
                                       height: 52.0,
                                       width: 108.0,
@@ -928,9 +846,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                               top: 0,
                               left: 0,
                               child: Padding(
-                                padding: EdgeInsets.only(
-                                  top: !isPortrait ? 20 : 8,
-                                ),
+                                padding: EdgeInsets.only(top: !isPortrait ? 20 : 8),
                                 child: PlayerCustomOverlay(
                                   key: const ValueKey('custom_overlay_1'),
                                   begin: const Offset(-1, 0),
@@ -981,12 +897,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
 }
 
 class _MaterialSeekBar extends StatefulWidget {
-  const _MaterialSeekBar(
-    this.state, {
-    this.delta,
-    this.onSeekStart,
-    this.onSeekEnd,
-  });
+  const _MaterialSeekBar(this.state, {this.delta, this.onSeekStart, this.onSeekEnd});
   final _CustomMaterialControlsState state;
   final ValueNotifier<Duration>? delta;
   final VoidCallback? onSeekStart;
@@ -1114,9 +1025,7 @@ class _MaterialSeekBarState extends State<_MaterialSeekBar>
       position.inMilliseconds.toDouble() > duration.inMilliseconds.toDouble();
 
   // Thumb Glow (efeito ao interagir com o slider)
-  static const Color thumbGlowColor = Color(
-    0x50FFFFFF,
-  ); // branco com 30% de opacidade
+  static const Color thumbGlowColor = Color(0x50FFFFFF); // branco com 30% de opacidade
 
   // Barra de fundo (trilha vazia)
   static const Color backgroundBarColor = Color(
@@ -1124,9 +1033,7 @@ class _MaterialSeekBarState extends State<_MaterialSeekBar>
   ); // cinza escuro usado no YouTube
 
   // Colapsado (modo mini player)
-  static const Color collapsedBufferedBarColor = Color(
-    0x40FFFFFF,
-  ); // branco 25%
+  static const Color collapsedBufferedBarColor = Color(0x40FFFFFF); // branco 25%
   static const Color collapsedThumbColor = Colors.white;
 
   // Expandido (fullscreen player)
@@ -1220,8 +1127,7 @@ class _ControllsState extends State<_Controlls>
     duration: const Duration(milliseconds: 200),
   );
 
-  bool get _reversedCurrentDuration =>
-      _playerScope.reversedCurrentDuration.value;
+  bool get _reversedCurrentDuration => _playerScope.reversedCurrentDuration.value;
 
   set setReversedCurrentDuration(bool reversedCurrentDuration) {
     if (!mounted) return;
@@ -1299,11 +1205,7 @@ class _ControllsState extends State<_Controlls>
                       ? Padding(
                           // padding: EdgeInsets.zero,
                           padding: isFullscreen(context)
-                              ? const EdgeInsets.only(
-                                  top: 18.0,
-                                  right: 10,
-                                  left: 10,
-                                )
+                              ? const EdgeInsets.only(top: 18.0, right: 10, left: 10)
                               : EdgeInsets.zero,
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -1312,8 +1214,9 @@ class _ControllsState extends State<_Controlls>
                             children: [
                               Text(
                                 topTitle,
-                                style: Theme.of(context).textTheme.titleSmall
-                                    ?.copyWith(color: const Color(0xFFFFFFFF)),
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  color: const Color(0xFFFFFFFF),
+                                ),
                               ),
                             ],
                           ),
@@ -1322,11 +1225,7 @@ class _ControllsState extends State<_Controlls>
                           child: Padding(
                             // padding: EdgeInsets.zero,
                             padding: isFullscreen(context)
-                                ? const EdgeInsets.only(
-                                    top: 18.0,
-                                    right: 10,
-                                    left: 10,
-                                  )
+                                ? const EdgeInsets.only(top: 18.0, right: 10, left: 10)
                                 : EdgeInsets.zero,
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -1335,10 +1234,9 @@ class _ControllsState extends State<_Controlls>
                               children: [
                                 Text(
                                   topTitle,
-                                  style: Theme.of(context).textTheme.titleSmall
-                                      ?.copyWith(
-                                        color: const Color(0xFFFFFFFF),
-                                      ),
+                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    color: const Color(0xFFFFFFFF),
+                                  ),
                                 ),
                               ],
                             ),
@@ -1386,21 +1284,16 @@ class _BottomButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final PlayerScope scope = PlayerScope.of(
-      PlayerView.videoStateKey.currentContext!,
-    );
+    final PlayerScope scope = PlayerScope.of(PlayerView.videoStateKey.currentContext!);
     // final hiveController = context.read<HiveController>();
     final fullscreen = isFullscreen(context);
 
-    final selectedAnimeTimeStamp = ControlScope.of(
-      context,
-    ).selectedAnimeTimeStamp;
+    final selectedAnimeTimeStamp = ControlScope.of(context).selectedAnimeTimeStamp;
 
     final showAnimeSkip = ControlScope.of(context).showAnimeSkip;
     final openMenuInFullScreen = ControlScope.of(context).openMenuInFullScreen;
     final showButtonQuality = scope.showButtonQuality;
-    final size =
-        isFullscreen(context) && (showAnimeSkip || openMenuInFullScreen);
+    final size = isFullscreen(context) && (showAnimeSkip || openMenuInFullScreen);
     final videoData = scope.data.whereType<VideoData>();
     final seekBar = _LockWidget(
       child: SizedBox(
@@ -1409,17 +1302,14 @@ class _BottomButtons extends StatelessWidget {
           state.widget.state,
           onSeekStart: state.widget.state._timer?.cancel,
           onSeekEnd: () {
-            state.widget.state._timer = Timer(
-              _theme(context).controlsHoverDuration,
-              () {
-                if (context.mounted) {
-                  state.setState(() {
-                    state.widget.state.visible = false;
-                  });
-                  state.widget.state.unshiftSubtitle();
-                }
-              },
-            );
+            state.widget.state._timer = Timer(_theme(context).controlsHoverDuration, () {
+              if (context.mounted) {
+                state.setState(() {
+                  state.widget.state.visible = false;
+                });
+                state.widget.state.unshiftSubtitle();
+              }
+            });
           },
         ),
       ),
@@ -1430,14 +1320,9 @@ class _BottomButtons extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (isFullscreen(context)) ...[
-          Expanded(child: SizedBox.shrink()),
-          seekBar,
-        ],
+        if (isFullscreen(context)) ...[Expanded(child: SizedBox.shrink()), seekBar],
         Padding(
-          padding: isFullscreen(context)
-              ? EdgeInsets.only(bottom: 8)
-              : EdgeInsets.zero,
+          padding: isFullscreen(context) ? EdgeInsets.only(bottom: 8) : EdgeInsets.zero,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1450,26 +1335,22 @@ class _BottomButtons extends StatelessWidget {
                       ? const EdgeInsets.only(left: 18)
                       : EdgeInsets.zero,
                   child: TextButton(
-                    style: const ButtonStyle(
-                      visualDensity: VisualDensity(vertical: -4),
-                    ),
+                    style: const ButtonStyle(visualDensity: VisualDensity(vertical: -4)),
                     onPressed: () {
-                      state.setReversedCurrentDuration =
-                          !state._reversedCurrentDuration;
+                      state.setReversedCurrentDuration = !state._reversedCurrentDuration;
                     },
                     child: Text(
                       state._reversedCurrentDuration
                           ? "-${(state._duration - state._position).label(reference: state._duration)} / ${state._duration.label(reference: state._duration)}"
                           : '${state._position.label(reference: state._duration)} / ${state._duration.label(reference: state._duration)}',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: const Color(0xFFFFFFFF),
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleSmall?.copyWith(color: const Color(0xFFFFFFFF)),
                     ),
                   ),
                 ),
               ),
-              if (isFullscreen(context) &&
-                  scope.playerArgs.times.isNotEmpty) ...[
+              if (isFullscreen(context) && scope.playerArgs.times.isNotEmpty) ...[
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Container(
@@ -1520,8 +1401,7 @@ class _BottomButtons extends StatelessWidget {
                               iconSize: 20,
                             ),
                             onPressed: () {
-                              showButtonQuality.value =
-                                  !showButtonQuality.value;
+                              showButtonQuality.value = !showButtonQuality.value;
                             },
 
                             child: Text(mainData.quality.label),
@@ -1533,8 +1413,7 @@ class _BottomButtons extends StatelessWidget {
                           paddingTop: false,
                           height: 140,
                           width: 80,
-                          show:
-                              showButtonQuality.value && !isFullscreen(context),
+                          show: showButtonQuality.value && !isFullscreen(context),
                           card: true,
                           items: videoData.toList(),
                           builderFunction: (context, index, data) {
@@ -1563,10 +1442,7 @@ class _BottomButtons extends StatelessWidget {
                 _LockWidget(
                   child: IconButton(
                     padding: EdgeInsets.zero,
-                    visualDensity: const VisualDensity(
-                      vertical: -4,
-                      horizontal: -2,
-                    ),
+                    visualDensity: const VisualDensity(vertical: -4, horizontal: -2),
                     iconSize: 20,
                     onPressed: scope.enterInPip,
                     icon: Icon(MdiIcons.pictureInPictureBottomRight),
@@ -1575,10 +1451,7 @@ class _BottomButtons extends StatelessWidget {
               _LockWidget(
                 child: IconButton(
                   padding: EdgeInsets.zero,
-                  visualDensity: const VisualDensity(
-                    vertical: -4,
-                    horizontal: -2,
-                  ),
+                  visualDensity: const VisualDensity(vertical: -4, horizontal: -2),
                   onPressed: scope.setFits,
                   iconSize: 20,
                   icon: Icon(MdiIcons.fitToScreen),
@@ -1589,10 +1462,7 @@ class _BottomButtons extends StatelessWidget {
                   child: Stack(
                     children: [
                       IconButton(
-                        visualDensity: const VisualDensity(
-                          vertical: -4,
-                          horizontal: -2,
-                        ),
+                        visualDensity: const VisualDensity(vertical: -4, horizontal: -2),
                         padding: EdgeInsets.zero,
                         onPressed: () {
                           scope.openMenuInFullScreen.value =
@@ -1606,20 +1476,14 @@ class _BottomButtons extends StatelessWidget {
                 ),
               if (isFullscreen(context))
                 IconButton(
-                  visualDensity: const VisualDensity(
-                    vertical: -4,
-                    horizontal: -2,
-                  ),
+                  visualDensity: const VisualDensity(vertical: -4, horizontal: -2),
                   padding: EdgeInsets.zero,
                   onPressed: () {
-                    state.widget.state.setLockPlayer =
-                        !state.widget.state._lockPlayer;
+                    state.widget.state.setLockPlayer = !state.widget.state._lockPlayer;
                   },
                   iconSize: 20,
                   icon: Icon(
-                    state.widget.state._lockPlayer
-                        ? MdiIcons.lock
-                        : MdiIcons.lockOpen,
+                    state.widget.state._lockPlayer ? MdiIcons.lock : MdiIcons.lockOpen,
                   ),
                 ),
               _LockWidget(
@@ -1628,10 +1492,7 @@ class _BottomButtons extends StatelessWidget {
                       ? const EdgeInsets.only(right: 30)
                       : const EdgeInsets.only(right: 8),
                   child: IconButton(
-                    visualDensity: const VisualDensity(
-                      vertical: -4,
-                      horizontal: -2,
-                    ),
+                    visualDensity: const VisualDensity(vertical: -4, horizontal: -2),
                     onPressed: () {
                       toggleFullscreen(context);
                       if (scope.showAnimeSkip.value) {
@@ -1647,9 +1508,7 @@ class _BottomButtons extends StatelessWidget {
                         //   Navigator.of(PlayerView.videoStateKey.currentContext!)
                         //       .pop();
                         // });
-                        Navigator.of(
-                          PlayerView.videoStateKey.currentContext!,
-                        ).pop();
+                        Navigator.of(PlayerView.videoStateKey.currentContext!).pop();
                       }
                     },
                     iconSize: 20,
@@ -1684,8 +1543,7 @@ class _LockWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context
-        .findAncestorStateOfType<_CustomMaterialControlsState>();
+    final state = context.findAncestorStateOfType<_CustomMaterialControlsState>();
     // if (state?._lockPlayer == true) return const SizedBox.shrink();
     return IgnorePointer(
       ignoring: state?._lockPlayer == true,
@@ -1719,10 +1577,7 @@ class _BufferingIndicator extends StatelessWidget {
                 return Opacity(
                   opacity: value,
                   child:
-                      _theme(
-                        context,
-                      ).bufferingIndicatorBuilder?.call(context) ??
-                      child!,
+                      _theme(context).bufferingIndicatorBuilder?.call(context) ?? child!,
                 );
               }
               return const SizedBox.shrink();
@@ -1788,11 +1643,7 @@ class _CustomIndicator extends StatelessWidget {
                       height: 52.0,
                       width: 42.0,
                       alignment: Alignment.centerRight,
-                      child: Icon(
-                        icon,
-                        color: const Color(0xFFFFFFFF),
-                        size: 24.0,
-                      ),
+                      child: Icon(icon, color: const Color(0xFFFFFFFF), size: 24.0),
                     );
                   },
                 )
@@ -1809,11 +1660,7 @@ class _CustomIndicator extends StatelessWidget {
                       height: 52.0,
                       width: 42.0,
                       alignment: Alignment.centerRight,
-                      child: Icon(
-                        icon,
-                        color: const Color(0xFFFFFFFF),
-                        size: 24.0,
-                      ),
+                      child: Icon(icon, color: const Color(0xFFFFFFFF), size: 24.0),
                     );
                   },
                 ),
@@ -1822,10 +1669,7 @@ class _CustomIndicator extends StatelessWidget {
                 child: Text(
                   text,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14.0,
-                    color: Color(0xFFFFFFFF),
-                  ),
+                  style: const TextStyle(fontSize: 14.0, color: Color(0xFFFFFFFF)),
                 ),
               ),
               const SizedBox(width: 16.0),
@@ -1840,10 +1684,7 @@ class _CustomIndicator extends StatelessWidget {
 class _BackwardSeekIndicator extends StatefulWidget {
   final void Function(Duration) onChanged;
   final void Function(Duration) onSubmitted;
-  const _BackwardSeekIndicator({
-    required this.onChanged,
-    required this.onSubmitted,
-  });
+  const _BackwardSeekIndicator({required this.onChanged, required this.onSubmitted});
 
   @override
   State<_BackwardSeekIndicator> createState() => _BackwardSeekIndicatorState();
@@ -1899,18 +1740,11 @@ class _BackwardSeekIndicatorState extends State<_BackwardSeekIndicator> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.fast_rewind,
-                size: 24.0,
-                color: Color(0xFFFFFFFF),
-              ),
+              const Icon(Icons.fast_rewind, size: 24.0, color: Color(0xFFFFFFFF)),
               const SizedBox(height: 8.0),
               Text(
                 '${value.inSeconds} seconds',
-                style: const TextStyle(
-                  fontSize: 12.0,
-                  color: Color(0xFFFFFFFF),
-                ),
+                style: const TextStyle(fontSize: 12.0, color: Color(0xFFFFFFFF)),
               ),
             ],
           ),
@@ -1923,10 +1757,7 @@ class _BackwardSeekIndicatorState extends State<_BackwardSeekIndicator> {
 class _ForwardSeekIndicator extends StatefulWidget {
   final void Function(Duration) onChanged;
   final void Function(Duration) onSubmitted;
-  const _ForwardSeekIndicator({
-    required this.onChanged,
-    required this.onSubmitted,
-  });
+  const _ForwardSeekIndicator({required this.onChanged, required this.onSubmitted});
 
   @override
   State<_ForwardSeekIndicator> createState() => _ForwardSeekIndicatorState();
@@ -1982,18 +1813,11 @@ class _ForwardSeekIndicatorState extends State<_ForwardSeekIndicator> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.fast_forward,
-                size: 24.0,
-                color: Color(0xFFFFFFFF),
-              ),
+              const Icon(Icons.fast_forward, size: 24.0, color: Color(0xFFFFFFFF)),
               const SizedBox(height: 8.0),
               Text(
                 '${value.inSeconds} seconds',
-                style: const TextStyle(
-                  fontSize: 12.0,
-                  color: Color(0xFFFFFFFF),
-                ),
+                style: const TextStyle(fontSize: 12.0, color: Color(0xFFFFFFFF)),
               ),
             ],
           ),

@@ -3,7 +3,7 @@
   "java.configuration.updateBuildConfiguration": "interactive",
   "dart.flutterSdkPath": "C:\\Users\\joaov\\.puro\\envs\\stable\\flutter",
   "dart.sdkPath": "C:\\Users\\joaov\\.puro\\envs\\stable\\flutter\\bin\\cache\\dart-sdk",
-  "dart.lineLength": 80,
+  "dart.lineLength": 90,
   "[dart]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "Dart-Code.dart-code",

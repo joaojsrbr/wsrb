@@ -12,9 +12,7 @@ class _BetterAnimeInterceptor extends Interceptor {
     final betterAnimeCookies = appConfigController.config.betterAnimeCookies;
 
     if (betterAnimeCookies.isNotEmpty && options.path.contains("betteranime")) {
-      final betterAnimeCookieString = ContentCookie.stringifyCookies(
-        betterAnimeCookies,
-      );
+      final betterAnimeCookieString = ContentCookie.stringifyCookies(betterAnimeCookies);
       options.headers["Cookie"] = betterAnimeCookieString;
     }
 
@@ -54,9 +52,7 @@ class BetterAnimeSource extends RSource {
 
       final title = animeInfoElement?.querySelector("h2.pt-5")?.text;
 
-      final sinopse = animeInfoElement
-          ?.querySelector(".anime-description")
-          ?.text;
+      final sinopse = animeInfoElement?.querySelector(".anime-description")?.text;
 
       anime = anime.copyWith(
         title: title,
@@ -105,21 +101,16 @@ class BetterAnimeSource extends RSource {
       final response = await contentRepository._dio.get(url);
       final Document document = parse(response.data);
 
-      final elements =
-          document.querySelector("div.list-animes")?.children ?? [];
+      final elements = document.querySelector("div.list-animes")?.children ?? [];
 
       for (final Element articleElement in elements) {
-        final src = articleElement
-            .querySelector(".card-img img")
-            ?.attributes["src"];
+        final src = articleElement.querySelector(".card-img img")?.attributes["src"];
         final thumbnail = "https:$src";
         final cardElement = articleElement.querySelector(".card-title");
 
         if (cardElement == null) continue;
 
-        final episodeUrl = articleElement
-            .querySelector("a")
-            ?.attributes["href"];
+        final episodeUrl = articleElement.querySelector("a")?.attributes["href"];
         final episodeTitle = cardElement.querySelector("h4")?.text;
 
         final parts = episodeUrl?.split(RegExp(r'(?<!/)/(?!/)'));
@@ -264,17 +255,13 @@ class BetterAnimeSource extends RSource {
   Source get source => Source.BETTER_ANIME;
 
   void _onSolve(List<ContentCookie> cookies) async {
-    await contentRepository._appConfigController?.setBetterAnimeCookies(
-      cookies,
-    );
+    await contentRepository._appConfigController?.setBetterAnimeCookies(cookies);
     contentRepository.contentChallenge.value = NoChallenge();
     await contentRepository.refresh(true);
   }
 
   Future<bool> _needLogin() async {
-    final response = await contentRepository._dio.get(
-      "https://betteranime.net",
-    );
+    final response = await contentRepository._dio.get("https://betteranime.net");
     final Document document = parse(response.data);
 
     final form = document.querySelector(
@@ -374,9 +361,8 @@ class BetterAnimeSource extends RSource {
           httpHeaders: {'referer': refererUrl, 'user-agent': 'Mozilla/5.0'},
           quality:
               Quality.values.firstWhereOrNull(
-                (quality) => quality.label.toLowerCase().contains(
-                  entry.key.toLowerCase(),
-                ),
+                (quality) =>
+                    quality.label.toLowerCase().contains(entry.key.toLowerCase()),
               ) ??
               Quality.NONE,
         );

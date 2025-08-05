@@ -14,10 +14,7 @@ class AnrollLoginService {
   dio.Interceptor get getInterceptorToken => _AnrollGetTokenInterceptor();
 
   Future<bool> login(String email, String password) async {
-    if (await checkLogin() case (
-      bool result,
-      int? id,
-    ) when (result && id != null)) {
+    if (await checkLogin() case (bool result, int? id) when (result && id != null)) {
       return true;
     }
     try {
@@ -39,10 +36,7 @@ class AnrollLoginService {
   }
 
   Future<(bool result, String message)> logout() async {
-    if (await checkLogin() case (
-      bool result,
-      int? id,
-    ) when (result && id != null)) {
+    if (await checkLogin() case (bool result, int? id) when (result && id != null)) {
       // await _hiveService.delete('anrollData_token', debug: false);
       return (true, "Deslogado com sucesso!");
     }
@@ -101,10 +95,7 @@ class _AnrollGetTokenInterceptor extends dio.Interceptor {
   _AnrollGetTokenInterceptor();
 
   @override
-  void onRequest(
-    RequestOptions options,
-    RequestInterceptorHandler handler,
-  ) async {
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     options.headers = App.HEADERS;
 
     // final AnrollData? anrollData = await _hiveService.load('anrollData_token', null, debug: false);
@@ -156,9 +147,7 @@ class AnrollData {
   factory AnrollData.fromMap(Map<dynamic, dynamic> map) {
     return AnrollData(
       token: map['token'] as String,
-      refreshToken: map['refreshToken'] != null
-          ? map['refreshToken'] as String
-          : null,
+      refreshToken: map['refreshToken'] != null ? map['refreshToken'] as String : null,
       email: map['email'] as String,
     );
   }

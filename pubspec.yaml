@@ -71,13 +71,7 @@ dependencies:
     path: ./content_library
   quiver: ^3.2.2
   super_sliver_list: ^0.4.1
-  
-  # extended_nested_scroll_view: ^6.2.1
   nested_scroll_view_plus: ^3.0.0
-  # nested_scroll_view_plus:
-  #   path: ../nested_scroll_view_plus
-
-
   open_settings_plus: ^0.4.0
   webview_flutter: ^4.11.0
   audio_service: ^0.18.18

@@ -45,8 +45,7 @@ class Book extends Content {
   ChapterReleases get releases => super.releases as ChapterReleases;
 
   @override
-  String get imageUrl =>
-      extraLarge ?? largeImage ?? mediumImage ?? originalImage;
+  String get imageUrl => extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   bool get searchNewImage {
     if ([extraLarge, largeImage, mediumImage].contains(null)) {

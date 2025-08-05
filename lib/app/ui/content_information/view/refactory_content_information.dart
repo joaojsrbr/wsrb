@@ -5,25 +5,21 @@ import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_inform
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/content_page.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
-import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:app_wsrb_jsr/app/utils/content_utils.dart';
+import 'package:app_wsrb_jsr/app/utils/download_release_helper.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class RefContentInformationView extends StatefulWidget {
   const RefContentInformationView({super.key});
 
   @override
-  State<RefContentInformationView> createState() =>
-      _RefContentkInformationViewState();
+  State<RefContentInformationView> createState() => _RefContentkInformationViewState();
 }
 
-class _RefContentkInformationViewState
-    extends State<RefContentInformationView> {
+class _RefContentkInformationViewState extends State<RefContentInformationView> {
   late Content _content;
   late Completer _initialRefresh;
   late ContentInformationArgs _informationArgs;
@@ -32,9 +28,7 @@ class _RefContentkInformationViewState
   late final BottomMenuController<List<String>> _bottomMenuController;
   late final LibraryController _libraryController;
   late final HistoricController _historicController;
-  late final DownloadService _downloadService;
 
-  final Debouncer _changeTabBarIndex = Debouncer(duration: Duration.zero);
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
   final Map<int, Releases> _releases = {};
@@ -46,13 +40,9 @@ class _RefContentkInformationViewState
   @override
   void initState() {
     super.initState();
-    _bottomMenuController = BottomMenuController(
-      minHeight: 60,
-      initialArgs: [],
-    );
+    _bottomMenuController = BottomMenuController(minHeight: 60, initialArgs: []);
     _historicController = read<HistoricController>();
     _libraryController = read<LibraryController>();
-    _downloadService = read<DownloadService>();
     _repository = read<ContentRepository>();
     scheduleMicrotask(_onInit);
   }
@@ -142,69 +132,8 @@ class _RefContentkInformationViewState
   }
 
   Future<void> _downloadRelease(Release release) async {
-    final localContext = GoRouter.of(
-      context,
-    ).routerDelegate.navigatorKey.currentContext;
-    final LibraryController libraryController = context
-        .read<LibraryController>();
-    final HistoricController historicController = context
-        .read<HistoricController>();
-
-    final historicRepo = historicController.repo;
-
-    switch (release) {
-      case Episode data when mounted && _content is Anime:
-        final anime = _content as Anime;
-        await _downloadService.downloadReleaseVideoByHLS(
-          data,
-          anime,
-          _repository,
-          statisticsCallback: (statistics) async {},
-          onResult: (result) async {
-            if (result is Success) {
-              final animeEntity = _libraryController.repo
-                  .getContentEntityByStringID(
-                    anime.stringID,
-                    orElse: () => anime.toEntity(createdAt: DateTime.now()),
-                  );
-              if (animeEntity == null) return;
-
-              final EpisodeEntity episodeEntity =
-                  historicRepo.getHistoric(
-                        release: data,
-                        content: anime,
-                        orElse: () => data.toEntity(anime: anime),
-                      )
-                      as EpisodeEntity;
-
-              animeEntity.episodes.add(episodeEntity);
-
-              await libraryController.add(contentEntity: animeEntity);
-              await historicController.add(HistoricEntity: episodeEntity);
-            }
-
-            switch (result) {
-              case Cancel _:
-                break;
-              case Failure error when localContext?.mounted == true:
-                localContext?.showErrorSnackBar(error);
-
-                break;
-              case Failure _:
-                break;
-              case Success _:
-                localContext?.showAppSnackBar(
-                  Text('Baixado com sucesso: ${data.title}'),
-                );
-
-                break;
-              case Empty _:
-                break;
-            }
-          },
-        );
-
-        break;
+    if (mounted) {
+      await DownloadReleaseHelper.download(context, release, _content);
     }
   }
 
@@ -311,28 +240,21 @@ class _RefContentkInformationViewState
       if (animeEntity == null) return;
       final args = _bottomMenuController.args;
 
-      final toEntities = data.releases
-          .where((test) => args.contains(test.stringID))
-          .map((map) {
-            final entity = _historicController.repo.getHistoric<EpisodeEntity>(
-              release: map,
-              orElse: () =>
-                  map.toEntity(anime: data, createdAt: DateTime.now()),
-            );
+      final toEntities = data.releases.where((test) => args.contains(test.stringID)).map((
+        map,
+      ) {
+        final entity = _historicController.repo.getHistoric<EpisodeEntity>(
+          release: map,
+          orElse: () => map.toEntity(anime: data, createdAt: DateTime.now()),
+        );
 
-            return entity?.copyWith(
-              isComplete: true,
-              updatedAt: DateTime.now(),
-            );
-          })
-          .toList();
+        return entity?.copyWith(isComplete: true, updatedAt: DateTime.now());
+      }).toList();
 
       animeEntity.episodes.addAll(toEntities.nonNulls);
 
       await _libraryController.add(contentEntity: animeEntity);
-      await _historicController.addAll(
-        historyEntities: toEntities.nonNulls.toList(),
-      );
+      await _historicController.addAll(historyEntities: toEntities.nonNulls.toList());
       _bottomMenuController.args.clear();
       _bottomMenuController.close();
     }
@@ -341,8 +263,7 @@ class _RefContentkInformationViewState
   void _deleteSelectEpisodeEntity() async {
     final args = _bottomMenuController.args;
     if (_content case Anime _) {
-      final historicEntities = _historicController.repo
-          .getAllHistoricEntityByID(args);
+      final historicEntities = _historicController.repo.getAllHistoricEntityByID(args);
       await _historicController.removeAll(historyEntities: historicEntities);
       _bottomMenuController.args.clear();
       _bottomMenuController.close();
@@ -376,8 +297,9 @@ class _RefContentkInformationViewState
                 (release) => args.contains(release.stringID),
               );
 
-              final historicEntities = _historicController.repo
-                  .getAllHistoricEntityByID(args);
+              final historicEntities = _historicController.repo.getAllHistoricEntityByID(
+                args,
+              );
 
               return Align(
                 alignment: Alignment.centerLeft,
@@ -427,9 +349,6 @@ class _RefContentkInformationViewState
 
   @override
   void dispose() {
-    // _bottomMenuController.dispose();
-    _changeTabBarIndex.cancel();
-
     super.dispose();
   }
 

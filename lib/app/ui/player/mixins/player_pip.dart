@@ -4,8 +4,7 @@ import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
 
-mixin PlayerPipMixin
-    on SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs> {
+mixin PlayerPipMixin on SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs> {
   // late final AndroidPIP androidPIP;
 
   bool isPipAvailable = false;

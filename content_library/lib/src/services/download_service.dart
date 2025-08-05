@@ -20,9 +20,7 @@ class DownloadService extends ChangeNotifier {
     required int sessionId,
   }) async {
     await FFmpegKit.cancel(sessionId);
-    downloadList.removeWhere(
-      (element) => release.stringID == element.releaseId,
-    );
+    downloadList.removeWhere((element) => release.stringID == element.releaseId);
     notifyListeners();
   }
 
@@ -57,16 +55,13 @@ class DownloadService extends ChangeNotifier {
     void Function(Result result)? onResult,
   }) async {
     if (await PermissionUtils.manageExternalStorage() && content is Anime) {
-      final videoData = await repository
-          .source(content.source)
-          .getContent(release);
+      final videoData = await repository.source(content.source).getContent(release);
 
       videoData.fold(
         onSuccess: (success) async {
           final selected = success.first as VideoData;
 
-          if (selected.videoContent.contains('m3u8') ||
-              content.source == Source.GOYABU) {
+          if (selected.videoContent.contains('m3u8') || content.source == Source.GOYABU) {
             final releaseDir = Directory(
               '${AppStorage.DOWNLOAD_DIR.path}/${content.source.label.capitalize}/${content.title.toID}',
             );
@@ -76,8 +71,7 @@ class DownloadService extends ChangeNotifier {
             }
 
             List<String> args = [
-              for (final header
-                  in (selected.httpHeaders ?? <String, String>{}).entries)
+              for (final header in (selected.httpHeaders ?? <String, String>{}).entries)
                 '-headers "${header.key.capitalize}: ${header.value}"',
               '-i',
               '"${selected.videoContent}"',
@@ -90,8 +84,7 @@ class DownloadService extends ChangeNotifier {
 
             await FFprobeKit.getMediaInformationFromCommand(
               [
-                for (final header
-                    in (selected.httpHeaders ?? <String, String>{}).entries)
+                for (final header in (selected.httpHeaders ?? <String, String>{}).entries)
                   '-headers "${header.key.capitalize}: ${header.value}"',
                 '-i',
                 '"${selected.videoContent}"',

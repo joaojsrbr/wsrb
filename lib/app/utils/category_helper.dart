@@ -16,9 +16,7 @@ class CategoryHelper {
       (item) => item.ids.containsOneElement(selection),
     );
 
-    final _CategorySelection selectionState = _CategorySelection(
-      filteredCategories,
-    );
+    final _CategorySelection selectionState = _CategorySelection(filteredCategories);
 
     final dialogResult = await showDialog(
       context: context,
@@ -36,16 +34,13 @@ class CategoryHelper {
                 : SingleChildScrollView(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: List.generate(controller.categories.length, (
-                        i,
-                      ) {
+                      children: List.generate(controller.categories.length, (i) {
                         final category = controller.categories.elementAt(i);
                         return CheckboxListTile.adaptive(
                           value: selectionNotifier.contains(category),
                           title: Text(category.title),
                           onChanged: (isChecked) {
-                            if (isChecked != null)
-                              selectionNotifier.toggle(category);
+                            if (isChecked != null) selectionNotifier.toggle(category);
                           },
                         );
                       }),
@@ -53,9 +48,7 @@ class CategoryHelper {
                   ),
             actions: [
               TextButton(
-                style: const ButtonStyle(
-                  visualDensity: VisualDensity(horizontal: -4),
-                ),
+                style: const ButtonStyle(visualDensity: VisualDensity(horizontal: -4)),
                 onPressed: () => Navigator.of(context).pop("newCategory"),
                 child: controller.categories.isEmpty
                     ? const Text('Editar Categorias')
@@ -75,9 +68,8 @@ class CategoryHelper {
                       style: const ButtonStyle(
                         visualDensity: VisualDensity(horizontal: -4),
                       ),
-                      onPressed: () => Navigator.of(
-                        context,
-                      ).pop(('applyChanges', selectionNotifier)),
+                      onPressed: () =>
+                          Navigator.of(context).pop(('applyChanges', selectionNotifier)),
                       child: const Text('OK'),
                     ),
                   ],
@@ -97,23 +89,19 @@ class CategoryHelper {
           await openCategoryCreator(context);
         });
         break;
-      case (String tag, List<CategoryEntity> selected)
-          when tag.contains('applyChanges'):
+      case (String tag, List<CategoryEntity> selected) when tag.contains('applyChanges'):
         final List<Future<void>> operations = [];
 
         for (final category in controller.categories) {
           final shouldRetain =
-              selected.contains(category) &&
-              category.ids.containsOneElement(selection);
+              selected.contains(category) && category.ids.containsOneElement(selection);
           if (!shouldRetain) {
             final newIds = List<String>.from(category.ids)
               ..removeWhere(selection.contains)
               ..unique();
 
             operations.add(
-              controller.add(
-                category.copyWith(ids: newIds, updatedAt: DateTime.now()),
-              ),
+              controller.add(category.copyWith(ids: newIds, updatedAt: DateTime.now())),
             );
           }
         }
@@ -124,9 +112,7 @@ class CategoryHelper {
             ..unique();
 
           operations.add(
-            controller.add(
-              category.copyWith(ids: newIds, updatedAt: DateTime.now()),
-            ),
+            controller.add(category.copyWith(ids: newIds, updatedAt: DateTime.now())),
           );
         }
 
@@ -156,10 +142,7 @@ class CategoryHelper {
     void persistCategory() async {
       if (formKey.currentState?.validate() ?? false) {
         final title = textController.text.trim();
-        final newEntity = CategoryEntity(
-          title: title,
-          createdAt: DateTime.now(),
-        );
+        final newEntity = CategoryEntity(title: title, createdAt: DateTime.now());
         textController.clear();
         await controller.add(newEntity);
       }
@@ -178,9 +161,7 @@ class CategoryHelper {
         ],
         builder: (context, _) {
           final ctrl = context.watch<TextEditingController>();
-          final currentEntity = context
-              .watch<ValueNotifier<CategoryEntity?>>()
-              .value;
+          final currentEntity = context.watch<ValueNotifier<CategoryEntity?>>().value;
           final widgetStates = context.watch<WidgetStatesController>();
 
           return Form(
@@ -207,9 +188,7 @@ class CategoryHelper {
                               .resolve(states.value)
                               ?.copyWith(
                                 side:
-                                    _Defaults(
-                                      context,
-                                    ).side?.resolve(states.value) ??
+                                    _Defaults(context).side?.resolve(states.value) ??
                                     BorderSide.none,
                               ),
                           statesController: widgetStates,
@@ -220,15 +199,12 @@ class CategoryHelper {
                             validator: (text) {
                               final trimmed = text?.trim() ?? '';
                               if (trimmed.isEmpty) return 'campo obrigatório*';
-                              if (trimmed.length < 3)
-                                return 'mínimo de 3 caracteres.';
+                              if (trimmed.length < 3) return 'mínimo de 3 caracteres.';
                               return null;
                             },
                             onFieldSubmitted: (_) {
                               if (currentEntity != null) {
-                                if (!(formKey.currentState?.validate() ??
-                                    false))
-                                  return;
+                                if (!(formKey.currentState?.validate() ?? false)) return;
                                 context.read<CategoryController>().add(
                                   currentEntity.copyWith(
                                     title: ctrl.text.trim(),
@@ -251,10 +227,7 @@ class CategoryHelper {
                               border: _inputBorder(context),
                               enabledBorder: _inputBorder(context),
                               focusedBorder: _inputBorder(context),
-                              focusedErrorBorder: _inputBorder(
-                                context,
-                                error: true,
-                              ),
+                              focusedErrorBorder: _inputBorder(context, error: true),
                               errorBorder: _inputBorder(context, error: true),
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -264,8 +237,7 @@ class CategoryHelper {
                                 ),
                                 onPressed: () {
                                   if (currentEntity != null) {
-                                    if (!(formKey.currentState?.validate() ??
-                                        false))
+                                    if (!(formKey.currentState?.validate() ?? false))
                                       return;
                                     context.read<CategoryController>().add(
                                       currentEntity.copyWith(
@@ -281,15 +253,9 @@ class CategoryHelper {
                                   persistCategory();
                                 },
                               ),
-                              suffixIconColor: Theme.of(
-                                context,
-                              ).colorScheme.primary,
-                              suffixIconConstraints: const BoxConstraints(
-                                maxWidth: 50,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 15,
-                              ),
+                              suffixIconColor: Theme.of(context).colorScheme.primary,
+                              suffixIconConstraints: const BoxConstraints(maxWidth: 50),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 15),
                             ),
                           ),
                         ),
@@ -349,17 +315,14 @@ class _Defaults extends SearchBarThemeData {
   late final TextTheme text = Theme.of(context).textTheme;
 
   @override
-  WidgetStateProperty<TextStyle?>? get hintStyle => WidgetStatePropertyAll(
-    text.bodyLarge?.copyWith(color: colors.onSurfaceVariant),
-  );
+  WidgetStateProperty<TextStyle?>? get hintStyle =>
+      WidgetStatePropertyAll(text.bodyLarge?.copyWith(color: colors.onSurfaceVariant));
 
   @override
   WidgetStateProperty<Color?>? get overlayColor =>
       WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.pressed))
-          return colors.onSurface.withAlpha(30);
-        if (states.contains(WidgetState.hovered))
-          return colors.onSurface.withAlpha(20);
+        if (states.contains(WidgetState.pressed)) return colors.onSurface.withAlpha(30);
+        if (states.contains(WidgetState.hovered)) return colors.onSurface.withAlpha(20);
         return Colors.transparent;
       });
 
@@ -373,9 +336,7 @@ OutlineInputBorder _inputBorder(BuildContext context, {bool error = false}) {
   return OutlineInputBorder(
     borderRadius: radius,
     borderSide: BorderSide(
-      color: error
-          ? Colors.red
-          : Theme.of(context).colorScheme.primary.withAlpha(26),
+      color: error ? Colors.red : Theme.of(context).colorScheme.primary.withAlpha(26),
     ),
   );
 }

@@ -15,13 +15,7 @@ class ChapterEntity extends HistoricEntity {
   final String bookStringID;
 
   @override
-  List<Object?> get props => [
-    readPercent,
-    stringID,
-    isComplete,
-    createdAt,
-    updatedAt,
-  ];
+  List<Object?> get props => [readPercent, stringID, isComplete, createdAt, updatedAt];
 
   ChapterEntity({
     required this.readPercent,
@@ -45,12 +39,7 @@ class ChapterEntity extends HistoricEntity {
   }
 
   Chapter toChapter() {
-    return Chapter(
-      read: isComplete,
-      title: title,
-      url: url,
-      bookStringID: bookStringID,
-    );
+    return Chapter(read: isComplete, title: title, url: url, bookStringID: bookStringID);
   }
 
   @override

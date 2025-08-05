@@ -24,8 +24,7 @@ class _HistoryDestinationState extends State<HistoryDestination>
 
   @override
   void didChangeDependencies() {
-    super
-        .didChangeDependencies(); // Chamar super primeiro para seguir boas práticas
+    super.didChangeDependencies(); // Chamar super primeiro para seguir boas práticas
 
     // Limpar o mapa antes de processar novos dados
     _map.clear();
@@ -44,8 +43,7 @@ class _HistoryDestinationState extends State<HistoryDestination>
 
     // Filtrar e mapear entidades
     for (final content in entities) {
-      if (filterSources.isEmpty || !filterSources.contains(content.source))
-        continue;
+      if (filterSources.isEmpty || !filterSources.contains(content.source)) continue;
 
       // Ignorar se não houver gêneros ou se o filtro de gêneros não corresponder
       final genres = content.anilistMedia?.genres ?? [];
@@ -105,9 +103,7 @@ class _HistoryDestinationState extends State<HistoryDestination>
     FilterWatching filterWatching,
   ) {
     final historics = _getHistorics(libraryController, content, filterWatching);
-    return historics
-        .where((entity) => _applyDateFilter(entity, filterWatching))
-        .toList();
+    return historics.where((entity) => _applyDateFilter(entity, filterWatching)).toList();
   }
 
   // Função para aplicar filtro de intervalo de datas
@@ -124,8 +120,7 @@ class _HistoryDestinationState extends State<HistoryDestination>
     // Se data infinita estiver ativa, considera apenas datas anteriores ao início
     if (infiniteDate) {
       return start == null ||
-          end != null &&
-              (createdAt.isAtSameMomentAs(end) || createdAt.isBefore(end));
+          end != null && (createdAt.isAtSameMomentAs(end) || createdAt.isBefore(end));
     }
 
     // Se ambas datas existem, verifica se está dentro do intervalo
@@ -159,24 +154,17 @@ class _HistoryDestinationState extends State<HistoryDestination>
     FilterWatching filterWatching,
   ) {
     final libraryRepo = libraryController.repo;
-    return libraryRepo.entities
-        .map(libraryRepo.getAll)
-        .nonNulls
-        .flattened
-        .where((entity) {
-          return (entity is EpisodeEntity &&
-              entity.animeStringID.contains(content.stringID));
-        })
-        .toList();
+    return libraryRepo.entities.map(libraryRepo.getAll).nonNulls.flattened.where((
+      entity,
+    ) {
+      return (entity is EpisodeEntity && entity.animeStringID.contains(content.stringID));
+    }).toList();
   }
 
   @override
   bool get wantKeepAlive => true;
 
-  ContentEntity _getContentByList(
-    List<ContentEntity> data,
-    HistoricEntity historic,
-  ) {
+  ContentEntity _getContentByList(List<ContentEntity> data, HistoricEntity historic) {
     final id = switch (historic) {
       EpisodeEntity data => data.animeStringID,
       ChapterEntity data => data.bookStringID,
@@ -249,9 +237,7 @@ class _HistoryDestinationState extends State<HistoryDestination>
                       RouteName.PLAYER,
                       extra: PlayerArgs(
                         forceEnterFullScreen: true,
-                        data: videoFile != null
-                            ? [FileVideoData(file: videoFile)]
-                            : null,
+                        data: videoFile != null ? [FileVideoData(file: videoFile)] : null,
                         getAnimeData: true,
                         anime: anime.toAnime(),
                         episode: episode.toEpisode(anime.isDublado),
@@ -319,18 +305,14 @@ class _HistoryDestinationState extends State<HistoryDestination>
                       const SizedBox(width: 8),
                       IconButton(
                         icon: Icon(
-                          content.isFavorite
-                              ? MdiIcons.heart
-                              : MdiIcons.heartOutline,
+                          content.isFavorite ? MdiIcons.heart : MdiIcons.heartOutline,
                           size: 20,
                         ),
                         color: content.isFavorite ? Colors.red : null,
                         onPressed: () {
                           if (content.isFavorite) {
                             library.add(
-                              contentEntity: content.copyWith(
-                                isFavorite: false,
-                              ),
+                              contentEntity: content.copyWith(isFavorite: false),
                             );
                           } else {
                             library.add(

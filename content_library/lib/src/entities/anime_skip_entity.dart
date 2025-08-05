@@ -13,11 +13,7 @@ class AnimeSkipEntity extends OtherEntity {
   final String animeSkipId;
   final String times;
 
-  AnimeSkipEntity({
-    required this.animeSkipId,
-    required this.name,
-    required this.times,
-  });
+  AnimeSkipEntity({required this.animeSkipId, required this.name, required this.times});
 
   @override
   List<Object?> get props => [name, animeSkipId, times];
@@ -27,9 +23,7 @@ class AnimeSkipEntity extends OtherEntity {
       name: name,
       animeSkipId: animeSkipId,
       times: times.isNotEmpty
-          ? (jsonDecode(times) as List)
-                .map((e) => AnimeTimeStamp.fromJson(e))
-                .toList()
+          ? (jsonDecode(times) as List).map((e) => AnimeTimeStamp.fromJson(e)).toList()
           : [],
     );
   }

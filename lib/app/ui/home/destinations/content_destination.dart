@@ -81,27 +81,20 @@ class _ContentDestinationState extends State<ContentDestination>
             ),
           ),
           const SizedBox(height: 12),
-          ContentTile.list(
-            content: content,
-            padding: const EdgeInsets.only(bottom: 4),
-          ),
+          ContentTile.list(content: content, padding: const EdgeInsets.only(bottom: 4)),
         ],
       );
     }
 
     return ContentTile.list(
       content: content,
-      padding: isNewPageHeader
-          ? EdgeInsets.zero
-          : const EdgeInsets.only(bottom: 4),
+      padding: isNewPageHeader ? EdgeInsets.zero : const EdgeInsets.only(bottom: 4),
     );
   }
 
   @override
   void dispose() {
-    _contentRepository.contentChallenge.removeListener(
-      _contentChallengeListener,
-    );
+    _contentRepository.contentChallenge.removeListener(_contentChallengeListener);
     super.dispose();
   }
 }

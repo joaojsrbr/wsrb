@@ -73,10 +73,7 @@ class SlimeReadBook {
       bookFlagged: json['book_flagged'],
       bookRedirectLink: json['book_redirect_link'],
       bookTag:
-          (json['book_tag'] as List?)
-              ?.map((e) => BookTag.fromJson(e))
-              .toList() ??
-          [],
+          (json['book_tag'] as List?)?.map((e) => BookTag.fromJson(e)).toList() ?? [],
       bookDateCreated: json['book_date_created'],
       bookCategories:
           (json['book_categories'] as List?)
@@ -84,10 +81,7 @@ class SlimeReadBook {
               .toList() ??
           [],
       bookTemp:
-          (json['book_temp'] as List?)
-              ?.map((e) => BookTemp.fromJson(e))
-              .toList() ??
-          [],
+          (json['book_temp'] as List?)?.map((e) => BookTemp.fromJson(e)).toList() ?? [],
       bookGenreId: json['book_genre_id'],
       bookLanguageId: json['book_language_id'],
       bookNameAlternatives: json['book_name_alternatives'],
@@ -111,11 +105,7 @@ class Tag {
   final String tagName;
   final String tagNamePtBR;
 
-  const Tag({
-    required this.tagNsfw,
-    required this.tagName,
-    required this.tagNamePtBR,
-  });
+  const Tag({required this.tagNsfw, required this.tagName, required this.tagNamePtBR});
 
   factory Tag.fromJson(Map<String, dynamic> json) {
     return Tag(

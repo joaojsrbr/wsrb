@@ -17,28 +17,12 @@ const CategoryEntitySchema = CollectionSchema(
   name: r'CategoryEntity',
   id: -4373275164811429968,
   properties: {
-    r'createdAt': PropertySchema(
-      id: 0,
-      name: r'createdAt',
-      type: IsarType.dateTime,
-    ),
-    r'description': PropertySchema(
-      id: 1,
-      name: r'description',
-      type: IsarType.string,
-    ),
+    r'createdAt': PropertySchema(id: 0, name: r'createdAt', type: IsarType.dateTime),
+    r'description': PropertySchema(id: 1, name: r'description', type: IsarType.string),
     r'ids': PropertySchema(id: 2, name: r'ids', type: IsarType.stringList),
-    r'stringID': PropertySchema(
-      id: 3,
-      name: r'stringID',
-      type: IsarType.string,
-    ),
+    r'stringID': PropertySchema(id: 3, name: r'stringID', type: IsarType.string),
     r'title': PropertySchema(id: 4, name: r'title', type: IsarType.string),
-    r'updatedAt': PropertySchema(
-      id: 5,
-      name: r'updatedAt',
-      type: IsarType.dateTime,
-    ),
+    r'updatedAt': PropertySchema(id: 5, name: r'updatedAt', type: IsarType.dateTime),
   },
   estimateSize: _categoryEntityEstimateSize,
   serialize: _categoryEntitySerialize,
@@ -52,11 +36,7 @@ const CategoryEntitySchema = CollectionSchema(
       unique: true,
       replace: true,
       properties: [
-        IndexPropertySchema(
-          name: r'stringID',
-          type: IndexType.hash,
-          caseSensitive: true,
-        ),
+        IndexPropertySchema(name: r'stringID', type: IndexType.hash, caseSensitive: true),
       ],
     ),
   },
@@ -155,11 +135,7 @@ List<IsarLinkBase<dynamic>> _categoryEntityGetLinks(CategoryEntity object) {
   return [];
 }
 
-void _categoryEntityAttach(
-  IsarCollection<dynamic> col,
-  Id id,
-  CategoryEntity object,
-) {
+void _categoryEntityAttach(IsarCollection<dynamic> col, Id id, CategoryEntity object) {
   object.id = id;
 }
 
@@ -212,10 +188,7 @@ extension CategoryEntityByIndex on IsarCollection<CategoryEntity> {
     return putAllByIndex(r'stringID', objects);
   }
 
-  List<Id> putAllByStringIDSync(
-    List<CategoryEntity> objects, {
-    bool saveLinks = true,
-  }) {
+  List<Id> putAllByStringIDSync(List<CategoryEntity> objects, {bool saveLinks = true}) {
     return putAllByIndexSync(r'stringID', objects, saveLinks: saveLinks);
   }
 }
@@ -231,34 +204,22 @@ extension CategoryEntityQueryWhereSort
 
 extension CategoryEntityQueryWhere
     on QueryBuilder<CategoryEntity, CategoryEntity, QWhereClause> {
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterWhereClause> idEqualTo(
-    Id id,
-  ) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterWhereClause> idNotEqualTo(
-    Id id,
-  ) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            )
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            );
+            .addWhereClause(IdWhereClause.lessThan(upper: id, includeUpper: false))
+            .addWhereClause(IdWhereClause.greaterThan(lower: id, includeLower: false));
       } else {
         return query
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            )
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            );
+            .addWhereClause(IdWhereClause.greaterThan(lower: id, includeLower: false))
+            .addWhereClause(IdWhereClause.lessThan(upper: id, includeUpper: false));
       }
     });
   }
@@ -303,8 +264,9 @@ extension CategoryEntityQueryWhere
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterWhereClause>
-  stringIDEqualTo(String stringID) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterWhereClause> stringIDEqualTo(
+    String stringID,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IndexWhereClause.equalTo(indexName: r'stringID', value: [stringID]),
@@ -312,8 +274,9 @@ extension CategoryEntityQueryWhere
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterWhereClause>
-  stringIDNotEqualTo(String stringID) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterWhereClause> stringIDNotEqualTo(
+    String stringID,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -358,8 +321,7 @@ extension CategoryEntityQueryWhere
 
 extension CategoryEntityQueryFilter
     on QueryBuilder<CategoryEntity, CategoryEntity, QFilterCondition> {
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  createdAtIsNull() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> createdAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNull(property: r'createdAt'),
@@ -376,8 +338,9 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  createdAtEqualTo(DateTime? value) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> createdAtEqualTo(
+    DateTime? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'createdAt', value: value),
@@ -398,21 +361,18 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  createdAtLessThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> createdAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'createdAt',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'createdAt', value: value),
       );
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  createdAtBetween(
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> createdAtBetween(
     DateTime? lower,
     DateTime? upper, {
     bool includeLower = true,
@@ -449,8 +409,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  descriptionEqualTo(String? value, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> descriptionEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -480,8 +442,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  descriptionLessThan(
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> descriptionLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -498,8 +459,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  descriptionBetween(
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> descriptionBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -533,8 +493,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  descriptionEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> descriptionEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -546,8 +508,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  descriptionContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> descriptionContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -559,8 +523,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  descriptionMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> descriptionMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -600,28 +566,24 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  idGreaterThan(Id value, {bool include = false}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> idGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
+        FilterCondition.greaterThan(include: include, property: r'id', value: value),
       );
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  idLessThan(Id value, {bool include = false}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> idLessThan(
+    Id value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'id', value: value),
       );
     });
   }
@@ -645,8 +607,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  idsElementEqualTo(String value, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> idsElementEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -659,11 +623,7 @@ extension CategoryEntityQueryFilter
   }
 
   QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  idsElementGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
+  idsElementGreaterThan(String value, {bool include = false, bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
@@ -676,8 +636,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  idsElementLessThan(
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> idsElementLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -694,8 +653,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  idsElementBetween(
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> idsElementBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -729,8 +687,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  idsElementEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> idsElementEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -742,8 +702,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  idsElementContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> idsElementContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -755,8 +717,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  idsElementMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> idsElementMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -786,29 +750,30 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  idsLengthEqualTo(int length) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> idsLengthEqualTo(
+    int length,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(r'ids', length, true, length, true);
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  idsIsEmpty() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> idsIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(r'ids', 0, true, 0, true);
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  idsIsNotEmpty() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> idsIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(r'ids', 0, false, 999999, true);
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  idsLengthLessThan(int length, {bool include = false}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> idsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(r'ids', 0, true, length, include);
     });
@@ -821,8 +786,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  idsLengthBetween(
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> idsLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -833,8 +797,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  stringIDEqualTo(String value, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> stringIDEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -846,8 +812,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  stringIDGreaterThan(
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> stringIDGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -864,8 +829,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  stringIDLessThan(
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> stringIDLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -882,8 +846,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  stringIDBetween(
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> stringIDBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -904,8 +867,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  stringIDStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> stringIDStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -917,8 +882,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  stringIDEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> stringIDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -930,8 +897,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  stringIDContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> stringIDContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -943,8 +912,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  stringIDMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> stringIDMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -956,8 +927,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  stringIDIsEmpty() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> stringIDIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'stringID', value: ''),
@@ -974,8 +944,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  titleEqualTo(String value, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> titleEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -987,8 +959,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  titleGreaterThan(
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> titleGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1005,8 +976,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  titleLessThan(
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> titleLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1023,8 +993,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  titleBetween(
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> titleBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -1045,8 +1014,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  titleStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> titleStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -1058,8 +1029,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  titleEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> titleEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -1071,8 +1044,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  titleContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> titleContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -1084,8 +1059,10 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  titleMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> titleMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -1097,8 +1074,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  titleIsEmpty() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> titleIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'title', value: ''),
@@ -1106,8 +1082,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  titleIsNotEmpty() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> titleIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'title', value: ''),
@@ -1115,8 +1090,7 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  updatedAtIsNull() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> updatedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNull(property: r'updatedAt'),
@@ -1133,8 +1107,9 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  updatedAtEqualTo(DateTime? value) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> updatedAtEqualTo(
+    DateTime? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'updatedAt', value: value),
@@ -1155,21 +1130,18 @@ extension CategoryEntityQueryFilter
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  updatedAtLessThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> updatedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'updatedAt',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'updatedAt', value: value),
       );
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition>
-  updatedAtBetween(
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterFilterCondition> updatedAtBetween(
     DateTime? lower,
     DateTime? upper, {
     bool includeLower = true,
@@ -1203,22 +1175,19 @@ extension CategoryEntityQuerySortBy
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy>
-  sortByCreatedAtDesc() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy> sortByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy>
-  sortByDescription() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy> sortByDescription() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.asc);
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy>
-  sortByDescriptionDesc() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy> sortByDescriptionDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.desc);
     });
@@ -1230,8 +1199,7 @@ extension CategoryEntityQuerySortBy
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy>
-  sortByStringIDDesc() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy> sortByStringIDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'stringID', Sort.desc);
     });
@@ -1255,8 +1223,7 @@ extension CategoryEntityQuerySortBy
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy>
-  sortByUpdatedAtDesc() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy> sortByUpdatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.desc);
     });
@@ -1271,22 +1238,19 @@ extension CategoryEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy>
-  thenByCreatedAtDesc() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy>
-  thenByDescription() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy> thenByDescription() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.asc);
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy>
-  thenByDescriptionDesc() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy> thenByDescriptionDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.desc);
     });
@@ -1310,8 +1274,7 @@ extension CategoryEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy>
-  thenByStringIDDesc() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy> thenByStringIDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'stringID', Sort.desc);
     });
@@ -1335,8 +1298,7 @@ extension CategoryEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy>
-  thenByUpdatedAtDesc() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QAfterSortBy> thenByUpdatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.desc);
     });
@@ -1345,15 +1307,15 @@ extension CategoryEntityQuerySortThenBy
 
 extension CategoryEntityQueryWhereDistinct
     on QueryBuilder<CategoryEntity, CategoryEntity, QDistinct> {
-  QueryBuilder<CategoryEntity, CategoryEntity, QDistinct>
-  distinctByCreatedAt() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QDistinct>
-  distinctByDescription({bool caseSensitive = true}) {
+  QueryBuilder<CategoryEntity, CategoryEntity, QDistinct> distinctByDescription({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'description', caseSensitive: caseSensitive);
     });
@@ -1381,8 +1343,7 @@ extension CategoryEntityQueryWhereDistinct
     });
   }
 
-  QueryBuilder<CategoryEntity, CategoryEntity, QDistinct>
-  distinctByUpdatedAt() {
+  QueryBuilder<CategoryEntity, CategoryEntity, QDistinct> distinctByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'updatedAt');
     });
@@ -1397,15 +1358,13 @@ extension CategoryEntityQueryProperty
     });
   }
 
-  QueryBuilder<CategoryEntity, DateTime?, QQueryOperations>
-  createdAtProperty() {
+  QueryBuilder<CategoryEntity, DateTime?, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
     });
   }
 
-  QueryBuilder<CategoryEntity, String?, QQueryOperations>
-  descriptionProperty() {
+  QueryBuilder<CategoryEntity, String?, QQueryOperations> descriptionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'description');
     });
@@ -1429,8 +1388,7 @@ extension CategoryEntityQueryProperty
     });
   }
 
-  QueryBuilder<CategoryEntity, DateTime?, QQueryOperations>
-  updatedAtProperty() {
+  QueryBuilder<CategoryEntity, DateTime?, QQueryOperations> updatedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'updatedAt');
     });

@@ -47,8 +47,7 @@ class _InformationDestinationState extends State<InformationDestination>
     final bool noContent =
         sinopse.isEmpty &&
         _content?.anilistMedia == null &&
-        (_content?.anilistMedia?.genres == null ||
-            (_content?.genres.isEmpty ?? false)) &&
+        (_content?.anilistMedia?.genres == null || (_content?.genres.isEmpty ?? false)) &&
         _content?.anilistMedia?.characters == null &&
         _content?.anilistMedia?.staff == null;
 
@@ -57,10 +56,7 @@ class _InformationDestinationState extends State<InformationDestination>
             padding: EdgeInsets.only(top: 22),
             child: Align(
               alignment: Alignment.topCenter,
-              child: Text(
-                "Sem informação!!",
-                style: themeData.textTheme.titleLarge,
-              ),
+              child: Text("Sem informação!!", style: themeData.textTheme.titleLarge),
             ),
           )
         : ListView(
@@ -70,10 +66,7 @@ class _InformationDestinationState extends State<InformationDestination>
             children: [
               if (sinopse.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 12,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                   child: ExpandableText(
                     sinopse: sinopse,
                     style: Theme.of(
@@ -92,9 +85,7 @@ class _InformationDestinationState extends State<InformationDestination>
                   ),
                   child: Card.filled(
                     color: themeData.colorScheme.primary.withAlpha(10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     child: Column(
                       children: [
                         if (_checkData(_content!.anilistMedia?.startDate))
@@ -102,10 +93,7 @@ class _InformationDestinationState extends State<InformationDestination>
                             paddingTop: true,
                             title: const Text('Data de início'),
                             child: Text(
-                              DateFormat(
-                                "d MMMM y",
-                                appLocale.toLanguageTag(),
-                              ).format(
+                              DateFormat("d MMMM y", appLocale.toLanguageTag()).format(
                                 DateTime(
                                   _content!.anilistMedia!.startDate!.year,
                                   _content!.anilistMedia!.startDate!.month,
@@ -119,10 +107,7 @@ class _InformationDestinationState extends State<InformationDestination>
                             paddingTop: false,
                             title: const Text('Data final'),
                             child: Text(
-                              DateFormat(
-                                "d MMMM y",
-                                appLocale.toLanguageTag(),
-                              ).format(
+                              DateFormat("d MMMM y", appLocale.toLanguageTag()).format(
                                 DateTime(
                                   _content!.anilistMedia!.endDate!.year,
                                   _content!.anilistMedia!.endDate!.month,
@@ -144,8 +129,7 @@ class _InformationDestinationState extends State<InformationDestination>
                             child: Builder(
                               builder: (context) {
                                 final averageScore =
-                                    (_content!.anilistMedia!.averageScore! /
-                                    10);
+                                    (_content!.anilistMedia!.averageScore! / 10);
                                 return Text.rich(
                                   TextSpan(
                                     children: [
@@ -160,8 +144,9 @@ class _InformationDestinationState extends State<InformationDestination>
                                       ),
                                     ],
                                     style: TextStyle(
-                                      color: _content!.anilistMedia!
-                                          .getScoreColor(themeData.colorScheme),
+                                      color: _content!.anilistMedia!.getScoreColor(
+                                        themeData.colorScheme,
+                                      ),
                                     ),
                                   ),
                                 );
@@ -172,9 +157,7 @@ class _InformationDestinationState extends State<InformationDestination>
                           _Information(
                             paddingTop: false,
                             title: const Text('Total de episódios'),
-                            child: Text(
-                              _content!.anilistMedia!.episodes.toString(),
-                            ),
+                            child: Text(_content!.anilistMedia!.episodes.toString()),
                           ),
                         if (_content!.anilistMedia?.format != null)
                           _Information(
@@ -186,17 +169,13 @@ class _InformationDestinationState extends State<InformationDestination>
                           _Information(
                             paddingTop: false,
                             title: const Text('Status'),
-                            child: Text(
-                              _content!.anilistMedia!.status!.toString(),
-                            ),
+                            child: Text(_content!.anilistMedia!.status!.toString()),
                           ),
                         if (_content!.anilistMedia?.popularity != null)
                           _Information(
                             paddingTop: false,
                             title: const Text('Popularidade'),
-                            child: Text(
-                              _content!.anilistMedia!.popularity!.toString(),
-                            ),
+                            child: Text(_content!.anilistMedia!.popularity!.toString()),
                           ),
                         if (_content!.anilistMedia?.favourites != null)
                           _Information(
@@ -211,9 +190,7 @@ class _InformationDestinationState extends State<InformationDestination>
                           _Information(
                             paddingTop: false,
                             title: const Text('Temporada'),
-                            child: Text(
-                              "${_content!.anilistMedia!.season!} ${now.year}",
-                            ),
+                            child: Text("${_content!.anilistMedia!.season!} ${now.year}"),
                           ),
                         if (_content!.anilistMedia?.title?.romaji != null)
                           _Information(
@@ -223,8 +200,7 @@ class _InformationDestinationState extends State<InformationDestination>
                               onLongPress: () async {
                                 await copyToClipboard(
                                   context,
-                                  messageCopy:
-                                      _content!.anilistMedia!.title!.romaji!,
+                                  messageCopy: _content!.anilistMedia!.title!.romaji!,
                                   messageSnackBar:
                                       'Copiado para a área de transferência!',
                                 );
@@ -233,8 +209,7 @@ class _InformationDestinationState extends State<InformationDestination>
                                 }
                               },
                               child: Text(
-                                _content!.anilistMedia!.title!.romaji!.length >
-                                        20
+                                _content!.anilistMedia!.title!.romaji!.length > 20
                                     ? "${_content!.anilistMedia!.title!.romaji!.substring(0, 20)} ..."
                                     : _content!.anilistMedia!.title!.romaji!,
                                 overflow: TextOverflow.ellipsis,
@@ -284,8 +259,7 @@ class _InformationDestinationState extends State<InformationDestination>
               //       ),
               //     ),
               //   ),
-              if (_content!.anilistMedia?.genres != null ||
-                  _content!.genres.isNotEmpty)
+              if (_content!.anilistMedia?.genres != null || _content!.genres.isNotEmpty)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -300,33 +274,26 @@ class _InformationDestinationState extends State<InformationDestination>
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(
-                        right: 12,
-                        left: 12,
-                        bottom: 12,
-                      ),
+                      padding: const EdgeInsets.only(right: 12, left: 12, bottom: 12),
                       child: Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children:
                             (_content!.genres.isNotEmpty
                                     ? _content!.genres.map((e) => e.label)
-                                    : _content!.anilistMedia?.genres ??
-                                          <String>[])
+                                    : _content!.anilistMedia?.genres ?? <String>[])
                                 .map((e) => e.capitalize)
                                 .map(
                                   (e) => Card.filled(
-                                    color: themeData.colorScheme.primary
-                                        .withAlpha(10),
+                                    color: themeData.colorScheme.primary.withAlpha(10),
                                     margin: EdgeInsets.zero,
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Text(
                                         e,
-                                        style: themeData.textTheme.labelLarge
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                        style: themeData.textTheme.labelLarge?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -356,8 +323,10 @@ class _InformationDestinationState extends State<InformationDestination>
                       width: double.infinity,
                       child: Builder(
                         builder: (context) {
-                          final list = _content!.anilistMedia?.characters
-                              .unique((char) => char.name?.full, false);
+                          final list = _content!.anilistMedia?.characters.unique(
+                            (char) => char.name?.full,
+                            false,
+                          );
                           if (list == null) return const SizedBox.shrink();
                           return SingleChildScrollView(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -366,15 +335,12 @@ class _InformationDestinationState extends State<InformationDestination>
                               children: List.generate(list.length, (index) {
                                 final personagem = list.elementAt(index);
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
                                   child: GestureDetector(
                                     onLongPress: () async {
                                       copyToClipboard(
                                         context,
-                                        messageCopy: personagem.name!.full!
-                                            .trim(),
+                                        messageCopy: personagem.name!.full!.trim(),
                                         messageSnackBar:
                                             'Copiado para a área de transferência!',
                                       );
@@ -387,17 +353,14 @@ class _InformationDestinationState extends State<InformationDestination>
                                           width: 120,
                                           fit: BoxFit.cover,
                                           imageUrl: personagem.image!.large!,
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
+                                          borderRadius: BorderRadius.circular(6),
                                           alignment: Alignment.topCenter,
                                         ),
                                         const SizedBox(height: 4),
                                         Flexible(
                                           child: Text(
                                             personagem.name!.full!,
-                                            style:
-                                                themeData.textTheme.titleSmall,
+                                            style: themeData.textTheme.titleSmall,
                                             textAlign: TextAlign.start,
                                             overflow: TextOverflow.ellipsis,
                                             maxLines: 1,
@@ -492,9 +455,7 @@ class _InformationDestinationState extends State<InformationDestination>
                               children: List.generate(list.length, (index) {
                                 final staff = list.elementAt(index);
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
                                   child: GestureDetector(
                                     onLongPress: () async {
                                       copyToClipboard(
@@ -512,17 +473,14 @@ class _InformationDestinationState extends State<InformationDestination>
                                           width: 120,
                                           fit: BoxFit.cover,
                                           imageUrl: staff.image!.large!,
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
+                                          borderRadius: BorderRadius.circular(6),
                                           alignment: Alignment.center,
                                         ),
                                         const SizedBox(height: 4),
                                         Flexible(
                                           child: Text(
                                             staff.name!.full!,
-                                            style:
-                                                themeData.textTheme.titleSmall,
+                                            style: themeData.textTheme.titleSmall,
                                             textAlign: TextAlign.start,
                                             overflow: TextOverflow.ellipsis,
                                             maxLines: 1,
@@ -608,27 +566,22 @@ class _InformationDestinationState extends State<InformationDestination>
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(
-                        right: 12,
-                        left: 12,
-                        bottom: 12,
-                      ),
+                      padding: const EdgeInsets.only(right: 12, left: 12, bottom: 12),
                       child: Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: (_content!.anilistMedia?.tags.getMax(5))!
                             .map(
                               (e) => Card.filled(
-                                color: themeData.colorScheme.primary.withAlpha(
-                                  10,
-                                ),
+                                color: themeData.colorScheme.primary.withAlpha(10),
                                 margin: EdgeInsets.zero,
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
                                     e.name.capitalize,
-                                    style: themeData.textTheme.labelLarge
-                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                    style: themeData.textTheme.labelLarge?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -645,11 +598,7 @@ class _InformationDestinationState extends State<InformationDestination>
 }
 
 class _Information extends StatelessWidget {
-  const _Information({
-    required this.child,
-    required this.title,
-    this.paddingTop = false,
-  });
+  const _Information({required this.child, required this.title, this.paddingTop = false});
 
   final Widget child;
   final Widget title;
@@ -658,12 +607,7 @@ class _Information extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(
-        bottom: 8,
-        top: paddingTop ? 8 : 0,
-        right: 8,
-        left: 8,
-      ),
+      padding: EdgeInsets.only(bottom: 8, top: paddingTop ? 8 : 0, right: 8, left: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [title, child],

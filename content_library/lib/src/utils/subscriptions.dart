@@ -2,8 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 
 class Subscriptions extends ListBase<StreamSubscription<dynamic>> {
-  final List<StreamSubscription<dynamic>> _array =
-      <StreamSubscription<dynamic>>[];
+  final List<StreamSubscription<dynamic>> _array = <StreamSubscription<dynamic>>[];
 
   @override
   StreamSubscription<dynamic> operator [](int index) => _array[index];

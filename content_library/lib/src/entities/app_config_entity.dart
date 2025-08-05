@@ -90,13 +90,7 @@ class FilterWatching with EquatableMixin {
   factory FilterWatching.dafult() => FilterWatching(filterSources: Source.list);
 
   @override
-  List<Object?> get props => [
-    start,
-    end,
-    infiniteDate,
-    genresFilter,
-    filterSources,
-  ];
+  List<Object?> get props => [start, end, infiniteDate, genresFilter, filterSources];
 
   FilterWatching({
     this.start,

@@ -25,10 +25,7 @@ class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
   final List<T> _array = [];
 
   List<Releases> partition(int size) {
-    return quiver
-        .partition(reversed.toList(), size)
-        .map(Releases.fromList)
-        .toList();
+    return quiver.partition(reversed.toList(), size).map(Releases.fromList).toList();
   }
 
   @override
@@ -68,9 +65,7 @@ class EpisodeReleases extends Releases<Episode> {
   EpisodeReleases.from(super.contents) : super.fromList();
 
   UnmodifiableListView<Episode> get _sorted {
-    return UnmodifiableListView(
-      _array.sortedBy<num>((episode) => episode.numberInt),
-    );
+    return UnmodifiableListView(_array.sortedBy<num>((episode) => episode.numberInt));
   }
 
   @override

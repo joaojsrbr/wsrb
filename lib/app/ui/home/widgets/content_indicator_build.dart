@@ -85,8 +85,7 @@ class _StatusNotifier extends InheritedWidget {
   }
 
   @override
-  bool updateShouldNotify(_StatusNotifier oldWidget) =>
-      status != oldWidget.status;
+  bool updateShouldNotify(_StatusNotifier oldWidget) => status != oldWidget.status;
 }
 
 // class _DefaultWidget extends StatelessWidget {
@@ -106,8 +105,7 @@ class _EmptyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver =
-        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
     Widget child = const SizedBox.shrink();
     if (isSliver) child = SliverToBoxAdapter(child: child);
@@ -120,8 +118,7 @@ class _NoMoreLoadWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver =
-        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
     final size = MediaQuery.sizeOf(context);
     Widget child = SizedBox(
       height: size.height * .06,
@@ -148,39 +145,33 @@ class FullScreenErrorWidget extends StatefulWidget {
   final bool btnAtualizar;
 
   @override
-  State<FullScreenErrorWidget> createState() => FullScreenErrorWidgetState();
+  State<FullScreenErrorWidget> createState() => _FullScreenErrorWidgetState();
 }
 
-class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
+class _FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
   late final ContentRepository _contentRepository;
-  // late final ConnectionChecker _connectionChecker;
   final Debouncer _debouncer = Debouncer();
-  // final Debouncer _connectionDebouncer =
-  //     Debouncer(duration: const Duration(milliseconds: 200));
 
   @override
   void initState() {
     _contentRepository = context.read<ContentRepository>();
     // _connectionChecker = context.read<ConnectionChecker>();
     _contentRepository.clear();
-    if (_contentRepository.indicatorStatus ==
-        IndicatorStatus.fullScreenBusying) {
+    if (_contentRepository.indicatorStatus == IndicatorStatus.fullScreenBusying) {
       scheduleMicrotask(_showSnackBar);
     }
 
     super.initState();
   }
 
-  Future<void> _showSnackBar([BuildContext? context]) async {
+  Future<void> _showSnackBar() async {
     _debouncer.cancel();
     _debouncer.call(() {
       // _contentRepository.refresh(true);
       final fullScreenError = _contentRepository.fullScreenError;
       setStateIfMounted(() {});
       if (fullScreenError is DioException) {
-        this.context.showAppSnackBar(
-          const Text('Verifique sua conexão com a internet.'),
-        );
+        context.showAppSnackBar(const Text('Verifique sua conexão com a internet.'));
       }
     });
   }
@@ -207,8 +198,7 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver =
-        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
     Widget child = Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -241,9 +231,7 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
             if (widget.btnAtualizar)
               FilledButton(
                 style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () {
                   _contentRepository.refresh(true);
@@ -291,8 +279,7 @@ class _ErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver =
-        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
     final size = MediaQuery.sizeOf(context);
     Widget child = SizedBox(
       height: size.height * .06,
@@ -318,8 +305,7 @@ class _NoneWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver =
-        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
     Widget child = const SizedBox.shrink();
     if (isSliver) child = SliverToBoxAdapter(child: child);
@@ -342,8 +328,7 @@ class _FullScreenBusyingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver =
-        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
     Widget child = const _BuildCircularWidget();
     if (isSliver) child = SliverFillRemaining(child: child);

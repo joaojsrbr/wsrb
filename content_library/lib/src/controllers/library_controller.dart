@@ -97,9 +97,7 @@ class LibraryController extends ChangeNotifier {
     elapsed.printAndStop(runtimeType.toString());
   }
 
-  Future<Result<(bool, List<int>?)>> add({
-    required ContentEntity contentEntity,
-  }) async {
+  Future<Result<(bool, List<int>?)>> add({required ContentEntity contentEntity}) async {
     bool isSucess = false;
     final List<int> ids = [];
 

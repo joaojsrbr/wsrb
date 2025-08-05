@@ -35,10 +35,7 @@ class FadeThroughTransitionSwitcher extends StatelessWidget {
     List<Widget> previousChildren,
   ) {
     return SliverStack(
-      children: <Widget>[
-        ...previousChildren,
-        if (currentChild != null) currentChild,
-      ],
+      children: <Widget>[...previousChildren, if (currentChild != null) currentChild],
     );
   }
 
@@ -61,10 +58,7 @@ class FadeThroughTransitionSwitcher extends StatelessWidget {
               key: ValueKey('${secondChild.runtimeType} secondChild'),
               child: secondChild,
             )
-          : KeyedSubtree(
-              key: ValueKey('${child.runtimeType} firstChild'),
-              child: child,
-            ),
+          : KeyedSubtree(key: ValueKey('${child.runtimeType} firstChild'), child: child),
     );
   }
 }

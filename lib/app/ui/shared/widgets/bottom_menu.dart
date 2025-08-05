@@ -23,21 +23,17 @@ class BottomMenu<T> extends ImplicitlyAnimatedWidget {
   final bool isDismissible;
   final Widget child;
 
-  static BottomMenuController<T>? menuControllerMaybeOf<T>(
-    BuildContext context,
-  ) {
+  static BottomMenuController<T>? menuControllerMaybeOf<T>(BuildContext context) {
     return _BottomMenuControllerScope.maybeOf(context)?.notifier
         as BottomMenuController<T>?;
   }
 
   static BottomMenuController<T> menuControllerOf<T>(BuildContext context) {
-    return _BottomMenuControllerScope.of(context).notifier!
-        as BottomMenuController<T>;
+    return _BottomMenuControllerScope.of(context).notifier! as BottomMenuController<T>;
   }
 
   @override
-  ImplicitlyAnimatedWidgetState<BottomMenu<T>> createState() =>
-      _BottomMenuState<T>();
+  ImplicitlyAnimatedWidgetState<BottomMenu<T>> createState() => _BottomMenuState<T>();
 }
 
 class _BottomMenuState<T> extends AnimatedWidgetBaseState<BottomMenu<T>> {
@@ -93,8 +89,7 @@ class _BottomMenuState<T> extends AnimatedWidgetBaseState<BottomMenu<T>> {
                 height: railMenuController._menuSize.height,
                 builder: (context) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child:
-                      widget.buttons?.call(context) ?? const _LibraryButtons(),
+                  child: widget.buttons?.call(context) ?? const _LibraryButtons(),
                 ),
               ),
             ],
@@ -117,21 +112,15 @@ class _BottomMenuState<T> extends AnimatedWidgetBaseState<BottomMenu<T>> {
   void forEachTween(TweenVisitor<dynamic> visitor) {}
 }
 
-class _BottomMenuControllerScope
-    extends InheritedNotifier<BottomMenuController> {
-  const _BottomMenuControllerScope({
-    required super.child,
-    required super.notifier,
-  });
+class _BottomMenuControllerScope extends InheritedNotifier<BottomMenuController> {
+  const _BottomMenuControllerScope({required super.child, required super.notifier});
 
   static _BottomMenuControllerScope of(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<_BottomMenuControllerScope>()!;
+    return context.dependOnInheritedWidgetOfExactType<_BottomMenuControllerScope>()!;
   }
 
   static _BottomMenuControllerScope? maybeOf(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<_BottomMenuControllerScope>();
+    return context.dependOnInheritedWidgetOfExactType<_BottomMenuControllerScope>();
   }
 
   @override
@@ -189,11 +178,9 @@ class _LibraryButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final LibraryController libraryController = context
-        .read<LibraryController>();
+    final LibraryController libraryController = context.read<LibraryController>();
     final ContentRepository repository = context.read<ContentRepository>();
-    final ValueNotifierList valueNotifierList = context
-        .watch<ValueNotifierList>();
+    final ValueNotifierList valueNotifierList = context.watch<ValueNotifierList>();
     final libraryRepo = libraryController.repo;
 
     final TabController tabController = HomeScope.of(context).tabController;
@@ -207,9 +194,7 @@ class _LibraryButtons extends StatelessWidget {
           IconButton(
             onPressed: () async {
               final allSelected = repository
-                  .where(
-                    (element) => valueNotifierList.contains(element.stringID),
-                  )
+                  .where((element) => valueNotifierList.contains(element.stringID))
                   .toList()
                   .unique((content) => content.stringID);
               valueNotifierList.clear();
@@ -220,9 +205,7 @@ class _LibraryButtons extends StatelessWidget {
                           (content) => repository
                               .getData(content)
                               .then(
-                                (result) => result.fold(
-                                  onSuccess: (success) => success,
-                                ),
+                                (result) => result.fold(onSuccess: (success) => success),
                               ),
                         ),
                       ))
@@ -252,9 +235,8 @@ class _LibraryButtons extends StatelessWidget {
                   .read<CategoryController>();
               final List<Entity> removeEntities = libraryRepo.entities
                   .where(
-                    (element) => valueNotifierList.contains(
-                      libraryRepo.getStringID(element),
-                    ),
+                    (element) =>
+                        valueNotifierList.contains(libraryRepo.getStringID(element)),
                   )
                   .toList()
                   .unique((content) => content.id);
@@ -278,9 +260,7 @@ class _LibraryButtons extends StatelessWidget {
 
               final futures = [
                 ...removeIDS.map((e) => categoryController.add(e)),
-                libraryController.removeAll(
-                  contentEntities: removeEntities.cast(),
-                ),
+                libraryController.removeAll(contentEntities: removeEntities.cast()),
               ];
 
               await Future.wait(futures);
@@ -295,8 +275,7 @@ class _LibraryButtons extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed:
-                libraryRepo.favoritesIDS.containsOneElement(valueNotifierList)
+            onPressed: libraryRepo.favoritesIDS.containsOneElement(valueNotifierList)
                 ? () {
                     CategoryHelper.openCategoryDialog(context);
                   }

@@ -9,10 +9,7 @@ class GraphQLApiClient {
 
   GraphQLApiClient();
 
-  Future<Result<QueryResult>> query(
-    QueryOptions options, {
-    required Link link,
-  }) async {
+  Future<Result<QueryResult>> query(QueryOptions options, {required Link link}) async {
     try {
       _graphQLClient = _graphQLClient.copyWith(link: link);
 

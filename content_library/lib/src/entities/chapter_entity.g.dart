@@ -17,21 +17,9 @@ const ChapterEntitySchema = CollectionSchema(
   name: r'ChapterEntity',
   id: 6656881136352185615,
   properties: {
-    r'bookStringID': PropertySchema(
-      id: 0,
-      name: r'bookStringID',
-      type: IsarType.string,
-    ),
-    r'createdAt': PropertySchema(
-      id: 1,
-      name: r'createdAt',
-      type: IsarType.dateTime,
-    ),
-    r'isComplete': PropertySchema(
-      id: 2,
-      name: r'isComplete',
-      type: IsarType.bool,
-    ),
+    r'bookStringID': PropertySchema(id: 0, name: r'bookStringID', type: IsarType.string),
+    r'createdAt': PropertySchema(id: 1, name: r'createdAt', type: IsarType.dateTime),
+    r'isComplete': PropertySchema(id: 2, name: r'isComplete', type: IsarType.bool),
     r'percent': PropertySchema(id: 3, name: r'percent', type: IsarType.double),
     r'positions': PropertySchema(
       id: 4,
@@ -39,27 +27,11 @@ const ChapterEntitySchema = CollectionSchema(
       type: IsarType.objectList,
       target: r'CurrentPosition',
     ),
-    r'readPercent': PropertySchema(
-      id: 5,
-      name: r'readPercent',
-      type: IsarType.double,
-    ),
-    r'stringID': PropertySchema(
-      id: 6,
-      name: r'stringID',
-      type: IsarType.string,
-    ),
-    r'thumbnail': PropertySchema(
-      id: 7,
-      name: r'thumbnail',
-      type: IsarType.string,
-    ),
+    r'readPercent': PropertySchema(id: 5, name: r'readPercent', type: IsarType.double),
+    r'stringID': PropertySchema(id: 6, name: r'stringID', type: IsarType.string),
+    r'thumbnail': PropertySchema(id: 7, name: r'thumbnail', type: IsarType.string),
     r'title': PropertySchema(id: 8, name: r'title', type: IsarType.string),
-    r'updatedAt': PropertySchema(
-      id: 9,
-      name: r'updatedAt',
-      type: IsarType.dateTime,
-    ),
+    r'updatedAt': PropertySchema(id: 9, name: r'updatedAt', type: IsarType.dateTime),
     r'url': PropertySchema(id: 10, name: r'url', type: IsarType.string),
   },
   estimateSize: _chapterEntityEstimateSize,
@@ -74,11 +46,7 @@ const ChapterEntitySchema = CollectionSchema(
       unique: true,
       replace: true,
       properties: [
-        IndexPropertySchema(
-          name: r'stringID',
-          type: IndexType.hash,
-          caseSensitive: true,
-        ),
+        IndexPropertySchema(name: r'stringID', type: IndexType.hash, caseSensitive: true),
       ],
     ),
   },
@@ -102,11 +70,7 @@ int _chapterEntityEstimateSize(
     final offsets = allOffsets[CurrentPosition]!;
     for (var i = 0; i < object.positions.length; i++) {
       final value = object.positions[i];
-      bytesCount += CurrentPositionSchema.estimateSize(
-        value,
-        offsets,
-        allOffsets,
-      );
+      bytesCount += CurrentPositionSchema.estimateSize(value, offsets, allOffsets);
     }
   }
   bytesCount += 3 + object.stringID.length * 3;
@@ -223,11 +187,7 @@ List<IsarLinkBase<dynamic>> _chapterEntityGetLinks(ChapterEntity object) {
   return [];
 }
 
-void _chapterEntityAttach(
-  IsarCollection<dynamic> col,
-  Id id,
-  ChapterEntity object,
-) {
+void _chapterEntityAttach(IsarCollection<dynamic> col, Id id, ChapterEntity object) {
   object.id = id;
 }
 
@@ -280,10 +240,7 @@ extension ChapterEntityByIndex on IsarCollection<ChapterEntity> {
     return putAllByIndex(r'stringID', objects);
   }
 
-  List<Id> putAllByStringIDSync(
-    List<ChapterEntity> objects, {
-    bool saveLinks = true,
-  }) {
+  List<Id> putAllByStringIDSync(List<ChapterEntity> objects, {bool saveLinks = true}) {
     return putAllByIndexSync(r'stringID', objects, saveLinks: saveLinks);
   }
 }
@@ -299,34 +256,22 @@ extension ChapterEntityQueryWhereSort
 
 extension ChapterEntityQueryWhere
     on QueryBuilder<ChapterEntity, ChapterEntity, QWhereClause> {
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterWhereClause> idEqualTo(
-    Id id,
-  ) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterWhereClause> idNotEqualTo(
-    Id id,
-  ) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            )
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            );
+            .addWhereClause(IdWhereClause.lessThan(upper: id, includeUpper: false))
+            .addWhereClause(IdWhereClause.greaterThan(lower: id, includeLower: false));
       } else {
         return query
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            )
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            );
+            .addWhereClause(IdWhereClause.greaterThan(lower: id, includeLower: false))
+            .addWhereClause(IdWhereClause.lessThan(upper: id, includeUpper: false));
       }
     });
   }
@@ -381,8 +326,9 @@ extension ChapterEntityQueryWhere
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterWhereClause>
-  stringIDNotEqualTo(String stringID) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterWhereClause> stringIDNotEqualTo(
+    String stringID,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -427,8 +373,10 @@ extension ChapterEntityQueryWhere
 
 extension ChapterEntityQueryFilter
     on QueryBuilder<ChapterEntity, ChapterEntity, QFilterCondition> {
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  bookStringIDEqualTo(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> bookStringIDEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -458,8 +406,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  bookStringIDLessThan(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> bookStringIDLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -476,8 +423,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  bookStringIDBetween(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> bookStringIDBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -511,8 +457,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  bookStringIDEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> bookStringIDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -524,8 +472,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  bookStringIDContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> bookStringIDContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -537,8 +487,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  bookStringIDMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> bookStringIDMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -568,8 +520,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  createdAtIsNull() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> createdAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNull(property: r'createdAt'),
@@ -577,8 +528,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  createdAtIsNotNull() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> createdAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNotNull(property: r'createdAt'),
@@ -586,8 +536,9 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  createdAtEqualTo(DateTime? value) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> createdAtEqualTo(
+    DateTime? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'createdAt', value: value),
@@ -595,8 +546,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  createdAtGreaterThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> createdAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
@@ -608,21 +561,18 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  createdAtLessThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> createdAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'createdAt',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'createdAt', value: value),
       );
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  createdAtBetween(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> createdAtBetween(
     DateTime? lower,
     DateTime? upper, {
     bool includeLower = true,
@@ -641,9 +591,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> idEqualTo(
-    Id value,
-  ) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'id', value: value),
@@ -651,15 +599,13 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  idGreaterThan(Id value, {bool include = false}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> idGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
+        FilterCondition.greaterThan(include: include, property: r'id', value: value),
       );
     });
   }
@@ -670,11 +616,7 @@ extension ChapterEntityQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'id', value: value),
       );
     });
   }
@@ -698,8 +640,9 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  isCompleteEqualTo(bool value) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> isCompleteEqualTo(
+    bool value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'isComplete', value: value),
@@ -707,21 +650,18 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  percentEqualTo(double value, {double epsilon = Query.epsilon}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> percentEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'percent',
-          value: value,
-          epsilon: epsilon,
-        ),
+        FilterCondition.equalTo(property: r'percent', value: value, epsilon: epsilon),
       );
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  percentGreaterThan(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> percentGreaterThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
@@ -738,8 +678,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  percentLessThan(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> percentLessThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
@@ -756,8 +695,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  percentBetween(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> percentBetween(
     double lower,
     double upper, {
     bool includeLower = true,
@@ -785,8 +723,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  positionsIsEmpty() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> positionsIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(r'positions', 0, true, 0, true);
     });
@@ -821,25 +758,17 @@ extension ChapterEntityQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'positions',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
+      return query.listLength(r'positions', lower, includeLower, upper, includeUpper);
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  readPercentEqualTo(double value, {double epsilon = Query.epsilon}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> readPercentEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'readPercent',
-          value: value,
-          epsilon: epsilon,
-        ),
+        FilterCondition.equalTo(property: r'readPercent', value: value, epsilon: epsilon),
       );
     });
   }
@@ -862,8 +791,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  readPercentLessThan(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> readPercentLessThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
@@ -880,8 +808,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  readPercentBetween(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> readPercentBetween(
     double lower,
     double upper, {
     bool includeLower = true,
@@ -902,8 +829,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  stringIDEqualTo(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> stringIDEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -915,8 +844,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  stringIDGreaterThan(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> stringIDGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -933,8 +861,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  stringIDLessThan(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> stringIDLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -951,8 +878,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  stringIDBetween(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> stringIDBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -973,8 +899,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  stringIDStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> stringIDStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -986,8 +914,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  stringIDEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> stringIDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -999,8 +929,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  stringIDContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> stringIDContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -1012,8 +944,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  stringIDMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> stringIDMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -1025,8 +959,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  stringIDIsEmpty() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> stringIDIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'stringID', value: ''),
@@ -1034,8 +967,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  stringIDIsNotEmpty() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> stringIDIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'stringID', value: ''),
@@ -1043,8 +975,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  thumbnailIsNull() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> thumbnailIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNull(property: r'thumbnail'),
@@ -1052,8 +983,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  thumbnailIsNotNull() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> thumbnailIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNotNull(property: r'thumbnail'),
@@ -1061,8 +991,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  thumbnailEqualTo(String? value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> thumbnailEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -1074,8 +1006,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  thumbnailGreaterThan(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> thumbnailGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1092,8 +1023,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  thumbnailLessThan(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> thumbnailLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1110,8 +1040,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  thumbnailBetween(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> thumbnailBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -1132,8 +1061,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  thumbnailStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> thumbnailStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -1145,8 +1076,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  thumbnailEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> thumbnailEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -1158,8 +1091,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  thumbnailContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> thumbnailContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -1171,8 +1106,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  thumbnailMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> thumbnailMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -1184,8 +1121,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  thumbnailIsEmpty() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> thumbnailIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'thumbnail', value: ''),
@@ -1202,8 +1138,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  titleEqualTo(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> titleEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -1215,8 +1153,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  titleGreaterThan(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> titleGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1233,8 +1170,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  titleLessThan(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> titleLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1251,8 +1187,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  titleBetween(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> titleBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -1273,8 +1208,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  titleStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> titleStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -1286,8 +1223,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  titleEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> titleEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -1299,8 +1238,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  titleContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> titleContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -1312,8 +1253,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  titleMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> titleMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -1325,8 +1268,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  titleIsEmpty() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> titleIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'title', value: ''),
@@ -1334,8 +1276,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  titleIsNotEmpty() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> titleIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'title', value: ''),
@@ -1343,8 +1284,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  updatedAtIsNull() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> updatedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNull(property: r'updatedAt'),
@@ -1352,8 +1292,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  updatedAtIsNotNull() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> updatedAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNotNull(property: r'updatedAt'),
@@ -1361,8 +1300,9 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  updatedAtEqualTo(DateTime? value) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> updatedAtEqualTo(
+    DateTime? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'updatedAt', value: value),
@@ -1370,8 +1310,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  updatedAtGreaterThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> updatedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
@@ -1383,21 +1325,18 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  updatedAtLessThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> updatedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'updatedAt',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'updatedAt', value: value),
       );
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  updatedAtBetween(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> updatedAtBetween(
     DateTime? lower,
     DateTime? upper, {
     bool includeLower = true,
@@ -1431,8 +1370,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  urlGreaterThan(
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> urlGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1487,8 +1425,10 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  urlStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> urlStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -1545,8 +1485,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  urlIsEmpty() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> urlIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'url', value: ''),
@@ -1554,8 +1493,7 @@ extension ChapterEntityQueryFilter
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  urlIsNotEmpty() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> urlIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'url', value: ''),
@@ -1566,8 +1504,9 @@ extension ChapterEntityQueryFilter
 
 extension ChapterEntityQueryObject
     on QueryBuilder<ChapterEntity, ChapterEntity, QFilterCondition> {
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
-  positionsElement(FilterQuery<CurrentPosition> q) {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition> positionsElement(
+    FilterQuery<CurrentPosition> q,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'positions');
     });
@@ -1579,15 +1518,13 @@ extension ChapterEntityQueryLinks
 
 extension ChapterEntityQuerySortBy
     on QueryBuilder<ChapterEntity, ChapterEntity, QSortBy> {
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  sortByBookStringID() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> sortByBookStringID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'bookStringID', Sort.asc);
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  sortByBookStringIDDesc() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> sortByBookStringIDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'bookStringID', Sort.desc);
     });
@@ -1599,8 +1536,7 @@ extension ChapterEntityQuerySortBy
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  sortByCreatedAtDesc() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> sortByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
     });
@@ -1612,8 +1548,7 @@ extension ChapterEntityQuerySortBy
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  sortByIsCompleteDesc() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> sortByIsCompleteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isComplete', Sort.desc);
     });
@@ -1637,8 +1572,7 @@ extension ChapterEntityQuerySortBy
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  sortByReadPercentDesc() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> sortByReadPercentDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'readPercent', Sort.desc);
     });
@@ -1650,8 +1584,7 @@ extension ChapterEntityQuerySortBy
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  sortByStringIDDesc() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> sortByStringIDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'stringID', Sort.desc);
     });
@@ -1663,8 +1596,7 @@ extension ChapterEntityQuerySortBy
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  sortByThumbnailDesc() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> sortByThumbnailDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'thumbnail', Sort.desc);
     });
@@ -1688,8 +1620,7 @@ extension ChapterEntityQuerySortBy
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  sortByUpdatedAtDesc() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> sortByUpdatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.desc);
     });
@@ -1710,15 +1641,13 @@ extension ChapterEntityQuerySortBy
 
 extension ChapterEntityQuerySortThenBy
     on QueryBuilder<ChapterEntity, ChapterEntity, QSortThenBy> {
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  thenByBookStringID() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> thenByBookStringID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'bookStringID', Sort.asc);
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  thenByBookStringIDDesc() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> thenByBookStringIDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'bookStringID', Sort.desc);
     });
@@ -1730,8 +1659,7 @@ extension ChapterEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  thenByCreatedAtDesc() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
     });
@@ -1755,8 +1683,7 @@ extension ChapterEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  thenByIsCompleteDesc() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> thenByIsCompleteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isComplete', Sort.desc);
     });
@@ -1780,8 +1707,7 @@ extension ChapterEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  thenByReadPercentDesc() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> thenByReadPercentDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'readPercent', Sort.desc);
     });
@@ -1793,8 +1719,7 @@ extension ChapterEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  thenByStringIDDesc() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> thenByStringIDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'stringID', Sort.desc);
     });
@@ -1806,8 +1731,7 @@ extension ChapterEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  thenByThumbnailDesc() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> thenByThumbnailDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'thumbnail', Sort.desc);
     });
@@ -1831,8 +1755,7 @@ extension ChapterEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
-  thenByUpdatedAtDesc() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> thenByUpdatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.desc);
     });
@@ -1879,8 +1802,7 @@ extension ChapterEntityQueryWhereDistinct
     });
   }
 
-  QueryBuilder<ChapterEntity, ChapterEntity, QDistinct>
-  distinctByReadPercent() {
+  QueryBuilder<ChapterEntity, ChapterEntity, QDistinct> distinctByReadPercent() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'readPercent');
     });

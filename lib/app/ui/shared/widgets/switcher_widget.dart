@@ -17,8 +17,7 @@ class SwitcherWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final index = this.index - 1;
     final children = this.children.mapIndexed(
-      (index, e) =>
-          KeyedSubtree(key: ObjectKey("${e.runtimeType}_$index"), child: e),
+      (index, e) => KeyedSubtree(key: ObjectKey("${e.runtimeType}_$index"), child: e),
     );
     final widget = children.elementAt(index);
 

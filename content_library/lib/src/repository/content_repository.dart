@@ -35,9 +35,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   final AppConfigController? _appConfigController;
   final Source? initialSource;
   final AnimeSkipRepository _animeSkipRepository;
-  final ValueNotifier<ContentChallenge> contentChallenge = ValueNotifier(
-    NoChallenge(),
-  );
+  final ValueNotifier<ContentChallenge> contentChallenge = ValueNotifier(NoChallenge());
 
   AppConfigEntity get config =>
       _appConfigController?.repo.config ?? AppConfigEntity.init();
@@ -64,15 +62,12 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
     }
 
     _subscriptions.addAll([
-      if (_appConfigController != null)
-        _appConfigController.update.listen(_listen),
+      if (_appConfigController != null) _appConfigController.update.listen(_listen),
     ]);
   }
 
   void _listen(AppConfigController appConfigController) {
-    ui.WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) => refresh(true),
-    );
+    ui.WidgetsBinding.instance.addPostFrameCallback((timeStamp) => refresh(true));
 
     if (appConfigController.repo.config.source == Source.BETTER_ANIME) {
       _dio.addInterceptor(
@@ -163,9 +158,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       ..withTagsName()
       ..withCharcters(AnilistSubquery(page: 1, perPage: 5, charSelect))
       ..withStaff(AnilistSubquery(page: 1, perPage: 5, staffSelect))
-      ..queryType(
-        content is Anime ? AnilistMediaType.ANIME : AnilistMediaType.MANGA,
-      )
+      ..queryType(content is Anime ? AnilistMediaType.ANIME : AnilistMediaType.MANGA)
       ..querySearch(title);
 
     try {
@@ -180,9 +173,8 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
     }
   }
 
-  RSource get currentSource => source(
-    _appConfigController?.repo.config.source ?? initialSource ?? Source.ANROLL,
-  );
+  RSource get currentSource =>
+      source(_appConfigController?.repo.config.source ?? initialSource ?? Source.ANROLL);
 
   @override
   Future<bool> refresh([bool notifyStateChanged = false]) async {
@@ -239,9 +231,7 @@ class _ContentRepositoryImp extends ContentRepository {
           sinopse: anime.sinopse?.isEmpty == true || anime.sinopse == null
               ? anilistMedia.description
               : null,
-          anilistMedia: AniListMedia.fromJson(
-            AnilistMedia.toJson(anilistMedia),
-          ),
+          anilistMedia: AniListMedia.fromJson(AnilistMedia.toJson(anilistMedia)),
           largeImage: anilistMedia.coverImage?.large,
           mediumImage: anilistMedia.coverImage?.medium,
         );
@@ -272,9 +262,8 @@ class _ContentRepositoryImp extends ContentRepository {
           (source) => source
               .search(query)
               .then(
-                (value) => value.fold(
-                  onSuccess: (data) => onSuccess((source.source, data)),
-                ),
+                (value) =>
+                    value.fold(onSuccess: (data) => onSuccess((source.source, data))),
               ),
         );
     for (final future in futures) {

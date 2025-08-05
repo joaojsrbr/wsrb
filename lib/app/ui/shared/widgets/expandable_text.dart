@@ -40,10 +40,7 @@ class _ExpandableTextState extends State<ExpandableText> {
 
         final fitLength = tp
             .getPositionForOffset(
-              Offset(
-                constraints.maxWidth,
-                tp.preferredLineHeight * widget.maxLines,
-              ),
+              Offset(constraints.maxWidth, tp.preferredLineHeight * widget.maxLines),
             )
             .offset;
 
@@ -52,17 +49,13 @@ class _ExpandableTextState extends State<ExpandableText> {
             ? widget.sinopse
             : '${widget.sinopse.substring(0, fitLength.clamp(0, widget.sinopse.length))}...';
         return InkWell(
-          onTap: needsTrim
-              ? () => setState(() => _expanded = !_expanded)
-              : null,
+          onTap: needsTrim ? () => setState(() => _expanded = !_expanded) : null,
           borderRadius: BorderRadius.circular(8),
           overlayColor: _OverlayColor(context),
           child: Card.filled(
             margin: EdgeInsets.zero,
             color: themeData.colorScheme.primary.withAlpha(10),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             child: Padding(
               padding: const EdgeInsets.all(8),
               child: Column(
@@ -82,11 +75,9 @@ class _ExpandableTextState extends State<ExpandableText> {
                     alignment: Alignment.topCenter,
                     child: Markdown(
                       data: html2md.convert(displayText),
-                      styleSheet: MarkdownStyleSheet.fromTheme(themeData)
-                          .copyWith(
-                            p: textStyle,
-                            textAlign: WrapAlignment.spaceBetween,
-                          ),
+                      styleSheet: MarkdownStyleSheet.fromTheme(
+                        themeData,
+                      ).copyWith(p: textStyle, textAlign: WrapAlignment.spaceBetween),
                       selectable: true,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),

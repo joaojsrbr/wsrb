@@ -21,9 +21,7 @@ class _FileData with EquatableMixin implements Comparable<_FileData> {
 
   int? get number {
     return int.tryParse(
-      _parts[_parts.length - 1]
-          .replaceAll('mp4', '')
-          .replaceAll(RegExp(r'[^0-9]'), ''),
+      _parts[_parts.length - 1].replaceAll('mp4', '').replaceAll(RegExp(r'[^0-9]'), ''),
     );
   }
 
@@ -64,9 +62,7 @@ class DownloadView extends StatefulWidget {
 
 class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
   List<FileSystemEntity> _dirs = [];
-  final Debouncer _debouncer = Debouncer(
-    duration: const Duration(milliseconds: 150),
-  );
+  final Debouncer _debouncer = Debouncer(duration: const Duration(milliseconds: 150));
 
   final List<_FileData> _files = [];
   late final BottomMenuController _bottomMenuController;
@@ -105,8 +101,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
     if (result == null) return;
 
     _dirs = result.sorted(
-      (dir1, dir2) =>
-          dir2.statSync().changed.compareTo(dir1.statSync().changed),
+      (dir1, dir2) => dir2.statSync().changed.compareTo(dir1.statSync().changed),
     );
   }
 
@@ -154,9 +149,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
           _FileData data = _FileData(file: file, imageThumbnail: "");
           if (data.number != null &&
               _libraryController.repo.allDownIds.contains(data.title.toID)) {
-            final cacheDir = Directory(
-              "$tempPath/${data.source}/${data.title.toUuID}",
-            );
+            final cacheDir = Directory("$tempPath/${data.source}/${data.title.toUuID}");
             final cacheFile = File("${cacheDir.path}/${data.number}.png");
 
             String? fileName = cacheFile.path;
@@ -235,10 +228,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                   child: LinearProgressIndicator(minHeight: 2),
                 )
               else
-                const Align(
-                  alignment: Alignment.topCenter,
-                  child: Divider(height: 2),
-                ),
+                const Align(alignment: Alignment.topCenter, child: Divider(height: 2)),
               Builder(
                 builder: (context) {
                   return ListView.builder(
@@ -270,9 +260,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                           duration: const Duration(milliseconds: 450),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8).add(
-                              selected
-                                  ? BorderRadius.circular(2)
-                                  : BorderRadius.zero,
+                              selected ? BorderRadius.circular(2) : BorderRadius.zero,
                             ),
                             border: selected
                                 ? Border.all(color: Colors.white, width: 1.5)
@@ -287,10 +275,9 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                                       width: 100,
                                       height: 90,
                                       child: ClipRRect(
-                                        borderRadius:
-                                            const BorderRadius.horizontal(
-                                              left: Radius.circular(8),
-                                            ),
+                                        borderRadius: const BorderRadius.horizontal(
+                                          left: Radius.circular(8),
+                                        ),
                                         child: data.imageThumbnail.isNotEmpty
                                             ? _Image(path: data.imageThumbnail)
                                             : DecoratedBox(
@@ -300,18 +287,14 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                                                       : Colors.orange,
                                                 ),
                                                 child: Center(
-                                                  child: Text(
-                                                    data.number.toString(),
-                                                  ),
+                                                  child: Text(data.number.toString()),
                                                 ),
                                               ),
                                       ),
                                     ),
                                     Flexible(
                                       child: ListTile(
-                                        subtitle: Text(
-                                          'Episódio ${data.number}',
-                                        ),
+                                        subtitle: Text('Episódio ${data.number}'),
                                         title: Text(
                                           data.title,
                                           maxLines: 1,
@@ -337,25 +320,22 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                                             add(data.file.path);
                                           }
                                         : () async {
-                                            final animeEntity =
-                                                _libraryController.repo.entities
-                                                    .firstWhereOrNull(
-                                                      (
-                                                        entity,
-                                                      ) => switch (entity) {
-                                                        AnimeEntity anime =>
-                                                          anime.title.toID
-                                                              .contains(
-                                                                data.title.toID,
-                                                              ),
-                                                        _ => false,
-                                                      },
-                                                    );
+                                            final animeEntity = _libraryController
+                                                .repo
+                                                .entities
+                                                .firstWhereOrNull(
+                                                  (entity) => switch (entity) {
+                                                    AnimeEntity anime =>
+                                                      anime.title.toID.contains(
+                                                        data.title.toID,
+                                                      ),
+                                                    _ => false,
+                                                  },
+                                                );
 
                                             if (animeEntity != null &&
                                                 animeEntity is AnimeEntity) {
-                                              final episode = animeEntity
-                                                  .episodes
+                                              final episode = animeEntity.episodes
                                                   .firstWhere(
                                                     (episode) =>
                                                         episode.numberEpisode ==
@@ -381,9 +361,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                                                   anime: animeEntity.toAnime(),
                                                   data: [
                                                     FileVideoData(
-                                                      file: File(
-                                                        data.file.path,
-                                                      ),
+                                                      file: File(data.file.path),
                                                     ),
                                                   ],
                                                 ),
@@ -431,11 +409,7 @@ class _ImageState extends State<_Image> {
 
   @override
   void initState() {
-    _memoryImage = ResizeImage(
-      FileImage(File(widget.path)),
-      width: 350,
-      height: 200,
-    );
+    _memoryImage = ResizeImage(FileImage(File(widget.path)), width: 350, height: 200);
     _placeHolder = const ResizeImage(App.IMAGE_BLACK, width: 350, height: 200);
     scheduleMicrotask(_precacheImage);
     super.initState();
@@ -449,11 +423,7 @@ class _ImageState extends State<_Image> {
   @override
   void didUpdateWidget(covariant _Image oldWidget) {
     if (widget.path != oldWidget.path) {
-      _memoryImage = ResizeImage(
-        FileImage(File(widget.path)),
-        width: 350,
-        height: 200,
-      );
+      _memoryImage = ResizeImage(FileImage(File(widget.path)), width: 350, height: 200);
     }
     super.didUpdateWidget(oldWidget);
   }

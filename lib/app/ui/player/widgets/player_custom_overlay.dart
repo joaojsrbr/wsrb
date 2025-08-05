@@ -27,8 +27,7 @@ class PlayerCustomOverlay extends StatefulWidget {
   CustomOverlayState createState() => _PlayerCustomOverlayState();
 }
 
-class _PlayerCustomOverlayState
-    extends CustomOverlayState<PlayerCustomOverlay> {
+class _PlayerCustomOverlayState extends CustomOverlayState<PlayerCustomOverlay> {
   @override
   Offset? get begin => widget.begin;
 

@@ -132,9 +132,7 @@ class ScrapingUtil {
   String? createdAt({String? selector}) {
     return (element.querySelector(selector ?? 'span a')?.attributes['title'] ??
             element.querySelector('span i')?.text ??
-            (element.children.isEmpty
-                ? null
-                : element.children.elementAt(1).text))
+            (element.children.isEmpty ? null : element.children.elementAt(1).text))
         ?.trim();
   }
 
@@ -153,16 +151,13 @@ class ScrapingUtil {
   String _bySrcSet(String src, [bool? last]) {
     if (src.isEmpty) return '';
     final reges = RegExp(r'[0-9]+w');
-    final lista =
-        '$src,'.replaceAll(RegExp(r'([1-9])\w+,'), '').trim().split(' ')
-          ..removeWhere((element) => element.isEmpty);
+    final lista = '$src,'.replaceAll(RegExp(r'([1-9])\w+,'), '').trim().split(' ')
+      ..removeWhere((element) => element.isEmpty);
     // final _ = '$src,'.replaceAll(RegExp(r'([1-9])\w+,'), '').trim().split(' ');
     final w = reges
         .allMatches('$src,')
         .map(
-          (e) => int.parse(
-            '$src,'.substring(e.start, e.end).replaceAll(r'w', '').trim(),
-          ),
+          (e) => int.parse('$src,'.substring(e.start, e.end).replaceAll(r'w', '').trim()),
         )
         .toList();
 

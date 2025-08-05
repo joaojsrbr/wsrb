@@ -5,9 +5,7 @@ import 'package:isar/isar.dart';
 
 class AnimeSkipController extends ChangeNotifier {
   final IsarServiceImpl _isarService;
-  final Debouncer _debouncer = Debouncer(
-    duration: const Duration(milliseconds: 200),
-  );
+  final Debouncer _debouncer = Debouncer(duration: const Duration(milliseconds: 200));
 
   late final InAnimeSkipRepository _inAnimeSkipRepository;
 
@@ -28,13 +26,10 @@ class AnimeSkipController extends ChangeNotifier {
   Future<void> start() async {
     final Elapsed elapsed = Elapsed()..start();
 
-    final animeSkipCollections = await _isarService
-        .collection<AnimeSkipEntity>();
+    final animeSkipCollections = await _isarService.collection<AnimeSkipEntity>();
 
     final animeskips = await animeSkipCollections.where().findAll();
-    _subscriptions.addAll([
-      animeSkipCollections.watchLazy().listen(_watchColletion),
-    ]);
+    _subscriptions.addAll([animeSkipCollections.watchLazy().listen(_watchColletion)]);
 
     repo.updateRepository([animeskips]);
 
@@ -42,8 +37,7 @@ class AnimeSkipController extends ChangeNotifier {
   }
 
   void _watchColletion(data) async {
-    final animeSkipCollections = await _isarService
-        .collection<AnimeSkipEntity>();
+    final animeSkipCollections = await _isarService.collection<AnimeSkipEntity>();
     final animeskips = await animeSkipCollections.where().findAll();
 
     repo.updateRepository([animeskips]);

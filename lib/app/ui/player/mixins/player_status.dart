@@ -52,11 +52,5 @@ class PlayerStatus with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [
-    _playing,
-    _position,
-    _duration,
-    _buffer,
-    _completed,
-  ];
+  List<Object?> get props => [_playing, _position, _duration, _buffer, _completed];
 }

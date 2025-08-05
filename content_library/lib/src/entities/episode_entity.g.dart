@@ -22,31 +22,11 @@ const EpisodeEntitySchema = CollectionSchema(
       name: r'animeStringID',
       type: IsarType.string,
     ),
-    r'createdAt': PropertySchema(
-      id: 1,
-      name: r'createdAt',
-      type: IsarType.dateTime,
-    ),
-    r'generateID': PropertySchema(
-      id: 2,
-      name: r'generateID',
-      type: IsarType.string,
-    ),
-    r'isComplete': PropertySchema(
-      id: 3,
-      name: r'isComplete',
-      type: IsarType.bool,
-    ),
-    r'numberEpisode': PropertySchema(
-      id: 4,
-      name: r'numberEpisode',
-      type: IsarType.long,
-    ),
-    r'pageNumber': PropertySchema(
-      id: 5,
-      name: r'pageNumber',
-      type: IsarType.long,
-    ),
+    r'createdAt': PropertySchema(id: 1, name: r'createdAt', type: IsarType.dateTime),
+    r'generateID': PropertySchema(id: 2, name: r'generateID', type: IsarType.string),
+    r'isComplete': PropertySchema(id: 3, name: r'isComplete', type: IsarType.bool),
+    r'numberEpisode': PropertySchema(id: 4, name: r'numberEpisode', type: IsarType.long),
+    r'pageNumber': PropertySchema(id: 5, name: r'pageNumber', type: IsarType.long),
     r'positions': PropertySchema(
       id: 6,
       name: r'positions',
@@ -59,27 +39,11 @@ const EpisodeEntitySchema = CollectionSchema(
       type: IsarType.dateTime,
     ),
     r'sinopse': PropertySchema(id: 8, name: r'sinopse', type: IsarType.string),
-    r'slugSerie': PropertySchema(
-      id: 9,
-      name: r'slugSerie',
-      type: IsarType.string,
-    ),
-    r'stringID': PropertySchema(
-      id: 10,
-      name: r'stringID',
-      type: IsarType.string,
-    ),
-    r'thumbnail': PropertySchema(
-      id: 11,
-      name: r'thumbnail',
-      type: IsarType.string,
-    ),
+    r'slugSerie': PropertySchema(id: 9, name: r'slugSerie', type: IsarType.string),
+    r'stringID': PropertySchema(id: 10, name: r'stringID', type: IsarType.string),
+    r'thumbnail': PropertySchema(id: 11, name: r'thumbnail', type: IsarType.string),
     r'title': PropertySchema(id: 12, name: r'title', type: IsarType.string),
-    r'updatedAt': PropertySchema(
-      id: 13,
-      name: r'updatedAt',
-      type: IsarType.dateTime,
-    ),
+    r'updatedAt': PropertySchema(id: 13, name: r'updatedAt', type: IsarType.dateTime),
     r'url': PropertySchema(id: 14, name: r'url', type: IsarType.string),
   },
   estimateSize: _episodeEntityEstimateSize,
@@ -94,11 +58,7 @@ const EpisodeEntitySchema = CollectionSchema(
       unique: true,
       replace: true,
       properties: [
-        IndexPropertySchema(
-          name: r'stringID',
-          type: IndexType.hash,
-          caseSensitive: true,
-        ),
+        IndexPropertySchema(name: r'stringID', type: IndexType.hash, caseSensitive: true),
       ],
     ),
   },
@@ -128,11 +88,7 @@ int _episodeEntityEstimateSize(
     final offsets = allOffsets[CurrentPosition]!;
     for (var i = 0; i < object.positions.length; i++) {
       final value = object.positions[i];
-      bytesCount += CurrentPositionSchema.estimateSize(
-        value,
-        offsets,
-        allOffsets,
-      );
+      bytesCount += CurrentPositionSchema.estimateSize(value, offsets, allOffsets);
     }
   }
   {
@@ -278,11 +234,7 @@ List<IsarLinkBase<dynamic>> _episodeEntityGetLinks(EpisodeEntity object) {
   return [];
 }
 
-void _episodeEntityAttach(
-  IsarCollection<dynamic> col,
-  Id id,
-  EpisodeEntity object,
-) {
+void _episodeEntityAttach(IsarCollection<dynamic> col, Id id, EpisodeEntity object) {
   object.id = id;
 }
 
@@ -335,10 +287,7 @@ extension EpisodeEntityByIndex on IsarCollection<EpisodeEntity> {
     return putAllByIndex(r'stringID', objects);
   }
 
-  List<Id> putAllByStringIDSync(
-    List<EpisodeEntity> objects, {
-    bool saveLinks = true,
-  }) {
+  List<Id> putAllByStringIDSync(List<EpisodeEntity> objects, {bool saveLinks = true}) {
     return putAllByIndexSync(r'stringID', objects, saveLinks: saveLinks);
   }
 }
@@ -354,34 +303,22 @@ extension EpisodeEntityQueryWhereSort
 
 extension EpisodeEntityQueryWhere
     on QueryBuilder<EpisodeEntity, EpisodeEntity, QWhereClause> {
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterWhereClause> idEqualTo(
-    Id id,
-  ) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterWhereClause> idNotEqualTo(
-    Id id,
-  ) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            )
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            );
+            .addWhereClause(IdWhereClause.lessThan(upper: id, includeUpper: false))
+            .addWhereClause(IdWhereClause.greaterThan(lower: id, includeLower: false));
       } else {
         return query
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            )
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            );
+            .addWhereClause(IdWhereClause.greaterThan(lower: id, includeLower: false))
+            .addWhereClause(IdWhereClause.lessThan(upper: id, includeUpper: false));
       }
     });
   }
@@ -436,8 +373,9 @@ extension EpisodeEntityQueryWhere
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterWhereClause>
-  stringIDNotEqualTo(String stringID) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterWhereClause> stringIDNotEqualTo(
+    String stringID,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -482,8 +420,10 @@ extension EpisodeEntityQueryWhere
 
 extension EpisodeEntityQueryFilter
     on QueryBuilder<EpisodeEntity, EpisodeEntity, QFilterCondition> {
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  animeStringIDEqualTo(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> animeStringIDEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -513,8 +453,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  animeStringIDLessThan(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> animeStringIDLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -531,8 +470,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  animeStringIDBetween(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> animeStringIDBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -566,8 +504,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  animeStringIDEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> animeStringIDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -579,8 +519,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  animeStringIDContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> animeStringIDContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -592,8 +534,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  animeStringIDMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> animeStringIDMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -623,8 +567,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  createdAtIsNull() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> createdAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNull(property: r'createdAt'),
@@ -632,8 +575,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  createdAtIsNotNull() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> createdAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNotNull(property: r'createdAt'),
@@ -641,8 +583,9 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  createdAtEqualTo(DateTime? value) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> createdAtEqualTo(
+    DateTime? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'createdAt', value: value),
@@ -650,8 +593,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  createdAtGreaterThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> createdAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
@@ -663,21 +608,18 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  createdAtLessThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> createdAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'createdAt',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'createdAt', value: value),
       );
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  createdAtBetween(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> createdAtBetween(
     DateTime? lower,
     DateTime? upper, {
     bool includeLower = true,
@@ -696,8 +638,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  generateIDIsNull() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> generateIDIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNull(property: r'generateID'),
@@ -714,8 +655,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  generateIDEqualTo(String? value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> generateIDEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -727,8 +670,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  generateIDGreaterThan(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> generateIDGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -745,8 +687,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  generateIDLessThan(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> generateIDLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -763,8 +704,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  generateIDBetween(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> generateIDBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -785,8 +725,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  generateIDStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> generateIDStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -798,8 +740,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  generateIDEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> generateIDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -811,8 +755,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  generateIDContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> generateIDContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -824,8 +770,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  generateIDMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> generateIDMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -837,8 +785,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  generateIDIsEmpty() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> generateIDIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'generateID', value: ''),
@@ -855,9 +802,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> idEqualTo(
-    Id value,
-  ) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'id', value: value),
@@ -865,15 +810,13 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  idGreaterThan(Id value, {bool include = false}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> idGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
+        FilterCondition.greaterThan(include: include, property: r'id', value: value),
       );
     });
   }
@@ -884,11 +827,7 @@ extension EpisodeEntityQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'id', value: value),
       );
     });
   }
@@ -912,8 +851,9 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  isCompleteEqualTo(bool value) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> isCompleteEqualTo(
+    bool value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'isComplete', value: value),
@@ -939,8 +879,9 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  numberEpisodeEqualTo(int? value) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> numberEpisodeEqualTo(
+    int? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'numberEpisode', value: value),
@@ -961,8 +902,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  numberEpisodeLessThan(int? value, {bool include = false}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> numberEpisodeLessThan(
+    int? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.lessThan(
@@ -974,8 +917,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  numberEpisodeBetween(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> numberEpisodeBetween(
     int? lower,
     int? upper, {
     bool includeLower = true,
@@ -994,8 +936,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  pageNumberIsNull() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> pageNumberIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNull(property: r'pageNumber'),
@@ -1012,8 +953,9 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  pageNumberEqualTo(int? value) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> pageNumberEqualTo(
+    int? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'pageNumber', value: value),
@@ -1021,8 +963,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  pageNumberGreaterThan(int? value, {bool include = false}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> pageNumberGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
@@ -1034,21 +978,18 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  pageNumberLessThan(int? value, {bool include = false}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> pageNumberLessThan(
+    int? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'pageNumber',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'pageNumber', value: value),
       );
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  pageNumberBetween(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> pageNumberBetween(
     int? lower,
     int? upper, {
     bool includeLower = true,
@@ -1074,8 +1015,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  positionsIsEmpty() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> positionsIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(r'positions', 0, true, 0, true);
     });
@@ -1110,13 +1050,7 @@ extension EpisodeEntityQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'positions',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
+      return query.listLength(r'positions', lower, includeLower, upper, includeUpper);
     });
   }
 
@@ -1193,17 +1127,13 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  sinopseIsNull() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> sinopseIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'sinopse'),
-      );
+      return query.addFilterCondition(const FilterCondition.isNull(property: r'sinopse'));
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  sinopseIsNotNull() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> sinopseIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNotNull(property: r'sinopse'),
@@ -1211,8 +1141,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  sinopseEqualTo(String? value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> sinopseEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -1224,8 +1156,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  sinopseGreaterThan(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> sinopseGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1242,8 +1173,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  sinopseLessThan(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> sinopseLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1260,8 +1190,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  sinopseBetween(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> sinopseBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -1282,8 +1211,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  sinopseStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> sinopseStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -1295,8 +1226,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  sinopseEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> sinopseEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -1308,8 +1241,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  sinopseContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> sinopseContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -1321,8 +1256,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  sinopseMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> sinopseMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -1334,8 +1271,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  sinopseIsEmpty() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> sinopseIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'sinopse', value: ''),
@@ -1343,8 +1279,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  sinopseIsNotEmpty() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> sinopseIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'sinopse', value: ''),
@@ -1352,8 +1287,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  slugSerieIsNull() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> slugSerieIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNull(property: r'slugSerie'),
@@ -1361,8 +1295,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  slugSerieIsNotNull() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> slugSerieIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNotNull(property: r'slugSerie'),
@@ -1370,8 +1303,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  slugSerieEqualTo(String? value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> slugSerieEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -1383,8 +1318,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  slugSerieGreaterThan(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> slugSerieGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1401,8 +1335,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  slugSerieLessThan(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> slugSerieLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1419,8 +1352,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  slugSerieBetween(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> slugSerieBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -1441,8 +1373,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  slugSerieStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> slugSerieStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -1454,8 +1388,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  slugSerieEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> slugSerieEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -1467,8 +1403,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  slugSerieContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> slugSerieContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -1480,8 +1418,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  slugSerieMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> slugSerieMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -1493,8 +1433,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  slugSerieIsEmpty() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> slugSerieIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'slugSerie', value: ''),
@@ -1511,8 +1450,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  stringIDEqualTo(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> stringIDEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -1524,8 +1465,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  stringIDGreaterThan(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> stringIDGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1542,8 +1482,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  stringIDLessThan(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> stringIDLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1560,8 +1499,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  stringIDBetween(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> stringIDBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -1582,8 +1520,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  stringIDStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> stringIDStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -1595,8 +1535,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  stringIDEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> stringIDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -1608,8 +1550,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  stringIDContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> stringIDContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -1621,8 +1565,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  stringIDMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> stringIDMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -1634,8 +1580,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  stringIDIsEmpty() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> stringIDIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'stringID', value: ''),
@@ -1643,8 +1588,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  stringIDIsNotEmpty() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> stringIDIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'stringID', value: ''),
@@ -1652,8 +1596,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  thumbnailIsNull() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> thumbnailIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNull(property: r'thumbnail'),
@@ -1661,8 +1604,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  thumbnailIsNotNull() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> thumbnailIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNotNull(property: r'thumbnail'),
@@ -1670,8 +1612,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  thumbnailEqualTo(String? value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> thumbnailEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -1683,8 +1627,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  thumbnailGreaterThan(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> thumbnailGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1701,8 +1644,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  thumbnailLessThan(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> thumbnailLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1719,8 +1661,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  thumbnailBetween(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> thumbnailBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -1741,8 +1682,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  thumbnailStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> thumbnailStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -1754,8 +1697,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  thumbnailEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> thumbnailEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -1767,8 +1712,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  thumbnailContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> thumbnailContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -1780,8 +1727,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  thumbnailMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> thumbnailMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -1793,8 +1742,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  thumbnailIsEmpty() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> thumbnailIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'thumbnail', value: ''),
@@ -1811,8 +1759,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  titleEqualTo(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> titleEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
@@ -1824,8 +1774,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  titleGreaterThan(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> titleGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1842,8 +1791,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  titleLessThan(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> titleLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1860,8 +1808,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  titleBetween(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> titleBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -1882,8 +1829,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  titleStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> titleStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -1895,8 +1844,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  titleEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> titleEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
@@ -1908,8 +1859,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  titleContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> titleContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
@@ -1921,8 +1874,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  titleMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> titleMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
@@ -1934,8 +1889,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  titleIsEmpty() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> titleIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'title', value: ''),
@@ -1943,8 +1897,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  titleIsNotEmpty() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> titleIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'title', value: ''),
@@ -1952,8 +1905,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  updatedAtIsNull() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> updatedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNull(property: r'updatedAt'),
@@ -1961,8 +1913,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  updatedAtIsNotNull() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> updatedAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const FilterCondition.isNotNull(property: r'updatedAt'),
@@ -1970,8 +1921,9 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  updatedAtEqualTo(DateTime? value) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> updatedAtEqualTo(
+    DateTime? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'updatedAt', value: value),
@@ -1979,8 +1931,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  updatedAtGreaterThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> updatedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
@@ -1992,21 +1946,18 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  updatedAtLessThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> updatedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'updatedAt',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'updatedAt', value: value),
       );
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  updatedAtBetween(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> updatedAtBetween(
     DateTime? lower,
     DateTime? upper, {
     bool includeLower = true,
@@ -2040,8 +1991,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  urlGreaterThan(
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> urlGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -2096,8 +2046,10 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  urlStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> urlStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
@@ -2154,8 +2106,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  urlIsEmpty() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> urlIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'url', value: ''),
@@ -2163,8 +2114,7 @@ extension EpisodeEntityQueryFilter
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  urlIsNotEmpty() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> urlIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'url', value: ''),
@@ -2175,8 +2125,9 @@ extension EpisodeEntityQueryFilter
 
 extension EpisodeEntityQueryObject
     on QueryBuilder<EpisodeEntity, EpisodeEntity, QFilterCondition> {
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition>
-  positionsElement(FilterQuery<CurrentPosition> q) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterFilterCondition> positionsElement(
+    FilterQuery<CurrentPosition> q,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'positions');
     });
@@ -2188,15 +2139,13 @@ extension EpisodeEntityQueryLinks
 
 extension EpisodeEntityQuerySortBy
     on QueryBuilder<EpisodeEntity, EpisodeEntity, QSortBy> {
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  sortByAnimeStringID() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByAnimeStringID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'animeStringID', Sort.asc);
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  sortByAnimeStringIDDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByAnimeStringIDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'animeStringID', Sort.desc);
     });
@@ -2208,8 +2157,7 @@ extension EpisodeEntityQuerySortBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  sortByCreatedAtDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
     });
@@ -2221,8 +2169,7 @@ extension EpisodeEntityQuerySortBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  sortByGenerateIDDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByGenerateIDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'generateID', Sort.desc);
     });
@@ -2234,22 +2181,19 @@ extension EpisodeEntityQuerySortBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  sortByIsCompleteDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByIsCompleteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isComplete', Sort.desc);
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  sortByNumberEpisode() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByNumberEpisode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'numberEpisode', Sort.asc);
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  sortByNumberEpisodeDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByNumberEpisodeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'numberEpisode', Sort.desc);
     });
@@ -2261,22 +2205,19 @@ extension EpisodeEntityQuerySortBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  sortByPageNumberDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByPageNumberDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'pageNumber', Sort.desc);
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  sortByRegistrationData() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByRegistrationData() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'registrationData', Sort.asc);
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  sortByRegistrationDataDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByRegistrationDataDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'registrationData', Sort.desc);
     });
@@ -2300,8 +2241,7 @@ extension EpisodeEntityQuerySortBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  sortBySlugSerieDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortBySlugSerieDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'slugSerie', Sort.desc);
     });
@@ -2313,8 +2253,7 @@ extension EpisodeEntityQuerySortBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  sortByStringIDDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByStringIDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'stringID', Sort.desc);
     });
@@ -2326,8 +2265,7 @@ extension EpisodeEntityQuerySortBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  sortByThumbnailDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByThumbnailDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'thumbnail', Sort.desc);
     });
@@ -2351,8 +2289,7 @@ extension EpisodeEntityQuerySortBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  sortByUpdatedAtDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> sortByUpdatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.desc);
     });
@@ -2373,15 +2310,13 @@ extension EpisodeEntityQuerySortBy
 
 extension EpisodeEntityQuerySortThenBy
     on QueryBuilder<EpisodeEntity, EpisodeEntity, QSortThenBy> {
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  thenByAnimeStringID() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByAnimeStringID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'animeStringID', Sort.asc);
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  thenByAnimeStringIDDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByAnimeStringIDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'animeStringID', Sort.desc);
     });
@@ -2393,8 +2328,7 @@ extension EpisodeEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  thenByCreatedAtDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
     });
@@ -2406,8 +2340,7 @@ extension EpisodeEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  thenByGenerateIDDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByGenerateIDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'generateID', Sort.desc);
     });
@@ -2431,22 +2364,19 @@ extension EpisodeEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  thenByIsCompleteDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByIsCompleteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isComplete', Sort.desc);
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  thenByNumberEpisode() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByNumberEpisode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'numberEpisode', Sort.asc);
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  thenByNumberEpisodeDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByNumberEpisodeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'numberEpisode', Sort.desc);
     });
@@ -2458,22 +2388,19 @@ extension EpisodeEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  thenByPageNumberDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByPageNumberDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'pageNumber', Sort.desc);
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  thenByRegistrationData() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByRegistrationData() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'registrationData', Sort.asc);
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  thenByRegistrationDataDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByRegistrationDataDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'registrationData', Sort.desc);
     });
@@ -2497,8 +2424,7 @@ extension EpisodeEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  thenBySlugSerieDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenBySlugSerieDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'slugSerie', Sort.desc);
     });
@@ -2510,8 +2436,7 @@ extension EpisodeEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  thenByStringIDDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByStringIDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'stringID', Sort.desc);
     });
@@ -2523,8 +2448,7 @@ extension EpisodeEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  thenByThumbnailDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByThumbnailDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'thumbnail', Sort.desc);
     });
@@ -2548,8 +2472,7 @@ extension EpisodeEntityQuerySortThenBy
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy>
-  thenByUpdatedAtDesc() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QAfterSortBy> thenByUpdatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.desc);
     });
@@ -2570,13 +2493,11 @@ extension EpisodeEntityQuerySortThenBy
 
 extension EpisodeEntityQueryWhereDistinct
     on QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct> {
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct>
-  distinctByAnimeStringID({bool caseSensitive = true}) {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct> distinctByAnimeStringID({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(
-        r'animeStringID',
-        caseSensitive: caseSensitive,
-      );
+      return query.addDistinctBy(r'animeStringID', caseSensitive: caseSensitive);
     });
   }
 
@@ -2600,8 +2521,7 @@ extension EpisodeEntityQueryWhereDistinct
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct>
-  distinctByNumberEpisode() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct> distinctByNumberEpisode() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'numberEpisode');
     });
@@ -2613,8 +2533,7 @@ extension EpisodeEntityQueryWhereDistinct
     });
   }
 
-  QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct>
-  distinctByRegistrationData() {
+  QueryBuilder<EpisodeEntity, EpisodeEntity, QDistinct> distinctByRegistrationData() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'registrationData');
     });
@@ -2683,8 +2602,7 @@ extension EpisodeEntityQueryProperty
     });
   }
 
-  QueryBuilder<EpisodeEntity, String, QQueryOperations>
-  animeStringIDProperty() {
+  QueryBuilder<EpisodeEntity, String, QQueryOperations> animeStringIDProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'animeStringID');
     });
@@ -2727,8 +2645,7 @@ extension EpisodeEntityQueryProperty
     });
   }
 
-  QueryBuilder<EpisodeEntity, DateTime?, QQueryOperations>
-  registrationDataProperty() {
+  QueryBuilder<EpisodeEntity, DateTime?, QQueryOperations> registrationDataProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'registrationData');
     });
@@ -2788,11 +2705,7 @@ const CurrentPositionSchema = Schema(
   name: r'CurrentPosition',
   id: 2395459582531459042,
   properties: {
-    r'createdAt': PropertySchema(
-      id: 0,
-      name: r'createdAt',
-      type: IsarType.dateTime,
-    ),
+    r'createdAt': PropertySchema(id: 0, name: r'createdAt', type: IsarType.dateTime),
     r'currentDuration': PropertySchema(
       id: 1,
       name: r'currentDuration',
@@ -2897,8 +2810,9 @@ extension CurrentPositionQueryFilter
     });
   }
 
-  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
-  createdAtEqualTo(DateTime? value) {
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition> createdAtEqualTo(
+    DateTime? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'createdAt', value: value),
@@ -2919,21 +2833,18 @@ extension CurrentPositionQueryFilter
     });
   }
 
-  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
-  createdAtLessThan(DateTime? value, {bool include = false}) {
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition> createdAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'createdAt',
-          value: value,
-        ),
+        FilterCondition.lessThan(include: include, property: r'createdAt', value: value),
       );
     });
   }
 
-  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition>
-  createdAtBetween(
+  QueryBuilder<CurrentPosition, CurrentPosition, QAfterFilterCondition> createdAtBetween(
     DateTime? lower,
     DateTime? upper, {
     bool includeLower = true,
@@ -3161,10 +3072,7 @@ extension CurrentPositionQueryFilter
   currentPositionBase64IsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          property: r'currentPositionBase64',
-          value: '',
-        ),
+        FilterCondition.greaterThan(property: r'currentPositionBase64', value: ''),
       );
     });
   }

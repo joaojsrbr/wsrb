@@ -13,15 +13,7 @@ import 'package:isar/isar.dart';
 part 'anime_entity.g.dart';
 
 @Collection(
-  ignore: {
-    'props',
-    'imageUrl',
-    'stringify',
-    'hashCode',
-    'toAnime',
-    'map',
-    'aniList',
-  },
+  ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toAnime', 'map', 'aniList'},
 )
 class AnimeEntity extends ContentEntity {
   final String? animeID;
@@ -66,8 +58,7 @@ class AnimeEntity extends ContentEntity {
   });
 
   @override
-  String get imageUrl =>
-      extraLarge ?? largeImage ?? mediumImage ?? originalImage;
+  String get imageUrl => extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   @override
   List<Object?> get props => [

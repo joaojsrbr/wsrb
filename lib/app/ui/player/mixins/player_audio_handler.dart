@@ -35,9 +35,7 @@ mixin PlayerAudioHandlerMixin
   }
 
   void setPlayerMedia(PlayerArgs playerArgs) async {
-    final mediaItem = await _playerAudioHandler.getMediaItem(
-      playerArgs.episode.stringID,
-    );
+    final mediaItem = await _playerAudioHandler.getMediaItem(playerArgs.episode.stringID);
     // customLog("[${player!.state.duration}]setPlayerMedia()");
     if (mediaItem == null) {
       final mediaItem = MediaItem(
@@ -114,8 +112,7 @@ class _AudioPlayerHandler extends PlayerAudioHandler {
   Future<void> play() async => await _state?.player?.play();
 
   @override
-  Future<void> seek(Duration position) async =>
-      await _state?.player?.seek(position);
+  Future<void> seek(Duration position) async => await _state?.player?.seek(position);
 
   @override
   void setPlaybackState(PlayerState state) {

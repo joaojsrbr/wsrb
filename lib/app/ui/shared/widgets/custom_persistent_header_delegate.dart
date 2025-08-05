@@ -23,17 +23,8 @@ class CustomPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
   });
 
   @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return buildWidget(
-      context,
-      shrinkOffset,
-      overlapsContent,
-      shrinkOffset / maxExtent,
-    );
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return buildWidget(context, shrinkOffset, overlapsContent, shrinkOffset / maxExtent);
   }
 
   @override

@@ -35,15 +35,9 @@ class MenuButton<T> extends StatelessWidget {
               return FilledButton(
                 style: FilledButton.styleFrom(
                   disabledIconColor: Colors.white,
-                  disabledBackgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.primaryContainer,
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.primaryContainer,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  disabledBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: (data.length == 1)
                     ? null
@@ -57,24 +51,17 @@ class MenuButton<T> extends StatelessWidget {
                             context.findRenderObject() as RenderBox?;
 
                         final RenderBox? overlay =
-                            Navigator.of(
-                                  context,
-                                ).overlay?.context.findRenderObject()
+                            Navigator.of(context).overlay?.context.findRenderObject()
                                 as RenderBox?;
                         if (overlay != null && button != null) {
                           final size = button.size;
 
                           final RelativeRect position = RelativeRect.fromRect(
                             Rect.fromPoints(
-                              button.localToGlobal(
-                                size.bottomLeft(Offset.zero),
-                              ),
-                              button.localToGlobal(
-                                size.bottomLeft(Offset.zero),
-                              ),
+                              button.localToGlobal(size.bottomLeft(Offset.zero)),
+                              button.localToGlobal(size.bottomLeft(Offset.zero)),
                             ),
-                            Offset(size.width > 100 ? -5 : size.width, -5) &
-                                overlay.size,
+                            Offset(size.width > 100 ? -5 : size.width, -5) & overlay.size,
                           );
 
                           final result = await showMenu(

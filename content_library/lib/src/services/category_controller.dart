@@ -5,9 +5,7 @@ import 'package:isar/isar.dart';
 
 class CategoryController extends ChangeNotifier {
   List<CategoryEntity> _categories = [];
-  final Debouncer _debouncer = Debouncer(
-    duration: const Duration(milliseconds: 200),
-  );
+  final Debouncer _debouncer = Debouncer(duration: const Duration(milliseconds: 200));
 
   final Subscriptions _subscriptions = Subscriptions();
 
@@ -62,9 +60,7 @@ class CategoryController extends ChangeNotifier {
 
     final categoryColetions = await _isarService.collection<CategoryEntity>();
 
-    _subscriptions.addAll([
-      categoryColetions.watchLazy().listen(_watchCollection),
-    ]);
+    _subscriptions.addAll([categoryColetions.watchLazy().listen(_watchCollection)]);
 
     _categories = await categoryColetions.where().findAll();
     elapsed.printAndStop(runtimeType.toString());

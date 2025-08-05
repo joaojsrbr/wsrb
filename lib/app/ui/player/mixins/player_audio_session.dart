@@ -53,12 +53,8 @@ mixin PlayerAudioSessionMixin
   }
 
   void _devicesChangedListener(AudioDevicesChangedEvent event) {
-    customLog(
-      '[Devices added: ${event.devicesAdded}]_devicesChangedListener()',
-    );
-    customLog(
-      '[Devices removed: ${event.devicesRemoved}]_devicesChangedListener()',
-    );
+    customLog('[Devices added: ${event.devicesAdded}]_devicesChangedListener()');
+    customLog('[Devices removed: ${event.devicesRemoved}]_devicesChangedListener()');
   }
 
   Future<void> _configureAudioSession() async {

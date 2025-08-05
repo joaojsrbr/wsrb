@@ -118,9 +118,7 @@ class Anime extends Content {
           : originalImage,
     );
 
-    content.episodes.addAll(
-      releases.map((episode) => episode.toEntity(anime: this)),
-    );
+    content.episodes.addAll(releases.map((episode) => episode.toEntity(anime: this)));
 
     content.animeSkip.value = animeSkip?.toEntity;
 

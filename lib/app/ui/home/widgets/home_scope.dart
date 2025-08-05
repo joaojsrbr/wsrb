@@ -18,9 +18,7 @@ class HomeScope extends InheritedNotifier<Listenable> {
     Widget? child,
   }) : super(
          notifier: Listenable.merge([tabController, bottomMenuController]),
-         child: Builder(
-           builder: builder ?? (context) => child ?? SizedBox.shrink(),
-         ),
+         child: Builder(builder: builder ?? (context) => child ?? SizedBox.shrink()),
        );
 
   final AnimationController bottomSheetAnimationController;
@@ -43,7 +41,6 @@ class HomeScope extends InheritedNotifier<Listenable> {
   bool updateShouldNotify(HomeScope oldWidget) {
     return tabController.index != oldWidget.tabController.index ||
         bottomMenuController.isOpen != oldWidget.bottomMenuController.isOpen ||
-        subordinateLibraryTabController !=
-            oldWidget.subordinateLibraryTabController;
+        subordinateLibraryTabController != oldWidget.subordinateLibraryTabController;
   }
 }

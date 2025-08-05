@@ -41,15 +41,9 @@ class NeoxSource extends RSource {
       }
     }
 
-    _getElementOnly(
-      postContentItem,
-      'genres',
-    )?.text.split(',').forEach(genresForEach);
+    _getElementOnly(postContentItem, 'genres')?.text.split(',').forEach(genresForEach);
 
-    _getElementOnly(
-      postContentItem,
-      'gênero(s)',
-    )?.text.split(',').forEach(genresForEach);
+    _getElementOnly(postContentItem, 'gênero(s)')?.text.split(',').forEach(genresForEach);
   }
 
   /// Scraping [Book.authors].
@@ -133,20 +127,13 @@ class NeoxSource extends RSource {
         status = _setStatus(book.status, postContentItem);
         type = _setType(null, postContentItem);
         _setAuthors(book.authors, postContentItem);
-        alternativeTitle = _setAlternativeTitle(
-          book.alternativeTitle,
-          postContentItem,
-        );
+        alternativeTitle = _setAlternativeTitle(book.alternativeTitle, postContentItem);
       }
 
-      double? score = scrapingUtil.getScore(
-        selector: '.post-total-rating span',
-      );
+      double? score = scrapingUtil.getScore(selector: '.post-total-rating span');
 
       // Image
-      final String image = scrapingUtil.getImage(
-        selector: '.summary_image img',
-      );
+      final String image = scrapingUtil.getImage(selector: '.summary_image img');
       // final String? secondImage = scrapingUtil.getImage(selector: '.summary_image img', bySrcSet: true).dataOrNull;
 
       // Sinopse
@@ -172,11 +159,7 @@ class NeoxSource extends RSource {
 
         if (url.isEmpty || title.isEmpty) continue;
 
-        final chapter = Chapter(
-          bookStringID: book.stringID,
-          url: url,
-          title: title,
-        );
+        final chapter = Chapter(bookStringID: book.stringID, url: url, title: title);
 
         book.releases.addIfNoContains(chapter);
       }
@@ -194,10 +177,7 @@ class NeoxSource extends RSource {
     } on DioException catch (error) {
       return Result.failure(error);
     } on BookGetDataException catch (error, stack) {
-      customLog(
-        'ERROR[${error.runtimeType}]: ${error.message}',
-        stackTrace: stack,
-      );
+      customLog('ERROR[${error.runtimeType}]: ${error.message}', stackTrace: stack);
       return Result.failure(error);
     }
   }
@@ -229,9 +209,7 @@ class NeoxSource extends RSource {
         final ScrapingUtil scrapingUtil = ScrapingUtil(element);
 
         final String url = scrapingUtil.getURL(selector: 'h3 a');
-        final double? score = scrapingUtil.getScore(
-          selector: '.score.total_votes',
-        );
+        final double? score = scrapingUtil.getScore(selector: '.score.total_votes');
         final String title = scrapingUtil.getByText(selector: 'h3 a');
         final String originalImage = scrapingUtil.getImage(selector: 'img');
 
@@ -314,9 +292,7 @@ class NeoxSource extends RSource {
 
       final List<Data> data = [];
 
-      final novelContent = document.querySelector(
-        '.reading-content .text-left',
-      );
+      final novelContent = document.querySelector('.reading-content .text-left');
 
       if (novelContent != null) {
         for (var element in novelContent.children) {

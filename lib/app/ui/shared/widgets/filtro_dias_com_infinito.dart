@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class FiltroDiasComInfinito extends StatefulWidget {
-  final void Function(DateTime? start, DateTime? end, bool dataInfinita)?
-  onChanged;
+  final void Function(DateTime? start, DateTime? end, bool dataInfinita)? onChanged;
   final VoidCallback? onClear;
   final DateTimeRange? current;
   final bool? isInfinite;
@@ -38,9 +37,7 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
       final end = widget.current!.end;
 
       isInfinite = widget.isInfinite ?? start == DateTime(0);
-      final startDays = isInfinite
-          ? 0.0
-          : start.difference(startDate).inDays.toDouble();
+      final startDays = isInfinite ? 0.0 : start.difference(startDate).inDays.toDouble();
       final endDays = end.difference(startDate).inDays.toDouble();
 
       _range = RangeValues(startDays, endDays);
@@ -88,11 +85,7 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        tempInfinito
-                            ? 'De ∞'
-                            : 'De ${_formatDay(tempRange.start)}',
-                      ),
+                      Text(tempInfinito ? 'De ∞' : 'De ${_formatDay(tempRange.start)}'),
                       Text('Até ${_formatDay(tempRange.end)}'),
                     ],
                   ),
@@ -145,9 +138,7 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
 
                           final DateTime? start = tempInfinito
                               ? null
-                              : startDate.add(
-                                  Duration(days: tempRange.start.toInt()),
-                                );
+                              : startDate.add(Duration(days: tempRange.start.toInt()));
                           final DateTime end = startDate.add(
                             Duration(days: tempRange.end.toInt()),
                           );
@@ -155,10 +146,7 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
                           widget.onChanged?.call(start, end, isInfinite);
                           Navigator.pop(context);
                         },
-                        child: Text(
-                          "Aplicar",
-                          style: TextStyle(color: Colors.red),
-                        ),
+                        child: Text("Aplicar", style: TextStyle(color: Colors.red)),
                       ),
                     ],
                   ),
@@ -203,10 +191,7 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
                         avatar: const Icon(Icons.calendar_today),
                       )
                     else
-                      const Chip(
-                        label: Text('De ∞'),
-                        avatar: Icon(Icons.calendar_today),
-                      ),
+                      const Chip(label: Text('De ∞'), avatar: Icon(Icons.calendar_today)),
                     Chip(
                       label: Text('Até ${_formatDay(_range!.end)}'),
                       avatar: const Icon(Icons.arrow_forward),

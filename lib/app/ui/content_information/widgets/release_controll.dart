@@ -68,8 +68,7 @@ class _ReleaseControllState extends State<ReleaseControll> {
       return const SizedBox(height: 0, width: 0);
     }
     final isLoading = ContentScope.isLoadingOf(context);
-    final AppConfigController appConfigController = context
-        .watch<AppConfigController>();
+    final AppConfigController appConfigController = context.watch<AppConfigController>();
     final setListIndex = ContentScope.of(context).setListIndex;
 
     // final chipsWidgets = List.generate(_selectChips.length, (index) {
@@ -108,17 +107,14 @@ class _ReleaseControllState extends State<ReleaseControll> {
                 enable: isLoading,
                 child: IconButton.filled(
                   style: IconButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   iconSize: 21,
                   onPressed: () => appConfigController.setReverseContents(
                     !appConfigController.config.reverseContents,
                   ),
                   icon: FadeThroughTransitionSwitcher(
-                    enableSecondChild:
-                        !appConfigController.config.reverseContents,
+                    enableSecondChild: !appConfigController.config.reverseContents,
                     duration: const Duration(milliseconds: 350),
                     secondChild: Icon(MdiIcons.sortNumericAscending),
                     child: Icon(MdiIcons.sortNumericDescending),

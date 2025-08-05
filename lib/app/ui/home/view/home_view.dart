@@ -32,19 +32,15 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   late final ValueNotifierList _valueNotifierList;
   late final BottomMenuController _bottomMenuController;
   late final AnimationController _bottomSheetAnimationController;
-  bool _disableScroll = false;
 
   @override
   void initState() {
     super.initState();
-    _bottomSheetAnimationController = BottomSheet.createAnimationController(
-      this,
-    );
+    _bottomSheetAnimationController = BottomSheet.createAnimationController(this);
     _tabController = TabController(vsync: this, length: 3)
       ..addListener(_tabControllerListener);
 
-    _scrollController = ScrollController()
-      ..addListener(_scrollControllerListener);
+    _scrollController = ScrollController()..addListener(_scrollControllerListener);
 
     _keepWatchingScrollController = ScrollController();
 
@@ -56,10 +52,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     _valueNotifierList = context.read<ValueNotifierList>()
       ..addListener(_valueNotifierListListener);
 
-    _bottomMenuController = BottomMenuController(
-      minHeight: 60,
-      initialArgs: null,
-    );
+    _bottomMenuController = BottomMenuController(minHeight: 60, initialArgs: null);
 
     _startTabController(false);
   }
@@ -128,20 +121,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     });
   }
 
-  void disableScroll(bool enable) {
-    setState(() => _disableScroll = enable);
-  }
-
   ScrollPhysics get _mainPhysics {
-    if (_disableScroll) {
-      return const NeverScrollableScrollPhysics();
-    }
     if (_tabController.index == 2) return const BouncingScrollPhysics();
     return const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
   }
 
   ScrollPhysics get _tabPhysics {
-    if (_disableScroll) return const NeverScrollableScrollPhysics();
     return const FixedOverscrollBouncingScrollPhysics();
   }
 
@@ -151,10 +136,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     await contentRepository.refresh(true);
   }
 
-  List<Widget> _headerSliverBuilder(
-    BuildContext context,
-    bool innerBoxIsScrolled,
-  ) {
+  List<Widget> _headerSliverBuilder(BuildContext context, bool innerBoxIsScrolled) {
     final tabController = HomeScope.of(context).tabController;
     final List<Widget> slivers = [];
 
@@ -186,7 +168,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         homeController: _scrollController,
         subordinateLibraryTabController: _subordinateLibraryTabController,
         searchController: _searchController,
-
         tabController: _tabController,
         child: BottomMenu(
           isDismissible: false,
@@ -237,10 +218,8 @@ class _HomeButtonMenuSliver extends StatelessWidget {
     final subordinateLibraryTabController = HomeScope.of(
       context,
     ).subordinateLibraryTabController;
-    final CategoryController categoryController = context
-        .watch<CategoryController>();
-    final AppConfigController appConfigController = context
-        .watch<AppConfigController>();
+    final CategoryController categoryController = context.watch<CategoryController>();
+    final AppConfigController appConfigController = context.watch<AppConfigController>();
     return SliverAnimatedPaintExtent(
       duration: const Duration(milliseconds: 350),
       child: SliverToBoxAdapter(
@@ -248,9 +227,7 @@ class _HomeButtonMenuSliver extends StatelessWidget {
             ? TabBar(
                 tabAlignment: TabAlignment.start,
                 controller: subordinateLibraryTabController,
-                tabs: categoryController.categories.map<Widget>((
-                  CategoryEntity entity,
-                ) {
+                tabs: categoryController.categories.map<Widget>((CategoryEntity entity) {
                   return GestureDetector(
                     onLongPress: () {
                       CategoryHelper.openCategoryCreator(context, entity);

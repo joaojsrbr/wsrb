@@ -77,10 +77,7 @@ class ContentTile extends StatelessWidget {
     final appConfig = context.watch<AppConfigController>();
 
     final isSelected = valueNotifierList.contains(content.stringID);
-    final headers = {
-      ...App.HEADERS,
-      'Referer': '${appConfig.config.source.baseURL}/',
-    };
+    final headers = {...App.HEADERS, 'Referer': '${appConfig.config.source.baseURL}/'};
 
     int cacheWidth = isFromLibrary ? 200 : 200;
     int cacheHeight = isFromLibrary ? 250 : 150;
@@ -94,8 +91,7 @@ class ContentTile extends StatelessWidget {
               : null,
           onTap: () async {
             onTap?.call(content);
-            if (searchController?.isAttached == true &&
-                searchController!.isOpen) {
+            if (searchController?.isAttached == true && searchController!.isOpen) {
               context.unFocusKeyBoard();
             }
             if (valueNotifierList.isNotEmpty) {
@@ -108,27 +104,19 @@ class ContentTile extends StatelessWidget {
                 !isFromSearch) {
               await context.push(
                 RouteName.PLAYER,
-                extra: PlayerArgs(
-                  anime: content,
-                  episode: content.releases.first,
-                ),
+                extra: PlayerArgs(anime: content, episode: content.releases.first),
               );
             } else {
               final result = await context.push(
                 RouteName.CONTENTINFO,
-                extra: ContentInformationArgs(
-                  content: content,
-                  isLibrary: isFromLibrary,
-                ),
+                extra: ContentInformationArgs(content: content, isLibrary: isFromLibrary),
               );
               if (result != null && context.mounted)
                 await context.showErrorSnackBar(result);
             }
           },
           splashFactory: InkRipple.splashFactory,
-          overlayColor: WidgetStatePropertyAll(
-            theme.colorScheme.primary.withAlpha(36),
-          ),
+          overlayColor: WidgetStatePropertyAll(theme.colorScheme.primary.withAlpha(36)),
           child: ListTile(
             title: Text(
               content.title,
@@ -240,17 +228,14 @@ class ContentTile extends StatelessWidget {
                         children: [
                           if (content.releases.length == 1) ...[
                             TextSpan(
-                              text:
-                                  'Episódio ${content.releases.first.number} - ',
+                              text: 'Episódio ${content.releases.first.number} - ',
                             ),
                           ],
                           if (content is Anime)
                             TextSpan(
                               text: content.isDublado ? 'DUB' : 'LEG',
                               style: TextStyle(
-                                color: content.isDublado
-                                    ? Colors.green
-                                    : Colors.blue,
+                                color: content.isDublado ? Colors.green : Colors.blue,
                               ),
                             ),
                         ],
@@ -274,8 +259,7 @@ class ContentTile extends StatelessWidget {
                 borderRadius: _radius,
                 onTap: () async {
                   onTap?.call(content);
-                  if (searchController?.isAttached == true &&
-                      searchController!.isOpen) {
+                  if (searchController?.isAttached == true && searchController!.isOpen) {
                     context.unFocusKeyBoard();
                   }
                   if (valueNotifierList.isNotEmpty) {
@@ -288,10 +272,7 @@ class ContentTile extends StatelessWidget {
                       !isFromSearch) {
                     await context.push(
                       RouteName.PLAYER,
-                      extra: PlayerArgs(
-                        anime: content,
-                        episode: content.releases.first,
-                      ),
+                      extra: PlayerArgs(anime: content, episode: content.releases.first),
                     );
                   } else {
                     final result = await context.push(
@@ -316,10 +297,7 @@ class ContentTile extends StatelessWidget {
                 left: 0,
                 child: IconButton(
                   icon: Icon(MdiIcons.information, size: 22),
-                  visualDensity: const VisualDensity(
-                    horizontal: -2,
-                    vertical: -2,
-                  ),
+                  visualDensity: const VisualDensity(horizontal: -2, vertical: -2),
                   onPressed: valueNotifierList.isEmpty
                       ? () async {
                           final result = await context.push(

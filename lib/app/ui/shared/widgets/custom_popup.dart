@@ -49,8 +49,7 @@ class CustomPopup<E> extends StatefulWidget {
   final ShapeBorder? shape;
   final List<E> items;
   final Widget Function(BuildContext context)? builder;
-  final Widget Function(BuildContext context, int index, E item)?
-  builderFunction;
+  final Widget Function(BuildContext context, int index, E item)? builderFunction;
 
   final double height;
   final double width;
@@ -59,12 +58,9 @@ class CustomPopup<E> extends StatefulWidget {
   State<CustomPopup<E>> createState() => _CustomPopupState<E>();
 }
 
-class _CustomPopupState<E> extends State<CustomPopup<E>>
-    with TickerProviderStateMixin {
+class _CustomPopupState<E> extends State<CustomPopup<E>> with TickerProviderStateMixin {
   late final ScrollController _localController;
-  final Debouncer _debouncer = Debouncer(
-    duration: const Duration(milliseconds: 250),
-  );
+  final Debouncer _debouncer = Debouncer(duration: const Duration(milliseconds: 250));
   final Debouncer _debouncerShowWiget = Debouncer(
     duration: const Duration(milliseconds: 250),
   );
@@ -81,19 +77,14 @@ class _CustomPopupState<E> extends State<CustomPopup<E>>
     _animationController = AnimationController(
       vsync: this,
       duration: widget.duration ?? const Duration(milliseconds: 300),
-      reverseDuration:
-          widget.reverseDuration ?? const Duration(milliseconds: 300),
+      reverseDuration: widget.reverseDuration ?? const Duration(milliseconds: 300),
     )..addListener(_animationShowWidgetListener);
 
     _localController = ScrollController();
 
-    _animationHeight = _animationController.drive(
-      Tween(begin: 0.0, end: widget.height),
-    );
+    _animationHeight = _animationController.drive(Tween(begin: 0.0, end: widget.height));
 
-    _animationWidth = _animationController.drive(
-      Tween(begin: 0.0, end: widget.width),
-    );
+    _animationWidth = _animationController.drive(Tween(begin: 0.0, end: widget.width));
 
     // _animationWidth = Tween(
     //   begin: 0.0,
@@ -144,9 +135,7 @@ class _CustomPopupState<E> extends State<CustomPopup<E>>
       //   begin: 0.0,
       //   end: widget.width,
       // ).animate(_animationHeight);
-      _animationWidth = _animationController.drive(
-        Tween(begin: 0.0, end: widget.width),
-      );
+      _animationWidth = _animationController.drive(Tween(begin: 0.0, end: widget.width));
     }
 
     if (oldWidget.show != widget.show) {

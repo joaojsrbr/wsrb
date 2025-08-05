@@ -15,9 +15,7 @@ class GoyabuSource extends RSource {
   Future<Result<List<Data>>> getContent(Release release) async {
     if (release is! Episode) {
       return Result.failure(
-        AnimeGetDataException(
-          message: "A instancia content precisa ser do tipo Episode",
-        ),
+        AnimeGetDataException(message: "A instancia content precisa ser do tipo Episode"),
       );
     }
 
@@ -30,9 +28,7 @@ class GoyabuSource extends RSource {
       );
       final Document document = parse(response.data);
 
-      final fremeSrc = document
-          .querySelector('.metaframe.rptss')
-          ?.attributes['src'];
+      final fremeSrc = document.querySelector('.metaframe.rptss')?.attributes['src'];
 
       if (fremeSrc != null) {
         Completer<Data> completer = Completer();
@@ -88,8 +84,7 @@ class GoyabuSource extends RSource {
 
               final videoConfigJson = jsonDecode(videoConfig.toString());
               final playURL =
-                  (videoConfigJson['streams'] as List).first['play_url']
-                      as String;
+                  (videoConfigJson['streams'] as List).first['play_url'] as String;
               if (completer.isCompleted) return;
               completer.complete(
                 Data.videoData(
@@ -133,9 +128,7 @@ class GoyabuSource extends RSource {
 
       final ScrapingUtil scrapingUtil = ScrapingUtil(pageElement);
 
-      final episodesElements = scrapingUtil.element.querySelectorAll(
-        '.listaEps li',
-      );
+      final episodesElements = scrapingUtil.element.querySelectorAll('.listaEps li');
 
       for (final episodeElement in episodesElements) {
         final ScrapingUtil episodeScrapingUtil = ScrapingUtil(episodeElement);
@@ -172,8 +165,10 @@ class GoyabuSource extends RSource {
     try {
       if (content is! Anime) throw AnimeGetDataException();
 
-      final Response<dynamic> responseAnimeURL = await contentRepository._dio
-          .get(content.releases.first.url, responseType: ResponseType.plain);
+      final Response<dynamic> responseAnimeURL = await contentRepository._dio.get(
+        content.releases.first.url,
+        responseType: ResponseType.plain,
+      );
 
       final Document episodeDocument = parse(responseAnimeURL.data);
 
@@ -182,10 +177,7 @@ class GoyabuSource extends RSource {
           .elementAt(1)
           .attributes['href']!;
 
-      final Anime anime = content.copyWith(
-        releases: EpisodeReleases(),
-        url: animeURL,
-      );
+      final Anime anime = content.copyWith(releases: EpisodeReleases(), url: animeURL);
 
       final Response response = await contentRepository._dio.get(
         anime.url,
@@ -202,9 +194,7 @@ class GoyabuSource extends RSource {
 
       final ScrapingUtil scrapingUtil = ScrapingUtil(pageElement);
 
-      final String originalImage = scrapingUtil.getImage(
-        selector: '.thumb img',
-      );
+      final String originalImage = scrapingUtil.getImage(selector: '.thumb img');
       final String sinopse = scrapingUtil.getByText(selector: '.sinopse h3');
 
       final List<Genre> genres = scrapingUtil.element
@@ -212,8 +202,9 @@ class GoyabuSource extends RSource {
           .map((element) => Genre(element.text.trim()))
           .toList();
 
-      final List<Element> episodesElements = scrapingUtil.element
-          .querySelectorAll('.listaEps li');
+      final List<Element> episodesElements = scrapingUtil.element.querySelectorAll(
+        '.listaEps li',
+      );
 
       for (final Element episodeElement in episodesElements) {
         final ScrapingUtil episodeScrapingUtil = ScrapingUtil(episodeElement);
@@ -249,10 +240,7 @@ class GoyabuSource extends RSource {
     } on DioException catch (error) {
       return Result.failure(error);
     } on AnimeGetDataException catch (error, stack) {
-      customLog(
-        'ERROR[${error.runtimeType}]: ${error.message}',
-        stackTrace: stack,
-      );
+      customLog('ERROR[${error.runtimeType}]: ${error.message}', stackTrace: stack);
       return Result.failure(error);
     }
   }
@@ -284,12 +272,9 @@ class GoyabuSource extends RSource {
 
         final String episodeURL = scrapingUtil.getURL(selector: '.boxEP a');
         final String thumbnail = scrapingUtil.getImage(selector: 'img');
-        final String episodeTitle = scrapingUtil.getByText(
-          selector: '.titleEP',
-        );
+        final String episodeTitle = scrapingUtil.getByText(selector: '.titleEP');
         final bool isDublado =
-            (element.attributes['data-tar']?.toLowerCase().contains('dub')) ??
-            false;
+            (element.attributes['data-tar']?.toLowerCase().contains('dub')) ?? false;
 
         final Episode episode = Episode(
           isDublado: isDublado,

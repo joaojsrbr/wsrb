@@ -6,14 +6,7 @@ import 'package:isar/isar.dart';
 part 'episode_entity.g.dart';
 
 @Collection(
-  ignore: {
-    'props',
-    'imageUrl',
-    'stringify',
-    'hashCode',
-    'videoPercent',
-    'percent',
-  },
+  ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'videoPercent', 'percent'},
 )
 class EpisodeEntity extends HistoricEntity {
   final String? sinopse;
@@ -30,8 +23,7 @@ class EpisodeEntity extends HistoricEntity {
     return positions.reduceOrNull(
       (position1, position2) =>
           (position1.createdAt != null && position2.createdAt != null) &&
-              (position1.createdAt!.millisecond >
-                  position2.createdAt!.millisecond)
+              (position1.createdAt!.millisecond > position2.createdAt!.millisecond)
           ? position1
           : position2,
     );
@@ -43,9 +35,7 @@ class EpisodeEntity extends HistoricEntity {
   @override
   double getPercent() {
     final percent = getLastCurrentPosition()?.percent;
-    return isComplete == true
-        ? 1.0
-        : (percent?.isNaN == true ? 0.0 : percent) ?? 0.0;
+    return isComplete == true ? 1.0 : (percent?.isNaN == true ? 0.0 : percent) ?? 0.0;
   }
 
   EpisodeEntity({
@@ -123,11 +113,9 @@ class EpisodeEntity extends HistoricEntity {
   int compareTo(HistoricEntity other) {
     if (updatedAt != null && (other as EpisodeEntity).updatedAt != null) {
       return other.updatedAt!.compareTo(updatedAt!);
-    } else if (updatedAt != null &&
-        (other as EpisodeEntity).updatedAt == null) {
+    } else if (updatedAt != null && (other as EpisodeEntity).updatedAt == null) {
       return 1;
-    } else if (updatedAt == null &&
-        (other as EpisodeEntity).updatedAt != null) {
+    } else if (updatedAt == null && (other as EpisodeEntity).updatedAt != null) {
       return 0;
     }
     return -1;
@@ -187,14 +175,7 @@ class EpisodeEntity extends HistoricEntity {
 }
 
 @Embedded(
-  ignore: {
-    'props',
-    'imageUrl',
-    'stringify',
-    'hashCode',
-    'videoPercent',
-    'percent',
-  },
+  ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'videoPercent', 'percent'},
 )
 class CurrentPosition with EquatableMixin {
   final int currentDuration;

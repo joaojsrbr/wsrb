@@ -32,9 +32,7 @@ class ShimmerContainer extends StatelessWidget {
             child: enable
                 ? Shimmer.fromColors(
                     baseColor: theme.colorScheme.onSurface.withOpacity(0.4),
-                    highlightColor: theme.colorScheme.onSurface.withOpacity(
-                      0.3,
-                    ),
+                    highlightColor: theme.colorScheme.onSurface.withOpacity(0.3),
                     child: Container(
                       decoration: BoxDecoration(
                         color: theme.colorScheme.onSurface.withOpacity(0.4),

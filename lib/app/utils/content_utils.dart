@@ -6,10 +6,7 @@ import 'package:provider/provider.dart';
 class ContentUtils {
   const ContentUtils._();
 
-  static Future<bool> selectTypePlayer(
-    BuildContext context,
-    Episode episode,
-  ) async {
+  static Future<bool> selectTypePlayer(BuildContext context, Episode episode) async {
     final result = await showModalBottomSheet<bool>(
       context: context,
       builder: (context) {
@@ -129,10 +126,7 @@ class ContentUtils {
     );
   }
 
-  static Future<void> saveOrUpdate(
-    BuildContext context,
-    Content content,
-  ) async {
+  static Future<void> saveOrUpdate(BuildContext context, Content content) async {
     final libraryController = context.read<LibraryController>();
     final historicController = context.read<HistoricController>();
     final animeSkipController = context.read<AnimeSkipController>();
@@ -195,8 +189,7 @@ class ContentUtils {
     }
 
     // Salva configurações de pulo de anime se existirem
-    if (contentEntity case AnimeEntity anime
-        when anime.animeSkip.value != null) {
+    if (contentEntity case AnimeEntity anime when anime.animeSkip.value != null) {
       await animeSkipController.save(anime.animeSkip.value!);
     }
 

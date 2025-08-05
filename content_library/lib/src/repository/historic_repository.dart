@@ -36,10 +36,7 @@ class InHistoricRepository extends InRepository<HistoricEntity> {
   T? getHistoricEntityByID<T extends HistoricEntity>(List<String> ids) {
     final entity = entities.firstWhereOrNull(
       (entity) => switch (entity) {
-        EpisodeEntity data => ids.containsOneElement([
-          data.stringID,
-          data.animeStringID,
-        ]),
+        EpisodeEntity data => ids.containsOneElement([data.stringID, data.animeStringID]),
         _ => false,
       },
     );
@@ -62,12 +59,9 @@ class InHistoricRepository extends InRepository<HistoricEntity> {
         .toList();
   }
 
-  UnmodifiableListView<HistoricEntity> get sortedByCreatedAt =>
-      UnmodifiableListView(
-        entities.sorted(
-          (historic1, historic2) => historic2.compareTo(historic1),
-        ),
-      );
+  UnmodifiableListView<HistoricEntity> get sortedByCreatedAt => UnmodifiableListView(
+    entities.sorted((historic1, historic2) => historic2.compareTo(historic1)),
+  );
 
   UnmodifiableListView<ChapterEntity> get chapterHistoric =>
       UnmodifiableListView<ChapterEntity>(entities.whereType());
@@ -87,8 +81,7 @@ class InHistoricRepository extends InRepository<HistoricEntity> {
         EpisodeEntity data =>
           data.stringID.contains(release?.stringID ?? "") &&
               int.tryParse(release?.number ?? "") == data.numberEpisode &&
-              (content == null ||
-                  data.animeStringID.contains(content.stringID)),
+              (content == null || data.animeStringID.contains(content.stringID)),
         _ => false,
       };
     }
@@ -108,8 +101,7 @@ class InHistoricRepository extends InRepository<HistoricEntity> {
       }
     }
 
-    final value =
-        entities.firstWhereOrNull(matchesEntity) as T? ?? orElse?.call();
+    final value = entities.firstWhereOrNull(matchesEntity) as T? ?? orElse?.call();
     return value;
   }
 }

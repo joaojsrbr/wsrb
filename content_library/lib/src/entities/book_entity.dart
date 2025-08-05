@@ -11,9 +11,7 @@ import 'package:isar/isar.dart';
 
 part 'book_entity.g.dart';
 
-@Collection(
-  ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toBook', 'map'},
-)
+@Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toBook', 'map'})
 class BookEntity extends ContentEntity {
   final String? alternativeTitle;
   final String originalImage;
@@ -45,8 +43,7 @@ class BookEntity extends ContentEntity {
   });
 
   @override
-  String get imageUrl =>
-      extraLarge ?? largeImage ?? mediumImage ?? originalImage;
+  String get imageUrl => extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   @override
   List<Object?> get props => [
@@ -79,9 +76,7 @@ class BookEntity extends ContentEntity {
       source: source,
       url: url,
       title: title,
-      releases: ChapterReleases.from(
-        chapters.map((entity) => entity.toChapter()),
-      ),
+      releases: ChapterReleases.from(chapters.map((entity) => entity.toChapter())),
       extraLarge: extraLarge,
       largeImage: largeImage,
       mediumImage: mediumImage,

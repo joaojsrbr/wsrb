@@ -82,6 +82,5 @@ extension AppSnackBarBuildContextExtensions on BuildContext {
   );
 
   /// Shows an error snackbar.
-  Future<void> showErrorSnackBar(Object error) =>
-      AppSnackBar.onError(this, error);
+  Future<void> showErrorSnackBar(Object error) => AppSnackBar.onError(this, error);
 }

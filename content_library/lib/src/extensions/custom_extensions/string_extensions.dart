@@ -15,9 +15,7 @@ extension StringExtensions on String {
   String get removerDiacriticos {
     final list = split('');
 
-    list.removeWhere(
-      (string) => string.contains(RegExp(r'/[\u0300-\u036F]/g')),
-    );
+    list.removeWhere((string) => string.contains(RegExp(r'/[\u0300-\u036F]/g')));
     return list.reduce((value, element) => '$value$element');
   }
 
@@ -32,9 +30,7 @@ extension StringExtensions on String {
   Directory get toDir => Directory(this);
 
   String get capitalize {
-    return length > 0
-        ? "${this[0].toUpperCase()}${substring(1).toLowerCase()}"
-        : this;
+    return length > 0 ? "${this[0].toUpperCase()}${substring(1).toLowerCase()}" : this;
   }
 
   Duration get parseDuration {

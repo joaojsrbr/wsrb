@@ -145,9 +145,7 @@ final class ReleaseUtils {
                             Center(
                               child: Text(
                                 video is VideoData ? 'Online' : 'Local',
-                                style: textTheme.labelMedium?.copyWith(
-                                  color: color,
-                                ),
+                                style: textTheme.labelMedium?.copyWith(color: color),
                               ),
                             ),
                             Material(

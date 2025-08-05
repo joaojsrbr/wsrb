@@ -22,8 +22,7 @@ class SharedAxisTransitionPageWrapper extends Page {
   @override
   Route createRoute(BuildContext context) {
     return PageRouteBuilder(
-      transitionDuration:
-          transitionDuratio ?? const Duration(milliseconds: 650),
+      transitionDuration: transitionDuratio ?? const Duration(milliseconds: 650),
       reverseTransitionDuration:
           reverseTransitionDuration ?? const Duration(milliseconds: 650),
       settings: this,
@@ -39,9 +38,7 @@ class SharedAxisTransitionPageWrapper extends Page {
       },
       pageBuilder: (context, animation, secondaryAnimation) {
         // OpenContainer;
-        return screenBuilder?.call(context) ??
-            screen ??
-            const SizedBox.shrink();
+        return screenBuilder?.call(context) ?? screen ?? const SizedBox.shrink();
       },
     );
   }

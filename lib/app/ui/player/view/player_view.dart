@@ -62,9 +62,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   final ValueNotifier<bool> _openMenuInFullScreen = ValueNotifier(false);
   final ValueNotifier<bool> _reversedCurrentDuration = ValueNotifier(false);
   final ValueNotifier<Duration?> _seekInVideoPosition = ValueNotifier(null);
-  final ValueNotifier<AnimeTimeStamp?> _selectedAnimeTimeStamp = ValueNotifier(
-    null,
-  );
+  final ValueNotifier<AnimeTimeStamp?> _selectedAnimeTimeStamp = ValueNotifier(null);
   final ValueNotifier<bool> _showButtonQuality = ValueNotifier(false);
 
   @override
@@ -114,14 +112,12 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       return false;
     }
 
-    return _playerArgs.anime.releases.last.stringID !=
-        _playerArgs.episode.stringID;
+    return _playerArgs.anime.releases.last.stringID != _playerArgs.episode.stringID;
   }
 
   bool get _playing => player?.state.playing ?? false;
 
-  bool get isFullscreen =>
-      PlayerView.videoStateKey.currentState?.isFullscreen() ?? false;
+  bool get isFullscreen => PlayerView.videoStateKey.currentState?.isFullscreen() ?? false;
 
   double get _videoPercent {
     if (player != null) {
@@ -129,10 +125,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       final Duration duration = player!.state.duration;
 
       if (duration.inMicroseconds > 0) {
-        return (position.inMicroseconds / duration.inMicroseconds).clamp(
-          0.0,
-          1.0,
-        );
+        return (position.inMicroseconds / duration.inMicroseconds).clamp(0.0, 1.0);
       }
     }
     return 0.0;
@@ -219,10 +212,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     final state = Navigator.of(context);
 
-    final file = AppStorage.getReleaseFile(
-      _playerArgs.anime,
-      _playerArgs.episode,
-    );
+    final file = AppStorage.getReleaseFile(_playerArgs.anime, _playerArgs.episode);
 
     final result = file != null
         ? Result.success([FileVideoData(file: file)])
@@ -269,9 +259,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
     await _getAnimeData().whenComplete(_incrementCurrentCircularAnimation);
 
-    await _getInitMainVideoData().whenComplete(
-      _incrementCurrentCircularAnimation,
-    );
+    await _getInitMainVideoData().whenComplete(_incrementCurrentCircularAnimation);
 
     await _startPlayerController(
       onInit: true,
@@ -315,11 +303,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       case VideoData data:
         futures.add(
           player!.open(
-            Media(
-              data.videoContent,
-              start: initPossition,
-              httpHeaders: data.httpHeaders,
-            ),
+            Media(data.videoContent, start: initPossition, httpHeaders: data.httpHeaders),
             play: play,
           ),
         );
@@ -441,12 +425,10 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
         !diff.inSeconds.isNegative &&
         _hasNextEpisode &&
         maxPosition.inSeconds > 0) {
-      final indexOf =
-          _playerArgs.anime.releases.indexOf(_playerArgs.episode) + 1;
+      final indexOf = _playerArgs.anime.releases.indexOf(_playerArgs.episode) + 1;
       final nextEpisode = _playerArgs.anime.releases[indexOf];
 
-      _overlayNextEpisode.value =
-          'Episódio ${nextEpisode.number} - ${diff.inSeconds}';
+      _overlayNextEpisode.value = 'Episódio ${nextEpisode.number} - ${diff.inSeconds}';
     } else if (_overlayNextEpisode.value != null) {
       _nextEpisodeDebouncer.call(() {
         _overlayNextEpisode.value = null;
@@ -545,8 +527,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
     // bool stop = false,
   ]) async {
     player?.pause();
-    if (_mainVideoData == null ||
-        player?.state.duration.inMicroseconds == 0.0) {
+    if (_mainVideoData == null || player?.state.duration.inMicroseconds == 0.0) {
       return;
     }
 
@@ -583,12 +564,11 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       // playerAudioHandler.setPlayerController = null;
     }
 
-    customLog(
-      '[$runtimeType][_saveVideoPosition()][${episodeEntity.numberEpisode}]',
-    );
+    customLog('[$runtimeType][_saveVideoPosition()][${episodeEntity.numberEpisode}]');
 
-    final other = _libraryController.repo
-        .getContentEntityByStringID<AnimeEntity>(_playerArgs.anime.stringID);
+    final other = _libraryController.repo.getContentEntityByStringID<AnimeEntity>(
+      _playerArgs.anime.stringID,
+    );
 
     final animeEntity = _playerArgs.anime.toEntity().copyWith(
       createdAt: other?.createdAt,
@@ -708,28 +688,20 @@ class _Content extends StatelessWidget {
         controlsTransitionDuration: Duration(milliseconds: 650),
       ),
       child: Column(
-        mainAxisAlignment: isLoading
-            ? MainAxisAlignment.center
-            : MainAxisAlignment.start,
+        mainAxisAlignment: isLoading ? MainAxisAlignment.center : MainAxisAlignment.start,
         children: [
           if (isLoading) ...[
             _LoadingIndicator(
               progress:
-                  scope.currentValueCircularAnimation /
-                  scope.maxValueCircularAnimation,
+                  scope.currentValueCircularAnimation / scope.maxValueCircularAnimation,
             ),
             const SizedBox(height: 8),
-            Text(
-              'Carregando...',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
+            Text('Carregando...', style: Theme.of(context).textTheme.titleSmall),
           ] else if (videoCtrl != null) ...[
             Flexible(
               child: _VideoPlayerArea(fit: fit, controller: videoCtrl),
             ),
-            if (args.getAnimeData &&
-                !args.forceEnterFullScreen &&
-                !isPipActivated)
+            if (args.getAnimeData && !args.forceEnterFullScreen && !isPipActivated)
               Expanded(flex: 2, child: _EpisodesAndSkipList()),
           ],
         ],
@@ -748,8 +720,7 @@ class _LoadingIndicator extends StatelessWidget {
       child: TweenAnimationBuilder<double>(
         duration: const Duration(milliseconds: 150),
         tween: Tween(begin: 0, end: progress),
-        builder: (_, value, __) =>
-            CircularProgressIndicator.adaptive(value: value),
+        builder: (_, value, __) => CircularProgressIndicator.adaptive(value: value),
       ),
     );
   }
@@ -798,9 +769,7 @@ class _VideoPlayerArea extends StatelessWidget {
           onExitFullscreen: scope.isPipActivated
               ? () async {}
               : () async {
-                  SystemChrome.setPreferredOrientations([
-                    DeviceOrientation.portraitUp,
-                  ]);
+                  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
                 },
           controls: (state) {
             if (!scope.isPipActivated) return CustomMaterialControls(state);
@@ -851,10 +820,7 @@ class _EpisodesAndSkipList extends StatelessWidget {
                       selected: selected?.id == stamp.id,
                       leading: Text(Duration(microseconds: stamp.at).label()),
                       title: Text(stamp.timeStampType.label),
-                      visualDensity: const VisualDensity(
-                        vertical: -4,
-                        horizontal: -2,
-                      ),
+                      visualDensity: const VisualDensity(vertical: -4, horizontal: -2),
                       onTap: () => scope.onClickSkipAnime(stamp),
                     );
                   },

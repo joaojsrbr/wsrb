@@ -11,19 +11,12 @@ class AnimeSkip {
   final String name;
   final String animeSkipId;
   final List<AnimeTimeStamp> times;
-  const AnimeSkip({
-    required this.name,
-    required this.animeSkipId,
-    this.times = const [],
-  });
+  const AnimeSkip({required this.name, required this.animeSkipId, this.times = const []});
 
   static AnimeSkip fromMapApi(dynamic map) {
     final times = (map['episodes'] as List)
         .map((episode) => MapEntry(episode, episode['timestamps'] as List))
-        .map(
-          (entry) =>
-              entry.value.map((obj) => AnimeTimeStamp.fromMap(entry.key, obj)),
-        )
+        .map((entry) => entry.value.map((obj) => AnimeTimeStamp.fromMap(entry.key, obj)))
         .flattened
         .toList();
 
@@ -42,9 +35,7 @@ class AnimeSkip {
     return AnimeSkip(
       name: map['name'] as String,
       animeSkipId: map['animeSkipId'] as String,
-      times: (map['times'] as List)
-          .map((e) => AnimeTimeStamp.fromMap(e, map))
-          .toList(),
+      times: (map['times'] as List).map((e) => AnimeTimeStamp.fromMap(e, map)).toList(),
     );
   }
 
@@ -105,15 +96,11 @@ class AnimeTimeStamp {
           0,
       id: map['id'] ?? episodeMap['episodeId'],
       episodeId: episodeMap['episodeId'] ?? episodeMap['id'],
-      at:
-          episodeMap['at'] ??
-          (double.parse(map['at'].toString()) * 1000000).toInt(),
+      at: episodeMap['at'] ?? (double.parse(map['at'].toString()) * 1000000).toInt(),
       createdAt: DateTime.parse(episodeMap['createdAt'] ?? map['createdAt']),
-      updatedBy:
-          episodeMap['updatedBy'] ?? map['type']['updatedBy']['username'],
+      updatedBy: episodeMap['updatedBy'] ?? map['type']['updatedBy']['username'],
       updatedAt: DateTime.parse(episodeMap['updatedAt'] ?? map['updatedAt']),
-      createdBy:
-          episodeMap['createdBy'] ?? map['type']['createdBy']['username'],
+      createdBy: episodeMap['createdBy'] ?? map['type']['createdBy']['username'],
       timeStampType: timeStamp ?? AnimeTimeStampType.UNKNOWN,
     );
   }
@@ -128,9 +115,7 @@ class AnimeTimeStamp {
       updatedBy: map['updatedBy'],
       updatedAt: DateTime.parse(map['updatedAt']),
       createdBy: map['createdBy'],
-      timeStampType: AnimeTimeStampType.values.elementAt(
-        map['animeTimeStampType'],
-      ),
+      timeStampType: AnimeTimeStampType.values.elementAt(map['animeTimeStampType']),
     );
   }
 

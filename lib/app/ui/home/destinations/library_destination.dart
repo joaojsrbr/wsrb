@@ -21,9 +21,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
   @override
   bool get wantKeepAlive => true;
 
-  final Debouncer _debouncer = Debouncer(
-    duration: const Duration(milliseconds: 200),
-  );
+  final Debouncer _debouncer = Debouncer(duration: const Duration(milliseconds: 200));
 
   List<List<Content>> _contents = [];
   int? _initialIndex;
@@ -35,19 +33,13 @@ class LibraryeDestinationState extends State<LibraryDestination>
   void initState() {
     super.initState();
 
-    _libraryController = context.read<LibraryController>()
-      ..addListener(_setChildren);
+    _libraryController = context.read<LibraryController>()..addListener(_setChildren);
 
-    _categoryController = context.read<CategoryController>()
-      ..addListener(_setChildren);
+    _categoryController = context.read<CategoryController>()..addListener(_setChildren);
 
     scheduleMicrotask(() {
-      final libraryTabController = HomeScope.of(
-        context,
-      ).subordinateLibraryTabController;
-      final parent = context
-          .findAncestorWidgetOfExactType<PageView>()
-          ?.controller;
+      final libraryTabController = HomeScope.of(context).subordinateLibraryTabController;
+      final parent = context.findAncestorWidgetOfExactType<PageView>()?.controller;
       libraryTabController.setParentController(parent);
     });
 
@@ -96,8 +88,9 @@ class LibraryeDestinationState extends State<LibraryDestination>
     final searchController = HomeScope.of(context).searchController;
     final String text = searchController.text.toLowerCase().trim();
 
-    final SubordinateLibraryTabController subordinateLibraryTabController =
-        HomeScope.of(context).subordinateLibraryTabController;
+    final SubordinateLibraryTabController subordinateLibraryTabController = HomeScope.of(
+      context,
+    ).subordinateLibraryTabController;
     if (text.isEmpty) {
       _debouncer.call(() {
         subordinateLibraryTabController.animateTo(_initialIndex!);
@@ -108,8 +101,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
     }
 
     final index = _contents.indexWhere(
-      (list) =>
-          list.any((content) => content.title.toLowerCase().contains(text)),
+      (list) => list.any((content) => content.title.toLowerCase().contains(text)),
     );
 
     if (index != -1 && index != subordinateLibraryTabController.index) {
@@ -133,8 +125,9 @@ class LibraryeDestinationState extends State<LibraryDestination>
 
     // _setChildren();
     customLog('$widget[build]');
-    final SubordinateLibraryTabController subordinateLibraryTabController =
-        HomeScope.of(context).subordinateLibraryTabController;
+    final SubordinateLibraryTabController subordinateLibraryTabController = HomeScope.of(
+      context,
+    ).subordinateLibraryTabController;
     final searchController = HomeScope.of(context).searchController;
     return NotificationListener<ScrollNotification>(
       onNotification: subordinateLibraryTabController.handleScrollNotification,
@@ -237,12 +230,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: _gridDelegate,
                 shrinkWrap: true,
-                padding: const EdgeInsets.only(
-                  bottom: 40,
-                  left: 8,
-                  right: 8,
-                  top: 12,
-                ),
+                padding: const EdgeInsets.only(bottom: 40, left: 8, right: 8, top: 12),
                 itemBuilder: (context, index) {
                   return ContentTile.library(content: filter.elementAt(index));
                 },

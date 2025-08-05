@@ -15,8 +15,7 @@ class WebViewPage extends StatefulWidget {
   State<WebViewPage> createState() => _WebViewPageState();
 }
 
-class _WebViewPageState extends State<WebViewPage>
-    with SingleTickerProviderStateMixin {
+class _WebViewPageState extends State<WebViewPage> with SingleTickerProviderStateMixin {
   String _url = '';
   // final GlobalKey webViewKey = GlobalKey();
 
@@ -73,9 +72,7 @@ class _WebViewPageState extends State<WebViewPage>
   void handleClick(int item) async {
     switch (item) {
       case 0:
-        await InAppBrowser.openWithSystemBrowser(
-          url: WebUri.uri(Uri.parse(_url)),
-        );
+        await InAppBrowser.openWithSystemBrowser(url: WebUri.uri(Uri.parse(_url)));
         break;
       case 1:
         await InAppWebViewController.clearAllCache();
@@ -146,8 +143,7 @@ class _WebViewPageState extends State<WebViewPage>
               """,
               ),
             ]),
-            onConsoleMessage: (controller, consoleMessage) =>
-                log(consoleMessage.message),
+            onConsoleMessage: (controller, consoleMessage) => log(consoleMessage.message),
             initialUrlRequest: URLRequest(url: WebUri.uri(Uri.parse(_url))),
             onWebViewCreated: (controller) {
               _webViewController = controller;
@@ -191,8 +187,7 @@ class _WebViewPageState extends State<WebViewPage>
 
               final sslCertificate = await controller.getCertificate();
               setState(() {
-                _isSecure =
-                    sslCertificate != null || (url != null && urlIsSecure(url));
+                _isSecure = sslCertificate != null || (url != null && urlIsSecure(url));
               });
             },
             onUpdateVisitedHistory: (controller, url, isReload) {
@@ -288,9 +283,8 @@ class _WebViewPageState extends State<WebViewPage>
               ),
               child: IconButton(
                 icon: Icon(MdiIcons.share),
-                onPressed: () => SharePlus.instance.share(
-                  ShareParams(text: _url, subject: _title),
-                ),
+                onPressed: () =>
+                    SharePlus.instance.share(ShareParams(text: _url, subject: _title)),
               ),
             ),
             IconButton(
@@ -416,10 +410,7 @@ class _AppBarWrapper extends StatelessWidget implements PreferredSizeWidget {
                     Flexible(
                       child: Text(
                         url,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70,
-                        ),
+                        style: const TextStyle(fontSize: 12, color: Colors.white70),
                         overflow: TextOverflow.fade,
                       ),
                     ),

@@ -26,8 +26,7 @@ class DotText extends StatelessWidget {
           child: Container(
             margin: EdgeInsets.only(
               top:
-                  (textStyle?.fontSize ??
-                          DefaultTextStyle.of(context).style.fontSize!) /
+                  (textStyle?.fontSize ?? DefaultTextStyle.of(context).style.fontSize!) /
                       2 -
                   dotSize / 2,
             ),

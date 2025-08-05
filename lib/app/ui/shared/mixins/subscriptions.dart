@@ -12,10 +12,7 @@ mixin SubscriptionsMixin<T extends StatefulWidget> on State<T> {
   }
 }
 
-mixin SubscriptionsByStateArgumentMixin<
-  T extends StatefulWidget,
-  A extends Object
->
+mixin SubscriptionsByStateArgumentMixin<T extends StatefulWidget, A extends Object>
     on StateByArgument<T, A> {
   final Subscriptions subscriptions = Subscriptions();
 

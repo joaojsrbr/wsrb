@@ -22,9 +22,7 @@ void main(List<String> arguments) async {
 
   final ValueNotifierList valueNotifierList = ValueNotifierList();
 
-  final AppConfigController appConfigController = AppConfigController(
-    isarServiceImpl,
-  );
+  final AppConfigController appConfigController = AppConfigController(isarServiceImpl);
 
   final LibraryController libraryController = LibraryController(
     isarServiceImpl,
@@ -32,21 +30,13 @@ void main(List<String> arguments) async {
   );
 
   final GraphQLApiClient graphQLApiClient = GraphQLApiClient();
-  final AnimeSkipRepository animeSkipRepository = AnimeSkipRepository(
-    graphQLApiClient,
-  );
+  final AnimeSkipRepository animeSkipRepository = AnimeSkipRepository(graphQLApiClient);
 
-  final AnimeSkipController animeSkipController = AnimeSkipController(
-    isarServiceImpl,
-  );
+  final AnimeSkipController animeSkipController = AnimeSkipController(isarServiceImpl);
 
-  final HistoricController historicController = HistoricController(
-    isarServiceImpl,
-  );
+  final HistoricController historicController = HistoricController(isarServiceImpl);
 
-  final CategoryController categoryController = CategoryController(
-    isarServiceImpl,
-  );
+  final CategoryController categoryController = CategoryController(isarServiceImpl);
 
   timeago.setLocaleMessages('pt_br', timeago.PtBrMessages());
   timeago.setDefaultLocale('pt_br');
