@@ -68,7 +68,7 @@ final class ReleaseUtils {
     switch ((content, release)) {
       case (Book content, Chapter data):
         await goRouter.push(
-          RouteName.READ,
+          RouteName.READ.route,
           extra: ReadingViewArgs(
             capturedThemes: InheritedTheme.capture(
               from: context,
@@ -84,7 +84,7 @@ final class ReleaseUtils {
         final result = await _fileOrURL(release, releaseFile, context);
         if (result != null) {
           await goRouter.push(
-            RouteName.PLAYER,
+            RouteName.PLAYER.route,
             extra: PlayerArgs(data: result, anime: content, episode: data),
           );
         }

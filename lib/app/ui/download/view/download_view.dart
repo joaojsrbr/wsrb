@@ -343,7 +343,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                                                   );
 
                                               await context.push(
-                                                RouteName.PLAYER,
+                                                RouteName.PLAYER.route,
                                                 extra: PlayerArgs(
                                                   getAnimeData: false,
                                                   forceEnterFullScreen: true,

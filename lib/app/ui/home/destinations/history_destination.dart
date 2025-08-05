@@ -234,7 +234,7 @@ class _HistoryDestinationState extends State<HistoryDestination>
                       episode.toEpisode(anime.isDublado),
                     );
                     await context.push(
-                      RouteName.PLAYER,
+                      RouteName.PLAYER.route,
                       extra: PlayerArgs(
                         forceEnterFullScreen: true,
                         data: videoFile != null ? [FileVideoData(file: videoFile)] : null,
@@ -258,14 +258,15 @@ class _HistoryDestinationState extends State<HistoryDestination>
                             AnimeEntity anime,
                           )) {
                             final result = await context.push(
-                              RouteName.CONTENTINFO,
+                              RouteName.CONTENTINFO.route,
                               extra: ContentInformationArgs(
                                 content: anime.toAnime(),
                                 isLibrary: false,
                               ),
                             );
-                            if (result != null && context.mounted)
+                            if (result != null && context.mounted) {
                               context.showErrorSnackBar(result);
+                            }
                           }
                         },
                         imageUrl: content.imageUrl.isEmpty

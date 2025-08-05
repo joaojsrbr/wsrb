@@ -103,16 +103,17 @@ class ContentTile extends StatelessWidget {
                 !isFromLibrary &&
                 !isFromSearch) {
               await context.push(
-                RouteName.PLAYER,
+                RouteName.PLAYER.route,
                 extra: PlayerArgs(anime: content, episode: content.releases.first),
               );
             } else {
               final result = await context.push(
-                RouteName.CONTENTINFO,
+                RouteName.CONTENTINFO.route,
                 extra: ContentInformationArgs(content: content, isLibrary: isFromLibrary),
               );
-              if (result != null && context.mounted)
+              if (result != null && context.mounted) {
                 await context.showErrorSnackBar(result);
+              }
             }
           },
           splashFactory: InkRipple.splashFactory,
@@ -152,14 +153,15 @@ class ContentTile extends StatelessWidget {
                           return;
                         }
                         final result = await context.push(
-                          RouteName.CONTENTINFO,
+                          RouteName.CONTENTINFO.route,
                           extra: ContentInformationArgs(
                             content: content,
                             isLibrary: isFromLibrary,
                           ),
                         );
-                        if (result != null && context.mounted)
+                        if (result != null && context.mounted) {
                           await context.showErrorSnackBar(result);
+                        }
                       },
                       borderRadius: _radius,
                       alignment: Alignment.center,
@@ -271,19 +273,20 @@ class ContentTile extends StatelessWidget {
                       !isFromLibrary &&
                       !isFromSearch) {
                     await context.push(
-                      RouteName.PLAYER,
+                      RouteName.PLAYER.route,
                       extra: PlayerArgs(anime: content, episode: content.releases.first),
                     );
                   } else {
                     final result = await context.push(
-                      RouteName.CONTENTINFO,
+                      RouteName.CONTENTINFO.route,
                       extra: ContentInformationArgs(
                         content: content,
                         isLibrary: isFromLibrary,
                       ),
                     );
-                    if (result != null && context.mounted)
+                    if (result != null && context.mounted) {
                       await context.showErrorSnackBar(result);
+                    }
                   }
                 },
                 onLongPress: isFromSearch
@@ -301,11 +304,12 @@ class ContentTile extends StatelessWidget {
                   onPressed: valueNotifierList.isEmpty
                       ? () async {
                           final result = await context.push(
-                            RouteName.CONTENTINFO,
+                            RouteName.CONTENTINFO.route,
                             extra: ContentInformationArgs(content: content),
                           );
-                          if (result != null && context.mounted)
+                          if (result != null && context.mounted) {
                             await context.showErrorSnackBar(result);
+                          }
                         }
                       : null,
                 ),

@@ -29,7 +29,7 @@ class _ContentDestinationState extends State<ContentDestination>
     final value = _contentRepository.contentChallenge.value;
     switch (value) {
       case BetterAnimeChallenge data:
-        await context.push(RouteName.WEBVIEW, extra: data);
+        await context.push(RouteName.WEBVIEW.route, extra: data);
       default:
     }
   }

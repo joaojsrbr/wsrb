@@ -3,37 +3,44 @@ cls
 echo ===== Iniciando build APK Flutter (Production - Release - Split per ABI) =====
 
 :: Compila o APK com flavor Production, em modo release, dividindo por ABI
-call puro flutter build apk --flavor Production --release --split-per-abi
+call flutter build apk --flavor Production --release --split-per-abi
 IF ERRORLEVEL 1 (
     echo [ERRO] Falha ao compilar o APK.
     pause
     exit /b 1
 )
 
-echo ===== Build concluído com sucesso =====
 echo.
+echo ===== Build concluído com sucesso =====
 
-:: Define o caminho do APK gerado
-set APK_PATH= ../build/app/outputs/flutter-apk/app-arm64-v8a-production-release.apk
-set ALT_APK_PATH= build/app/outputs/flutter-apk/app-arm64-v8a-production-release.apk
+:: Define caminho original do APK gerado (mais comum: arm64-v8a)
+set ORIGINAL_APK=build\app\outputs\flutter-apk\app-arm64-v8a-production-release.apk
 
-:: Tenta instalar o APK pelo caminho alternativo primeiro
-echo Tentando instalar APK pelo caminho: %ALT_APK_PATH%
-call adb install %ALT_APK_PATH%
+:: Pergunta onde salvar o APK
+set /p DEST_FOLDER=Digite o caminho absoluto da pasta onde deseja salvar o APK (sem aspas): 
+
+:: Cria pasta se não existir
+if not exist "%DEST_FOLDER%" (
+    mkdir "%DEST_FOLDER%"
+)
+
+:: Copia o APK para a pasta escolhida
+copy /Y "%ORIGINAL_APK%" "%DEST_FOLDER%\app-production-release.apk"
 IF ERRORLEVEL 1 (
-    echo [AVISO] Falha ao instalar pelo caminho alternativo. Tentando caminho padrão...
+    echo [ERRO] Falha ao copiar o APK para a pasta destino.
+    pause
+    exit /b 1
+)
 
-    :: Tenta o caminho padrão se o primeiro falhar
-    call adb install %APK_PATH%
-    IF ERRORLEVEL 1 (
-        echo [ERRO] Falha ao instalar o APK com ambos os caminhos.
-        pause
-        exit /b 1
-    ) ELSE (
-        echo [SUCESSO] APK instalado com sucesso pelo caminho padrão.
-    )
+:: Instala o APK copiado
+echo Instalando APK: %DEST_FOLDER%\app-production-release.apk
+call adb install -r "%DEST_FOLDER%\app-production-release.apk"
+IF ERRORLEVEL 1 (
+    echo [ERRO] Falha ao instalar o APK.
+    pause
+    exit /b 1
 ) ELSE (
-    echo [SUCESSO] APK instalado com sucesso pelo caminho alternativo.
+    echo [SUCESSO] APK instalado com sucesso!
 )
 
 echo.

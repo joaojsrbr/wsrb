@@ -10,8 +10,6 @@ extension StringExtensions on String {
     return null;
   }
 
-  String get subRouter => replaceFirst('/', '');
-
   String get removerDiacriticos {
     final list = split('');
 

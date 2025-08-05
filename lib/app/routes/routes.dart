@@ -7,27 +7,32 @@ import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/settings/view/settings_view.dart';
 import 'package:app_wsrb_jsr/app/ui/webview/view/webview_view.dart';
-import 'package:content_library/content_library.dart';
 import 'package:go_router/go_router.dart';
 
-class RouteName {
-  const RouteName._();
-  static const String HOME = '/';
-  static const String CONTENTINFO = '/contentInfo';
-  static const String READ = '/read';
-  static const String PLAYER = '/player';
-  static const String DOWNLOAD = '/downloadView';
-  static const String SETTINGS = '/settings';
-  static const String WEBVIEW = '/webview';
-  // static const TEST = '/test';
+enum RouteName {
+  HOME("/"),
+  CONTENTINFO("content_info"),
+  READ("read"),
+  PLAYER("player"),
+  DOWNLOAD("download_view"),
+  SETTINGS("settings"),
+  WEBVIEW("webview");
+
+  final String route;
+  const RouteName(this.route);
+
+  String get subRouter => route.replaceFirst('/', '');
+
+  @override
+  String toString() => route;
 }
 
 final appRoutes = GoRouter(
   // restorationScopeId: 'router',
-  initialLocation: RouteName.HOME,
+  initialLocation: RouteName.HOME.route,
   routes: [
     GoRoute(
-      path: RouteName.HOME,
+      path: RouteName.HOME.route,
       pageBuilder: (context, state) {
         return SharedAxisTransitionPageWrapper(
           // restorationId: 'router.home',
@@ -40,9 +45,6 @@ final appRoutes = GoRouter(
           path: RouteName.CONTENTINFO.subRouter,
           pageBuilder: (context, state) {
             return SharedAxisTransitionPageWrapper(
-              // restorationId: 'router.content_info',
-              reverseTransitionDuration: const Duration(milliseconds: 850),
-              transitionDuratio: const Duration(milliseconds: 850),
               arguments: state.extra,
               transitionKey: state.pageKey,
               screen: const RefContentInformationView(),
@@ -53,9 +55,6 @@ final appRoutes = GoRouter(
           path: RouteName.SETTINGS.subRouter,
           pageBuilder: (context, state) {
             return SharedAxisTransitionPageWrapper(
-              // restorationId: 'router.content_info',
-              reverseTransitionDuration: const Duration(milliseconds: 850),
-              transitionDuratio: const Duration(milliseconds: 850),
               arguments: state.extra,
               transitionKey: state.pageKey,
               screen: const SettingsView(),
@@ -73,7 +72,7 @@ final appRoutes = GoRouter(
             );
           },
         ),
-        // !TODO descomentar se for usar
+        // ! descomentar se for usar
         // GoRoute(
         //   path: RouteName.READ.subRouter,
         //   pageBuilder: (context, state) {
@@ -99,8 +98,6 @@ final appRoutes = GoRouter(
           path: RouteName.WEBVIEW.subRouter,
           pageBuilder: (context, state) {
             return SharedAxisTransitionPageWrapper(
-              reverseTransitionDuration: const Duration(milliseconds: 850),
-              transitionDuratio: const Duration(milliseconds: 850),
               transitionKey: state.pageKey,
               arguments: state.extra,
               screen: const WebViewPage(),

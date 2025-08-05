@@ -43,6 +43,7 @@ app.*.map.json
 /pubspec.lock
 
 /video_downloader
+/apks
 
 # Android Studio will place build artifacts here
 /android/app/debug

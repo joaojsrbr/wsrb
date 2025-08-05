@@ -64,7 +64,7 @@ class HomeSliverAppBar extends StatelessWidget {
                 visualDensity: const VisualDensity(horizontal: -4),
                 onPressed: () async {
                   if (await PermissionUtils.manageExternalStorage() && context.mounted) {
-                    context.push(RouteName.DOWNLOAD);
+                    context.push(RouteName.DOWNLOAD.route);
                   }
                 },
                 icon: Icon(MdiIcons.downloadBox),
@@ -95,7 +95,7 @@ class HomeSliverAppBar extends StatelessWidget {
           child: IconButton(
             visualDensity: const VisualDensity(horizontal: -4),
             onPressed: () {
-              context.push(RouteName.SETTINGS);
+              context.push(RouteName.SETTINGS.route);
             },
             icon: Icon(MdiIcons.cog),
           ),

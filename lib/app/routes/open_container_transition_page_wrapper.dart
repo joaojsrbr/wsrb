@@ -1,10 +1,9 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:animations/animations.dart';
+import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
-
-import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:provider/provider.dart';
 
 class OpenContainerController extends ChangeNotifier {
@@ -88,7 +87,7 @@ class _OpenContainerWidgetWrapperState<T> extends State<OpenContainerWidgetWrapp
     final openController = context.read<OpenContainerController>();
     openController.activeOpenContainer = true;
     final result = await context.push<T>(
-      RouteName.CONTENTINFO,
+      RouteName.CONTENTINFO.toString(),
       extra: OpenContainerWidgetArgs(
         arguments: widget.arguments,
         widgetContext: _hideableKey.currentContext!,
