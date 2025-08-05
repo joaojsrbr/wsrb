@@ -9,8 +9,6 @@ export 'package:dio/dio.dart';
 export 'package:loading_more_list/loading_more_list.dart';
 export 'package:path_provider/path_provider.dart';
 
-// export 'package:workmanager/workmanager.dart';
-
 export 'src/constants/app.dart';
 export 'src/constants/order.dart';
 export 'src/constants/source.dart';
@@ -47,8 +45,6 @@ export 'src/models/data.dart';
 export 'src/models/episode.dart';
 export 'src/models/genre.dart';
 export 'src/models/release.dart';
-// export 'src/loading_more_list_library.dart';
-
 export 'src/repository/content_repository.dart'
     show ContentRepository, NoChallenge, ContentChallenge, BetterAnimeChallenge;
 export 'src/services/anroll_login_service.dart';
