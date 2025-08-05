@@ -23,10 +23,29 @@ abstract class ContentEntity implements Entity {
   final AniListMedia? anilistMedia;
   final Source source;
   final bool isFavorite;
+  final String title;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final String url;
+  final String? sinopse;
 
-  ContentEntity({required this.stringID, this.anilistMedia, required this.source, required this.isFavorite}) : super();
+  String get imageUrl;
+
+  ContentEntity({
+    required this.title,
+    required this.stringID,
+    required this.url,
+    required this.source,
+    required this.isFavorite,
+    this.anilistMedia,
+    this.sinopse,
+    this.createdAt,
+    this.updatedAt,
+  }) : super();
 
   ContentEntity copyWith({AniListMedia? anilistMedia, bool? isFavorite});
+
+  bool contains(ContentEntity other) => other.stringID.contains(stringID);
 
   @override
   Id id = Isar.autoIncrement;
@@ -35,20 +54,41 @@ abstract class ContentEntity implements Entity {
   bool? get stringify => true;
 }
 
-abstract class HistoryEntity implements Entity, Comparable<HistoryEntity> {
-  double get percent;
-  bool get isComplete;
+abstract class HistoricEntity implements Entity, Comparable<HistoricEntity> {
+  final double percent;
+  final bool isComplete;
+  final String title;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final String url;
+  final List<CurrentPosition> positions;
+  final String? thumbnail;
 
   double getPercent() {
     if (isComplete) return 1.0;
     return percent.isNaN ? 0.0 : percent;
   }
 
+  HistoricEntity({
+    required this.url,
+    required this.title,
+    this.thumbnail,
+    this.createdAt,
+    this.updatedAt,
+    this.isComplete = false,
+    this.percent = 0.0,
+    this.positions = const [],
+  });
+
   Color completeColor(ColorScheme scheme) => Colors.white;
+
+  bool contains(HistoricEntity other) => other.id == id;
 
   @override
   Id id = Isar.autoIncrement;
 
   @override
   bool? get stringify => true;
+
+  HistoricEntity copyWith({List<CurrentPosition>? positions, DateTime? createdAt, DateTime? updatedAt});
 }

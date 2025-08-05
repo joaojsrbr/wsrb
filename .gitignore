@@ -31,7 +31,9 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/video_downloader
 scripts/view.bat
+scripts/emulator.bat
 
 # Symbolication related
 app.*.symbols

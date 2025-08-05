@@ -1,98 +1,81 @@
 import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 
+/// A utility class for showing snackbars.
+///
+/// This class provides static methods to display themed snackbars using the
+/// `another_flushbar` package.
 class AppSnackBar {
-  const AppSnackBar(this._context);
+  // Private constructor to prevent instantiation.
+  const AppSnackBar._();
 
-  final BuildContext _context;
-  // ignore: library_private_types_in_public_api
-  _SnackbarDefaultsM3 get theme => _SnackbarDefaultsM3(_context);
-
-  Future<void> onError(Object object) async {
-    await show(
-      flushbarPosition: FlushbarPosition.TOP,
-      Text(object.toString().trim()),
-    );
-  }
-
-  Future<void> show(
+  /// Displays a general-purpose snackbar.
+  ///
+  /// The snackbar is styled based on the application's [ThemeData].
+  static Future<void> show(
+    BuildContext context,
     Widget content, {
     FlushbarPosition flushbarPosition = FlushbarPosition.BOTTOM,
     FlushbarStyle flushbarStyle = FlushbarStyle.GROUNDED,
-    Duration duration = const Duration(seconds: 1),
+    Duration duration = const Duration(seconds: 2),
   }) async {
+    if (!context.mounted) return;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final snackBarTheme = theme.snackBarTheme;
+
+    // Use SnackBarThemeData if available, otherwise M3-like defaults.
+    final backgroundColor =
+        snackBarTheme.backgroundColor ?? Color.lerp(colorScheme.surface, colorScheme.primary, 0.08)!;
+
+    // For a tinted surface background, `onSurface` provides better contrast.
+    final textStyle =
+        snackBarTheme.contentTextStyle ?? theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface);
+
     await Flushbar(
-      backgroundColor: theme.backgroundColor,
+      backgroundColor: backgroundColor,
       flushbarPosition: flushbarPosition,
       duration: duration,
       flushbarStyle: flushbarStyle,
-      messageText: content,
-    ).show(_context);
+      messageText: DefaultTextStyle(style: textStyle!, child: content),
+    ).show(context);
+  }
+
+  /// Displays an error snackbar.
+  ///
+  /// The snackbar is styled with error colors from the application's theme
+  /// and is typically shown at the top of the screen.
+  static Future<void> onError(BuildContext context, Object error) async {
+    if (!context.mounted) return;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    await Flushbar(
+      backgroundColor: colorScheme.errorContainer,
+      flushbarPosition: FlushbarPosition.TOP,
+      duration: const Duration(seconds: 4), // Longer duration for errors
+      flushbarStyle: FlushbarStyle.GROUNDED,
+      messageText: Text(error.toString().trim(), style: TextStyle(color: colorScheme.onErrorContainer)),
+    ).show(context);
   }
 }
 
-extension BuildContextExtensions on BuildContext {
-  AppSnackBar get appSnackBar => AppSnackBar(this);
-}
+/// Extension on [BuildContext] to provide easy access to [AppSnackBar] methods.
+extension AppSnackBarBuildContextExtensions on BuildContext {
+  /// Shows a general-purpose snackbar.
+  Future<void> showAppSnackBar(
+    Widget content, {
+    FlushbarPosition flushbarPosition = FlushbarPosition.BOTTOM,
+    FlushbarStyle flushbarStyle = FlushbarStyle.GROUNDED,
+    Duration duration = const Duration(seconds: 4),
+  }) => AppSnackBar.show(
+    this,
+    content,
+    flushbarPosition: flushbarPosition,
+    flushbarStyle: flushbarStyle,
+    duration: duration,
+  );
 
-class _SnackbarDefaultsM3 extends SnackBarThemeData {
-  _SnackbarDefaultsM3(this.context);
-
-  final BuildContext context;
-  late final ThemeData _theme = Theme.of(context);
-  late final ColorScheme _colors = _theme.colorScheme;
-
-  @override
-  Color get backgroundColor =>
-      Color.lerp(_colors.surface, _colors.primary, 0.08)!;
-
-  @override
-  Color get actionTextColor =>
-      WidgetStateColor.resolveWith((Set<WidgetState> states) {
-        if (states.contains(WidgetState.disabled)) {
-          return _colors.inversePrimary;
-        }
-        if (states.contains(WidgetState.pressed)) {
-          return _colors.inversePrimary;
-        }
-        if (states.contains(WidgetState.hovered)) {
-          return _colors.inversePrimary;
-        }
-        if (states.contains(WidgetState.focused)) {
-          return _colors.inversePrimary;
-        }
-        return _colors.inversePrimary;
-      });
-
-  @override
-  Color get disabledActionTextColor => _colors.inversePrimary;
-
-  @override
-  TextStyle get contentTextStyle =>
-      Theme.of(context).textTheme.bodyMedium!.copyWith(
-            color: _colors.onInverseSurface,
-          );
-
-  @override
-  double get elevation => 6.0;
-
-  @override
-  ShapeBorder get shape => const RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(4.0)));
-
-  @override
-  SnackBarBehavior get behavior => SnackBarBehavior.fixed;
-
-  @override
-  EdgeInsets get insetPadding =>
-      const EdgeInsets.fromLTRB(15.0, 5.0, 15.0, 10.0);
-
-  @override
-  bool get showCloseIcon => false;
-
-  @override
-  Color? get closeIconColor => _colors.onInverseSurface;
-
-  @override
-  double get actionOverflowThreshold => 0.25;
+  /// Shows an error snackbar.
+  Future<void> showErrorSnackBar(Object error) => AppSnackBar.onError(this, error);
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:content_library/content_library.dart';
 import 'package:content_library/src/repository/app_config_repository.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +11,8 @@ class AppConfigController extends ChangeNotifier {
 
   final Subscriptions _subscriptions = Subscriptions();
 
-  void Function()? orderOrSourceUpdate;
+  final StreamController<AppConfigController> _updateController = StreamController.broadcast();
+  Stream<AppConfigController> get update => _updateController.stream;
 
   AppConfigController(this._isarService) {
     _repository = AppConfigRepository();
@@ -36,14 +39,19 @@ class AppConfigController extends ChangeNotifier {
     if (value == repo.config.orderBy) return;
     repo.updateConfig((config) => config.copyWith(orderBy: value));
     await _addConfig();
-    orderOrSourceUpdate?.call();
+    _updateController.add(this);
   }
 
   Future<void> setSource(Source value) async {
     if (value == repo.config.source) return;
     repo.updateConfig((config) => config.copyWith(source: value));
     await _addConfig();
-    orderOrSourceUpdate?.call();
+    _updateController.add(this);
+  }
+
+  Future<void> setBetterAnimeCookies(List<ContentCookie> values) async {
+    repo.updateConfig((config) => config.copyWith(betterAnimeCookies: values));
+    await _addConfig();
   }
 
   Future<void> setReverseContents(bool value) async {
@@ -53,7 +61,6 @@ class AppConfigController extends ChangeNotifier {
   }
 
   Future<void> setFilterWatching(FilterWatching value) async {
-    if (value == repo.config.filterWatching) return;
     repo.updateConfig((config) => config.copyWith(filterWatching: value));
     await _addConfig();
   }

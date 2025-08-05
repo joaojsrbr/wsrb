@@ -13,17 +13,7 @@ part 'book_entity.g.dart';
 
 @Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toBook', 'map'})
 class BookEntity extends ContentEntity {
-  final String title;
-  final String url;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-
-  @override
-  @enumerated
-  Source get source => super.source;
-  final String? sinopse;
   final String? alternativeTitle;
-
   final String originalImage;
   final String? extraLarge;
   final String? largeImage;
@@ -31,16 +21,20 @@ class BookEntity extends ContentEntity {
 
   IsarLinks<ChapterEntity> chapters = IsarLinks<ChapterEntity>();
 
+  @override
+  @enumerated
+  Source get source => super.source;
+
   BookEntity({
     required super.stringID,
-    required this.title,
-    required this.url,
+    required super.title,
+    required super.url,
     required super.source,
     required this.originalImage,
-    this.createdAt,
+    super.createdAt,
     super.anilistMedia,
-    this.sinopse,
-    this.updatedAt,
+    super.sinopse,
+    super.updatedAt,
     this.alternativeTitle,
     this.extraLarge,
     this.largeImage,
@@ -48,6 +42,7 @@ class BookEntity extends ContentEntity {
     super.isFavorite = false,
   });
 
+  @override
   String get imageUrl => extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   @override

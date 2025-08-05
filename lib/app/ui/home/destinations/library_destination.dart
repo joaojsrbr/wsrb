@@ -38,8 +38,8 @@ class LibraryeDestinationState extends State<LibraryDestination> with AutomaticK
 
     scheduleMicrotask(() {
       final libraryTabController = HomeScope.of(context).subordinateLibraryTabController;
-
-      libraryTabController.parent(context);
+      final parent = context.findAncestorWidgetOfExactType<PageView>()?.controller;
+      libraryTabController.setParentController(parent);
     });
 
     _setChildren();
@@ -73,7 +73,7 @@ class LibraryeDestinationState extends State<LibraryDestination> with AutomaticK
 
     searchController.removeListener(_searchControllerListener);
 
-    if (tabController.index == 1) {
+    if (tabController.index == 2) {
       searchController.addListener(_searchControllerListener);
     }
 
@@ -224,7 +224,7 @@ class LibraryeDestinationState extends State<LibraryDestination> with AutomaticK
                 shrinkWrap: true,
                 padding: const EdgeInsets.only(bottom: 40, left: 8, right: 8, top: 12),
                 itemBuilder: (context, index) {
-                  return ItemContent.library(content: filter.elementAt(index));
+                  return ContentTile.library(content: filter.elementAt(index));
                 },
               );
             }).toList(),

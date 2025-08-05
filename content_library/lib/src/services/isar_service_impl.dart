@@ -83,7 +83,7 @@ class IsarServiceImpl implements IsarService {
           break;
         case ContentEntity():
         //! abstract class
-        case HistoryEntity():
+        case HistoricEntity():
         //! abstract class
         case OtherEntity():
         //! abstract class
@@ -125,7 +125,7 @@ class IsarServiceImpl implements IsarService {
               break;
             case ContentEntity():
             //! abstract class
-            case HistoryEntity():
+            case HistoricEntity():
             //! abstract class
             case OtherEntity():
             //! abstract class

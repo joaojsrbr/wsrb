@@ -1,29 +1,33 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 
 class SubordinateLibraryTabController extends TabController {
   SubordinateLibraryTabController({
     required super.vsync,
-    super.initialIndex,
     required super.length,
-  });
+    super.initialIndex,
+    PageController? parentPageController,
+  }) {
+    _parent = parentPageController;
+    _parent?.addListener(_pageListener);
+  }
 
   PageController? _parent;
 
-  void parent(BuildContext context) {
-    if (context.mounted) {
-      _parent?.removeListener(_pageListener);
-      _parent = context.findAncestorWidgetOfExactType<PageView>()?.controller;
-      _parent?.addListener(_pageListener);
-    }
+  /// Atualiza o PageController pai (chamar no initState se mudar dinamicamente)
+  void setParentController(PageController? controller) {
+    _parent?.removeListener(_pageListener);
+    _parent = controller;
+    _parent?.addListener(_pageListener);
   }
 
   void _pageListener() {
-    setIgnorePointer(false);
+    // Aqui você pode responder ao scroll da PageView
+    // customLog('Page position: ${_parent?.page}');
+    _setIgnorePointer(false);
   }
 
-  void setIgnorePointer([bool active = true]) {
-    _parent?.position.context.setIgnorePointer(active);
+  void _setIgnorePointer([bool value = false]) {
+    _parent?.position.context.setIgnorePointer(value);
   }
 
   bool handleScrollNotification(ScrollNotification notification) {
@@ -31,22 +35,26 @@ class SubordinateLibraryTabController extends TabController {
     final axisDirection = notification.metrics.axisDirection;
 
     if (verticalDirections.contains(axisDirection)) {
-      setIgnorePointer(false);
+      _setIgnorePointer(false);
       return false;
     }
 
-    if (notification is ScrollUpdateNotification) {
-      setIgnorePointer(false);
-    } else if (notification is OverscrollNotification) {
-      final metrics = notification.metrics;
-      final pixels = metrics.pixels.roundToDouble();
-      final maxScrollExtent = metrics.maxScrollExtent.roundToDouble();
-      final minScrollExtent = metrics.minScrollExtent;
+    switch (notification) {
+      case ScrollUpdateNotification():
+        _setIgnorePointer(false);
+        break;
+      case OverscrollNotification():
+        final metrics = notification.metrics;
+        final pixels = metrics.pixels.roundToDouble();
+        final maxScrollExtent = metrics.maxScrollExtent.roundToDouble();
+        final minScrollExtent = metrics.minScrollExtent.roundToDouble();
 
-      if (pixels == minScrollExtent || pixels == maxScrollExtent) {
-        setIgnorePointer(true);
-      }
+        if (pixels == minScrollExtent || pixels == maxScrollExtent) {
+          _setIgnorePointer(true);
+        }
+        break;
     }
+
     return false;
   }
 
@@ -56,76 +64,60 @@ class SubordinateLibraryTabController extends TabController {
     super.dispose();
   }
 
-  SubordinateLibraryTabController copyWithAndDispose({
-    int? currentIndex,
-    int? length,
-    int? initialIndex,
-    required TickerProvider vsync,
-  }) {
-    final newTabController = SubordinateLibraryTabController(
+  /// Cria uma nova instância com estado preservado e descarta a atual
+  SubordinateLibraryTabController copyWithAndDispose({required TickerProvider vsync, int? length, int? initialIndex}) {
+    final newController = SubordinateLibraryTabController(
       vsync: vsync,
       length: length ?? this.length,
       initialIndex: initialIndex ?? index,
+      parentPageController: _parent,
     );
-
-    newTabController._parent = _parent;
-
     dispose();
-    return newTabController;
+    return newController;
   }
 }
 
 class SubordinateScrollController extends ScrollController {
-  SubordinateScrollController(
-    this.parent, {
-    String subordinateDebugLabel = 'subordinate',
-  }) : super(
-          debugLabel: parent.debugLabel == null
-              ? null
-              : '${parent.debugLabel}/$subordinateDebugLabel',
-          initialScrollOffset: parent.initialScrollOffset,
-          keepScrollOffset: parent.keepScrollOffset,
-        );
-  final ScrollController parent;
+  SubordinateScrollController(this._parent, {String? subordinateDebugLabel})
+    : super(
+        initialScrollOffset: _parent.initialScrollOffset,
+        keepScrollOffset: _parent.keepScrollOffset,
+        debugLabel: subordinateDebugLabel != null ? '${_parent.debugLabel}/$subordinateDebugLabel' : _parent.debugLabel,
+      );
 
-  @override
-  ScrollPosition createScrollPosition(
-    ScrollPhysics physics,
-    ScrollContext context,
-    ScrollPosition? oldPosition,
-  ) =>
-      parent.createScrollPosition(physics, context, oldPosition);
+  final ScrollController _parent;
 
   @override
   void attach(ScrollPosition position) {
     super.attach(position);
-    parent.attach(position);
+    if (!_parent.positions.contains(position)) {
+      _parent.attach(position);
+    }
   }
 
   @override
   void detach(ScrollPosition position) {
-    parent.detach(position);
+    if (_parent.positions.contains(position)) {
+      _parent.detach(position);
+    }
     super.detach(position);
   }
 
   @override
   void dispose() {
-    for (final position in positions) {
-      parent.detach(position);
-    }
-
+    // Importante: não chamamos parent.dispose() aqui.
     super.dispose();
   }
 
   @override
   void addListener(VoidCallback listener) {
-    parent.addListener(listener);
+    _parent.addListener(listener);
     super.addListener(listener);
   }
 
   @override
   void removeListener(VoidCallback listener) {
-    parent.removeListener(listener);
+    _parent.removeListener(listener);
     super.removeListener(listener);
   }
 }

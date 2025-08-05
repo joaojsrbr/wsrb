@@ -7,8 +7,7 @@ class _DioStatus extends dio.Interceptor {
   Stopwatch? _stopwatch;
 
   @override
-  void onRequest(
-      dio.RequestOptions options, dio.RequestInterceptorHandler handler) {
+  void onRequest(dio.RequestOptions options, dio.RequestInterceptorHandler handler) {
     _stopwatch = Stopwatch()..start();
     final message = 'REQUEST[${options.method}] => PATH: ${options.path}';
     customLog(message);
@@ -17,13 +16,11 @@ class _DioStatus extends dio.Interceptor {
   }
 
   @override
-  void onResponse(
-      dio.Response response, dio.ResponseInterceptorHandler handler) {
+  void onResponse(dio.Response response, dio.ResponseInterceptorHandler handler) {
     _stopwatch?.stop();
 
     final requestDuration = _stopwatch?.elapsed;
-    String message =
-        'RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}';
+    String message = 'RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}';
 
     if (requestDuration != null) {
       message =
@@ -35,29 +32,22 @@ class _DioStatus extends dio.Interceptor {
     return super.onResponse(response, handler);
   }
 
-  String _format(Duration d) =>
-      d.toString().split('.').first.padLeft(8, "0").replaceFirst("00:", "");
+  String _format(Duration d) => d.toString().split('.').first.padLeft(8, "0").replaceFirst("00:", "");
 
   @override
   void onError(dio.DioException err, dio.ErrorInterceptorHandler handler) {
-    customLog(
-      'ERROR[${err.runtimeType}]: ${err.message}',
-      stackTrace: err.stackTrace,
-    );
+    customLog('ERROR[${err.runtimeType}]: ${err.message}', stackTrace: err.stackTrace);
     super.onError(err, handler);
   }
 }
 
-class DioClient
-    implements IHttpService<dio.ResponseType, dio.Response, dio.Interceptor> {
+class DioClient implements IHttpService<dio.ResponseType, dio.Response, dio.Interceptor> {
   late final dio.Dio _dio;
 
   dio.Dio get client => _dio;
 
   DioClient._internal([dio.BaseOptions? options]) {
-    _dio = dio.Dio(
-      options,
-    );
+    _dio = dio.Dio(options);
     addInterceptor(_DefaultAppHeadersInterceptor());
     addInterceptor(_DioStatus());
   }
@@ -90,8 +80,7 @@ class DioClient
     interceptors.add(interceptor);
   }
 
-  factory DioClient.createInstance([dio.BaseOptions? options]) =>
-      DioClient._internal(options);
+  factory DioClient.createInstance([dio.BaseOptions? options]) => DioClient._internal(options);
 
   factory DioClient() => _instance;
 
@@ -109,10 +98,7 @@ class DioClient
       url,
       data: data,
       queryParameters: queryParameters,
-      options: dio.Options(
-        headers: headers,
-        responseType: responseType,
-      ),
+      options: dio.Options(headers: headers, responseType: responseType),
     );
   }
 
@@ -126,10 +112,7 @@ class DioClient
     return await _dio.get(
       url,
       queryParameters: queryParameters,
-      options: dio.Options(
-        headers: headers,
-        responseType: responseType,
-      ),
+      options: dio.Options(headers: headers, responseType: responseType),
     );
   }
 
@@ -146,10 +129,7 @@ class DioClient
       url,
       data: data,
       queryParameters: queryParameters,
-      options: dio.Options(
-        headers: headers,
-        responseType: responseType,
-      ),
+      options: dio.Options(headers: headers, responseType: responseType),
     );
   }
 
@@ -166,10 +146,7 @@ class DioClient
       url,
       data: data,
       queryParameters: queryParameters,
-      options: dio.Options(
-        headers: headers,
-        responseType: responseType,
-      ),
+      options: dio.Options(headers: headers, responseType: responseType),
     );
   }
 
@@ -186,10 +163,7 @@ class DioClient
       url,
       data: data,
       queryParameters: queryParameters,
-      options: dio.Options(
-        headers: headers,
-        responseType: responseType,
-      ),
+      options: dio.Options(headers: headers, responseType: responseType),
     );
   }
 
@@ -207,11 +181,7 @@ class DioClient
       url,
       data: data,
       queryParameters: queryParameters,
-      options: dio.Options(
-        method: method,
-        headers: headers,
-        responseType: responseType,
-      ),
+      options: dio.Options(method: method, headers: headers, responseType: responseType),
     );
   }
 
@@ -221,8 +191,7 @@ class DioClient
 
 class _DefaultAppHeadersInterceptor extends dio.Interceptor {
   @override
-  void onRequest(
-      dio.RequestOptions options, dio.RequestInterceptorHandler handler) {
+  void onRequest(dio.RequestOptions options, dio.RequestInterceptorHandler handler) {
     options.headers.addEntries(App.HEADERS.entries);
     super.onRequest(options, handler);
   }

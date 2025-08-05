@@ -45,70 +45,13 @@ class Book extends Content {
   ChapterReleases get releases => super.releases as ChapterReleases;
 
   @override
-  String get imageUrl =>
-      extraLarge ?? largeImage ?? mediumImage ?? originalImage;
+  String get imageUrl => extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   bool get searchNewImage {
     if ([extraLarge, largeImage, mediumImage].contains(null)) {
       return true;
     }
     return false;
-  }
-
-  @override
-  Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'class': 'BOOK',
-        "stringID": stringID,
-        "source": source,
-        "bookId": bookId,
-        "nsfw": nsfw,
-        "slugId": slugId,
-        "originalImage": originalImage,
-        "genres": genres,
-        "alternativeTitle": alternativeTitle,
-        "extraLarge": extraLarge,
-        "type": type,
-        "authors": authors,
-        "score": score,
-        "status": status,
-        "largeImage": largeImage,
-        "mediumImage": mediumImage,
-        "artists": artists,
-      };
-
-  factory Book.fromMap(Map<String, dynamic> map) {
-    return Book(
-      anilistMedia: map['anilistMedia'] != null
-          ? AniListMedia.fromJson(map['anilistMedia'])
-          : null,
-      title: map['title'],
-      bookId: map['bookId'],
-      nsfw: map['nsfw'],
-      slugId: map['slugId'],
-      cached: map['cached'] ?? false,
-      releases: map['releases'] is ChapterReleases
-          ? map['releases']
-          : ChapterReleases.from(
-              (map['releases'] as List).map((e) => Chapter.fromMap(e)),
-            ),
-      source: map['source'],
-      originalImage: map['originalImage'],
-      url: map['url'],
-      genres: map['genres'] != null
-          ? (map['genres'] as List).map((e) => Genre(e)).toList()
-          : [],
-      alternativeTitle: map['alternativeTitle'],
-      sinopse: map['sinopse'],
-      extraLarge: map['extraLarge'],
-      type: map['type'],
-      authors: map['authors'],
-      score: map['score'],
-      status: map['status'],
-      largeImage: map['largeImage'],
-      mediumImage: map['mediumImage'],
-      artists: map['artists'],
-    );
   }
 
   @override
@@ -161,11 +104,7 @@ class Book extends Content {
   }
 
   @override
-  BookEntity toEntity({
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    bool isFavorite = false,
-  }) {
+  BookEntity toEntity({DateTime? createdAt, DateTime? updatedAt, bool isFavorite = false}) {
     final book = BookEntity(
       sinopse: sinopse,
       anilistMedia: anilistMedia,
@@ -183,15 +122,7 @@ class Book extends Content {
       source: source,
     );
 
-    book.chapters.addAll(
-      releases.map(
-        (chapter) => chapter.toEntity(
-          0.0,
-          createdAt,
-          updatedAt,
-        ),
-      ),
-    );
+    book.chapters.addAll(releases.map((chapter) => chapter.toEntity(0.0, createdAt, updatedAt)));
 
     return book;
   }

@@ -50,7 +50,8 @@ export 'src/models/genre.dart';
 export 'src/models/release.dart';
 // export 'src/loading_more_list_library.dart';
 
-export 'src/repository/content_repository.dart' show ContentRepository;
+export 'src/repository/content_repository.dart'
+    show ContentRepository, NoChallenge, ContentChallenge, BetterAnimeChallenge;
 export 'src/services/anroll_login_service.dart';
 export 'src/services/category_controller.dart';
 export 'src/services/dio_client.dart';

@@ -1,8 +1,6 @@
 class AnimeGetDataException implements Exception {
   String message = "A instancia content precisa ser do tipo Anime";
-  AnimeGetDataException({
-    String? message,
-  }) {
+  AnimeGetDataException({String? message}) {
     if (message != null) this.message = message;
   }
 
@@ -11,8 +9,29 @@ class AnimeGetDataException implements Exception {
 }
 
 class AnrollGetIdException implements Exception {
-  final String message =
-      'Erro ao conseguir o BUILD ID responsavel pela aquisição posterior';
+  final String message = 'Erro ao conseguir o BUILD ID responsavel pela aquisição posterior';
+
+  @override
+  String toString() => message;
+}
+
+class LoadDataException implements Exception {
+  String message = '';
+
+  LoadDataException({String? message}) {
+    if (message != null) this.message = message;
+  }
+
+  @override
+  String toString() => message;
+}
+
+class GetDataException implements Exception {
+  String message = '';
+
+  GetDataException({String? message}) {
+    if (message != null) this.message = message;
+  }
 
   @override
   String toString() => message;

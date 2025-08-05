@@ -7,7 +7,7 @@ class PlayerArgs with EquatableMixin {
   final Episode episode;
   final Anime anime;
   final Duration? startPossition;
-  final Data? data;
+  final List<Data>? data;
   final bool forceEnterFullScreen;
   final bool getAnimeData;
 
@@ -23,7 +23,7 @@ class PlayerArgs with EquatableMixin {
   }
 
   PlayerArgs copyWith({
-    Data? data,
+    List<Data>? data,
     Episode? episode,
     bool? forceEnterFullScreen,
     bool? getAnimeData,
@@ -42,20 +42,11 @@ class PlayerArgs with EquatableMixin {
 
   List<AnimeTimeStamp> get times {
     return (anime.animeSkip?.times ?? [])
-        .where(
-          (skip) => skip.absoluteNumber == int.parse(episode.number),
-        )
+        .where((skip) => skip.absoluteNumber == int.parse(episode.number))
         .toList()
         .cast();
   }
 
   @override
-  List<Object?> get props => [
-        episode,
-        anime,
-        startPossition,
-        data,
-        forceEnterFullScreen,
-        getAnimeData
-      ];
+  List<Object?> get props => [episode, anime, startPossition, data, forceEnterFullScreen, getAnimeData];
 }

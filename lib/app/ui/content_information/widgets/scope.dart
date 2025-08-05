@@ -9,20 +9,21 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 class ContentScope extends InheritedModel<ContentScopeAspect> {
   ContentScope({
     super.key,
-    required WidgetBuilder builder,
+    Widget? child,
+    WidgetBuilder? builder,
     required this.isLoading,
     required this.index,
     required this.noContent,
     required this.setListIndex,
     required this.downloadRelease,
-    required this.saveData,
+
     required this.releases,
     required this.content,
     required this.informationArgs,
     required this.releasesIsLoading,
     required this.onLongPressed,
-  }) : super(child: Builder(builder: builder));
-  final void Function(bool forceSave) saveData;
+  }) : super(child: Builder(builder: builder ?? (context) => child ?? SizedBox.shrink()));
+
   final ContentInformationArgs? informationArgs;
   final bool releasesIsLoading;
   final bool isLoading;
@@ -38,23 +39,23 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
     return context.dependOnInheritedWidgetOfExactType<ContentScope>()!;
   }
 
+  static ContentScope? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<ContentScope>();
+  }
+
   static ContentScope _of(BuildContext context, [ContentScopeAspect? aspect]) {
     assert(debugCheckHasMediaQuery(context));
     return InheritedModel.inheritFrom<ContentScope>(context, aspect: aspect)!;
   }
 
-  static bool isLoadingOf(BuildContext context) =>
-      _of(context, ContentScopeAspect.ISLOADING).isLoading;
-  static bool noContentOf(BuildContext context) =>
-      _of(context, ContentScopeAspect.noContent).noContent;
+  static bool isLoadingOf(BuildContext context) => _of(context, ContentScopeAspect.ISLOADING).isLoading;
+  static bool noContentOf(BuildContext context) => _of(context, ContentScopeAspect.noContent).noContent;
 
   static Content contentOf(BuildContext context) =>
       _of(context, ContentScopeAspect.CONTENT).content ??
-      (ModalRoute.settingsOf(context)!.arguments as ContentInformationArgs)
-          .content;
+      (ModalRoute.settingsOf(context)!.arguments as ContentInformationArgs).content;
 
-  static int indexOf(BuildContext context) =>
-      _of(context, ContentScopeAspect.LISTCHAPTERINDEX).index;
+  static int indexOf(BuildContext context) => _of(context, ContentScopeAspect.LISTCHAPTERINDEX).index;
 
   static bool releasesIsLoadingOf(BuildContext context) =>
       _of(context, ContentScopeAspect.RELEASESISLOADING).releasesIsLoading;
@@ -63,27 +64,21 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
       _of(context, ContentScopeAspect.ALLRELEASES).releases;
 
   @override
-  bool updateShouldNotifyDependent(
-      ContentScope oldWidget, Set<ContentScopeAspect> dependencies) {
+  bool updateShouldNotifyDependent(ContentScope oldWidget, Set<ContentScopeAspect> dependencies) {
     for (final Object dependency in dependencies) {
       if (dependency is ContentScopeAspect) {
         switch (dependency) {
-          case ContentScopeAspect.ISLOADING
-              when isLoading != oldWidget.isLoading:
+          case ContentScopeAspect.ISLOADING when isLoading != oldWidget.isLoading:
             return true;
-          case ContentScopeAspect.noContent
-              when noContent != oldWidget.noContent:
+          case ContentScopeAspect.noContent when noContent != oldWidget.noContent:
             return true;
           case ContentScopeAspect.CONTENT when content != oldWidget.content:
             return true;
-          case ContentScopeAspect.LISTCHAPTERINDEX
-              when index != oldWidget.index:
+          case ContentScopeAspect.LISTCHAPTERINDEX when index != oldWidget.index:
             return true;
-          case ContentScopeAspect.RELEASESISLOADING
-              when releasesIsLoading != oldWidget.releasesIsLoading:
+          case ContentScopeAspect.RELEASESISLOADING when releasesIsLoading != oldWidget.releasesIsLoading:
             return true;
-          case ContentScopeAspect.ALLRELEASES
-              when !mapEquals(releases, oldWidget.releases):
+          case ContentScopeAspect.ALLRELEASES when !mapEquals(releases, oldWidget.releases):
             return true;
           default:
             return true;
@@ -104,14 +99,7 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
   }
 }
 
-enum ContentScopeAspect {
-  ISLOADING,
-  RELEASESISLOADING,
-  LISTCHAPTERINDEX,
-  ALLRELEASES,
-  CONTENT,
-  noContent,
-}
+enum ContentScopeAspect { ISLOADING, RELEASESISLOADING, LISTCHAPTERINDEX, ALLRELEASES, CONTENT, noContent }
 
 enum ContentTabBar {
   CONTENT,

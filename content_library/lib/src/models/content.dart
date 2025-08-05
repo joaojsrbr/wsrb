@@ -1,16 +1,16 @@
-import 'dart:convert';
-
 import 'package:content_library/content_library.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 
 abstract class Content extends Equatable {
+  @override
+  List<Object?> get props => [imageUrl, stringID, url, sinopse, _releases, genres, title, source];
+
   String get imageUrl;
 
   String get stringID => title.toUuID;
 
-  String getHeroTag() {
-    return imageUrl;
-  }
+  ObjectKey getHeroTag() => ObjectKey(stringID);
 
   final String url;
 
@@ -41,15 +41,6 @@ abstract class Content extends Equatable {
     this.anilistMedia,
   });
 
-  factory Content.fromMap(String data) {
-    final map = jsonDecode(data);
-
-    if (map['class'] == 'ANIME') {
-      return Anime.fromMap(map);
-    }
-    return Book.fromMap(map);
-  }
-
   Content copyWith({
     String? title,
     bool? cached,
@@ -64,22 +55,5 @@ abstract class Content extends Equatable {
   @override
   String toString() => title.trim();
 
-  ContentEntity toEntity({
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    bool isFavorite = false,
-  });
-
-  Map<String, dynamic> toJson() => {
-        "anilistMedia": anilistMedia?.toJson(),
-        "releases": _releases.toMap,
-        "url": url,
-        "cached": cached,
-        "title": title,
-        "sinopse": sinopse,
-        "source": source.label,
-      };
-
-  @override
-  List<Object?> get props => toJson().values.toList();
+  ContentEntity toEntity({DateTime? createdAt, DateTime? updatedAt, bool isFavorite = false});
 }

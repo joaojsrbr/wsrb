@@ -1,8 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_network_image_cache.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/expandable_text.dart';
 import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -14,10 +14,8 @@ class InformationDestination extends StatefulWidget {
   State<InformationDestination> createState() => _InformationDestinationState();
 }
 
-class _InformationDestinationState extends State<InformationDestination>
-    with AutomaticKeepAliveClientMixin {
+class _InformationDestinationState extends State<InformationDestination> with AutomaticKeepAliveClientMixin {
   // bool _isLoading = true;
-  final FocusNode _focusNode = FocusNode();
   Content? _content;
 
   @override
@@ -36,12 +34,6 @@ class _InformationDestinationState extends State<InformationDestination>
   }
 
   @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     super.build(context);
     final ThemeData themeData = Theme.of(context);
@@ -51,10 +43,10 @@ class _InformationDestinationState extends State<InformationDestination>
 
     final String sinopse = _content?.sinopse ?? "";
 
-    final bool noContent = sinopse.isEmpty &&
+    final bool noContent =
+        sinopse.isEmpty &&
         _content?.anilistMedia == null &&
-        (_content?.anilistMedia?.genres == null ||
-            (_content?.genres.isEmpty ?? false)) &&
+        (_content?.anilistMedia?.genres == null || (_content?.genres.isEmpty ?? false)) &&
         _content?.anilistMedia?.characters == null &&
         _content?.anilistMedia?.staff == null;
 
@@ -63,44 +55,29 @@ class _InformationDestinationState extends State<InformationDestination>
             padding: EdgeInsets.only(top: 22),
             child: Align(
               alignment: Alignment.topCenter,
-              child: Text(
-                "Sem informação!!",
-                style: themeData.textTheme.titleLarge,
-              ),
+              child: Text("Sem informação!!", style: themeData.textTheme.titleLarge),
             ),
           )
         : ListView(
             shrinkWrap: true,
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(top: 4),
             physics: const NeverScrollableScrollPhysics(),
             children: [
               if (sinopse.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 12,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                   child: ExpandableText(
                     sinopse: sinopse,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontSize: 14,
-                          height: 1.5,
-                        ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14, height: 1.5),
                   ),
                 ),
 
               if (_content!.anilistMedia != null)
                 Padding(
-                  padding: EdgeInsets.only(
-                    right: 8,
-                    left: 8,
-                    bottom: 12,
-                    top: sinopse.isEmpty ? 8 : 0,
-                  ),
+                  padding: EdgeInsets.only(right: 8, left: 8, bottom: 12, top: sinopse.isEmpty ? 8 : 0),
                   child: Card.filled(
                     color: themeData.colorScheme.primary.withAlpha(10),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     child: Column(
                       children: [
                         if (_checkData(_content!.anilistMedia?.startDate))
@@ -108,8 +85,7 @@ class _InformationDestinationState extends State<InformationDestination>
                             paddingTop: true,
                             title: const Text('Data de início'),
                             child: Text(
-                              DateFormat("d MMMM y", appLocale.toLanguageTag())
-                                  .format(
+                              DateFormat("d MMMM y", appLocale.toLanguageTag()).format(
                                 DateTime(
                                   _content!.anilistMedia!.startDate!.year,
                                   _content!.anilistMedia!.startDate!.month,
@@ -123,8 +99,7 @@ class _InformationDestinationState extends State<InformationDestination>
                             paddingTop: false,
                             title: const Text('Data final'),
                             child: Text(
-                              DateFormat("d MMMM y", appLocale.toLanguageTag())
-                                  .format(
+                              DateFormat("d MMMM y", appLocale.toLanguageTag()).format(
                                 DateTime(
                                   _content!.anilistMedia!.endDate!.year,
                                   _content!.anilistMedia!.endDate!.month,
@@ -134,46 +109,40 @@ class _InformationDestinationState extends State<InformationDestination>
                             ),
                           )
                         else if (_checkData(_content!.anilistMedia?.startDate))
-                          _Information(
-                            paddingTop: false,
-                            title: const Text('Data final'),
-                            child: Text("RELEASING"),
-                          ),
+                          _Information(paddingTop: false, title: const Text('Data final'), child: Text("RELEASING")),
                         if (_content!.anilistMedia?.averageScore != null)
                           _Information(
                             paddingTop: false,
                             title: const Text('Pontuação'),
-                            child: Builder(builder: (context) {
-                              final averageScore =
-                                  (_content!.anilistMedia!.averageScore! / 10);
-                              return Text.rich(
-                                TextSpan(
-                                  children: [
-                                    TextSpan(text: averageScore.toString()),
-                                    const TextSpan(
-                                      text: " / ",
-                                      style: TextStyle(color: Colors.white),
+                            child: Builder(
+                              builder: (context) {
+                                final averageScore = (_content!.anilistMedia!.averageScore! / 10);
+                                return Text.rich(
+                                  TextSpan(
+                                    children: [
+                                      TextSpan(text: averageScore.toString()),
+                                      const TextSpan(
+                                        text: " / ",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      const TextSpan(
+                                        text: "10",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ],
+                                    style: TextStyle(
+                                      color: _content!.anilistMedia!.getScoreColor(themeData.colorScheme),
                                     ),
-                                    const TextSpan(
-                                      text: "10",
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ],
-                                  style: TextStyle(
-                                    color: _content!.anilistMedia!
-                                        .getScoreColor(themeData.colorScheme),
                                   ),
-                                ),
-                              );
-                            }),
+                                );
+                              },
+                            ),
                           ),
                         if (_content!.anilistMedia?.episodes != null)
                           _Information(
                             paddingTop: false,
                             title: const Text('Total de episódios'),
-                            child: Text(
-                              _content!.anilistMedia!.episodes.toString(),
-                            ),
+                            child: Text(_content!.anilistMedia!.episodes.toString()),
                           ),
                         if (_content!.anilistMedia?.format != null)
                           _Information(
@@ -185,16 +154,13 @@ class _InformationDestinationState extends State<InformationDestination>
                           _Information(
                             paddingTop: false,
                             title: const Text('Status'),
-                            child: Text(
-                                _content!.anilistMedia!.status!.toString()),
+                            child: Text(_content!.anilistMedia!.status!.toString()),
                           ),
                         if (_content!.anilistMedia?.popularity != null)
                           _Information(
                             paddingTop: false,
                             title: const Text('Popularidade'),
-                            child: Text(
-                              _content!.anilistMedia!.popularity!.toString(),
-                            ),
+                            child: Text(_content!.anilistMedia!.popularity!.toString()),
                           ),
                         if (_content!.anilistMedia?.favourites != null)
                           _Information(
@@ -209,9 +175,7 @@ class _InformationDestinationState extends State<InformationDestination>
                           _Information(
                             paddingTop: false,
                             title: const Text('Temporada'),
-                            child: Text(
-                              "${_content!.anilistMedia!.season!} ${now.year}",
-                            ),
+                            child: Text("${_content!.anilistMedia!.season!} ${now.year}"),
                           ),
                         if (_content!.anilistMedia?.title?.romaji != null)
                           _Information(
@@ -221,18 +185,15 @@ class _InformationDestinationState extends State<InformationDestination>
                               onLongPress: () async {
                                 await copyToClipboard(
                                   context,
-                                  messageCopy:
-                                      _content!.anilistMedia!.title!.romaji!,
-                                  messageSnackBar:
-                                      'Copiado para a área de transferência!',
+                                  messageCopy: _content!.anilistMedia!.title!.romaji!,
+                                  messageSnackBar: 'Copiado para a área de transferência!',
                                 );
                                 if (context.mounted) {
                                   await Feedback.forLongPress(context);
                                 }
                               },
                               child: Text(
-                                _content!.anilistMedia!.title!.romaji!.length >
-                                        20
+                                _content!.anilistMedia!.title!.romaji!.length > 20
                                     ? "${_content!.anilistMedia!.title!.romaji!.substring(0, 20)} ..."
                                     : _content!.anilistMedia!.title!.romaji!,
                                 overflow: TextOverflow.ellipsis,
@@ -282,8 +243,7 @@ class _InformationDestinationState extends State<InformationDestination>
               //       ),
               //     ),
               //   ),
-              if (_content!.anilistMedia?.genres != null ||
-                  _content!.genres.isNotEmpty)
+              if (_content!.anilistMedia?.genres != null || _content!.genres.isNotEmpty)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -291,43 +251,34 @@ class _InformationDestinationState extends State<InformationDestination>
                       padding: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Categorias',
-                        style: themeData.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: themeData.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                         textAlign: TextAlign.start,
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(
-                        right: 12,
-                        left: 12,
-                        bottom: 12,
-                      ),
+                      padding: const EdgeInsets.only(right: 12, left: 12, bottom: 12),
                       child: Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: (_content!.genres.isNotEmpty
-                                ? _content!.genres.map((e) => e.label)
-                                : _content!.anilistMedia?.genres ?? <String>[])
-                            .map((e) => e.capitalize)
-                            .map(
-                              (e) => Card.filled(
-                                color:
-                                    themeData.colorScheme.primary.withAlpha(10),
-                                margin: EdgeInsets.zero,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    e,
-                                    style: themeData.textTheme.labelLarge
-                                        ?.copyWith(
-                                      fontWeight: FontWeight.w600,
+                        children:
+                            (_content!.genres.isNotEmpty
+                                    ? _content!.genres.map((e) => e.label)
+                                    : _content!.anilistMedia?.genres ?? <String>[])
+                                .map((e) => e.capitalize)
+                                .map(
+                                  (e) => Card.filled(
+                                    color: themeData.colorScheme.primary.withAlpha(10),
+                                    margin: EdgeInsets.zero,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        e,
+                                        style: themeData.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-                            )
-                            .toList(),
+                                )
+                                .toList(),
                       ),
                     ),
                   ],
@@ -341,72 +292,107 @@ class _InformationDestinationState extends State<InformationDestination>
                       padding: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Personagens',
-                        style: themeData.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: themeData.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                         textAlign: TextAlign.start,
                       ),
                     ),
                     SizedBox(
                       height: 160,
                       width: double.infinity,
-                      child: Builder(builder: (context) {
-                        final list = _content!.anilistMedia?.characters
-                            .unique((char) => char.name?.full, false);
-                        if (list == null) return const SizedBox.shrink();
-                        return ListView.builder(
-                          itemCount: list.length,
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          itemBuilder: (context, index) {
-                            final personagem = list.elementAt(index);
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4),
-                              child: GestureDetector(
-                                onLongPress: () async {
-                                  copyToClipboard(
-                                    context,
-                                    messageCopy: personagem.name!.full!.trim(),
-                                    messageSnackBar:
-                                        'Copiado para a área de transferência!',
-                                  );
-                                  await Feedback.forLongPress(context);
-                                },
-                                child: SizedBox(
-                                  width: 120,
-                                  child: Column(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(6),
-                                        child: CachedNetworkImage(
-                                          cacheManager: App.APP_IMAGE_CACHE,
-                                          fit: BoxFit.cover,
+                      child: Builder(
+                        builder: (context) {
+                          final list = _content!.anilistMedia?.characters.unique((char) => char.name?.full, false);
+                          if (list == null) return const SizedBox.shrink();
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: List.generate(list.length, (index) {
+                                final personagem = list.elementAt(index);
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  child: GestureDetector(
+                                    onLongPress: () async {
+                                      copyToClipboard(
+                                        context,
+                                        messageCopy: personagem.name!.full!.trim(),
+                                        messageSnackBar: 'Copiado para a área de transferência!',
+                                      );
+                                      await Feedback.forLongPress(context);
+                                    },
+                                    child: Column(
+                                      children: [
+                                        CustomCachedNetworkImage(
                                           height: 140,
-                                          memCacheHeight: 400,
-                                          memCacheWidth: 200,
                                           width: 120,
+                                          fit: BoxFit.cover,
                                           imageUrl: personagem.image!.large!,
+                                          borderRadius: BorderRadius.circular(6),
+                                          alignment: Alignment.topCenter,
                                         ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Flexible(
-                                        child: Text(
-                                          personagem.name!.full!,
-                                          style: themeData.textTheme.titleSmall,
-                                          textAlign: TextAlign.start,
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,
+                                        const SizedBox(height: 4),
+                                        Flexible(
+                                          child: Text(
+                                            personagem.name!.full!,
+                                            style: themeData.textTheme.titleSmall,
+                                            textAlign: TextAlign.start,
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      }),
+                                );
+                              }),
+                            ),
+                          );
+                          // return ListView.builder(
+                          //   itemCount: list.length,
+                          //   shrinkWrap: true,
+                          //   scrollDirection: Axis.horizontal,
+                          //   padding: const EdgeInsets.symmetric(horizontal: 8),
+                          //   itemBuilder: (context, index) {
+                          //     final personagem = list.elementAt(index);
+                          //     return Padding(
+                          //       padding: const EdgeInsets.symmetric(horizontal: 4),
+                          //       child: GestureDetector(
+                          //         onLongPress: () async {
+                          //           copyToClipboard(
+                          //             context,
+                          //             messageCopy: personagem.name!.full!.trim(),
+                          //             messageSnackBar: 'Copiado para a área de transferência!',
+                          //           );
+                          //           await Feedback.forLongPress(context);
+                          //         },
+                          //         child: Column(
+                          //           children: [
+                          //             CustomCachedNetworkImage(
+                          //               height: 140,
+                          //               width: 120,
+                          //               fit: BoxFit.cover,
+                          //               imageUrl: personagem.image!.large!,
+                          //               borderRadius: BorderRadius.circular(6),
+                          //               alignment: Alignment.topCenter,
+                          //             ),
+                          //             const SizedBox(height: 4),
+                          //             Flexible(
+                          //               child: Text(
+                          //                 personagem.name!.full!,
+                          //                 style: themeData.textTheme.titleSmall,
+                          //                 textAlign: TextAlign.start,
+                          //                 overflow: TextOverflow.ellipsis,
+                          //                 maxLines: 1,
+                          //               ),
+                          //             ),
+                          //           ],
+                          //         ),
+                          //       ),
+                          //     );
+                          //   },
+                          // );
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -421,72 +407,106 @@ class _InformationDestinationState extends State<InformationDestination>
                       padding: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Staff',
-                        style: themeData.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: themeData.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                         textAlign: TextAlign.start,
                       ),
                     ),
                     SizedBox(
                       height: 160,
                       width: double.infinity,
-                      child: Builder(builder: (context) {
-                        final list = _content!.anilistMedia!.staff
-                            .unique((staff) => staff.name?.full, false);
-                        return ListView.builder(
-                          itemCount: list.length,
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          itemBuilder: (context, index) {
-                            final staff = list.elementAt(index);
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                              ),
-                              child: GestureDetector(
-                                onLongPress: () async {
-                                  copyToClipboard(
-                                    context,
-                                    messageCopy: staff.name!.full!.trim(),
-                                    messageSnackBar:
-                                        'Copiado para a área de transferência!',
-                                  );
-                                  await Feedback.forLongPress(context);
-                                },
-                                child: SizedBox(
-                                  width: 120,
-                                  child: Column(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(6),
-                                        child: CachedNetworkImage(
-                                          fit: BoxFit.cover,
-                                          cacheManager: App.APP_IMAGE_CACHE,
+                      child: Builder(
+                        builder: (context) {
+                          final list = _content!.anilistMedia!.staff.unique((staff) => staff.name?.full, false);
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: List.generate(list.length, (index) {
+                                final staff = list.elementAt(index);
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  child: GestureDetector(
+                                    onLongPress: () async {
+                                      copyToClipboard(
+                                        context,
+                                        messageCopy: staff.name!.full!.trim(),
+                                        messageSnackBar: 'Copiado para a área de transferência!',
+                                      );
+                                      await Feedback.forLongPress(context);
+                                    },
+                                    child: Column(
+                                      children: [
+                                        CustomCachedNetworkImage(
                                           height: 140,
-                                          memCacheHeight: 400,
-                                          memCacheWidth: 200,
                                           width: 120,
+                                          fit: BoxFit.cover,
                                           imageUrl: staff.image!.large!,
+                                          borderRadius: BorderRadius.circular(6),
+                                          alignment: Alignment.center,
                                         ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Flexible(
-                                        child: Text(
-                                          staff.name!.full!,
-                                          style: themeData.textTheme.titleSmall,
-                                          textAlign: TextAlign.start,
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,
+                                        const SizedBox(height: 4),
+                                        Flexible(
+                                          child: Text(
+                                            staff.name!.full!,
+                                            style: themeData.textTheme.titleSmall,
+                                            textAlign: TextAlign.start,
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      }),
+                                );
+                              }),
+                            ),
+                          );
+                          // return ListView.builder(
+                          //   itemCount: list.length,
+                          //   shrinkWrap: true,
+                          //   scrollDirection: Axis.horizontal,
+                          //   padding: const EdgeInsets.symmetric(horizontal: 8),
+                          //   itemBuilder: (context, index) {
+                          //     final staff = list.elementAt(index);
+                          //     return Padding(
+                          //       padding: const EdgeInsets.symmetric(horizontal: 4),
+                          //       child: GestureDetector(
+                          //         onLongPress: () async {
+                          //           copyToClipboard(
+                          //             context,
+                          //             messageCopy: staff.name!.full!.trim(),
+                          //             messageSnackBar: 'Copiado para a área de transferência!',
+                          //           );
+                          //           await Feedback.forLongPress(context);
+                          //         },
+                          //         child: Column(
+                          //           children: [
+                          //             CustomCachedNetworkImage(
+                          //               height: 140,
+                          //               width: 120,
+                          //               fit: BoxFit.cover,
+                          //               imageUrl: staff.image!.large!,
+                          //               borderRadius: BorderRadius.circular(6),
+                          //               alignment: Alignment.center,
+                          //             ),
+                          //             const SizedBox(height: 4),
+                          //             Flexible(
+                          //               child: Text(
+                          //                 staff.name!.full!,
+                          //                 style: themeData.textTheme.titleSmall,
+                          //                 textAlign: TextAlign.start,
+                          //                 overflow: TextOverflow.ellipsis,
+                          //                 maxLines: 1,
+                          //               ),
+                          //             ),
+                          //           ],
+                          //         ),
+                          //       ),
+                          //     );
+                          //   },
+                          // );
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -497,8 +517,7 @@ class _InformationDestinationState extends State<InformationDestination>
               //       child: Text('Nenhum dado encontrado.'),
               //     ),
               //   )
-              if (_content!.anilistMedia?.tags != null &&
-                  _content!.anilistMedia?.tags.isNotEmpty == true) ...[
+              if (_content!.anilistMedia?.tags != null && _content!.anilistMedia?.tags.isNotEmpty == true) ...[
                 const SizedBox(height: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -507,35 +526,25 @@ class _InformationDestinationState extends State<InformationDestination>
                       padding: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Tags',
-                        style: themeData.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: themeData.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                         textAlign: TextAlign.start,
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(
-                        right: 12,
-                        left: 12,
-                        bottom: 12,
-                      ),
+                      padding: const EdgeInsets.only(right: 12, left: 12, bottom: 12),
                       child: Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: (_content!.anilistMedia?.tags.getMax(5))!
                             .map(
                               (e) => Card.filled(
-                                color:
-                                    themeData.colorScheme.primary.withAlpha(10),
+                                color: themeData.colorScheme.primary.withAlpha(10),
                                 margin: EdgeInsets.zero,
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
                                     e.name.capitalize,
-                                    style: themeData.textTheme.labelLarge
-                                        ?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                    style: themeData.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
                                   ),
                                 ),
                               ),
@@ -552,11 +561,7 @@ class _InformationDestinationState extends State<InformationDestination>
 }
 
 class _Information extends StatelessWidget {
-  const _Information({
-    required this.child,
-    required this.title,
-    this.paddingTop = false,
-  });
+  const _Information({required this.child, required this.title, this.paddingTop = false});
 
   final Widget child;
   final Widget title;
@@ -565,19 +570,8 @@ class _Information extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(
-        bottom: 8,
-        top: paddingTop ? 8 : 0,
-        right: 8,
-        left: 8,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          title,
-          child,
-        ],
-      ),
+      padding: EdgeInsets.only(bottom: 8, top: paddingTop ? 8 : 0, right: 8, left: 8),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [title, child]),
     );
   }
 }

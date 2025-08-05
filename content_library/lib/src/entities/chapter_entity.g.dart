@@ -37,28 +37,39 @@ const ChapterEntitySchema = CollectionSchema(
       name: r'percent',
       type: IsarType.double,
     ),
-    r'readPercent': PropertySchema(
+    r'positions': PropertySchema(
       id: 4,
+      name: r'positions',
+      type: IsarType.objectList,
+      target: r'CurrentPosition',
+    ),
+    r'readPercent': PropertySchema(
+      id: 5,
       name: r'readPercent',
       type: IsarType.double,
     ),
     r'stringID': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'stringID',
       type: IsarType.string,
     ),
+    r'thumbnail': PropertySchema(
+      id: 7,
+      name: r'thumbnail',
+      type: IsarType.string,
+    ),
     r'title': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'url',
       type: IsarType.string,
     )
@@ -84,7 +95,7 @@ const ChapterEntitySchema = CollectionSchema(
     )
   },
   links: {},
-  embeddedSchemas: {},
+  embeddedSchemas: {r'CurrentPosition': CurrentPositionSchema},
   getId: _chapterEntityGetId,
   getLinks: _chapterEntityGetLinks,
   attach: _chapterEntityAttach,
@@ -98,7 +109,22 @@ int _chapterEntityEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.bookStringID.length * 3;
+  bytesCount += 3 + object.positions.length * 3;
+  {
+    final offsets = allOffsets[CurrentPosition]!;
+    for (var i = 0; i < object.positions.length; i++) {
+      final value = object.positions[i];
+      bytesCount +=
+          CurrentPositionSchema.estimateSize(value, offsets, allOffsets);
+    }
+  }
   bytesCount += 3 + object.stringID.length * 3;
+  {
+    final value = object.thumbnail;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.title.length * 3;
   bytesCount += 3 + object.url.length * 3;
   return bytesCount;
@@ -114,11 +140,18 @@ void _chapterEntitySerialize(
   writer.writeDateTime(offsets[1], object.createdAt);
   writer.writeBool(offsets[2], object.isComplete);
   writer.writeDouble(offsets[3], object.percent);
-  writer.writeDouble(offsets[4], object.readPercent);
-  writer.writeString(offsets[5], object.stringID);
-  writer.writeString(offsets[6], object.title);
-  writer.writeDateTime(offsets[7], object.updatedAt);
-  writer.writeString(offsets[8], object.url);
+  writer.writeObjectList<CurrentPosition>(
+    offsets[4],
+    allOffsets,
+    CurrentPositionSchema.serialize,
+    object.positions,
+  );
+  writer.writeDouble(offsets[5], object.readPercent);
+  writer.writeString(offsets[6], object.stringID);
+  writer.writeString(offsets[7], object.thumbnail);
+  writer.writeString(offsets[8], object.title);
+  writer.writeDateTime(offsets[9], object.updatedAt);
+  writer.writeString(offsets[10], object.url);
 }
 
 ChapterEntity _chapterEntityDeserialize(
@@ -132,11 +165,18 @@ ChapterEntity _chapterEntityDeserialize(
     createdAt: reader.readDateTimeOrNull(offsets[1]),
     isComplete: reader.readBoolOrNull(offsets[2]) ?? false,
     percent: reader.readDoubleOrNull(offsets[3]) ?? 0.0,
-    readPercent: reader.readDouble(offsets[4]),
-    stringID: reader.readString(offsets[5]),
-    title: reader.readString(offsets[6]),
-    updatedAt: reader.readDateTimeOrNull(offsets[7]),
-    url: reader.readString(offsets[8]),
+    positions: reader.readObjectList<CurrentPosition>(
+          offsets[4],
+          CurrentPositionSchema.deserialize,
+          allOffsets,
+          CurrentPosition(),
+        ) ??
+        const [],
+    readPercent: reader.readDouble(offsets[5]),
+    stringID: reader.readString(offsets[6]),
+    title: reader.readString(offsets[8]),
+    updatedAt: reader.readDateTimeOrNull(offsets[9]),
+    url: reader.readString(offsets[10]),
   );
   object.id = id;
   return object;
@@ -158,14 +198,24 @@ P _chapterEntityDeserializeProp<P>(
     case 3:
       return (reader.readDoubleOrNull(offset) ?? 0.0) as P;
     case 4:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readObjectList<CurrentPosition>(
+            offset,
+            CurrentPositionSchema.deserialize,
+            allOffsets,
+            CurrentPosition(),
+          ) ??
+          const []) as P;
     case 5:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 6:
       return (reader.readString(offset)) as P;
     case 7:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 10:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -709,6 +759,95 @@ extension ChapterEntityQueryFilter
   }
 
   QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      positionsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'positions',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      positionsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'positions',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      positionsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'positions',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      positionsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'positions',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      positionsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'positions',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      positionsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'positions',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
       readPercentEqualTo(
     double value, {
     double epsilon = Query.epsilon,
@@ -905,6 +1044,160 @@ extension ChapterEntityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'stringID',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      thumbnailIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'thumbnail',
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      thumbnailIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'thumbnail',
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      thumbnailEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'thumbnail',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      thumbnailGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'thumbnail',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      thumbnailLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'thumbnail',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      thumbnailBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'thumbnail',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      thumbnailStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'thumbnail',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      thumbnailEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'thumbnail',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      thumbnailContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'thumbnail',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      thumbnailMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'thumbnail',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      thumbnailIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'thumbnail',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      thumbnailIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'thumbnail',
         value: '',
       ));
     });
@@ -1256,7 +1549,14 @@ extension ChapterEntityQueryFilter
 }
 
 extension ChapterEntityQueryObject
-    on QueryBuilder<ChapterEntity, ChapterEntity, QFilterCondition> {}
+    on QueryBuilder<ChapterEntity, ChapterEntity, QFilterCondition> {
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterFilterCondition>
+      positionsElement(FilterQuery<CurrentPosition> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'positions');
+    });
+  }
+}
 
 extension ChapterEntityQueryLinks
     on QueryBuilder<ChapterEntity, ChapterEntity, QFilterCondition> {}
@@ -1338,6 +1638,19 @@ extension ChapterEntityQuerySortBy
       sortByStringIDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'stringID', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> sortByThumbnail() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thumbnail', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
+      sortByThumbnailDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thumbnail', Sort.desc);
     });
   }
 
@@ -1471,6 +1784,19 @@ extension ChapterEntityQuerySortThenBy
     });
   }
 
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> thenByThumbnail() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thumbnail', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy>
+      thenByThumbnailDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thumbnail', Sort.desc);
+    });
+  }
+
   QueryBuilder<ChapterEntity, ChapterEntity, QAfterSortBy> thenByTitle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.asc);
@@ -1550,6 +1876,13 @@ extension ChapterEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ChapterEntity, ChapterEntity, QDistinct> distinctByThumbnail(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'thumbnail', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<ChapterEntity, ChapterEntity, QDistinct> distinctByTitle(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1603,6 +1936,13 @@ extension ChapterEntityQueryProperty
     });
   }
 
+  QueryBuilder<ChapterEntity, List<CurrentPosition>, QQueryOperations>
+      positionsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'positions');
+    });
+  }
+
   QueryBuilder<ChapterEntity, double, QQueryOperations> readPercentProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'readPercent');
@@ -1612,6 +1952,12 @@ extension ChapterEntityQueryProperty
   QueryBuilder<ChapterEntity, String, QQueryOperations> stringIDProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'stringID');
+    });
+  }
+
+  QueryBuilder<ChapterEntity, String?, QQueryOperations> thumbnailProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'thumbnail');
     });
   }
 

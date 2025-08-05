@@ -6,6 +6,7 @@ import 'package:app_wsrb_jsr/app/ui/download/view/download_view.dart';
 import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/settings/view/settings_view.dart';
+import 'package:app_wsrb_jsr/app/ui/webview/view/webview_view.dart';
 import 'package:content_library/content_library.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,7 +18,7 @@ class RouteName {
   static const String PLAYER = '/player';
   static const String DOWNLOAD = '/downloadView';
   static const String SETTINGS = '/settings';
-  // static const CATEGORY = '/category';
+  static const String WEBVIEW = '/webview';
   // static const TEST = '/test';
 }
 
@@ -87,11 +88,22 @@ final appRoutes = GoRouter(
         GoRoute(
           path: RouteName.PLAYER.subRouter,
           pageBuilder: (context, state) {
-            // final PlayerArgs extra = state.extra as PlayerArgs;
             return SharedAxisTransitionPageWrapper(
               transitionKey: state.pageKey,
               arguments: state.extra,
               screen: const PlayerView(),
+            );
+          },
+        ),
+        GoRoute(
+          path: RouteName.WEBVIEW.subRouter,
+          pageBuilder: (context, state) {
+            return SharedAxisTransitionPageWrapper(
+              reverseTransitionDuration: const Duration(milliseconds: 850),
+              transitionDuratio: const Duration(milliseconds: 850),
+              transitionKey: state.pageKey,
+              arguments: state.extra,
+              screen: const WebViewPage(),
             );
           },
         ),

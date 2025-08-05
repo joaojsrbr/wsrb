@@ -1,7 +1,6 @@
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class SettingsView extends StatefulWidget {
@@ -52,7 +51,6 @@ class _SettingsViewState extends State<SettingsView> {
     customLog('$widget[build]');
 
     final ThemeData themeData = Theme.of(context);
-    final AppConfigController appConfigController = context.watch<AppConfigController>();
     // final ThemeController themeController = context.watch<ThemeController>();
 
     return Scaffold(
@@ -60,8 +58,14 @@ class _SettingsViewState extends State<SettingsView> {
       body: SettingsList(
         contentPadding: const EdgeInsets.only(top: 8, bottom: 20),
         brightness: themeData.brightness,
-        darkTheme: SettingsThemeData(tileHighlightColor: themeData.highlightColor, settingsListBackground: themeData.scaffoldBackgroundColor),
-        lightTheme: SettingsThemeData(tileHighlightColor: themeData.highlightColor, settingsListBackground: themeData.scaffoldBackgroundColor),
+        darkTheme: SettingsThemeData(
+          tileHighlightColor: themeData.highlightColor,
+          settingsListBackground: themeData.scaffoldBackgroundColor,
+        ),
+        lightTheme: SettingsThemeData(
+          tileHighlightColor: themeData.highlightColor,
+          settingsListBackground: themeData.scaffoldBackgroundColor,
+        ),
         sections: [
           // _CustomSettingsSection(
           //   title: Text(
@@ -260,7 +264,10 @@ class _SettingsViewState extends State<SettingsView> {
           //   ],
           // ),
           _CustomSettingsSection(
-            title: Text('Player', style: themeData.textTheme.titleLarge?.copyWith(color: themeData.colorScheme.primary)),
+            title: Text(
+              'Player',
+              style: themeData.textTheme.titleLarge?.copyWith(color: themeData.colorScheme.primary),
+            ),
             tiles: [
               // SettingsTile(
               //   onPressed: null,
@@ -281,7 +288,12 @@ class _SettingsViewState extends State<SettingsView> {
               //     ),
               //   ),
               // ),
-              SettingsTile.switchTile(onToggle: (value) {}, initialValue: false, leading: Icon(MdiIcons.brightness7), title: const Text('Salvar Brilho')),
+              SettingsTile.switchTile(
+                onToggle: (value) {},
+                initialValue: false,
+                leading: Icon(MdiIcons.brightness7),
+                title: const Text('Salvar Brilho'),
+              ),
             ],
           ),
         ],
