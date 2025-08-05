@@ -38,7 +38,6 @@ export 'src/extensions/custom_extensions/num_extensions.dart';
 export 'src/extensions/custom_extensions/object_extensions.dart';
 export 'src/extensions/custom_extensions/state_extensions.dart';
 export 'src/extensions/custom_extensions/string_extensions.dart';
-export 'src/interfaces/http_service.dart';
 export 'src/models/anime.dart';
 export 'src/models/anime_skip.dart';
 export 'src/models/book.dart';

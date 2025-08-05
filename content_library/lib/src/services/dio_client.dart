@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:content_library/content_library.dart';
+import 'package:content_library/src/services/ihttp_service.dart';
 import 'package:dio/dio.dart' as dio;
 
 class _DioStatus extends dio.Interceptor {
