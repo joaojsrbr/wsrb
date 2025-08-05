@@ -14,18 +14,10 @@ part 'anime_entity.g.dart';
 
 @Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toAnime', 'map', 'aniList'})
 class AnimeEntity extends ContentEntity {
-  final DateTime? createdAt;
   final String? animeID;
-  final DateTime? updatedAt;
-  final String? sinopse;
-  @override
-  @enumerated
-  Source get source => super.source;
-  final bool isDublado;
 
+  final bool isDublado;
   final String? slugSerie;
-  final String url;
-  final String title;
   final String originalImage;
   final String? extraLarge;
   final String? largeImage;
@@ -37,20 +29,24 @@ class AnimeEntity extends ContentEntity {
   IsarLinks<EpisodeEntity> episodes = IsarLinks<EpisodeEntity>();
   IsarLink<AnimeSkipEntity> animeSkip = IsarLink<AnimeSkipEntity>();
 
+  @override
+  @enumerated
+  Source get source => super.source;
+
   AnimeEntity({
     required super.stringID,
-    required this.url,
+    required super.url,
     required this.totalOfEpisodes,
-    required this.title,
+    required super.title,
     required super.source,
     super.anilistMedia,
-    this.createdAt,
+    super.createdAt,
     this.animeID,
     this.totalOfPages,
     this.isDublado = false,
     this.slugSerie,
-    this.updatedAt,
-    this.sinopse,
+    super.updatedAt,
+    super.sinopse,
     this.generateID,
     super.isFavorite = false,
     required this.originalImage,
@@ -59,6 +55,7 @@ class AnimeEntity extends ContentEntity {
     this.mediumImage,
   });
 
+  @override
   String get imageUrl => extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   @override

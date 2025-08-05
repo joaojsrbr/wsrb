@@ -22,26 +22,18 @@ void main(List<String> arguments) async {
 
   final ValueNotifierList valueNotifierList = ValueNotifierList();
 
-  final AppConfigController appConfigController =
-      AppConfigController(isarServiceImpl);
+  final AppConfigController appConfigController = AppConfigController(isarServiceImpl);
 
-  final LibraryController libraryController = LibraryController(
-    isarServiceImpl,
-    appConfigController,
-  );
+  final LibraryController libraryController = LibraryController(isarServiceImpl, appConfigController);
 
   final GraphQLApiClient graphQLApiClient = GraphQLApiClient();
-  final AnimeSkipRepository animeSkipRepository =
-      AnimeSkipRepository(graphQLApiClient);
+  final AnimeSkipRepository animeSkipRepository = AnimeSkipRepository(graphQLApiClient);
 
-  final AnimeSkipController animeSkipController =
-      AnimeSkipController(isarServiceImpl);
+  final AnimeSkipController animeSkipController = AnimeSkipController(isarServiceImpl);
 
-  final HistoricController historicController =
-      HistoricController(isarServiceImpl);
+  final HistoricController historicController = HistoricController(isarServiceImpl);
 
-  final CategoryController categoryController =
-      CategoryController(isarServiceImpl);
+  final CategoryController categoryController = CategoryController(isarServiceImpl);
 
   timeago.setLocaleMessages('pt_br', timeago.PtBrMessages());
   timeago.setDefaultLocale('pt_br');
@@ -57,7 +49,7 @@ void main(List<String> arguments) async {
   ]);
 
   await Future.wait([
-    PermissionUtils.manageExternalStorage(),
+    // PermissionUtils.manageExternalStorage(),
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
     // Workmanager().initialize(callbackDispatcher),
     PlayerAudioHandlerMixin.startPlayerAudio(),
@@ -66,11 +58,7 @@ void main(List<String> arguments) async {
 
   // elapsed.printAndStop('MAIN');
 
-  final ContentRepository contentRepository = ContentRepository(
-    appConfigController,
-    dioClient,
-    animeSkipRepository,
-  );
+  final ContentRepository contentRepository = ContentRepository(appConfigController, dioClient, animeSkipRepository);
 
   runApp(
     MultiProvider(
@@ -83,10 +71,7 @@ void main(List<String> arguments) async {
         ChangeNotifierProvider(create: (context) => animeSkipController),
         ChangeNotifierProvider(create: (context) => valueNotifierList),
         ChangeNotifierProvider(create: (context) => DownloadService()),
-        Provider(
-          create: (context) => contentRepository,
-          dispose: (context, repository) => repository.dispose(),
-        ),
+        Provider(create: (context) => contentRepository, dispose: (context, repository) => repository.dispose()),
       ],
       child: const MyApp(),
     ),

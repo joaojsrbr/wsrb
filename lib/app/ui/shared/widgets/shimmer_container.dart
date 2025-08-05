@@ -22,21 +22,23 @@ class ShimmerContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return SizedBox(
-      width: width,
-      height: height,
-      child: enable
-          ? Shimmer.fromColors(
-              baseColor: theme.colorScheme.onSurface.withOpacity(0.4),
-              highlightColor: theme.colorScheme.onSurface.withOpacity(0.3),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurface.withOpacity(0.4),
-                  borderRadius: borderRadius,
-                ),
-              ),
-            )
-          : child,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SizedBox(
+          width: width,
+          height: height,
+          child: ClipRRect(
+            borderRadius: borderRadius ?? BorderRadius.zero,
+            child: enable
+                ? Shimmer.fromColors(
+                    baseColor: theme.colorScheme.onSurface.withOpacity(0.4),
+                    highlightColor: theme.colorScheme.onSurface.withOpacity(0.3),
+                    child: Container(decoration: BoxDecoration(color: theme.colorScheme.onSurface.withOpacity(0.4))),
+                  )
+                : child,
+          ),
+        );
+      },
     );
   }
 }

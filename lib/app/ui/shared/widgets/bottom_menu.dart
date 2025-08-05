@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_popup.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
-import 'package:app_wsrb_jsr/app/utils/category_utils.dart';
+import 'package:app_wsrb_jsr/app/utils/category_helper.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -15,36 +15,31 @@ class BottomMenu<T> extends ImplicitlyAnimatedWidget {
     required this.child,
     this.buttons,
     this.isDismissible = false,
-    this.bottomMenuController,
+    required this.bottomMenuController,
   }) : super(duration: const Duration(milliseconds: 350));
 
-  final BottomMenuController<T>? bottomMenuController;
+  final BottomMenuController<T> bottomMenuController;
   final WidgetBuilder? buttons;
   final bool isDismissible;
   final Widget child;
 
-  static BottomMenuController<T>? menuControllerMaybeOf<T>(
-      BuildContext context) {
-    return _BottomMenuControllerScope.maybeOf(context)?.notifier
-        as BottomMenuController<T>?;
+  static BottomMenuController<T>? menuControllerMaybeOf<T>(BuildContext context) {
+    return _BottomMenuControllerScope.maybeOf(context)?.notifier as BottomMenuController<T>?;
   }
 
   static BottomMenuController<T> menuControllerOf<T>(BuildContext context) {
-    return _BottomMenuControllerScope.of(context).notifier!
-        as BottomMenuController<T>;
+    return _BottomMenuControllerScope.of(context).notifier! as BottomMenuController<T>;
   }
 
   @override
-  ImplicitlyAnimatedWidgetState<BottomMenu<T>> createState() =>
-      _BottomMenuState<T>();
+  ImplicitlyAnimatedWidgetState<BottomMenu<T>> createState() => _BottomMenuState<T>();
 }
 
 class _BottomMenuState<T> extends AnimatedWidgetBaseState<BottomMenu<T>> {
   late final BottomMenuController<T> _railMenuController;
   @override
   void initState() {
-    _railMenuController =
-        (widget.bottomMenuController ?? BottomMenuController<T>());
+    _railMenuController = widget.bottomMenuController;
     super.initState();
   }
 
@@ -68,16 +63,10 @@ class _BottomMenuState<T> extends AnimatedWidgetBaseState<BottomMenu<T>> {
                       AnimatedModalBarrier(
                         barrierSemanticsDismissible: railMenuController.isOpen,
                         color: animation.drive(
-                          ColorTween(
-                            begin: Colors.black54,
-                            end: Colors.black54,
-                          ).chain(
-                            CurveTween(curve: Curves.ease),
-                          ),
+                          ColorTween(begin: Colors.black54, end: Colors.black54).chain(CurveTween(curve: Curves.ease)),
                         ),
                         onDismiss: () {
-                          final ValueNotifierList valueNotifierList =
-                              context.read<ValueNotifierList>();
+                          final ValueNotifierList valueNotifierList = context.read<ValueNotifierList>();
                           valueNotifierList.clear();
                           railMenuController.close();
                         },
@@ -95,10 +84,9 @@ class _BottomMenuState<T> extends AnimatedWidgetBaseState<BottomMenu<T>> {
                 height: railMenuController._menuSize.height,
                 builder: (context) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child:
-                      widget.buttons?.call(context) ?? const _LibraryButtons(),
+                  child: widget.buttons?.call(context) ?? const _LibraryButtons(),
                 ),
-              )
+              ),
             ],
           );
         },
@@ -119,42 +107,33 @@ class _BottomMenuState<T> extends AnimatedWidgetBaseState<BottomMenu<T>> {
   void forEachTween(TweenVisitor<dynamic> visitor) {}
 }
 
-class _BottomMenuControllerScope
-    extends InheritedNotifier<BottomMenuController> {
-  const _BottomMenuControllerScope({
-    required super.child,
-    required super.notifier,
-  });
+class _BottomMenuControllerScope extends InheritedNotifier<BottomMenuController> {
+  const _BottomMenuControllerScope({required super.child, required super.notifier});
 
   static _BottomMenuControllerScope of(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<_BottomMenuControllerScope>()!;
+    return context.dependOnInheritedWidgetOfExactType<_BottomMenuControllerScope>()!;
   }
 
   static _BottomMenuControllerScope? maybeOf(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<_BottomMenuControllerScope>();
+    return context.dependOnInheritedWidgetOfExactType<_BottomMenuControllerScope>();
   }
 
   @override
   bool updateShouldNotify(_BottomMenuControllerScope oldWidget) {
-    return notifier?.isOpen != oldWidget.notifier?.isOpen ||
-        notifier?.menuSize != oldWidget.notifier?.menuSize;
+    return notifier?.isOpen != oldWidget.notifier?.isOpen || notifier?.menuSize != oldWidget.notifier?.menuSize;
   }
 }
 
 class BottomMenuController<T> extends ChangeNotifier {
-  BottomMenuController({
-    bool opened = false,
-    double minHeight = 50,
-  }) {
+  BottomMenuController({bool opened = false, double minHeight = 50, required T initialArgs}) {
     _openMenu = opened;
+    args = initialArgs;
     _menuSize = Size.fromHeight(minHeight);
   }
 
   late Size _menuSize;
 
-  T? args;
+  late T args;
 
   void update() => notifyListeners();
 
@@ -189,11 +168,9 @@ class _LibraryButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final LibraryController libraryController =
-        context.read<LibraryController>();
+    final LibraryController libraryController = context.read<LibraryController>();
     final ContentRepository repository = context.read<ContentRepository>();
-    final ValueNotifierList valueNotifierList =
-        context.watch<ValueNotifierList>();
+    final ValueNotifierList valueNotifierList = context.watch<ValueNotifierList>();
     final libraryRepo = libraryController.repo;
 
     final TabController tabController = HomeScope.of(context).tabController;
@@ -203,35 +180,34 @@ class _LibraryButtons extends StatelessWidget {
       textDirection: Directionality.of(context),
       // overflowAlignment: OverflowBarAlignment.center,
       children: [
-        if (tabController.index != 1)
+        if (tabController.index != 2)
           IconButton(
             onPressed: () async {
               final allSelected = repository
-                  .where(
-                      (element) => valueNotifierList.contains(element.stringID))
+                  .where((element) => valueNotifierList.contains(element.stringID))
                   .toList()
                   .unique((content) => content.stringID);
               valueNotifierList.clear();
 
-              final contentEntities = (await Future.wait(
-                allSelected.map(
-                  (content) => repository.getData(content).then(
-                      (result) => result.fold(onSuccess: (success) => success)),
-                ),
-              ))
-                  .map(
-                    (e) => switch (e) {
-                      Anime data => data.toEntity(isFavorite: true),
-                      Book data => data.toEntity(isFavorite: true),
-                      _ => null,
-                    },
-                  )
-                  .nonNulls
-                  .toList();
+              final contentEntities =
+                  (await Future.wait(
+                        allSelected.map(
+                          (content) => repository
+                              .getData(content)
+                              .then((result) => result.fold(onSuccess: (success) => success)),
+                        ),
+                      ))
+                      .map(
+                        (e) => switch (e) {
+                          Anime data => data.toEntity(isFavorite: true),
+                          Book data => data.toEntity(isFavorite: true),
+                          _ => null,
+                        },
+                      )
+                      .nonNulls
+                      .toList();
 
-              await libraryController.addAll(
-                contentEntities: contentEntities,
-              );
+              await libraryController.addAll(contentEntities: contentEntities);
             },
             icon: FadeThroughTransitionSwitcher(
               enableSecondChild: valueNotifierList.length > 1,
@@ -243,41 +219,28 @@ class _LibraryButtons extends StatelessWidget {
         else ...[
           IconButton(
             onPressed: () async {
-              final CategoryController categoryController =
-                  context.read<CategoryController>();
+              final CategoryController categoryController = context.read<CategoryController>();
               final List<Entity> removeEntities = libraryRepo.entities
-                  .where(
-                    (element) => valueNotifierList.contains(
-                      libraryRepo.getStringID(element),
-                    ),
-                  )
+                  .where((element) => valueNotifierList.contains(libraryRepo.getStringID(element)))
                   .toList()
                   .unique((content) => content.id);
 
               final removeIDS = <CategoryEntity>{};
 
               for (final category in categoryController.categories) {
-                final id = libraryRepo.favoritesIDS
-                    .firstWhereOrNull(category.ids.contains);
+                final id = libraryRepo.favoritesIDS.firstWhereOrNull(category.ids.contains);
 
                 if (id != null) {
                   final newIDS = List<String>.from(category.ids);
                   newIDS.remove(id);
 
-                  removeIDS.add(
-                    category.copyWith(
-                      ids: newIDS,
-                      updatedAt: DateTime.now(),
-                    ),
-                  );
+                  removeIDS.add(category.copyWith(ids: newIDS, updatedAt: DateTime.now()));
                 }
               }
 
               final futures = [
                 ...removeIDS.map((e) => categoryController.add(e)),
-                libraryController.removeAll(
-                  contentEntities: removeEntities.cast(),
-                ),
+                libraryController.removeAll(contentEntities: removeEntities.cast()),
               ];
 
               await Future.wait(futures);
@@ -292,12 +255,11 @@ class _LibraryButtons extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed:
-                libraryRepo.favoritesIDS.containsOneElement(valueNotifierList)
-                    ? () {
-                        CategoryUtils.selectCategory(context);
-                      }
-                    : null,
+            onPressed: libraryRepo.favoritesIDS.containsOneElement(valueNotifierList)
+                ? () {
+                    CategoryHelper.openCategoryDialog(context);
+                  }
+                : null,
             icon: FadeThroughTransitionSwitcher(
               enableSecondChild: valueNotifierList.length > 1,
               duration: const Duration(milliseconds: 250),

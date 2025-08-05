@@ -13,11 +13,14 @@ class HomeScope extends InheritedNotifier<Listenable> {
     required this.bottomMenuController,
     required this.keepWatchingScrollController,
     required this.subordinateLibraryTabController,
+    required this.bottomSheetAnimationController,
     required WidgetBuilder builder,
   }) : super(
-          notifier: Listenable.merge([tabController, bottomMenuController]),
-          child: Builder(builder: builder),
-        );
+         notifier: Listenable.merge([tabController, bottomMenuController]),
+         child: Builder(builder: builder),
+       );
+
+  final AnimationController bottomSheetAnimationController;
   final BottomMenuController bottomMenuController;
   final CustomSearchController searchController;
   final TabController tabController;
@@ -39,7 +42,6 @@ class HomeScope extends InheritedNotifier<Listenable> {
     return enabled != oldWidget.enabled ||
         tabController.index != oldWidget.tabController.index ||
         bottomMenuController.isOpen != oldWidget.bottomMenuController.isOpen ||
-        subordinateLibraryTabController !=
-            oldWidget.subordinateLibraryTabController;
+        subordinateLibraryTabController != oldWidget.subordinateLibraryTabController;
   }
 }

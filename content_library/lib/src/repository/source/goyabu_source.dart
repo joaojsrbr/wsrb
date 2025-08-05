@@ -33,11 +33,14 @@ class GoyabuSource extends RSource {
             Uri.parse(fremeSrc),
             headers: {
               'Access-Control-Allow-Origin': '*',
-              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+              "Accept":
+                  "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
             },
           )
           ..setJavaScriptMode(JavaScriptMode.unrestricted)
-          ..setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36");
+          ..setUserAgent(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+          );
 
         await controller.setNavigationDelegate(
           NavigationDelegate(
@@ -76,7 +79,10 @@ class GoyabuSource extends RSource {
               completer.complete(
                 Data.videoData(
                   videoContent: playURL,
-                  httpHeaders: const {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"},
+                  httpHeaders: const {
+                    "User-Agent":
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+                  },
                 ),
               );
             },
@@ -114,11 +120,18 @@ class GoyabuSource extends RSource {
       for (final episodeElement in episodesElements) {
         final ScrapingUtil episodeScrapingUtil = ScrapingUtil(episodeElement);
 
-        final int? numberEpisode = int.tryParse(episodeScrapingUtil.getByText(selector: 'a').trim().split('-').last.replaceAll(RegExp(r'[^0-9]'), ''));
+        final int? numberEpisode = int.tryParse(
+          episodeScrapingUtil.getByText(selector: 'a').trim().split('-').last.replaceAll(RegExp(r'[^0-9]'), ''),
+        );
 
         final String episodeURL = episodeScrapingUtil.getURL(selector: 'a');
 
-        final Episode episode = Episode(url: episodeURL, numberEpisode: numberEpisode, title: 'N/A', isDublado: content.isDublado);
+        final Episode episode = Episode(
+          url: episodeURL,
+          numberEpisode: numberEpisode,
+          title: 'N/A',
+          isDublado: content.isDublado,
+        );
 
         if (!cacheRelease.contains(episode)) cacheRelease.add(episode);
       }
@@ -134,7 +147,10 @@ class GoyabuSource extends RSource {
     try {
       if (content is! Anime) throw AnimeGetDataException();
 
-      final Response<dynamic> responseAnimeURL = await contentRepository._dio.get(content.releases.first.url, responseType: ResponseType.plain);
+      final Response<dynamic> responseAnimeURL = await contentRepository._dio.get(
+        content.releases.first.url,
+        responseType: ResponseType.plain,
+      );
 
       final Document episodeDocument = parse(responseAnimeURL.data);
 
@@ -157,23 +173,38 @@ class GoyabuSource extends RSource {
       final String originalImage = scrapingUtil.getImage(selector: '.thumb img');
       final String sinopse = scrapingUtil.getByText(selector: '.sinopse h3');
 
-      final List<Genre> genres = scrapingUtil.element.querySelectorAll('.genres a').map((element) => Genre(element.text.trim())).toList();
+      final List<Genre> genres = scrapingUtil.element
+          .querySelectorAll('.genres a')
+          .map((element) => Genre(element.text.trim()))
+          .toList();
 
       final List<Element> episodesElements = scrapingUtil.element.querySelectorAll('.listaEps li');
 
       for (final Element episodeElement in episodesElements) {
         final ScrapingUtil episodeScrapingUtil = ScrapingUtil(episodeElement);
 
-        final int? numberEpisode = int.tryParse(episodeScrapingUtil.getByText(selector: 'a').trim().split('-').last.replaceAll(RegExp(r'[^0-9]'), ''));
+        final int? numberEpisode = int.tryParse(
+          episodeScrapingUtil.getByText(selector: 'a').trim().split('-').last.replaceAll(RegExp(r'[^0-9]'), ''),
+        );
 
         final String episodeURL = episodeScrapingUtil.getURL(selector: 'a');
 
-        final Episode episode = Episode(url: episodeURL, numberEpisode: numberEpisode, title: 'N/A', isDublado: anime.isDublado);
+        final Episode episode = Episode(
+          url: episodeURL,
+          numberEpisode: numberEpisode,
+          title: 'N/A',
+          isDublado: anime.isDublado,
+        );
 
         anime.releases.addIfNoContains(episode);
       }
 
-      final Anime newAnime = anime.copyWith(totalOfEpisodes: anime.releases.length, originalImage: originalImage, genres: genres, sinopse: sinopse);
+      final Anime newAnime = anime.copyWith(
+        totalOfEpisodes: anime.releases.length,
+        originalImage: originalImage,
+        genres: genres,
+        sinopse: sinopse,
+      );
       return Result.success(newAnime);
     } on DioException catch (error) {
       return Result.failure(error);
@@ -210,11 +241,22 @@ class GoyabuSource extends RSource {
         final String episodeTitle = scrapingUtil.getByText(selector: '.titleEP');
         final bool isDublado = (element.attributes['data-tar']?.toLowerCase().contains('dub')) ?? false;
 
-        final Episode episode = Episode(isDublado: isDublado, url: episodeURL, title: episodeTitle, thumbnail: thumbnail);
+        final Episode episode = Episode(
+          isDublado: isDublado,
+          url: episodeURL,
+          title: episodeTitle,
+          thumbnail: thumbnail,
+        );
 
         final String animeTitle = scrapingUtil.getByText(selector: '.title');
 
-        final Anime anime = Anime(title: animeTitle, releases: EpisodeReleases()..add(episode), source: source, url: '', originalImage: thumbnail);
+        final Anime anime = Anime(
+          title: animeTitle,
+          releases: EpisodeReleases()..add(episode),
+          source: source,
+          url: '',
+          originalImage: thumbnail,
+        );
         contentRepository.addIfNoContains(anime);
       }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart' as provider;
 
 /// [ValueChanged], [ValueSetter], [ValueGetter]
 
@@ -20,4 +21,6 @@ extension StateExtension<S extends StatefulWidget> on State<S> {
   void addPostFrameCallback(ValueChanged<Duration> callback) {
     WidgetsBinding.instance.addPostFrameCallback(callback);
   }
+
+  T read<T>() => context.read<T>();
 }

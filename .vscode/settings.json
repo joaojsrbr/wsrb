@@ -6,4 +6,8 @@
   "editor.defaultFormatter": "Dart-Code.dart-code",
   "editor.formatOnSave": true,
   "dart.lineLength": 120,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll": "explicit"
+  },
 }

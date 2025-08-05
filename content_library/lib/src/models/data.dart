@@ -1,4 +1,4 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
+// ignore_for_file: public_member_api_docs, sort_constructors_first, constant_identifier_names
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
@@ -10,10 +10,7 @@ sealed class Data extends Equatable {
 
   const factory Data.imageData({required String imageURL}) = ImageData;
 
-  const factory Data.videoData({
-    required String videoContent,
-    Map<String, String>? httpHeaders,
-  }) = VideoData;
+  const factory Data.videoData({required String videoContent, Map<String, String>? httpHeaders}) = VideoData;
 }
 
 class ImageData extends Data {
@@ -27,13 +24,21 @@ class ImageData extends Data {
 class VideoData extends Data {
   final String videoContent;
   final Map<String, String>? httpHeaders;
-  const VideoData({
-    required this.videoContent,
-    this.httpHeaders,
-  });
+  final Quality quality;
+  const VideoData({required this.videoContent, this.httpHeaders, this.quality = Quality.NONE});
 
   @override
-  List<Object?> get props => [videoContent];
+  List<Object?> get props => [videoContent, quality];
+}
+
+enum Quality {
+  Q480P("480p"),
+  Q720P("720p"),
+  Q1080P("1080p"),
+  NONE("None");
+
+  final String label;
+  const Quality(this.label);
 }
 
 class FileVideoData extends Data {

@@ -13,39 +13,15 @@ Future<void> copyToClipboard(
   final ClipboardData data = ClipboardData(text: messageCopy);
   await Clipboard.setData(data).whenComplete(() {
     if (snackBar && context.mounted) {
-      _snackBar(context, messageCopy, messageSnackBar, duration);
+      context.showAppSnackBar(
+        Text(
+          messageSnackBar ??
+              '$messageCopy '
+                  'copiado para a área de transferência!',
+        ),
+        flushbarPosition: FlushbarPosition.TOP,
+        duration: duration,
+      );
     }
   });
-}
-
-void _snackBar(
-  context,
-  String messageCopy,
-  String? messageSnackBar,
-  Duration duration,
-) {
-  final AppSnackBar snackBar = AppSnackBar(context);
-  snackBar.show(
-    Text(
-      messageSnackBar ??
-          '$messageCopy '
-              'copiado para a área de transferência!',
-    ),
-    flushbarPosition: FlushbarPosition.TOP,
-    duration: duration,
-  );
-  // ScaffoldMessenger.of(context)
-  //   ..clearSnackBars()
-  //   ..showSnackBar(
-  //     SnackBar(
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-  //       duration: const Duration(milliseconds: 1500),
-  //       behavior: SnackBarBehavior.floating,
-  //       content: Text(
-  //         messageSnackBar ??
-  //             '$messageCopy '
-  //                 'copiado para a área de transferência!',
-  //       ),
-  //     ),
-  //   );
 }

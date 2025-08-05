@@ -7,8 +7,7 @@ class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
   FiltroBottomSheetRoute({
     required this.appConfigController,
     required this.bottomSheetAnimationController,
-
-    required this.onlyFavorites,
+    this.onlyFavorites = false,
   });
 
   final bool onlyFavorites;
@@ -47,11 +46,9 @@ class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
     _updateFilter();
   }
 
-  void _handleSourceFilterChipSelector(List<String> data) {
+  void _handleSourceFilterChipSelector(List<Source> data) {
     if (data.isNotEmpty) {
-      final sources = Source.values.where((source) => data.contains(source.name));
-
-      newFilterWatching = newFilterWatching.copyWith(filterSources: sources.toList());
+      newFilterWatching = newFilterWatching.copyWith(filterSources: data);
     } else {
       newFilterWatching = newFilterWatching.copyWith(filterSources: []);
     }
@@ -60,6 +57,7 @@ class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
 
   void _updateFilter() {
     appConfigController.setFilterWatching(newFilterWatching);
+    newFilterWatching = appConfigController.config.filterWatching;
   }
 
   late FilterWatching newFilterWatching = appConfigController.config.filterWatching;
@@ -127,27 +125,32 @@ class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
                         padding: EdgeInsets.zero,
                       ),
                       title: "Fonte",
-
-                      initialSelected: filterWatching.filterSources.map((e) => e.label).toList(),
-                      genres: Source.list.map((e) => e.label).toList(),
+                      initialSelected: filterWatching.filterSources,
+                      filter: Source.list,
+                      filterToString: (data) => data.label,
                       onChanged: _handleSourceFilterChipSelector,
                     ),
                     if (genres.isNotEmpty)
                       FilterChipSelector(
-                        limpar: RawChip(
-                          onPressed: () {
-                            // newFilterWatching = newFilterWatching.copyWith(genresFilter: );
-                            appConfigController.setFilterWatching(
-                              filterWatching.copyWith(
-                                genresFilter: filterWatching.genresFilter.isEmpty ? genres.unique() : [],
+                        limpar: filterWatching.genresFilter.isEmpty
+                            ? const SizedBox.shrink()
+                            : RawChip(
+                                isEnabled: filterWatching.genresFilter.isNotEmpty,
+                                onPressed: () {
+                                  // newFilterWatching = newFilterWatching.copyWith(genresFilter: );
+                                  appConfigController.setFilterWatching(
+                                    // filterWatching.copyWith(
+                                    //   genresFilter: filterWatching.genresFilter.isEmpty ? genres.unique() : [],
+                                    // ),
+                                    filterWatching.copyWith(genresFilter: []),
+                                  );
+                                },
+                                label: const Text("Limpar"),
+                                padding: EdgeInsets.zero,
                               ),
-                            );
-                          },
-                          label: filterWatching.genresFilter.isEmpty ? const Text("Reset") : const Text("Limpar"),
-                          padding: EdgeInsets.zero,
-                        ),
                         title: "Generos",
-                        genres: genres.unique(),
+                        filterToString: (data) => data,
+                        filter: genres.unique(),
                         initialSelected: filterWatching.genresFilter,
                         onChanged: _handleGenresFilterChipSelector,
                       ),
@@ -179,27 +182,29 @@ class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
   }
 }
 
-class FilterChipSelector extends StatefulWidget {
+class FilterChipSelector<T> extends StatefulWidget {
   const FilterChipSelector({
     super.key,
-    required this.genres,
+    required this.filter,
     this.initialSelected,
     this.limpar,
     this.onChanged,
     required this.title,
+    required this.filterToString,
   });
   final String title;
   final Widget? limpar;
-  final List<String> genres;
-  final List<String>? initialSelected;
-  final ValueChanged<List<String>>? onChanged;
+  final List<T> filter;
+  final List<T>? initialSelected;
+  final String Function(T data) filterToString;
+  final ValueChanged<List<T>>? onChanged;
 
   @override
-  State<FilterChipSelector> createState() => FiltereChipSelectorState();
+  State<FilterChipSelector<T>> createState() => FiltereChipSelectorState<T>();
 }
 
-class FiltereChipSelectorState extends State<FilterChipSelector> {
-  late List<String> _selected;
+class FiltereChipSelectorState<T> extends State<FilterChipSelector<T>> {
+  late List<T> _selected;
 
   @override
   void initState() {
@@ -207,21 +212,21 @@ class FiltereChipSelectorState extends State<FilterChipSelector> {
     if (widget.initialSelected != null) {
       _selected = List.from(widget.initialSelected!);
     } else {
-      _selected = List.from(widget.genres);
+      _selected = List.from(widget.filter);
     }
   }
 
   @override
-  void didUpdateWidget(covariant FilterChipSelector oldWidget) {
+  void didUpdateWidget(covariant FilterChipSelector<T> oldWidget) {
     if (widget.initialSelected != null) {
       _selected = List.from(widget.initialSelected!);
     } else {
-      _selected = List.from(widget.genres);
+      _selected = List.from(widget.filter);
     }
     super.didUpdateWidget(oldWidget);
   }
 
-  void _onChipTapped(String genre) {
+  void _onChipTapped(T genre) {
     setState(() {
       if (_selected.contains(genre)) {
         _selected.remove(genre);
@@ -245,11 +250,11 @@ class FiltereChipSelectorState extends State<FilterChipSelector> {
             spacing: 8,
             runSpacing: 0,
             children: [
-              ...widget.genres.map((genre) {
+              ...widget.filter.map((genre) {
                 final selected = _selected.contains(genre);
                 return ChoiceChip(
                   padding: EdgeInsets.zero,
-                  label: Text(genre),
+                  label: Text(widget.filterToString(genre)),
                   selected: selected,
                   onSelected: (_) => _onChipTapped(genre),
                 );

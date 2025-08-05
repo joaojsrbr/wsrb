@@ -17,25 +17,31 @@ const AppConfigEntitySchema = CollectionSchema(
   name: r'AppConfigEntity',
   id: -6817184198876440529,
   properties: {
-    r'filterWatching': PropertySchema(
+    r'betterAnimeCookies': PropertySchema(
       id: 0,
+      name: r'betterAnimeCookies',
+      type: IsarType.objectList,
+      target: r'ContentCookie',
+    ),
+    r'filterWatching': PropertySchema(
+      id: 1,
       name: r'filterWatching',
       type: IsarType.object,
       target: r'FilterWatching',
     ),
     r'orderBy': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'orderBy',
       type: IsarType.byte,
       enumMap: _AppConfigEntityorderByEnumValueMap,
     ),
     r'reverseContents': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'reverseContents',
       type: IsarType.bool,
     ),
     r'source': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'source',
       type: IsarType.byte,
       enumMap: _AppConfigEntitysourceEnumValueMap,
@@ -48,7 +54,10 @@ const AppConfigEntitySchema = CollectionSchema(
   idName: r'id',
   indexes: {},
   links: {},
-  embeddedSchemas: {r'FilterWatching': FilterWatchingSchema},
+  embeddedSchemas: {
+    r'FilterWatching': FilterWatchingSchema,
+    r'ContentCookie': ContentCookieSchema
+  },
   getId: _appConfigEntityGetId,
   getLinks: _appConfigEntityGetLinks,
   attach: _appConfigEntityAttach,
@@ -61,6 +70,15 @@ int _appConfigEntityEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.betterAnimeCookies.length * 3;
+  {
+    final offsets = allOffsets[ContentCookie]!;
+    for (var i = 0; i < object.betterAnimeCookies.length; i++) {
+      final value = object.betterAnimeCookies[i];
+      bytesCount +=
+          ContentCookieSchema.estimateSize(value, offsets, allOffsets);
+    }
+  }
   bytesCount += 3 +
       FilterWatchingSchema.estimateSize(
           object.filterWatching, allOffsets[FilterWatching]!, allOffsets);
@@ -73,15 +91,21 @@ void _appConfigEntitySerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeObject<FilterWatching>(
+  writer.writeObjectList<ContentCookie>(
     offsets[0],
+    allOffsets,
+    ContentCookieSchema.serialize,
+    object.betterAnimeCookies,
+  );
+  writer.writeObject<FilterWatching>(
+    offsets[1],
     allOffsets,
     FilterWatchingSchema.serialize,
     object.filterWatching,
   );
-  writer.writeByte(offsets[1], object.orderBy.index);
-  writer.writeBool(offsets[2], object.reverseContents);
-  writer.writeByte(offsets[3], object.source.index);
+  writer.writeByte(offsets[2], object.orderBy.index);
+  writer.writeBool(offsets[3], object.reverseContents);
+  writer.writeByte(offsets[4], object.source.index);
 }
 
 AppConfigEntity _appConfigEntityDeserialize(
@@ -91,18 +115,25 @@ AppConfigEntity _appConfigEntityDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = AppConfigEntity(
-    filterWatching: reader.readObjectOrNull<FilterWatching>(
+    betterAnimeCookies: reader.readObjectList<ContentCookie>(
           offsets[0],
+          ContentCookieSchema.deserialize,
+          allOffsets,
+          ContentCookie(),
+        ) ??
+        const [],
+    filterWatching: reader.readObjectOrNull<FilterWatching>(
+          offsets[1],
           FilterWatchingSchema.deserialize,
           allOffsets,
         ) ??
         FilterWatching(),
     orderBy: _AppConfigEntityorderByValueEnumMap[
-            reader.readByteOrNull(offsets[1])] ??
+            reader.readByteOrNull(offsets[2])] ??
         OrderBy.LATEST,
-    reverseContents: reader.readBool(offsets[2]),
+    reverseContents: reader.readBool(offsets[3]),
     source:
-        _AppConfigEntitysourceValueEnumMap[reader.readByteOrNull(offsets[3])] ??
+        _AppConfigEntitysourceValueEnumMap[reader.readByteOrNull(offsets[4])] ??
             Source.ANROLL,
   );
   object.id = id;
@@ -117,19 +148,27 @@ P _appConfigEntityDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
+      return (reader.readObjectList<ContentCookie>(
+            offset,
+            ContentCookieSchema.deserialize,
+            allOffsets,
+            ContentCookie(),
+          ) ??
+          const []) as P;
+    case 1:
       return (reader.readObjectOrNull<FilterWatching>(
             offset,
             FilterWatchingSchema.deserialize,
             allOffsets,
           ) ??
           FilterWatching()) as P;
-    case 1:
+    case 2:
       return (_AppConfigEntityorderByValueEnumMap[
               reader.readByteOrNull(offset)] ??
           OrderBy.LATEST) as P;
-    case 2:
-      return (reader.readBool(offset)) as P;
     case 3:
+      return (reader.readBool(offset)) as P;
+    case 4:
       return (_AppConfigEntitysourceValueEnumMap[
               reader.readByteOrNull(offset)] ??
           Source.ANROLL) as P;
@@ -161,14 +200,16 @@ const _AppConfigEntitysourceEnumValueMap = {
   'NEOX_SCANS': 1,
   'DEMON_SECT': 2,
   'GOYABU': 3,
-  'SLIMEREAD': 4,
+  'BETTER_ANIME': 4,
+  'SLIMEREAD': 5,
 };
 const _AppConfigEntitysourceValueEnumMap = {
   0: Source.ANROLL,
   1: Source.NEOX_SCANS,
   2: Source.DEMON_SECT,
   3: Source.GOYABU,
-  4: Source.SLIMEREAD,
+  4: Source.BETTER_ANIME,
+  5: Source.SLIMEREAD,
 };
 
 Id _appConfigEntityGetId(AppConfigEntity object) {
@@ -266,6 +307,95 @@ extension AppConfigEntityQueryWhere
 
 extension AppConfigEntityQueryFilter
     on QueryBuilder<AppConfigEntity, AppConfigEntity, QFilterCondition> {
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
+      betterAnimeCookiesLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'betterAnimeCookies',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
+      betterAnimeCookiesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'betterAnimeCookies',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
+      betterAnimeCookiesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'betterAnimeCookies',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
+      betterAnimeCookiesLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'betterAnimeCookies',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
+      betterAnimeCookiesLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'betterAnimeCookies',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
+      betterAnimeCookiesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'betterAnimeCookies',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
   QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
       idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
@@ -448,6 +578,13 @@ extension AppConfigEntityQueryFilter
 extension AppConfigEntityQueryObject
     on QueryBuilder<AppConfigEntity, AppConfigEntity, QFilterCondition> {
   QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
+      betterAnimeCookiesElement(FilterQuery<ContentCookie> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'betterAnimeCookies');
+    });
+  }
+
+  QueryBuilder<AppConfigEntity, AppConfigEntity, QAfterFilterCondition>
       filterWatching(FilterQuery<FilterWatching> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'filterWatching');
@@ -587,6 +724,13 @@ extension AppConfigEntityQueryProperty
     });
   }
 
+  QueryBuilder<AppConfigEntity, List<ContentCookie>, QQueryOperations>
+      betterAnimeCookiesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'betterAnimeCookies');
+    });
+  }
+
   QueryBuilder<AppConfigEntity, FilterWatching, QQueryOperations>
       filterWatchingProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -617,6 +761,439 @@ extension AppConfigEntityQueryProperty
 // **************************************************************************
 // IsarEmbeddedGenerator
 // **************************************************************************
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const ContentCookieSchema = Schema(
+  name: r'ContentCookie',
+  id: 4391955152024032846,
+  properties: {
+    r'expiresDate': PropertySchema(
+      id: 0,
+      name: r'expiresDate',
+      type: IsarType.long,
+    ),
+    r'key': PropertySchema(
+      id: 1,
+      name: r'key',
+      type: IsarType.string,
+    ),
+    r'value': PropertySchema(
+      id: 2,
+      name: r'value',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _contentCookieEstimateSize,
+  serialize: _contentCookieSerialize,
+  deserialize: _contentCookieDeserialize,
+  deserializeProp: _contentCookieDeserializeProp,
+);
+
+int _contentCookieEstimateSize(
+  ContentCookie object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.key.length * 3;
+  bytesCount += 3 + object.value.length * 3;
+  return bytesCount;
+}
+
+void _contentCookieSerialize(
+  ContentCookie object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeLong(offsets[0], object.expiresDate);
+  writer.writeString(offsets[1], object.key);
+  writer.writeString(offsets[2], object.value);
+}
+
+ContentCookie _contentCookieDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = ContentCookie(
+    expiresDate: reader.readLongOrNull(offsets[0]),
+    key: reader.readStringOrNull(offsets[1]) ?? "",
+    value: reader.readStringOrNull(offsets[2]) ?? "",
+  );
+  return object;
+}
+
+P _contentCookieDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readLongOrNull(offset)) as P;
+    case 1:
+      return (reader.readStringOrNull(offset) ?? "") as P;
+    case 2:
+      return (reader.readStringOrNull(offset) ?? "") as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension ContentCookieQueryFilter
+    on QueryBuilder<ContentCookie, ContentCookie, QFilterCondition> {
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      expiresDateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'expiresDate',
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      expiresDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'expiresDate',
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      expiresDateEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'expiresDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      expiresDateGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'expiresDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      expiresDateLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'expiresDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      expiresDateBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'expiresDate',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> keyEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'key',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      keyGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'key',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> keyLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'key',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> keyBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'key',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      keyStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'key',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> keyEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'key',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> keyContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'key',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition> keyMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'key',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      keyIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'key',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      keyIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'key',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      valueEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'value',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      valueGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'value',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      valueLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'value',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      valueBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'value',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      valueStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'value',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      valueEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'value',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      valueContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'value',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      valueMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'value',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      valueIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'value',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ContentCookie, ContentCookie, QAfterFilterCondition>
+      valueIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'value',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension ContentCookieQueryObject
+    on QueryBuilder<ContentCookie, ContentCookie, QFilterCondition> {}
 
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
@@ -742,14 +1319,16 @@ const _FilterWatchingfilterSourcesEnumValueMap = {
   'NEOX_SCANS': 1,
   'DEMON_SECT': 2,
   'GOYABU': 3,
-  'SLIMEREAD': 4,
+  'BETTER_ANIME': 4,
+  'SLIMEREAD': 5,
 };
 const _FilterWatchingfilterSourcesValueEnumMap = {
   0: Source.ANROLL,
   1: Source.NEOX_SCANS,
   2: Source.DEMON_SECT,
   3: Source.GOYABU,
-  4: Source.SLIMEREAD,
+  4: Source.BETTER_ANIME,
+  5: Source.SLIMEREAD,
 };
 
 extension FilterWatchingQueryFilter

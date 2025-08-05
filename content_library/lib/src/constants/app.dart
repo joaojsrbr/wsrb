@@ -18,6 +18,8 @@ class App {
 
   static const String SLIME_READ_URL = 'https://slimeread.com';
 
+  static const String BETTER_ANIME_URL = 'https://betteranime.net';
+
   static const String ANROLL_URL = 'https://www.anroll.net';
 
   static const String ANROLL_USER_URL = 'https://api-user.anroll.net';
@@ -26,16 +28,14 @@ class App {
 
   static Map<String, String> HEADERS = {
     "user-agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
   };
 
   static const CONTENT_APP_CACHE_CONFIG = CacheConfiguration(
     sizeOptions: CacheSizeOptions(maxMb: 20),
     dataCacheOptions: DataCacheOptions(
       substitutionPolicy: SubstitutionPolicies.lru,
-      invalidationMethod: TTLInvalidationMethod(
-        maxDuration: Duration(days: 2),
-      ),
+      invalidationMethod: TTLInvalidationMethod(maxDuration: Duration(days: 2)),
     ),
   );
 
@@ -52,8 +52,7 @@ class App {
 
   static const String ANI_LIST = 'https://graphql.anilist.co';
 
-  static const ImageProvider DEFAULT_IMAGE_PLACEHOLDER =
-      AssetImage('assets/default-placeholder.png');
+  static const ImageProvider DEFAULT_IMAGE_PLACEHOLDER = AssetImage('assets/default-placeholder.png');
 
   static const ImageProvider IMAGE_GRAY = AssetImage('assets/gray_color.png');
   static const ImageProvider IMAGE_BLACK = AssetImage('assets/black_color.jpg');

@@ -1,53 +1,37 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 // ignore_for_file: must_be_immutable
 
-import 'package:content_library/src/entities/entity.dart';
-import 'package:content_library/src/models/chapter.dart';
+import 'package:content_library/content_library.dart';
 import 'package:isar/isar.dart';
 
 part 'chapter_entity.g.dart';
 
 @Collection(ignore: {'props', 'imageUrl', 'stringify', 'hashCode', 'toChapter'})
-class ChapterEntity extends HistoryEntity {
+class ChapterEntity extends HistoricEntity {
   final double readPercent;
 
   @Index(replace: true, unique: true)
   final String stringID;
   final String bookStringID;
-  final String title;
-
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-  final String url;
-  @override
-  final bool isComplete;
 
   @override
-  final double percent;
-
-  @override
-  List<Object?> get props => [
-        readPercent,
-        stringID,
-        isComplete,
-        createdAt,
-        updatedAt,
-      ];
+  List<Object?> get props => [readPercent, stringID, isComplete, createdAt, updatedAt];
 
   ChapterEntity({
     required this.readPercent,
     required this.stringID,
     required this.bookStringID,
-    required this.url,
-    required this.title,
-    this.createdAt,
-    this.updatedAt,
-    this.percent = 0.0,
-    this.isComplete = false,
+    required super.url,
+    required super.title,
+    super.createdAt,
+    super.updatedAt,
+    super.percent = 0.0,
+    super.isComplete = false,
+    super.positions = const [],
   });
 
   @override
-  int compareTo(HistoryEntity other) {
+  int compareTo(HistoricEntity other) {
     if (createdAt != null && (other as ChapterEntity).createdAt != null) {
       return createdAt!.compareTo(other.createdAt!);
     }
@@ -55,15 +39,12 @@ class ChapterEntity extends HistoryEntity {
   }
 
   Chapter toChapter() {
-    return Chapter(
-      read: isComplete,
-      title: title,
-      url: url,
-      bookStringID: bookStringID,
-    );
+    return Chapter(read: isComplete, title: title, url: url, bookStringID: bookStringID);
   }
 
+  @override
   ChapterEntity copyWith({
+    List<CurrentPosition>? positions,
     double? readPercent,
     String? stringID,
     String? bookStringID,
@@ -84,6 +65,7 @@ class ChapterEntity extends HistoryEntity {
       url: url ?? this.url,
       isComplete: isComplete ?? this.isComplete,
       percent: percent ?? this.percent,
+      positions: positions ?? this.positions,
     );
   }
 }

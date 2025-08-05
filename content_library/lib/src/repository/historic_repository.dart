@@ -1,11 +1,10 @@
 import 'package:content_library/content_library.dart';
 import 'package:content_library/src/utils/in_repository.dart';
 
-class InHistoricRepository extends InRepository<HistoryEntity> {
-  UnmodifiableListView<String> get ids =>
-      UnmodifiableListView(entities.map(_map).nonNulls);
+class InHistoricRepository extends InRepository<HistoricEntity> {
+  UnmodifiableListView<String> get ids => UnmodifiableListView(entities.map(_map).nonNulls);
 
-  String? _map(HistoryEntity entity) {
+  String? _map(HistoricEntity entity) {
     return switch (entity) {
       EpisodeEntity data => data.stringID,
       ChapterEntity data => data.stringID,
@@ -13,21 +12,18 @@ class InHistoricRepository extends InRepository<HistoryEntity> {
     };
   }
 
-  bool contains({
-    HistoryEntity? historyEntity,
-    Release? release,
-  }) {
+  bool contains({HistoricEntity? HistoricEntity, Release? release}) {
     bool result = false;
     if (release != null) {
-      assert(historyEntity == null);
+      assert(HistoricEntity == null);
       result = switch (release) {
         Episode data => ids.contains(data.stringID),
         Chapter data => ids.contains(data.stringID),
         _ => false,
       };
-    } else if (historyEntity != null) {
+    } else if (HistoricEntity != null) {
       assert(release == null);
-      result = switch (historyEntity) {
+      result = switch (HistoricEntity) {
         EpisodeEntity data => ids.contains(data.stringID),
         ChapterEntity data => ids.contains(data.stringID),
         _ => false,
@@ -36,52 +32,49 @@ class InHistoricRepository extends InRepository<HistoryEntity> {
     return result;
   }
 
-  T? getHistoryEntityByID<T extends HistoryEntity>(List<String> ids) {
-    final entity = entities.firstWhereOrNull((entity) => switch (entity) {
-          EpisodeEntity data =>
-            ids.containsOneElement([data.stringID, data.animeStringID]),
-          _ => false,
-        });
+  T? getHistoricEntityByID<T extends HistoricEntity>(List<String> ids) {
+    final entity = entities.firstWhereOrNull(
+      (entity) => switch (entity) {
+        EpisodeEntity data => ids.containsOneElement([data.stringID, data.animeStringID]),
+        _ => false,
+      },
+    );
 
     return entity is T ? entity : null;
   }
 
-  List<HistoryEntity> getAllHistoryEntityByID(List<String> ids) {
+  List<HistoricEntity> getAllHistoricEntityByID(List<String> ids) {
     return entities
-        .where((entity) => switch (entity) {
-              EpisodeEntity data =>
-                ids.containsOneElement([data.stringID, data.animeStringID]),
-              _ => false,
-            })
-        .cast<HistoryEntity>()
+        .where(
+          (entity) => switch (entity) {
+            EpisodeEntity data => ids.containsOneElement([data.stringID, data.animeStringID]),
+            _ => false,
+          },
+        )
+        .cast<HistoricEntity>()
         .toList();
   }
 
-  UnmodifiableListView<HistoryEntity> get sortedByCreatedAt =>
-      UnmodifiableListView(
-        entities.sorted(
-          (historic1, historic2) => historic2.compareTo(historic1),
-        ),
-      );
+  UnmodifiableListView<HistoricEntity> get sortedByCreatedAt =>
+      UnmodifiableListView(entities.sorted((historic1, historic2) => historic2.compareTo(historic1)));
 
-  UnmodifiableListView<ChapterEntity> get chapterHistoric =>
-      UnmodifiableListView<ChapterEntity>(entities.whereType());
+  UnmodifiableListView<ChapterEntity> get chapterHistoric => UnmodifiableListView<ChapterEntity>(entities.whereType());
 
-  UnmodifiableListView<EpisodeEntity> get episodeHistoric =>
-      UnmodifiableListView<EpisodeEntity>(entities.whereType());
+  UnmodifiableListView<EpisodeEntity> get episodeHistoric => UnmodifiableListView<EpisodeEntity>(entities.whereType());
 
-  T? getHistoric<T extends HistoryEntity>({
+  T? getHistoric<T extends HistoricEntity>({
     Release? release,
     Content? content,
     ContentEntity? contentEntity,
     T? Function()? orElse,
   }) {
-    bool matchesEntity(HistoryEntity e) {
+    bool matchesEntity(HistoricEntity e) {
       return switch (e) {
         ChapterEntity data => data.stringID.contains(release?.stringID ?? ""),
-        EpisodeEntity data => data.stringID.contains(release?.stringID ?? "") &&
-            int.tryParse(release?.number ?? "") == data.numberEpisode &&
-            (content == null || data.animeStringID.contains(content.stringID)),
+        EpisodeEntity data =>
+          data.stringID.contains(release?.stringID ?? "") &&
+              int.tryParse(release?.number ?? "") == data.numberEpisode &&
+              (content == null || data.animeStringID.contains(content.stringID)),
         _ => false,
       };
     }
@@ -89,11 +82,11 @@ class InHistoricRepository extends InRepository<HistoryEntity> {
     return entities.firstWhereOrNull(matchesEntity) as T? ?? orElse?.call();
   }
 
-  T? getHistoricInKeepWatching<T extends HistoryEntity>({
+  T? getHistoricInKeepWatching<T extends HistoricEntity>({
     required ContentEntity contentEntity,
     T? Function()? orElse,
   }) {
-    bool matchesEntity(HistoryEntity e) {
+    bool matchesEntity(HistoricEntity e) {
       if (e case EpisodeEntity episode) {
         return episode.animeStringID.contains(contentEntity.stringID);
       } else {
@@ -101,8 +94,7 @@ class InHistoricRepository extends InRepository<HistoryEntity> {
       }
     }
 
-    final value =
-        entities.firstWhereOrNull(matchesEntity) as T? ?? orElse?.call();
+    final value = entities.firstWhereOrNull(matchesEntity) as T? ?? orElse?.call();
     return value;
   }
 }

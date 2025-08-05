@@ -89,11 +89,7 @@ class Anime extends Content {
   }
 
   @override
-  AnimeEntity toEntity({
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    bool isFavorite = false,
-  }) {
+  AnimeEntity toEntity({DateTime? createdAt, DateTime? updatedAt, bool isFavorite = false}) {
     final content = AnimeEntity(
       totalOfPages: totalOfPages,
       anilistMedia: anilistMedia,
@@ -113,14 +109,10 @@ class Anime extends Content {
       largeImage: largeImage,
       createdAt: createdAt,
       updatedAt: updatedAt,
-      originalImage: originalImage.isEmpty
-          ? releases.firstOrNull?.thumbnail ?? ''
-          : originalImage,
+      originalImage: originalImage.isEmpty ? releases.firstOrNull?.thumbnail ?? '' : originalImage,
     );
 
-    content.episodes.addAll(
-      releases.map((episode) => episode.toEntity(anime: this)),
-    );
+    content.episodes.addAll(releases.map((episode) => episode.toEntity(anime: this)));
 
     content.animeSkip.value = animeSkip?.toEntity;
 
@@ -141,56 +133,4 @@ class Anime extends Content {
         ].firstWhereOrNull((img) => img != null) ??
         originalImage;
   }
-
-  factory Anime.fromMap(Map<String, dynamic> map) {
-    return Anime(
-      animeSkip:
-          map['animeSkip'] != null ? AnimeSkip.fromMap(map['animeSkip']) : null,
-      anilistMedia: map['anilistMedia'] != null
-          ? AniListMedia.fromJson(map['anilistMedia'])
-          : null,
-      title: map['title'],
-      cached: map['cached'] ?? false,
-      url: map['url'],
-      releases: map['releases'] is EpisodeReleases
-          ? map['releases']
-          : EpisodeReleases.from(
-              (map['releases'] as List).map((e) => Episode.fromMap(e)),
-            ),
-      genres: map['genres'] != null
-          ? (map['genres'] as List).map((e) => Genre(e)).toList()
-          : [],
-      generateID: map['generateID'],
-      animeID: map['animeID'],
-      source: Source.values.elementAt(map['source'] as int),
-      extraLarge: map['extraLarge'],
-      originalImage: map['originalImage'],
-      largeImage: map['largeImage'],
-      mediumImage: map['mediumImage'],
-      slugSerie: map['slugSerie'],
-      sinopse: map['sinopse'],
-      isDublado: map['isDublado'],
-      totalOfEpisodes: map['totalOfEpisodes'],
-      totalOfPages: map['totalOfPages'],
-    );
-  }
-
-  @override
-  Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'class': 'ANIME',
-        "genres": genres.map((e) => e.label).toList(),
-        "generateID": generateID,
-        "animeID": animeID,
-        'animeSkip': animeSkip?.toMap,
-        "source": source.index,
-        "extraLarge": extraLarge,
-        "originalImage": originalImage,
-        "largeImage": largeImage,
-        "mediumImage": mediumImage,
-        "slugSerie": slugSerie,
-        "isDublado": isDublado,
-        "totalOfEpisodes": totalOfEpisodes,
-        "totalOfPages": totalOfPages,
-      };
 }

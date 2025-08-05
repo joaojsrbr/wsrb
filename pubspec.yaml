@@ -38,7 +38,7 @@ dependencies:
   intl: 0.20.2
   flutter_localizations:
     sdk: flutter
-  flex_color_scheme: ^8.2.0
+  # flex_color_scheme: ^8.2.0
 
 
   # Video Render
@@ -71,7 +71,13 @@ dependencies:
     path: ./content_library
   quiver: ^3.2.2
   super_sliver_list: ^0.4.1
-  extended_nested_scroll_view: ^6.2.1
+  
+  # extended_nested_scroll_view: ^6.2.1
+  nested_scroll_view_plus: ^3.0.0
+  # nested_scroll_view_plus:
+  #   path: ../nested_scroll_view_plus
+
+
   open_settings_plus: ^0.4.0
   webview_flutter: ^4.11.0
   audio_service: ^0.18.18
@@ -93,9 +99,10 @@ dependencies:
   # flutter_neumorphic_plus: ^3.4.0
   timeago: ^3.7.1
   flutter_animated_progress_bar: ^1.0.5
-  primer_progress_bar: ^0.5.0
-  # url_launcher: ^6.3.1
+  url_launcher: ^6.3.1
   share_plus: ^11.0.0
+  flutter_inappwebview: ^6.1.5
+  # primer_progress_bar: ^0.5.0
   # android_intent_plus: ^5.3.0
 
 dev_dependencies:

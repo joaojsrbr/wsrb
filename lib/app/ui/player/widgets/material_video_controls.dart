@@ -16,12 +16,9 @@ import 'package:media_kit_video/media_kit_video_controls/src/controls/methods/vi
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:volume_controller/volume_controller.dart';
 
-MaterialVideoControlsThemeData _theme(BuildContext context) =>
-    FullscreenInheritedWidget.maybeOf(context) == null
-        ? MaterialVideoControlsTheme.maybeOf(context)?.normal ??
-            kDefaultMaterialVideoControlsThemeData
-        : MaterialVideoControlsTheme.maybeOf(context)?.fullscreen ??
-            kDefaultMaterialVideoControlsThemeDataFullscreen;
+MaterialVideoControlsThemeData _theme(BuildContext context) => FullscreenInheritedWidget.maybeOf(context) == null
+    ? MaterialVideoControlsTheme.maybeOf(context)?.normal ?? kDefaultMaterialVideoControlsThemeData
+    : MaterialVideoControlsTheme.maybeOf(context)?.fullscreen ?? kDefaultMaterialVideoControlsThemeDataFullscreen;
 
 class ControlScope extends InheritedWidget {
   ControlScope({
@@ -50,10 +47,8 @@ class ControlScope extends InheritedWidget {
 
   static MaterialVideoControlsThemeData theme(BuildContext context) =>
       FullscreenInheritedWidget.maybeOf(context) == null
-          ? MaterialVideoControlsTheme.maybeOf(context)?.normal ??
-              kDefaultMaterialVideoControlsThemeData
-          : MaterialVideoControlsTheme.maybeOf(context)?.fullscreen ??
-              kDefaultMaterialVideoControlsThemeDataFullscreen;
+      ? MaterialVideoControlsTheme.maybeOf(context)?.normal ?? kDefaultMaterialVideoControlsThemeData
+      : MaterialVideoControlsTheme.maybeOf(context)?.fullscreen ?? kDefaultMaterialVideoControlsThemeDataFullscreen;
 
   static VideoController controller(BuildContext context) =>
       VideoStateInheritedWidget.of(context).state.widget.controller;
@@ -71,8 +66,7 @@ class ControlScope extends InheritedWidget {
     return context.dependOnInheritedWidgetOfExactType<ControlScope>();
   }
 
-  static bool isFullscreen(BuildContext context) =>
-      FullscreenInheritedWidget.maybeOf(context) != null;
+  static bool isFullscreen(BuildContext context) => FullscreenInheritedWidget.maybeOf(context) != null;
 
   @override
   bool updateShouldNotify(ControlScope oldWidget) {
@@ -82,8 +76,7 @@ class ControlScope extends InheritedWidget {
 
 class CustomMaterialControls extends StatefulWidget {
   const CustomMaterialControls._({required this.state});
-  factory CustomMaterialControls(VideoState state) =>
-      CustomMaterialControls._(state: state);
+  factory CustomMaterialControls(VideoState state) => CustomMaterialControls._(state: state);
 
   final VideoState state;
 
@@ -91,17 +84,14 @@ class CustomMaterialControls extends StatefulWidget {
   State<CustomMaterialControls> createState() => _CustomMaterialControlsState();
 }
 
-class _CustomMaterialControlsState extends State<CustomMaterialControls>
-    with SubscriptionsMixin {
+class _CustomMaterialControlsState extends State<CustomMaterialControls> with SubscriptionsMixin {
   late bool mount = theme.visibleOnMount;
   late bool visible = theme.visibleOnMount;
 
   Timer? _timer;
-  final ValueNotifier<Duration> _seekBarDeltaValueNotifier =
-      ValueNotifier<Duration>(Duration.zero);
+  final ValueNotifier<Duration> _seekBarDeltaValueNotifier = ValueNotifier<Duration>(Duration.zero);
 
-  late final PlayerScope _playerScope =
-      PlayerScope.of(PlayerView.videoStateKey.currentContext!);
+  late final PlayerScope _playerScope = PlayerScope.of(PlayerView.videoStateKey.currentContext!);
 
   double _brightnessValue = 0.0;
   bool _brightnessIndicator = false;
@@ -208,8 +198,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
       try {
         _brightnessValue = await ScreenBrightness.instance.application;
         subscriptions.add(
-          ScreenBrightness.instance.onApplicationScreenBrightnessChanged
-              .listen((value) {
+          ScreenBrightness.instance.onApplicationScreenBrightnessChanged.listen((value) {
             if (mounted) {
               setState(() {
                 _brightnessValue = value;
@@ -246,42 +235,31 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (subscriptions.isEmpty) {
-      subscriptions.addAll(
-        [
-          controller.player.stream.playlist.listen(
-            (event) {
-              setState(() => playlist = event);
-            },
-          ),
-          controller.player.stream.buffering.listen(
-            (event) {
-              setState(() => buffering = event);
-            },
-          ),
-        ],
-      );
+      subscriptions.addAll([
+        controller.player.stream.playlist.listen((event) {
+          setState(() => playlist = event);
+        }),
+        controller.player.stream.buffering.listen((event) {
+          setState(() => buffering = event);
+        }),
+      ]);
 
       if (theme.visibleOnMount) {
-        _timer = Timer(
-          theme.controlsHoverDuration,
-          () {
-            if (mounted) {
-              setState(() {
-                visible = false;
-              });
-              unshiftSubtitle();
-            }
-          },
-        );
+        _timer = Timer(theme.controlsHoverDuration, () {
+          if (mounted) {
+            setState(() {
+              visible = false;
+            });
+            unshiftSubtitle();
+          }
+        });
       }
     }
   }
 
   void unshiftSubtitle() {
     if (theme.shiftSubtitlesOnControlsVisibilityChange) {
-      state(context).setSubtitleViewPadding(
-        state(context).widget.subtitleViewConfiguration.padding,
-      );
+      state(context).setSubtitleViewPadding(state(context).widget.subtitleViewConfiguration.padding);
     }
   }
 
@@ -289,12 +267,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
     if (_theme(context).shiftSubtitlesOnControlsVisibilityChange) {
       state(context).setSubtitleViewPadding(
         state(context).widget.subtitleViewConfiguration.padding +
-            EdgeInsets.fromLTRB(
-              0.0,
-              0.0,
-              0.0,
-              subtitleVerticalShiftOffset,
-            ),
+            EdgeInsets.fromLTRB(0.0, 0.0, 0.0, subtitleVerticalShiftOffset),
       );
     }
   }
@@ -307,6 +280,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
       });
       shiftSubtitle();
       _timer?.cancel();
+      if (_playerScope.showButtonQuality.value) return;
       _timer = Timer(_theme(context).controlsHoverDuration, () {
         if (mounted && !_playerScope.openMenuInFullScreen.value) {
           setState(() {
@@ -321,6 +295,10 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
         }
       });
     } else {
+      if (_playerScope.showButtonQuality.value) {
+        _playerScope.showButtonQuality.value = false;
+        return;
+      }
       setState(() {
         visible = false;
       });
@@ -375,8 +353,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
     final duration = controller.player.state.duration.inSeconds;
     final position = controller.player.state.position.inSeconds;
 
-    final seconds =
-        -(diff * duration / theme.horizontalGestureSensitivity).round();
+    final seconds = -(diff * duration / theme.horizontalGestureSensitivity).round();
     final relativePosition = position + seconds;
 
     if (relativePosition <= duration && relativePosition >= 0) {
@@ -390,12 +367,8 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
 
   void onHorizontalDragEnd() {
     if (swipeDuration != 0) {
-      Duration newPosition =
-          controller.player.state.position + Duration(seconds: swipeDuration);
-      newPosition = newPosition.clamp(
-        Duration.zero,
-        controller.player.state.duration,
-      );
+      Duration newPosition = controller.player.state.position + Duration(seconds: swipeDuration);
+      newPosition = newPosition.clamp(Duration.zero, controller.player.state.duration);
       controller.player.seek(newPosition);
     }
 
@@ -412,12 +385,10 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
     final orientation = MediaQuery.orientationOf(context);
     final isPortrait = orientation == Orientation.portrait;
 
-    PlayerScope scope =
-        PlayerScope.of(PlayerView.videoStateKey.currentContext!);
+    PlayerScope scope = PlayerScope.of(PlayerView.videoStateKey.currentContext!);
 
     final seekOnDoubleTapEnabledWhileControlsAreVisible =
-        (_theme(context).seekOnDoubleTap &&
-            _theme(context).seekOnDoubleTapEnabledWhileControlsVisible);
+        (_theme(context).seekOnDoubleTap && _theme(context).seekOnDoubleTapEnabledWhileControlsVisible);
 
     return AnimatedBuilder(
       animation: Listenable.merge([
@@ -425,525 +396,428 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
         scope.openMenuInFullScreen,
         scope.selectedAnimeTimeStamp,
         scope.topTitle,
+        scope.showButtonQuality,
       ]),
       builder: (context, _) => ControlScope(
-          topTitle: scope.topTitle.value,
-          selectedAnimeTimeStamp: scope.selectedAnimeTimeStamp.value,
-          showAnimeSkip: scope.showAnimeSkip.value,
-          openMenuInFullScreen: scope.openMenuInFullScreen.value,
-          controlState: this,
-          videoState: widget.state,
-          builder: (context) {
-            final showAnimeSkip = ControlScope.of(context).showAnimeSkip;
-            final openMenuInFullScreen =
-                ControlScope.of(context).openMenuInFullScreen;
-            final size = isFullscreen(context) &&
-                (showAnimeSkip || openMenuInFullScreen);
-            return PopScope(
-              onPopInvokedWithResult: (didPop, result) {
-                if (scope.playerArgs.forceEnterFullScreen &&
-                    isFullscreen(context)) {
-                  addPostFrameCallback((timer) =>
-                      Navigator.of(PlayerView.videoStateKey.currentContext!)
-                          .pop());
-                }
-              },
-              child: Material(
-                elevation: 0.0,
-                borderOnForeground: false,
-                animationDuration: Duration.zero,
-                color: const Color(0x00000000),
-                shadowColor: const Color(0x00000000),
-                surfaceTintColor: const Color(0x00000000),
-                child: Focus(
-                  autofocus: true,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Positioned.fill(
-                        child: GestureDetector(
-                          onTap: onTap,
-                          onDoubleTapDown: _lockPlayer ? null : _handleTapDown,
-                          // onLongPress: _handleLongPress,
-                          // onLongPressEnd: _handleLongPressEnd,
-                          onDoubleTap: _lockPlayer
-                              ? null
-                              : () {
-                                  if (_tapPosition != null &&
-                                      _tapPosition!.dx >
-                                          MediaQuery.of(context).size.width /
-                                              2) {
-                                    if ((!mount) ||
-                                        seekOnDoubleTapEnabledWhileControlsAreVisible) {
-                                      onDoubleTapSeekForward();
-                                    }
-                                  } else {
-                                    if ((!mount) ||
-                                        seekOnDoubleTapEnabledWhileControlsAreVisible) {
-                                      onDoubleTapSeekBackward();
-                                    }
+        topTitle: scope.topTitle.value,
+        selectedAnimeTimeStamp: scope.selectedAnimeTimeStamp.value,
+        showAnimeSkip: scope.showAnimeSkip.value,
+        openMenuInFullScreen: scope.openMenuInFullScreen.value,
+        controlState: this,
+        videoState: widget.state,
+        builder: (context) {
+          final showAnimeSkip = ControlScope.of(context).showAnimeSkip;
+          final openMenuInFullScreen = ControlScope.of(context).openMenuInFullScreen;
+          final size = isFullscreen(context) && (showAnimeSkip || openMenuInFullScreen)
+              ? 150.0
+              : scope.showButtonQuality.value && isFullscreen(context)
+              ? 60.0
+              : 0.0;
+          final videoData = scope.data.whereType<VideoData>();
+          return PopScope(
+            onPopInvokedWithResult: (didPop, result) {
+              if (scope.playerArgs.forceEnterFullScreen && isFullscreen(context)) {
+                addPostFrameCallback((timer) => Navigator.of(PlayerView.videoStateKey.currentContext!).pop());
+              }
+            },
+            child: Material(
+              elevation: 0.0,
+              borderOnForeground: false,
+              animationDuration: Duration.zero,
+              color: const Color(0x00000000),
+              shadowColor: const Color(0x00000000),
+              surfaceTintColor: const Color(0x00000000),
+              child: Focus(
+                autofocus: true,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fill(
+                      child: GestureDetector(
+                        onTap: onTap,
+                        onDoubleTapDown: _lockPlayer ? null : _handleTapDown,
+                        // onLongPress: _handleLongPress,
+                        // onLongPressEnd: _handleLongPressEnd,
+                        onDoubleTap: _lockPlayer
+                            ? null
+                            : () {
+                                if (_tapPosition != null && _tapPosition!.dx > MediaQuery.of(context).size.width / 2) {
+                                  if ((!mount) || seekOnDoubleTapEnabledWhileControlsAreVisible) {
+                                    onDoubleTapSeekForward();
                                   }
-                                },
-                          onHorizontalDragUpdate: _lockPlayer
-                              ? null
-                              : (details) {
-                                  if ((!mount)) {
-                                    onHorizontalDragUpdate(details);
+                                } else {
+                                  if ((!mount) || seekOnDoubleTapEnabledWhileControlsAreVisible) {
+                                    onDoubleTapSeekBackward();
                                   }
-                                },
-                          onHorizontalDragEnd: _lockPlayer
-                              ? null
-                              : (details) {
-                                  onHorizontalDragEnd();
-                                },
-                          onVerticalDragUpdate: _lockPlayer
-                              ? null
-                              : (details) async {
-                                  final delta = details.delta.dy;
-                                  final Offset position = details.localPosition;
+                                }
+                              },
+                        onHorizontalDragUpdate: _lockPlayer
+                            ? null
+                            : (details) {
+                                if ((!mount)) {
+                                  onHorizontalDragUpdate(details);
+                                }
+                              },
+                        onHorizontalDragEnd: _lockPlayer
+                            ? null
+                            : (details) {
+                                onHorizontalDragEnd();
+                              },
+                        onVerticalDragUpdate: _lockPlayer
+                            ? null
+                            : (details) async {
+                                final delta = details.delta.dy;
+                                final Offset position = details.localPosition;
 
-                                  if (position.dx <=
-                                      MediaQuery.of(context).size.width / 2) {
-                                    if (!mount) {
-                                      final brightness = _brightnessValue -
-                                          delta /
-                                              _theme(context)
-                                                  .verticalGestureSensitivity;
-                                      final result = brightness.clamp(0.0, 1.0);
-                                      setBrightness(result);
-                                    }
-                                  } else {
-                                    if (!mount) {
-                                      final volume = _volumeValue -
-                                          delta /
-                                              _theme(context)
-                                                  .verticalGestureSensitivity;
-                                      final result = volume.clamp(0.0, 1.0);
-                                      setVolume(result);
-                                    }
+                                if (position.dx <= MediaQuery.of(context).size.width / 2) {
+                                  if (!mount) {
+                                    final brightness =
+                                        _brightnessValue - delta / _theme(context).verticalGestureSensitivity;
+                                    final result = brightness.clamp(0.0, 1.0);
+                                    setBrightness(result);
                                   }
-                                },
-                          child: AnimatedOpacity(
-                            curve: Curves.easeInOut,
-                            opacity: visible ? 1.0 : 0.0,
-                            duration:
-                                _theme(context).controlsTransitionDuration,
-                            child: Container(
-                              padding: EdgeInsets.zero,
-                              color: _theme(context).backdropColor ??
-                                  Colors.transparent,
-                            ),
+                                } else {
+                                  if (!mount) {
+                                    final volume = _volumeValue - delta / _theme(context).verticalGestureSensitivity;
+                                    final result = volume.clamp(0.0, 1.0);
+                                    setVolume(result);
+                                  }
+                                }
+                              },
+                        child: AnimatedOpacity(
+                          curve: Curves.easeInOut,
+                          opacity: visible ? 1.0 : 0.0,
+                          duration: _theme(context).controlsTransitionDuration,
+                          child: Container(
+                            padding: EdgeInsets.zero,
+                            color: _theme(context).backdropColor ?? Colors.transparent,
                           ),
                         ),
                       ),
-                      if (!mount ||
-                          seekOnDoubleTapEnabledWhileControlsAreVisible)
-                        if (_mountSeekBackwardButton || _mountSeekForwardButton)
-                          Positioned.fill(
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: _mountSeekBackwardButton
-                                      ? TweenAnimationBuilder<double>(
-                                          tween: Tween<double>(
-                                            begin: 0.0,
-                                            end: _hideSeekBackwardButton
-                                                ? 0.0
-                                                : 1.0,
-                                          ),
-                                          duration:
-                                              const Duration(milliseconds: 200),
-                                          builder: (context, value, child) =>
-                                              Opacity(
-                                            opacity: value,
-                                            child: child,
-                                          ),
-                                          onEnd: () {
-                                            if (_hideSeekBackwardButton) {
-                                              setState(() {
-                                                _hideSeekBackwardButton = false;
-                                                _mountSeekBackwardButton =
-                                                    false;
-                                              });
-                                            }
+                    ),
+                    if (!mount || seekOnDoubleTapEnabledWhileControlsAreVisible)
+                      if (_mountSeekBackwardButton || _mountSeekForwardButton)
+                        Positioned.fill(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _mountSeekBackwardButton
+                                    ? TweenAnimationBuilder<double>(
+                                        tween: Tween<double>(begin: 0.0, end: _hideSeekBackwardButton ? 0.0 : 1.0),
+                                        duration: const Duration(milliseconds: 200),
+                                        builder: (context, value, child) => Opacity(opacity: value, child: child),
+                                        onEnd: () {
+                                          if (_hideSeekBackwardButton) {
+                                            setState(() {
+                                              _hideSeekBackwardButton = false;
+                                              _mountSeekBackwardButton = false;
+                                            });
+                                          }
+                                        },
+                                        child: _BackwardSeekIndicator(
+                                          onChanged: (value) {
+                                            _seekBarDeltaValueNotifier.value = -value;
                                           },
-                                          child: _BackwardSeekIndicator(
-                                            onChanged: (value) {
-                                              _seekBarDeltaValueNotifier.value =
-                                                  -value;
-                                            },
-                                            onSubmitted: (value) {
-                                              setState(() {
-                                                _hideSeekBackwardButton = true;
-                                              });
-                                              var result = controller
-                                                      .player.state.position -
-                                                  value;
-                                              result = result.clamp(
-                                                Duration.zero,
-                                                controller
-                                                    .player.state.duration,
-                                              );
-                                              controller.player.seek(result);
-                                            },
-                                          ),
-                                        )
-                                      : const SizedBox.shrink(),
-                                ),
-                                Expanded(
-                                  child: _mountSeekForwardButton
-                                      ? TweenAnimationBuilder<double>(
-                                          tween: Tween<double>(
-                                            begin: 0.0,
-                                            end: _hideSeekForwardButton
-                                                ? 0.0
-                                                : 1.0,
-                                          ),
-                                          duration:
-                                              const Duration(milliseconds: 200),
-                                          builder: (context, value, child) =>
-                                              Opacity(
-                                            opacity: value,
-                                            child: child,
-                                          ),
-                                          onEnd: () {
-                                            if (_hideSeekForwardButton) {
-                                              setState(() {
-                                                _hideSeekForwardButton = false;
-                                                _mountSeekForwardButton = false;
-                                              });
-                                            }
+                                          onSubmitted: (value) {
+                                            setState(() {
+                                              _hideSeekBackwardButton = true;
+                                            });
+                                            var result = controller.player.state.position - value;
+                                            result = result.clamp(Duration.zero, controller.player.state.duration);
+                                            controller.player.seek(result);
                                           },
-                                          child: _ForwardSeekIndicator(
-                                            onChanged: (value) {
-                                              _seekBarDeltaValueNotifier.value =
-                                                  value;
-                                            },
-                                            onSubmitted: (value) {
-                                              setState(() {
-                                                _hideSeekForwardButton = true;
-                                              });
-                                              var result = controller
-                                                      .player.state.position +
-                                                  value;
-                                              result = result.clamp(
-                                                Duration.zero,
-                                                controller
-                                                    .player.state.duration,
-                                              );
-                                              controller.player.seek(result);
-                                            },
-                                          ),
-                                        )
-                                      : const SizedBox.shrink(),
-                                ),
-                              ],
-                            ),
-                          ),
-                      if (isFullscreen(context) &&
-                          scope.playerArgs.times.isNotEmpty &&
-                          mount)
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: CustomPopup(
-                            startAnimatedAlignment: Alignment.centerRight,
-                            duration: const Duration(milliseconds: 200),
-                            paddingTop: true,
-                            height: MediaQuery.sizeOf(context).height,
-                            width: 170,
-                            show: showAnimeSkip,
-                            shape: RoundedRectangleBorder(),
-                            items: scope.playerArgs.times,
-                            builderFunction: (context, index, item) {
-                              if (!showAnimeSkip) {
-                                return const SizedBox.shrink();
-                              }
-
-                              final selectedAnimeTimeStamp =
-                                  ControlScope.of(context)
-                                      .selectedAnimeTimeStamp;
-                              return ListTile(
-                                dense: true,
-                                onTap: () => scope.onClickSkipAnime.call(item),
-                                selected: selectedAnimeTimeStamp?.id
-                                        .contains(item.id) ??
-                                    false,
-                                leading: Text(
-                                  Duration(microseconds: item.at).label(),
-                                ),
-                                title: Text(item.timeStampType.label),
-                                visualDensity: const VisualDensity(
-                                  vertical: -4,
-                                ),
-                              );
-                            },
+                                        ),
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
+                              Expanded(
+                                child: _mountSeekForwardButton
+                                    ? TweenAnimationBuilder<double>(
+                                        tween: Tween<double>(begin: 0.0, end: _hideSeekForwardButton ? 0.0 : 1.0),
+                                        duration: const Duration(milliseconds: 200),
+                                        builder: (context, value, child) => Opacity(opacity: value, child: child),
+                                        onEnd: () {
+                                          if (_hideSeekForwardButton) {
+                                            setState(() {
+                                              _hideSeekForwardButton = false;
+                                              _mountSeekForwardButton = false;
+                                            });
+                                          }
+                                        },
+                                        child: _ForwardSeekIndicator(
+                                          onChanged: (value) {
+                                            _seekBarDeltaValueNotifier.value = value;
+                                          },
+                                          onSubmitted: (value) {
+                                            setState(() {
+                                              _hideSeekForwardButton = true;
+                                            });
+                                            var result = controller.player.state.position + value;
+                                            result = result.clamp(Duration.zero, controller.player.state.duration);
+                                            controller.player.seek(result);
+                                          },
+                                        ),
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
+                            ],
                           ),
                         ),
-                      if (isFullscreen(context) && mount)
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: CustomPopup(
-                            startAnimatedAlignment: Alignment.centerRight,
-                            duration: const Duration(milliseconds: 200),
-                            paddingTop: true,
-                            height: MediaQuery.sizeOf(context).height,
-                            width: 170,
-                            show: openMenuInFullScreen,
-                            items: scope.playerArgs.anime.releases,
-                            builderFunction: (context, index, episode) {
-                              final cardTheme = CardTheme.of(context);
+                    if (isFullscreen(context) && scope.playerArgs.times.isNotEmpty && mount)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: CustomPopup(
+                          startAnimatedAlignment: Alignment.centerRight,
+                          duration: const Duration(milliseconds: 200),
+                          paddingTop: true,
+                          height: MediaQuery.sizeOf(context).height,
+                          width: 170,
+                          show: showAnimeSkip,
+                          shape: RoundedRectangleBorder(),
+                          items: scope.playerArgs.times,
+                          builderFunction: (context, index, item) {
+                            if (!showAnimeSkip) {
+                              return const SizedBox.shrink();
+                            }
 
-                              final borderRadius =
-                                  ((cardTheme.shape as RoundedRectangleBorder?)
-                                      ?.borderRadius as BorderRadius?);
-
-                              return ListTile(
-                                titleAlignment: ListTileTitleAlignment.center,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: index == 0
-                                        ? borderRadius?.topLeft ??
-                                            const Radius.circular(8)
-                                        : Radius.zero,
-                                    topRight: index == 0
-                                        ? borderRadius?.topLeft ??
-                                            const Radius.circular(8)
-                                        : Radius.zero,
-                                    bottomLeft: index ==
-                                            scope.playerArgs.anime.releases
-                                                    .length -
-                                                1
-                                        ? borderRadius?.topLeft ??
-                                            const Radius.circular(8)
-                                        : Radius.zero,
-                                    bottomRight: index ==
-                                            scope.playerArgs.anime.releases
-                                                    .length -
-                                                1
-                                        ? borderRadius?.topLeft ??
-                                            const Radius.circular(8)
-                                        : Radius.zero,
-                                  ),
-                                ),
-                                onTap: () {
-                                  customLog(
-                                    'tapped name: ${episode.title} - id: ${episode.stringID}',
-                                  );
-                                  scope.onTapEpisode(episode);
-                                },
-                                onLongPress: () {
-                                  scope.openMenuInFullScreen.value = false;
-                                },
-                                selected: episode.stringID.contains(
-                                    scope.playerArgs.episode.stringID),
-                                titleTextStyle: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold),
-                                title: Text(
-                                  'Episódio ${episode.number}',
-                                ),
-                              );
-                            },
-                          ),
+                            final selectedAnimeTimeStamp = ControlScope.of(context).selectedAnimeTimeStamp;
+                            return ListTile(
+                              dense: true,
+                              onTap: () => scope.onClickSkipAnime.call(item),
+                              selected: selectedAnimeTimeStamp?.id.contains(item.id) ?? false,
+                              leading: Text(Duration(microseconds: item.at).label()),
+                              title: Text(item.timeStampType.label),
+                              visualDensity: const VisualDensity(vertical: -4),
+                            );
+                          },
                         ),
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 300),
-                        right: size ? 150 : 0,
-                        left: 0,
-                        bottom: 0,
-                        top: 0,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            IgnorePointer(
-                                child: Center(child: _CustomIndicator(this))),
-                            IgnorePointer(child: _BufferingIndicator(this)),
-                            _Controlls(this),
-                            IgnorePointer(
-                              child: Padding(
-                                padding: (isFullscreen(context)
-                                    ? MediaQuery.of(context).padding
-                                    : EdgeInsets.zero),
-                                child: AnimatedOpacity(
-                                  duration: _theme(context)
-                                      .controlsTransitionDuration,
-                                  opacity: _speedUpIndicator ? 1 : 0,
+                      ),
+                    CustomPopup(
+                      startAnimatedAlignment: Alignment.centerRight,
+                      duration: const Duration(milliseconds: 200),
+                      paddingTop: true,
+                      height: MediaQuery.sizeOf(context).height,
+                      width: 80,
+                      show: scope.showButtonQuality.value && isFullscreen(context),
+                      card: true,
+                      items: videoData.toList(),
+                      builderFunction: (context, index, data) {
+                        return ListTile(
+                          title: Text(data.quality.label),
+                          dense: true,
+                          onTap: data == scope.mainData ? null : () => scope.onTapData(data),
+                          selected: data == scope.mainData,
+                        );
+                      },
+                    ),
+                    if (isFullscreen(context) && mount)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: CustomPopup(
+                          startAnimatedAlignment: Alignment.centerRight,
+                          duration: const Duration(milliseconds: 200),
+                          paddingTop: true,
+                          height: MediaQuery.sizeOf(context).height,
+                          width: 170,
+                          show: openMenuInFullScreen,
+                          items: scope.playerArgs.anime.releases,
+                          builderFunction: (context, index, episode) {
+                            final cardTheme = CardTheme.of(context);
+
+                            final borderRadius =
+                                ((cardTheme.shape as RoundedRectangleBorder?)?.borderRadius as BorderRadius?);
+
+                            return ListTile(
+                              titleAlignment: ListTileTitleAlignment.center,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: index == 0 ? borderRadius?.topLeft ?? const Radius.circular(8) : Radius.zero,
+                                  topRight: index == 0
+                                      ? borderRadius?.topLeft ?? const Radius.circular(8)
+                                      : Radius.zero,
+                                  bottomLeft: index == scope.playerArgs.anime.releases.length - 1
+                                      ? borderRadius?.topLeft ?? const Radius.circular(8)
+                                      : Radius.zero,
+                                  bottomRight: index == scope.playerArgs.anime.releases.length - 1
+                                      ? borderRadius?.topLeft ?? const Radius.circular(8)
+                                      : Radius.zero,
+                                ),
+                              ),
+                              onTap: () {
+                                customLog('tapped name: ${episode.title} - id: ${episode.stringID}');
+                                scope.onTapEpisode(episode);
+                              },
+                              onLongPress: () {
+                                scope.openMenuInFullScreen.value = false;
+                              },
+                              selected: episode.stringID.contains(scope.playerArgs.episode.stringID),
+                              titleTextStyle: Theme.of(
+                                context,
+                              ).textTheme.titleMedium?.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+                              title: Text('Episódio ${episode.number}'),
+                            );
+                          },
+                        ),
+                      ),
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 300),
+                      right: size,
+                      left: 0,
+                      bottom: 0,
+                      top: 0,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          IgnorePointer(child: Center(child: _CustomIndicator(this))),
+                          IgnorePointer(child: _BufferingIndicator(this)),
+                          _Controlls(this),
+                          IgnorePointer(
+                            child: Padding(
+                              padding: (isFullscreen(context) ? MediaQuery.of(context).padding : EdgeInsets.zero),
+                              child: AnimatedOpacity(
+                                duration: _theme(context).controlsTransitionDuration,
+                                opacity: _speedUpIndicator ? 1 : 0,
+                                child: Container(
+                                  alignment: Alignment.center,
                                   child: Container(
+                                    margin: const EdgeInsets.all(16.0),
                                     alignment: Alignment.center,
-                                    child: Container(
-                                      margin: const EdgeInsets.all(16.0),
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0x88000000),
-                                        borderRadius:
-                                            BorderRadius.circular(64.0),
-                                      ),
-                                      height: 48.0,
-                                      width: 108.0,
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          const SizedBox(width: 16.0),
-                                          Expanded(
-                                            child: Text(
-                                              '${_theme(context).speedUpFactor.toStringAsFixed(1)}x',
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                fontSize: 14.0,
-                                                color: Color(0xFFFFFFFF),
-                                              ),
-                                            ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0x88000000),
+                                      borderRadius: BorderRadius.circular(64.0),
+                                    ),
+                                    height: 48.0,
+                                    width: 108.0,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        const SizedBox(width: 16.0),
+                                        Expanded(
+                                          child: Text(
+                                            '${_theme(context).speedUpFactor.toStringAsFixed(1)}x',
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(fontSize: 14.0, color: Color(0xFFFFFFFF)),
                                           ),
-                                          Container(
-                                            height: 48.0,
-                                            width: 48.0 - 16.0,
-                                            alignment: Alignment.centerRight,
-                                            child: const Icon(
-                                              Icons.fast_forward,
-                                              color: Color(0xFFFFFFFF),
-                                              size: 24.0,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16.0),
-                                        ],
-                                      ),
+                                        ),
+                                        Container(
+                                          height: 48.0,
+                                          width: 48.0 - 16.0,
+                                          alignment: Alignment.centerRight,
+                                          child: const Icon(Icons.fast_forward, color: Color(0xFFFFFFFF), size: 24.0),
+                                        ),
+                                        const SizedBox(width: 16.0),
+                                      ],
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                            if (!mount)
-                              if (_mountSeekBackwardButton |
-                                      _mountSeekForwardButton ||
-                                  showSwipeDuration)
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  left: 0,
-                                  child: IgnorePointer(
-                                    child: isFullscreen(context)
-                                        ? SafeArea(
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(10.0),
-                                              child: _MaterialSeekBar(
-                                                this,
-                                                delta:
-                                                    _seekBarDeltaValueNotifier,
-                                              ),
-                                            ),
-                                          )
-                                        : _MaterialSeekBar(
-                                            this,
-                                            delta: _seekBarDeltaValueNotifier,
+                          ),
+                          if (!mount)
+                            if (_mountSeekBackwardButton | _mountSeekForwardButton || showSwipeDuration)
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                left: 0,
+                                child: IgnorePointer(
+                                  child: isFullscreen(context)
+                                      ? SafeArea(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(10.0),
+                                            child: _MaterialSeekBar(this, delta: _seekBarDeltaValueNotifier),
                                           ),
-                                  ),
+                                        )
+                                      : _MaterialSeekBar(this, delta: _seekBarDeltaValueNotifier),
                                 ),
-                            IgnorePointer(
-                              child: Center(
-                                child: AnimatedOpacity(
-                                  duration: _theme(context)
-                                      .controlsTransitionDuration,
-                                  opacity: showSwipeDuration ? 1 : 0,
-                                  child: _theme(context)
-                                          .seekIndicatorBuilder
-                                          ?.call(
-                                              context,
-                                              Duration(
-                                                  seconds: swipeDuration)) ??
-                                      Container(
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0x88000000),
-                                          borderRadius:
-                                              BorderRadius.circular(64.0),
-                                        ),
-                                        height: 52.0,
-                                        width: 108.0,
-                                        child: Text(
-                                          swipeDuration > 0
-                                              ? "+ ${Duration(seconds: swipeDuration).label()}"
-                                              : "- ${Duration(seconds: swipeDuration).label()}",
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontSize: 14.0,
-                                            color: Color(0xFFFFFFFF),
-                                          ),
-                                        ),
+                              ),
+                          IgnorePointer(
+                            child: Center(
+                              child: AnimatedOpacity(
+                                duration: _theme(context).controlsTransitionDuration,
+                                opacity: showSwipeDuration ? 1 : 0,
+                                child:
+                                    _theme(
+                                      context,
+                                    ).seekIndicatorBuilder?.call(context, Duration(seconds: swipeDuration)) ??
+                                    Container(
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0x88000000),
+                                        borderRadius: BorderRadius.circular(64.0),
                                       ),
+                                      height: 52.0,
+                                      width: 108.0,
+                                      child: Text(
+                                        swipeDuration > 0
+                                            ? "+ ${Duration(seconds: swipeDuration).label()}"
+                                            : "- ${Duration(seconds: swipeDuration).label()}",
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(fontSize: 14.0, color: Color(0xFFFFFFFF)),
+                                      ),
+                                    ),
+                              ),
+                            ),
+                          ),
+
+                          if (size == 0) ...[
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              child: Padding(
+                                padding: EdgeInsets.only(top: !isPortrait ? 20 : 8),
+                                child: PlayerCustomOverlay(
+                                  key: const ValueKey('custom_overlay_1'),
+                                  begin: const Offset(-1, 0),
+                                  notifierChange: scope.overlayBoxFit,
                                 ),
                               ),
                             ),
-
-                            if (!size) ...[
-                              Positioned(
-                                top: 0,
-                                left: 0,
-                                child: Padding(
-                                  padding: EdgeInsets.only(
-                                      top: !isPortrait ? 20 : 8),
-                                  child: PlayerCustomOverlay(
-                                    key: const ValueKey('custom_overlay_1'),
-                                    begin: const Offset(-1, 0),
-                                    notifierChange: scope.overlayBoxFit,
-                                  ),
+                            Positioned(
+                              bottom: !isPortrait ? 100 : 70,
+                              right: 0,
+                              top: 0,
+                              child: Align(
+                                alignment: Alignment.bottomRight,
+                                child: PlayerCustomOverlay(
+                                  reversedBorder: true,
+                                  key: const ValueKey('custom_overlay_2'),
+                                  begin: const Offset(1, 0),
+                                  end: Offset.zero,
+                                  enableCancelReversed: false,
+                                  notifierChange: scope.overlayNextEpisode,
+                                  onTap: scope.onTapEpisodeInOverlay,
                                 ),
                               ),
-                              Positioned(
-                                bottom: !isPortrait ? 100 : 70,
-                                right: 0,
-                                top: 0,
-                                child: Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: PlayerCustomOverlay(
-                                    reversedBorder: true,
-                                    key: const ValueKey('custom_overlay_2'),
-                                    begin: const Offset(1, 0),
-                                    end: Offset.zero,
-                                    enableCancelReversed: false,
-                                    notifierChange: scope.overlayNextEpisode,
-                                    onTap: scope.onTapEpisodeInOverlay,
-                                  ),
-                                ),
-                              ),
-                            ],
-
-                            // if (isFullscreen(context))
-                            //   ValueListenableBuilder(
-                            //     valueListenable: scope.openMenuInFullScreen,
-                            //     builder: (context, value, _) => AnimatedPositioned(
-                            //       duration: const Duration(milliseconds: 350),
-                            //       width: value ? 200 : 0,
-                            //       child: const SizedBox.shrink(),
-                            //     ),
-                            //   ),
+                            ),
                           ],
-                        ),
+
+                          // if (isFullscreen(context))
+                          //   ValueListenableBuilder(
+                          //     valueListenable: scope.openMenuInFullScreen,
+                          //     builder: (context, value, _) => AnimatedPositioned(
+                          //       duration: const Duration(milliseconds: 350),
+                          //       width: value ? 200 : 0,
+                          //       child: const SizedBox.shrink(),
+                          //     ),
+                          //   ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            );
-          }),
+            ),
+          );
+        },
+      ),
     );
   }
 }
 
 class _MaterialSeekBar extends StatefulWidget {
-  const _MaterialSeekBar(
-    this.state, {
-    this.delta,
-    this.onSeekStart,
-    this.onSeekEnd,
-  });
+  const _MaterialSeekBar(this.state, {this.delta, this.onSeekStart, this.onSeekEnd});
   final _CustomMaterialControlsState state;
   final ValueNotifier<Duration>? delta;
   final VoidCallback? onSeekStart;
@@ -952,8 +826,7 @@ class _MaterialSeekBar extends StatefulWidget {
   State<_MaterialSeekBar> createState() => _MaterialSeekBarState();
 }
 
-class _MaterialSeekBarState extends State<_MaterialSeekBar>
-    with TickerProviderStateMixin {
+class _MaterialSeekBarState extends State<_MaterialSeekBar> with TickerProviderStateMixin {
   final List<StreamSubscription> subscriptions = [];
   bool tapped = false;
   late final controller = widget.state.controller;
@@ -971,37 +844,35 @@ class _MaterialSeekBarState extends State<_MaterialSeekBar>
     _progressBarController = ProgressBarController(vsync: this);
     widget.delta?.addListener(listener);
     if (widget.delta == null) {
-      subscriptions.addAll(
-        [
-          controller.player.stream.playing.listen((event) {
-            setState(() {
-              playing = event;
-            });
-          }),
-          controller.player.stream.completed.listen((event) {
-            setState(() {
-              position = Duration.zero;
-            });
-          }),
-          controller.player.stream.position.listen((event) {
-            setState(() {
-              if (!tapped) {
-                position = event;
-              }
-            });
-          }),
-          controller.player.stream.duration.listen((event) {
-            setState(() {
-              duration = event;
-            });
-          }),
-          controller.player.stream.buffer.listen((event) {
-            setState(() {
-              buffer = event;
-            });
-          }),
-        ],
-      );
+      subscriptions.addAll([
+        controller.player.stream.playing.listen((event) {
+          setState(() {
+            playing = event;
+          });
+        }),
+        controller.player.stream.completed.listen((event) {
+          setState(() {
+            position = Duration.zero;
+          });
+        }),
+        controller.player.stream.position.listen((event) {
+          setState(() {
+            if (!tapped) {
+              position = event;
+            }
+          });
+        }),
+        controller.player.stream.duration.listen((event) {
+          setState(() {
+            duration = event;
+          });
+        }),
+        controller.player.stream.buffer.listen((event) {
+          setState(() {
+            buffer = event;
+          });
+        }),
+      ]);
     }
   }
 
@@ -1069,23 +940,19 @@ class _MaterialSeekBarState extends State<_MaterialSeekBar>
   bool get lockPlayer => widget.state._lockPlayer;
 
   bool get disableSlider =>
-      duration.inMilliseconds == 0 ||
-      position.inMilliseconds.toDouble() > duration.inMilliseconds.toDouble();
+      duration.inMilliseconds == 0 || position.inMilliseconds.toDouble() > duration.inMilliseconds.toDouble();
 
   // Thumb Glow (efeito ao interagir com o slider)
-  static const Color thumbGlowColor =
-      Color(0x50FFFFFF); // branco com 30% de opacidade
+  static const Color thumbGlowColor = Color(0x50FFFFFF); // branco com 30% de opacidade
 
-// Barra de fundo (trilha vazia)
-  static const Color backgroundBarColor =
-      Color(0xFF606060); // cinza escuro usado no YouTube
+  // Barra de fundo (trilha vazia)
+  static const Color backgroundBarColor = Color(0xFF606060); // cinza escuro usado no YouTube
 
-// Colapsado (modo mini player)
-  static const Color collapsedBufferedBarColor =
-      Color(0x40FFFFFF); // branco 25%
+  // Colapsado (modo mini player)
+  static const Color collapsedBufferedBarColor = Color(0x40FFFFFF); // branco 25%
   static const Color collapsedThumbColor = Colors.white;
 
-// Expandido (fullscreen player)
+  // Expandido (fullscreen player)
   static const Color expandedBufferedBarColor = Color(0x66FFFFFF); // branco 40%
   static const Color expandedThumbColor = Colors.white;
 
@@ -1095,15 +962,11 @@ class _MaterialSeekBarState extends State<_MaterialSeekBar>
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: isFullscreen(context)
-          ? const EdgeInsets.only(bottom: 8, right: 12, left: 12)
-          : EdgeInsets.zero,
+      padding: isFullscreen(context) ? const EdgeInsets.only(bottom: 8, right: 12, left: 12) : EdgeInsets.zero,
       child: IgnorePointer(
         ignoring: disableSlider,
         child: ClipRRect(
-          borderRadius: isFullscreen(context)
-              ? BorderRadius.circular(8)
-              : BorderRadius.zero,
+          borderRadius: isFullscreen(context) ? BorderRadius.circular(8) : BorderRadius.zero,
           child: ProgressBar(
             collapsedProgressBarColor: collapsedProgressBarColor,
             collapsedBufferedBarColor: collapsedBufferedBarColor,
@@ -1113,9 +976,7 @@ class _MaterialSeekBarState extends State<_MaterialSeekBar>
             expandedProgressBarColor: expandedProgressBarColor,
             expandedBufferedBarColor: expandedBufferedBarColor,
             expandedThumbColor: expandedThumbColor,
-            alignment: isFullscreen(context)
-                ? ProgressBarAlignment.bottom
-                : ProgressBarAlignment.bottom,
+            alignment: isFullscreen(context) ? ProgressBarAlignment.bottom : ProgressBarAlignment.bottom,
             progressBarIndicator: RoundedRectangularProgressBarIndicator(),
             expandedBarHeight: isFullscreen(context) ? 5 : 4,
             collapsedBarHeight: isFullscreen(context) ? 5 : 4,
@@ -1160,14 +1021,12 @@ class _Controlls extends StatefulWidget {
   State<_Controlls> createState() => _ControllsState();
 }
 
-class _ControllsState extends State<_Controlls>
-    with SingleTickerProviderStateMixin, SubscriptionsMixin {
+class _ControllsState extends State<_Controlls> with SingleTickerProviderStateMixin, SubscriptionsMixin {
   late final controller = widget.state.controller;
   late Duration _position = controller.player.state.position;
   late Duration _duration = controller.player.state.duration;
 
-  late final PlayerScope _playerScope =
-      PlayerScope.of(PlayerView.videoStateKey.currentContext!);
+  late final PlayerScope _playerScope = PlayerScope.of(PlayerView.videoStateKey.currentContext!);
 
   late final AnimationController _animation = AnimationController(
     vsync: this,
@@ -1175,8 +1034,7 @@ class _ControllsState extends State<_Controlls>
     duration: const Duration(milliseconds: 200),
   );
 
-  bool get _reversedCurrentDuration =>
-      _playerScope.reversedCurrentDuration.value;
+  bool get _reversedCurrentDuration => _playerScope.reversedCurrentDuration.value;
 
   set setReversedCurrentDuration(bool reversedCurrentDuration) {
     if (!mounted) return;
@@ -1189,27 +1047,25 @@ class _ControllsState extends State<_Controlls>
   void initState() {
     super.initState();
 
-    subscriptions.addAll(
-      [
-        controller.player.stream.position.listen((event) {
-          setState(() {
-            _position = event;
-          });
-        }),
-        controller.player.stream.duration.listen((event) {
-          setState(() {
-            _duration = event;
-          });
-        }),
-        controller.player.stream.playing.listen((event) {
-          if (event) {
-            _animation.forward();
-          } else {
-            _animation.reverse();
-          }
-        }),
-      ],
-    );
+    subscriptions.addAll([
+      controller.player.stream.position.listen((event) {
+        setState(() {
+          _position = event;
+        });
+      }),
+      controller.player.stream.duration.listen((event) {
+        setState(() {
+          _duration = event;
+        });
+      }),
+      controller.player.stream.playing.listen((event) {
+        if (event) {
+          _animation.forward();
+        } else {
+          _animation.reverse();
+        }
+      }),
+    ]);
   }
 
   @override
@@ -1256,11 +1112,7 @@ class _ControllsState extends State<_Controlls>
                       ? Padding(
                           // padding: EdgeInsets.zero,
                           padding: isFullscreen(context)
-                              ? const EdgeInsets.only(
-                                  top: 18.0,
-                                  right: 10,
-                                  left: 10,
-                                )
+                              ? const EdgeInsets.only(top: 18.0, right: 10, left: 10)
                               : EdgeInsets.zero,
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -1269,12 +1121,7 @@ class _ControllsState extends State<_Controlls>
                             children: [
                               Text(
                                 topTitle,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                      color: const Color(0xFFFFFFFF),
-                                    ),
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(color: const Color(0xFFFFFFFF)),
                               ),
                             ],
                           ),
@@ -1283,11 +1130,7 @@ class _ControllsState extends State<_Controlls>
                           child: Padding(
                             // padding: EdgeInsets.zero,
                             padding: isFullscreen(context)
-                                ? const EdgeInsets.only(
-                                    top: 18.0,
-                                    right: 10,
-                                    left: 10,
-                                  )
+                                ? const EdgeInsets.only(top: 18.0, right: 10, left: 10)
                                 : EdgeInsets.zero,
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -1296,12 +1139,9 @@ class _ControllsState extends State<_Controlls>
                               children: [
                                 Text(
                                   topTitle,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.copyWith(
-                                        color: const Color(0xFFFFFFFF),
-                                      ),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.copyWith(color: const Color(0xFFFFFFFF)),
                                 ),
                               ],
                             ),
@@ -1319,10 +1159,7 @@ class _ControllsState extends State<_Controlls>
                   iconSize: 48,
                   padding: EdgeInsets.zero,
                   icon: IgnorePointer(
-                    child: AnimatedIcon(
-                      progress: _animation,
-                      icon: AnimatedIcons.play_pause,
-                    ),
+                    child: AnimatedIcon(progress: _animation, icon: AnimatedIcons.play_pause),
                   ),
                 ),
               ),
@@ -1349,19 +1186,17 @@ class _BottomButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final PlayerScope scope =
-        PlayerScope.of(PlayerView.videoStateKey.currentContext!);
+    final PlayerScope scope = PlayerScope.of(PlayerView.videoStateKey.currentContext!);
     // final hiveController = context.read<HiveController>();
     final fullscreen = isFullscreen(context);
 
-    final selectedAnimeTimeStamp =
-        ControlScope.of(context).selectedAnimeTimeStamp;
+    final selectedAnimeTimeStamp = ControlScope.of(context).selectedAnimeTimeStamp;
 
     final showAnimeSkip = ControlScope.of(context).showAnimeSkip;
     final openMenuInFullScreen = ControlScope.of(context).openMenuInFullScreen;
-    final size =
-        isFullscreen(context) && (showAnimeSkip || openMenuInFullScreen);
-
+    final showButtonQuality = scope.showButtonQuality;
+    final size = isFullscreen(context) && (showAnimeSkip || openMenuInFullScreen);
+    final videoData = scope.data.whereType<VideoData>();
     final seekBar = _LockWidget(
       child: SizedBox(
         height: isFullscreen(context) ? 20 : 10,
@@ -1369,17 +1204,14 @@ class _BottomButtons extends StatelessWidget {
           state.widget.state,
           onSeekStart: state.widget.state._timer?.cancel,
           onSeekEnd: () {
-            state.widget.state._timer = Timer(
-              _theme(context).controlsHoverDuration,
-              () {
-                if (context.mounted) {
-                  state.setState(() {
-                    state.widget.state.visible = false;
-                  });
-                  state.widget.state.unshiftSubtitle();
-                }
-              },
-            );
+            state.widget.state._timer = Timer(_theme(context).controlsHoverDuration, () {
+              if (context.mounted) {
+                state.setState(() {
+                  state.widget.state.visible = false;
+                });
+                state.widget.state.unshiftSubtitle();
+              }
+            });
           },
         ),
       ),
@@ -1390,14 +1222,9 @@ class _BottomButtons extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (isFullscreen(context)) ...[
-          Expanded(child: SizedBox.shrink()),
-          seekBar,
-        ],
+        if (isFullscreen(context)) ...[Expanded(child: SizedBox.shrink()), seekBar],
         Padding(
-          padding: isFullscreen(context)
-              ? EdgeInsets.only(bottom: 8)
-              : EdgeInsets.zero,
+          padding: isFullscreen(context) ? EdgeInsets.only(bottom: 8) : EdgeInsets.zero,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1406,39 +1233,28 @@ class _BottomButtons extends StatelessWidget {
             children: [
               _LockWidget(
                 child: Container(
-                  padding: isFullscreen(context)
-                      ? const EdgeInsets.only(left: 18)
-                      : EdgeInsets.zero,
+                  padding: isFullscreen(context) ? const EdgeInsets.only(left: 18) : EdgeInsets.zero,
                   child: TextButton(
-                    style: const ButtonStyle(
-                      visualDensity: VisualDensity(vertical: -4),
-                    ),
+                    style: const ButtonStyle(visualDensity: VisualDensity(vertical: -4)),
                     onPressed: () {
-                      state.setReversedCurrentDuration =
-                          !state._reversedCurrentDuration;
+                      state.setReversedCurrentDuration = !state._reversedCurrentDuration;
                     },
                     child: Text(
                       state._reversedCurrentDuration
                           ? "-${(state._duration - state._position).label(reference: state._duration)} / ${state._duration.label(reference: state._duration)}"
                           : '${state._position.label(reference: state._duration)} / ${state._duration.label(reference: state._duration)}',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: const Color(0xFFFFFFFF),
-                          ),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(color: const Color(0xFFFFFFFF)),
                     ),
                   ),
                 ),
               ),
-              if (isFullscreen(context) &&
-                  scope.playerArgs.times.isNotEmpty) ...[
+              if (isFullscreen(context) && scope.playerArgs.times.isNotEmpty) ...[
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Container(
                     width: 8,
                     height: 8,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle),
                   ),
                 ),
                 TextButton(
@@ -1455,33 +1271,77 @@ class _BottomButtons extends StatelessWidget {
                   onPressed: () {},
                   child: Text(
                     selectedAnimeTimeStamp?.timeStampType.label ?? '',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary),
                   ),
                 ),
               ],
               const Spacer(),
+              if (videoData.length > 1 && scope.mainData is VideoData)
+                Builder(
+                  builder: (context) {
+                    final mainData = scope.mainData as VideoData;
+
+                    return Stack(
+                      children: [
+                        _LockWidget(
+                          child: TextButton(
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              visualDensity: const VisualDensity(vertical: -4, horizontal: -2),
+                              iconSize: 20,
+                            ),
+                            onPressed: () {
+                              showButtonQuality.value = !showButtonQuality.value;
+                            },
+
+                            child: Text(mainData.quality.label),
+                          ),
+                        ),
+                        CustomPopup(
+                          startAnimatedAlignment: Alignment.centerRight,
+                          duration: const Duration(milliseconds: 200),
+                          paddingTop: false,
+                          height: 140,
+                          width: 80,
+                          show: showButtonQuality.value && !isFullscreen(context),
+                          card: true,
+                          items: videoData.toList(),
+                          builderFunction: (context, index, data) {
+                            // final cardTheme = CardTheme.of(context);
+
+                            // String text = "";
+
+                            // final borderRadius =
+                            //     ((cardTheme.shape as RoundedRectangleBorder?)?.borderRadius as BorderRadius?);
+
+                            return ListTile(
+                              title: Text(data.quality.label),
+                              dense: true,
+                              onTap: data == scope.mainData ? null : () => scope.onTapData(data),
+                              selected: data == scope.mainData,
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                ),
               if (scope.isPipAvailable)
                 _LockWidget(
                   child: IconButton(
                     padding: EdgeInsets.zero,
-                    visualDensity: const VisualDensity(
-                      vertical: -4,
-                      horizontal: -2,
-                    ),
-                    onPressed: scope.enterInPip,
+                    visualDensity: const VisualDensity(vertical: -4, horizontal: -2),
                     iconSize: 20,
+                    onPressed: scope.enterInPip,
                     icon: Icon(MdiIcons.pictureInPictureBottomRight),
                   ),
                 ),
               _LockWidget(
                 child: IconButton(
                   padding: EdgeInsets.zero,
-                  visualDensity: const VisualDensity(
-                    vertical: -4,
-                    horizontal: -2,
-                  ),
+                  visualDensity: const VisualDensity(vertical: -4, horizontal: -2),
                   onPressed: scope.setFits,
                   iconSize: 20,
                   icon: Icon(MdiIcons.fitToScreen),
@@ -1492,14 +1352,10 @@ class _BottomButtons extends StatelessWidget {
                   child: Stack(
                     children: [
                       IconButton(
-                        visualDensity: const VisualDensity(
-                          vertical: -4,
-                          horizontal: -2,
-                        ),
+                        visualDensity: const VisualDensity(vertical: -4, horizontal: -2),
                         padding: EdgeInsets.zero,
                         onPressed: () {
-                          scope.openMenuInFullScreen.value =
-                              !scope.openMenuInFullScreen.value;
+                          scope.openMenuInFullScreen.value = !scope.openMenuInFullScreen.value;
                         },
                         iconSize: 20,
                         icon: Icon(MdiIcons.menu),
@@ -1509,52 +1365,38 @@ class _BottomButtons extends StatelessWidget {
                 ),
               if (isFullscreen(context))
                 IconButton(
-                  visualDensity: const VisualDensity(
-                    vertical: -4,
-                    horizontal: -2,
-                  ),
+                  visualDensity: const VisualDensity(vertical: -4, horizontal: -2),
                   padding: EdgeInsets.zero,
                   onPressed: () {
-                    state.widget.state.setLockPlayer =
-                        !state.widget.state._lockPlayer;
+                    state.widget.state.setLockPlayer = !state.widget.state._lockPlayer;
                   },
                   iconSize: 20,
-                  icon: Icon(
-                    state.widget.state._lockPlayer
-                        ? MdiIcons.lock
-                        : MdiIcons.lockOpen,
-                  ),
+                  icon: Icon(state.widget.state._lockPlayer ? MdiIcons.lock : MdiIcons.lockOpen),
                 ),
               _LockWidget(
                 child: Container(
-                  padding: isFullscreen(context)
-                      ? const EdgeInsets.only(right: 30)
-                      : const EdgeInsets.only(right: 8),
+                  padding: isFullscreen(context) ? const EdgeInsets.only(right: 30) : const EdgeInsets.only(right: 8),
                   child: IconButton(
-                    visualDensity: const VisualDensity(
-                      vertical: -4,
-                      horizontal: -2,
-                    ),
+                    visualDensity: const VisualDensity(vertical: -4, horizontal: -2),
                     onPressed: () {
                       toggleFullscreen(context);
                       if (scope.showAnimeSkip.value) {
                         scope.showAnimeSkip.value = !scope.showAnimeSkip.value;
                       }
+                      if (scope.showButtonQuality.value) {
+                        scope.showButtonQuality.value = false;
+                      }
 
-                      if (scope.playerArgs.forceEnterFullScreen &&
-                          isFullscreen(context)) {
+                      if (scope.playerArgs.forceEnterFullScreen && isFullscreen(context)) {
                         // WidgetsBinding.instance.addPostFrameCallback((timer) {
                         //   Navigator.of(PlayerView.videoStateKey.currentContext!)
                         //       .pop();
                         // });
-                        Navigator.of(PlayerView.videoStateKey.currentContext!)
-                            .pop();
+                        Navigator.of(PlayerView.videoStateKey.currentContext!).pop();
                       }
                     },
                     iconSize: 20,
-                    icon: fullscreen
-                        ? Icon(MdiIcons.fullscreenExit)
-                        : Icon(MdiIcons.fullscreen),
+                    icon: fullscreen ? Icon(MdiIcons.fullscreenExit) : Icon(MdiIcons.fullscreen),
                   ),
                 ),
               ),
@@ -1572,10 +1414,7 @@ class _BottomButtons extends StatelessWidget {
       );
     }
 
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: buttons,
-    );
+    return Align(alignment: Alignment.bottomCenter, child: buttons);
   }
 }
 
@@ -1586,8 +1425,7 @@ class _LockWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state =
-        context.findAncestorStateOfType<_CustomMaterialControlsState>();
+    final state = context.findAncestorStateOfType<_CustomMaterialControlsState>();
     // if (state?._lockPlayer == true) return const SizedBox.shrink();
     return IgnorePointer(
       ignoring: state?._lockPlayer == true,
@@ -1609,24 +1447,16 @@ class _BufferingIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return IgnorePointer(
       child: Padding(
-        padding: (isFullscreen(context)
-            ? MediaQuery.of(context).padding
-            : EdgeInsets.zero),
+        padding: (isFullscreen(context) ? MediaQuery.of(context).padding : EdgeInsets.zero),
         child: Center(
           child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(
-              begin: 0.0,
-              end: state.buffering ? 1.0 : 0.0,
-            ),
+            tween: Tween<double>(begin: 0.0, end: state.buffering ? 1.0 : 0.0),
             duration: _theme(context).controlsTransitionDuration,
             builder: (context, value, child) {
               if (value > 0.0) {
                 return Opacity(
                   opacity: value,
-                  child: _theme(context)
-                          .bufferingIndicatorBuilder
-                          ?.call(context) ??
-                      child!,
+                  child: _theme(context).bufferingIndicatorBuilder?.call(context) ?? child!,
                 );
               }
               return const SizedBox.shrink();
@@ -1647,8 +1477,7 @@ class _CustomIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     double opacity = 0.0;
 
-    if ((!state.mount || _theme(context).gesturesEnabledWhileControlsVisible) &&
-            state._volumeIndicator ||
+    if ((!state.mount || _theme(context).gesturesEnabledWhileControlsVisible) && state._volumeIndicator ||
         state._brightnessIndicator) {
       opacity = 1.0;
     }
@@ -1668,10 +1497,7 @@ class _CustomIndicator extends StatelessWidget {
         duration: _theme(context).controlsTransitionDuration,
         child: Container(
           alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: const Color(0x88000000),
-            borderRadius: BorderRadius.circular(64.0),
-          ),
+          decoration: BoxDecoration(color: const Color(0x88000000), borderRadius: BorderRadius.circular(64.0)),
           height: 52.0,
           width: 108.0,
           child: Row(
@@ -1692,11 +1518,7 @@ class _CustomIndicator extends StatelessWidget {
                       height: 52.0,
                       width: 42.0,
                       alignment: Alignment.centerRight,
-                      child: Icon(
-                        icon,
-                        color: const Color(0xFFFFFFFF),
-                        size: 24.0,
-                      ),
+                      child: Icon(icon, color: const Color(0xFFFFFFFF), size: 24.0),
                     );
                   },
                 )
@@ -1713,11 +1535,7 @@ class _CustomIndicator extends StatelessWidget {
                       height: 52.0,
                       width: 42.0,
                       alignment: Alignment.centerRight,
-                      child: Icon(
-                        icon,
-                        color: const Color(0xFFFFFFFF),
-                        size: 24.0,
-                      ),
+                      child: Icon(icon, color: const Color(0xFFFFFFFF), size: 24.0),
                     );
                   },
                 ),
@@ -1726,10 +1544,7 @@ class _CustomIndicator extends StatelessWidget {
                 child: Text(
                   text,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14.0,
-                    color: Color(0xFFFFFFFF),
-                  ),
+                  style: const TextStyle(fontSize: 14.0, color: Color(0xFFFFFFFF)),
                 ),
               ),
               const SizedBox(width: 16.0),
@@ -1744,10 +1559,7 @@ class _CustomIndicator extends StatelessWidget {
 class _BackwardSeekIndicator extends StatefulWidget {
   final void Function(Duration) onChanged;
   final void Function(Duration) onSubmitted;
-  const _BackwardSeekIndicator({
-    required this.onChanged,
-    required this.onSubmitted,
-  });
+  const _BackwardSeekIndicator({required this.onChanged, required this.onSubmitted});
 
   @override
   State<_BackwardSeekIndicator> createState() => _BackwardSeekIndicatorState();
@@ -1789,10 +1601,7 @@ class _BackwardSeekIndicatorState extends State<_BackwardSeekIndicator> {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color(0x88767676),
-            Color(0x00767676),
-          ],
+          colors: [Color(0x88767676), Color(0x00767676)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
@@ -1806,19 +1615,9 @@ class _BackwardSeekIndicatorState extends State<_BackwardSeekIndicator> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.fast_rewind,
-                size: 24.0,
-                color: Color(0xFFFFFFFF),
-              ),
+              const Icon(Icons.fast_rewind, size: 24.0, color: Color(0xFFFFFFFF)),
               const SizedBox(height: 8.0),
-              Text(
-                '${value.inSeconds} seconds',
-                style: const TextStyle(
-                  fontSize: 12.0,
-                  color: Color(0xFFFFFFFF),
-                ),
-              ),
+              Text('${value.inSeconds} seconds', style: const TextStyle(fontSize: 12.0, color: Color(0xFFFFFFFF))),
             ],
           ),
         ),
@@ -1830,10 +1629,7 @@ class _BackwardSeekIndicatorState extends State<_BackwardSeekIndicator> {
 class _ForwardSeekIndicator extends StatefulWidget {
   final void Function(Duration) onChanged;
   final void Function(Duration) onSubmitted;
-  const _ForwardSeekIndicator({
-    required this.onChanged,
-    required this.onSubmitted,
-  });
+  const _ForwardSeekIndicator({required this.onChanged, required this.onSubmitted});
 
   @override
   State<_ForwardSeekIndicator> createState() => _ForwardSeekIndicatorState();
@@ -1875,10 +1671,7 @@ class _ForwardSeekIndicatorState extends State<_ForwardSeekIndicator> {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color(0x00767676),
-            Color(0x88767676),
-          ],
+          colors: [Color(0x00767676), Color(0x88767676)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
@@ -1892,19 +1685,9 @@ class _ForwardSeekIndicatorState extends State<_ForwardSeekIndicator> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.fast_forward,
-                size: 24.0,
-                color: Color(0xFFFFFFFF),
-              ),
+              const Icon(Icons.fast_forward, size: 24.0, color: Color(0xFFFFFFFF)),
               const SizedBox(height: 8.0),
-              Text(
-                '${value.inSeconds} seconds',
-                style: const TextStyle(
-                  fontSize: 12.0,
-                  color: Color(0xFFFFFFFF),
-                ),
-              ),
+              Text('${value.inSeconds} seconds', style: const TextStyle(fontSize: 12.0, color: Color(0xFFFFFFFF))),
             ],
           ),
         ),

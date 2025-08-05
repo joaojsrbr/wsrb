@@ -1,18 +1,17 @@
-import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/home/destinations/content_destination.dart';
+import 'package:app_wsrb_jsr/app/ui/home/destinations/history_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/home/destinations/library_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
-import 'package:app_wsrb_jsr/app/ui/home/widgets/home_view_flexible_space.dart';
-import 'package:app_wsrb_jsr/app/ui/home/widgets/keep_watching.dart';
+import 'package:app_wsrb_jsr/app/ui/home/widgets/home_sliver_app_bar.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/menu_button.dart';
-import 'package:app_wsrb_jsr/app/utils/category_utils.dart';
+import 'package:app_wsrb_jsr/app/utils/category_helper.dart';
 import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
 import 'package:content_library/content_library.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:nested_scroll_view_plus/nested_scroll_view_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
@@ -32,31 +31,33 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   late final CategoryController _categoryController;
   late final ValueNotifierList _valueNotifierList;
   late final BottomMenuController _bottomMenuController;
+  late final AnimationController _bottomSheetAnimationController;
   bool _disableScroll = false;
 
   @override
   void initState() {
     super.initState();
+    _bottomSheetAnimationController = BottomSheet.createAnimationController(this);
+    _tabController = TabController(vsync: this, length: 3)..addListener(_tabControllerListener);
 
-    _tabController = TabController(vsync: this, length: 2)
-      ..addListener(_tabControllerListener);
-
-    _scrollController = ScrollController()
-      ..addListener(_scrollControllerListener);
+    _scrollController = ScrollController()..addListener(_scrollControllerListener);
 
     _keepWatchingScrollController = ScrollController();
 
     _searchController = CustomSearchController();
 
-    _categoryController = context.read<CategoryController>()
-      ..addListener(_startTabController);
+    _categoryController = context.read<CategoryController>()..addListener(_startTabController);
 
-    _valueNotifierList = context.read<ValueNotifierList>()
-      ..addListener(_valueNotifierListListener);
+    _valueNotifierList = context.read<ValueNotifierList>()..addListener(_valueNotifierListListener);
 
-    _bottomMenuController = BottomMenuController(minHeight: 60);
+    _bottomMenuController = BottomMenuController(minHeight: 60, initialArgs: null);
 
     _startTabController(false);
+  }
+
+  @override
+  void setState(VoidCallback fn) {
+    if (mounted) super.setState(fn);
   }
 
   void _valueNotifierListListener() {
@@ -71,9 +72,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     int length = 1 + _categoryController.categories.length;
 
     if (dispose) {
-      setStateIfMounted(() {
-        _subordinateLibraryTabController =
-            _subordinateLibraryTabController.copyWithAndDispose(
+      setState(() {
+        _subordinateLibraryTabController = _subordinateLibraryTabController.copyWithAndDispose(
           length: length,
           vsync: this,
           initialIndex: _subordinateLibraryTabController.index > length - 1
@@ -82,23 +82,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         );
       });
     } else {
-      _subordinateLibraryTabController = SubordinateLibraryTabController(
-        vsync: this,
-        initialIndex: 0,
-        length: length,
-      );
+      _subordinateLibraryTabController = SubordinateLibraryTabController(vsync: this, initialIndex: 0, length: length);
     }
   }
 
   void _scrollControllerListener() {
     addPostFrameCallback((timer) {
-      if (_scrollController.position.pixels <= 10.0 &&
-          _keepWatchingScrollController.hasClients) {
-        _keepWatchingScrollController.animateTo(
-          0,
-          duration: const Duration(milliseconds: 450),
-          curve: Curves.ease,
-        );
+      if (_scrollController.position.pixels <= 10.0 && _keepWatchingScrollController.hasClients) {
+        _keepWatchingScrollController.animateTo(0, duration: const Duration(milliseconds: 450), curve: Curves.ease);
       }
     });
   }
@@ -110,24 +101,20 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     addPostFrameCallback((timer) {
       if (mounted) context.unFocusKeyBoard();
 
-      _scrollController.animateTo(
-        0,
-        duration: const Duration(milliseconds: 450),
-        curve: Curves.ease,
-      );
+      _scrollController.animateTo(0, duration: const Duration(milliseconds: 450), curve: Curves.ease);
     });
   }
 
   void disableScroll(bool enable) {
-    setStateIfMounted(() => _disableScroll = enable);
+    setState(() => _disableScroll = enable);
   }
 
   ScrollPhysics get _mainPhysics {
     if (_disableScroll) {
       return const NeverScrollableScrollPhysics();
     }
-    if (_tabController.index == 1) return const ClampingScrollPhysics();
-    return const AlwaysScrollableScrollPhysics();
+    if (_tabController.index == 2) return const BouncingScrollPhysics();
+    return const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
   }
 
   ScrollPhysics get _tabPhysics {
@@ -135,176 +122,58 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     return const FixedOverscrollBouncingScrollPhysics();
   }
 
+  Future<void> _onRefresh() async {
+    final contentRepository = context.read<ContentRepository>();
+    if (_tabController.index != 0) return;
+    await contentRepository.refresh(true);
+  }
+
   @override
   Widget build(BuildContext context) {
     customLog('$widget[build]');
-    // Divider();
-    return HomeScope(
-      bottomMenuController: _bottomMenuController,
-      keepWatchingScrollController: _keepWatchingScrollController,
-      homeController: _scrollController,
-      subordinateLibraryTabController: _subordinateLibraryTabController,
-      searchController: _searchController,
-      enabled: TickerMode.of(context),
-      tabController: _tabController,
-      builder: (context) {
-        final TabController tabController = HomeScope.of(context).tabController;
-        final LibraryController libraryController =
-            context.watch<LibraryController>();
-        final libraryRepo = libraryController.repo;
-        return Scaffold(
-          body: BottomMenu(
+
+    return Scaffold(
+      body: HomeScope(
+        bottomSheetAnimationController: _bottomSheetAnimationController,
+        bottomMenuController: _bottomMenuController,
+        keepWatchingScrollController: _keepWatchingScrollController,
+        homeController: _scrollController,
+        subordinateLibraryTabController: _subordinateLibraryTabController,
+        searchController: _searchController,
+        enabled: TickerMode.of(context),
+        tabController: _tabController,
+        builder: (context) {
+          final tabController = HomeScope.of(context).tabController;
+          return BottomMenu(
             isDismissible: false,
             bottomMenuController: _bottomMenuController,
-            child: NestedScrollView(
-              // onlyOneScrollInBody: true,
+            child: NestedScrollViewPlus(
+              overscrollBehavior: OverscrollBehavior.outer,
               controller: _scrollController,
               physics: _mainPhysics,
               headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return [
-                  SliverAppBar(
-                    automaticallyImplyLeading: false,
-                    title: HomeViewFlexibleSpace(
-                      searchController: _searchController,
-                    ),
-                    bottom: TabBar(
-                      controller: _tabController,
-                      dividerColor: (libraryRepo.notCompleted.isNotEmpty ||
-                                  libraryRepo.completed.isEmpty) &&
-                              _tabController.index == 1
-                          ? Colors.transparent
-                          : null,
-                      tabs: [
-                        Tab(icon: Icon(MdiIcons.home)),
-                        Tab(icon: Icon(MdiIcons.library))
-                      ],
-                    ),
-                    actions: [
-                      if ([0, 1].contains(tabController.index))
-                        Padding(
-                          padding: const EdgeInsets.only(right: 12),
-                          child: IconButton(
-                            visualDensity: const VisualDensity(horizontal: -4),
-                            onPressed: () async {
-                              if (await PermissionUtils
-                                      .manageExternalStorage() &&
-                                  context.mounted) {
-                                context.push(RouteName.DOWNLOAD);
-                              }
-                            },
-                            icon: Icon(MdiIcons.downloadBox),
-                          ),
-                        ),
-                      if (identical(tabController.index, 1))
-                        Padding(
-                          padding: const EdgeInsets.only(right: 12),
-                          child: IconButton(
-                            visualDensity: const VisualDensity(horizontal: -4),
-                            onPressed: () =>
-                                CategoryUtils.createCategory(context),
-                            icon: Icon(MdiIcons.tag),
-                          ),
-                        ),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 12),
-                        child: IconButton(
-                          visualDensity: const VisualDensity(horizontal: -4),
-                          onPressed: () {
-                            context.push(RouteName.SETTINGS);
-                            // Scaffold.maybeOf(context)?.openDrawer();
-                          },
-                          icon: Icon(MdiIcons.cog),
-                        ),
-                      ),
-                    ],
-                  ),
-                  // SliverToBoxAdapter(
-                  //   child: SizedBox(
-                  //     height: 150,
-                  //     child: AppBar(
-                  //       forceMaterialTransparency: true,
-                  // bottom: TabBar(
-                  //   controller: _tabController,
-                  //   dividerColor:
-                  //       (libraryService.notCompleted.isNotEmpty ||
-                  //                   libraryService.completed.isEmpty) &&
-                  //               _tabController.index == 1
-                  //           ? Colors.transparent
-                  //           : null,
-                  //   tabs: [
-                  //     Tab(icon: Icon(MdiIcons.home)),
-                  //     Tab(icon: Icon(MdiIcons.library))
-                  //   ],
-                  // ),
-                  // actions: [
-                  //   if ([0, 1].contains(tabController.index))
-                  //     Padding(
-                  //       padding: const EdgeInsets.only(right: 12),
-                  //       child: IconButton(
-                  //         visualDensity:
-                  //             const VisualDensity(horizontal: -4),
-                  //         onPressed: () async {
-                  //           if (await PermissionUtils
-                  //                   .manageExternalStorage() &&
-                  //               context.mounted) {
-                  //             context.push(RouteName.DOWNLOAD);
-                  //           }
-                  //         },
-                  //         icon: Icon(MdiIcons.downloadBox),
-                  //       ),
-                  //     ),
-                  //   if (identical(tabController.index, 1))
-                  //     Padding(
-                  //       padding: const EdgeInsets.only(right: 12),
-                  //       child: IconButton(
-                  //         visualDensity:
-                  //             const VisualDensity(horizontal: -4),
-                  //         onPressed: () =>
-                  //             CategoryUtils.createCategory(context),
-                  //         icon: Icon(MdiIcons.tag),
-                  //       ),
-                  //     ),
-                  //   Padding(
-                  //     padding: const EdgeInsets.only(right: 12),
-                  //     child: IconButton(
-                  //       visualDensity:
-                  //           const VisualDensity(horizontal: -4),
-                  //       onPressed: () {
-                  //         context.push(RouteName.SETTINGS);
-                  //         // Scaffold.maybeOf(context)?.openDrawer();
-                  //       },
-                  //       icon: Icon(MdiIcons.cog),
-                  //     ),
-                  //   ),
-                  // ],
-                  // automaticallyImplyLeading: false,
-                  // title: HomeViewFlexibleSpace(
-                  //   searchController: _searchController,
-                  // ),
-                  // ),
-                  //   ),
-                  // ),
-                  const KeepWatching(),
-                  const _ButtonMenuSliver(),
+                  const HomeSliverAppBar(),
+                  if (tabController.index == 0)
+                    CupertinoSliverRefreshControl(refreshTriggerPullDistance: 130, onRefresh: _onRefresh),
+                  const _HomeButtonMenuSliver(),
                 ];
               },
               body: TabBarView(
                 physics: _tabPhysics,
                 controller: _tabController,
-                children: const [
-                  ContentDestination(),
-                  LibraryDestination(),
-                ],
+                children: const [ContentDestination(), HistoryDestination(), LibraryDestination()],
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
   @override
   void dispose() {
+    _bottomSheetAnimationController.dispose();
     _tabController
       ..removeListener(_tabControllerListener)
       ..dispose();
@@ -319,57 +188,37 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 }
 
-class _ButtonMenuSliver extends StatelessWidget {
-  const _ButtonMenuSliver();
+class _HomeButtonMenuSliver extends StatelessWidget {
+  const _HomeButtonMenuSliver();
 
   @override
   Widget build(BuildContext context) {
-    customLog('$this[build]');
     final TabController tabController = HomeScope.of(context).tabController;
-    final subordinateLibraryTabController =
-        HomeScope.of(context).subordinateLibraryTabController;
-    final CategoryController categoryController =
-        context.watch<CategoryController>();
-    final AppConfigController appConfigController =
-        context.watch<AppConfigController>();
+    final subordinateLibraryTabController = HomeScope.of(context).subordinateLibraryTabController;
+    final CategoryController categoryController = context.watch<CategoryController>();
+    final AppConfigController appConfigController = context.watch<AppConfigController>();
     return SliverAnimatedPaintExtent(
       duration: const Duration(milliseconds: 350),
       child: SliverToBoxAdapter(
-        child: identical(tabController.index, 1)
+        child: identical(tabController.index, 2)
             ? TabBar(
                 tabAlignment: TabAlignment.start,
                 controller: subordinateLibraryTabController,
-                tabs: categoryController.categories.map<Widget>(
-                  (CategoryEntity entity) {
-                    return GestureDetector(
-                      onLongPress: () {
-                        CategoryUtils.createCategory(
-                          context,
-                          entity,
-                        );
-                      },
-                      child: Tab(
-                        text: entity.title,
-                      ),
-                    );
-                  },
-                ).toList()
-                  ..insert(
-                    0,
-                    const Tab(text: 'Padrão'),
-                  ),
+                tabs: categoryController.categories.map<Widget>((CategoryEntity entity) {
+                  return GestureDetector(
+                    onLongPress: () {
+                      CategoryHelper.openCategoryCreator(context, entity);
+                    },
+                    child: Tab(text: entity.title),
+                  );
+                }).toList()..insert(0, const Tab(text: 'Padrão')),
                 isScrollable: true,
               )
             : SizedBox(
                 width: double.infinity,
                 height: tabController.index == 0 ? 58 : 0,
                 child: ListView(
-                  padding: tabController.index != 0
-                      ? EdgeInsets.zero
-                      : EdgeInsets.only(
-                          right: 12,
-                          top: 8,
-                        ),
+                  padding: tabController.index != 0 ? EdgeInsets.zero : EdgeInsets.only(right: 12, top: 12),
                   physics: const BouncingScrollPhysics(),
                   scrollDirection: Axis.horizontal,
                   shrinkWrap: true,
@@ -378,14 +227,12 @@ class _ButtonMenuSliver extends StatelessWidget {
                       data: Source.list,
                       onTap: appConfigController.setSource,
                       enableSecondChild: tabController.index != 0,
-                      enableMenuItem: (data) =>
-                          !(appConfigController.config.source == data),
+                      enableMenuItem: (data) => !(appConfigController.config.source == data),
                       child: Text(
                         appConfigController.config.source.toString(),
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              letterSpacing: 1.2,
-                              color: Colors.white,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleSmall?.copyWith(letterSpacing: 1.2, color: Colors.white),
                       ),
                     ),
 

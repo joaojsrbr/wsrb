@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:another_flushbar/flushbar.dart';
-import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/foundation.dart';
@@ -20,18 +18,18 @@ Widget contentIndicatorBuilder(BuildContext context, IndicatorStatus status) {
       break;
     case IndicatorStatus.fullScreenBusying:
       widget = const _FullScreenBusyingWidget();
-      final tabController = HomeScope.maybeOf(context)?.tabController;
-      if (tabController != null && tabController.index != 0) {
-        widget = const SizedBox.shrink();
-        break;
-      }
+      // final tabController = HomeScope.maybeOf(context)?.tabController;
+      // if (tabController != null && tabController.index != 0) {
+      //   widget = const SizedBox.shrink();
+      //   break;
+      // }
 
-      final refreshIndicatorState =
-          context.findAncestorStateOfType<RefreshIndicatorState>();
+      final refreshIndicatorState = context.findAncestorStateOfType<RefreshIndicatorState>();
       if (refreshIndicatorState != null) {
         refreshIndicatorState.show();
         widget = const SizedBox.shrink();
       }
+      // widget = const SizedBox.shrink();
 
       break;
     case IndicatorStatus.error:
@@ -49,9 +47,11 @@ Widget contentIndicatorBuilder(BuildContext context, IndicatorStatus status) {
   }
   return _StatusNotifier(
     status: status,
-    child: Builder(builder: (context) {
-      return widget;
-    }),
+    child: Builder(
+      builder: (context) {
+        return widget;
+      },
+    ),
   );
 }
 
@@ -67,8 +67,7 @@ class _StatusNotifier extends InheritedWidget {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
 
-    properties.add(EnumProperty<IndicatorStatus>('IndicatorStatus', status,
-        defaultValue: IndicatorStatus.none));
+    properties.add(EnumProperty<IndicatorStatus>('IndicatorStatus', status, defaultValue: IndicatorStatus.none));
   }
 
   // ignore: unused_element
@@ -79,8 +78,7 @@ class _StatusNotifier extends InheritedWidget {
   }
 
   @override
-  bool updateShouldNotify(_StatusNotifier oldWidget) =>
-      status != oldWidget.status;
+  bool updateShouldNotify(_StatusNotifier oldWidget) => status != oldWidget.status;
 }
 
 // class _DefaultWidget extends StatelessWidget {
@@ -100,8 +98,7 @@ class _EmptyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver =
-        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
     Widget child = const SizedBox.shrink();
     if (isSliver) child = SliverToBoxAdapter(child: child);
@@ -114,8 +111,7 @@ class _NoMoreLoadWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver =
-        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
     final size = MediaQuery.sizeOf(context);
     Widget child = SizedBox(
       height: size.height * .06,
@@ -123,11 +119,8 @@ class _NoMoreLoadWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Icon(MdiIcons.alertCircleOutline),
-          ),
-          Text('Última página', style: Theme.of(context).textTheme.titleMedium)
+          Padding(padding: const EdgeInsets.all(8.0), child: Icon(MdiIcons.alertCircleOutline)),
+          Text('Última página', style: Theme.of(context).textTheme.titleMedium),
         ],
       ),
     );
@@ -137,10 +130,7 @@ class _NoMoreLoadWidget extends StatelessWidget {
 }
 
 class FullScreenErrorWidget extends StatefulWidget {
-  const FullScreenErrorWidget({
-    super.key,
-    this.btnAtualizar = true,
-  });
+  const FullScreenErrorWidget({super.key, this.btnAtualizar = true});
 
   final bool btnAtualizar;
 
@@ -160,8 +150,7 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
     _contentRepository = context.read<ContentRepository>();
     // _connectionChecker = context.read<ConnectionChecker>();
     _contentRepository.clear();
-    if (_contentRepository.indicatorStatus ==
-        IndicatorStatus.fullScreenBusying) {
+    if (_contentRepository.indicatorStatus == IndicatorStatus.fullScreenBusying) {
       scheduleMicrotask(_showSnackBar);
     }
 
@@ -175,13 +164,7 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
       final fullScreenError = _contentRepository.fullScreenError;
       setStateIfMounted(() {});
       if (fullScreenError is DioException) {
-        final AppSnackBar appSnackBar = AppSnackBar(context ?? this.context);
-        appSnackBar.show(
-          const Text(
-            'Verifique sua conexão com a internet.',
-          ),
-          flushbarPosition: FlushbarPosition.TOP,
-        );
+        this.context.showAppSnackBar(const Text('Verifique sua conexão com a internet.'));
       }
     });
   }
@@ -208,41 +191,31 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver =
-        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
     Widget child = Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         switch (_contentRepository.fullScreenError) {
           AnrollGetIdException data => Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                data.message,
-                textAlign: TextAlign.center,
-              ),
-            ),
+            padding: const EdgeInsets.all(8.0),
+            child: Text(data.message, textAlign: TextAlign.center),
+          ),
           GoyabuLoadDataException data => Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                data.message,
-                textAlign: TextAlign.center,
-              ),
-            ),
+            padding: const EdgeInsets.all(8.0),
+            child: Text(data.message, textAlign: TextAlign.center),
+          ),
           DioException data => Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                data.message ?? '',
-                textAlign: TextAlign.center,
-              ),
-            ),
+            padding: const EdgeInsets.all(8.0),
+            child: Text(data.message ?? '', textAlign: TextAlign.center),
+          ),
           _ => const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-              child: Text(
-                "Parece que você está offline. Verifique sua conexão com a internet e tente novamente.",
-                textAlign: TextAlign.center,
-              ),
-            )
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+            child: Text(
+              "Parece que você está offline. Verifique sua conexão com a internet e tente novamente.",
+              textAlign: TextAlign.center,
+            ),
+          ),
         },
         const SizedBox(height: 8),
         Row(
@@ -250,11 +223,7 @@ class FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
           children: [
             if (widget.btnAtualizar)
               FilledButton(
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+                style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
                 onPressed: () {
                   _contentRepository.refresh(true);
                 },
@@ -301,8 +270,7 @@ class _ErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver =
-        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
     final size = MediaQuery.sizeOf(context);
     Widget child = SizedBox(
       height: size.height * .06,
@@ -310,11 +278,8 @@ class _ErrorWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Icon(MdiIcons.alertCircleOutline),
-          ),
-          Text('Última página', style: Theme.of(context).textTheme.titleMedium)
+          Padding(padding: const EdgeInsets.all(8.0), child: Icon(MdiIcons.alertCircleOutline)),
+          Text('Última página', style: Theme.of(context).textTheme.titleMedium),
         ],
       ),
     );
@@ -328,8 +293,7 @@ class _NoneWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver =
-        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
     Widget child = const SizedBox.shrink();
     if (isSliver) child = SliverToBoxAdapter(child: child);
@@ -352,8 +316,7 @@ class _FullScreenBusyingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSliver =
-        context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
+    final isSliver = context.findAncestorWidgetOfExactType<CustomScrollView>() != null;
 
     Widget child = const _BuildCircularWidget();
     if (isSliver) child = SliverFillRemaining(child: child);

@@ -9,26 +9,22 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
-class HomeViewFlexibleSpace extends StatefulWidget {
-  const HomeViewFlexibleSpace({
-    super.key,
-    required this.searchController,
-  });
+class SliverAppBarFlexibleSpace extends StatefulWidget {
+  const SliverAppBarFlexibleSpace({super.key, required this.searchController});
   final CustomSearchController searchController;
 
   @override
-  State<HomeViewFlexibleSpace> createState() => _HomeViewFlexibleSpaceState();
+  State<SliverAppBarFlexibleSpace> createState() => _SliverAppBarFlexibleSpaceState();
 }
 
-class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
+class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
   late final ContentRepository _contentRepository;
 
   final ValueNotifier<bool> _isLoading = ValueNotifier(false);
 
   final Map<Source, List<Content>> _contents = {};
 
-  final Debouncer _searchDebouncer =
-      Debouncer(duration: const Duration(seconds: 1));
+  final Debouncer _searchDebouncer = Debouncer(duration: const Duration(seconds: 1));
 
   CustomSearchController get _searchController => widget.searchController;
 
@@ -40,26 +36,11 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
   }
 
   void _searchControllerListener() {
-    // final query = _searchController.text.trim();
-
-    // if (!_searchController.isOpen) {
-    //   if (query.isEmpty) context.unFocusKeyBoard();
-
-    //   setStateIfMounted(_contents.clear);
-    // }
-
-    // _searchDebouncer.cancel();
-    // if (query.length >= 2) {
-    //   _searchDebouncer.call(() {
-    //     _searchContents(query);
-    //   });
-    // }
     customLog(_searchController.isOpen);
   }
 
   Future<void> _searchContents(String query, [forceSearch = false]) async {
-    if (_contents.values.flattened.any((content) =>
-            content.title.toLowerCase().contains(query.toLowerCase())) &&
+    if (_contents.values.flattened.any((content) => content.title.toLowerCase().contains(query.toLowerCase())) &&
         !forceSearch) {
       return;
     }
@@ -82,11 +63,10 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
 
     final TabController tabController = HomeScope.of(context).tabController;
 
-    final ValueNotifierList valueNotifierList =
-        context.watch<ValueNotifierList>();
+    final ValueNotifierList valueNotifierList = context.watch<ValueNotifierList>();
 
     return IgnorePointer(
-      ignoring: tabController.index == 1,
+      ignoring: tabController.index == 2,
       child: CustomSearchAnchor(
         onSubmitted: (value) {
           if (value.isEmpty || tabController.index != 0) {
@@ -105,8 +85,7 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
         dividerWidget: AnimatedBuilder(
           animation: _isLoading,
           child: const LinearProgressIndicator(minHeight: 2),
-          builder: (context, child) =>
-              _isLoading.value ? child! : const Divider(height: 2),
+          builder: (context, child) => _isLoading.value ? child! : const Divider(height: 2),
         ),
         // onChanged: (String value) {
         //   if (tabController.index != 0) return;
@@ -121,8 +100,7 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
             animation: _searchController,
             builder: (context, child) {
               return FadeThroughTransitionSwitcher(
-                enableSecondChild: tabController.index != 1 ||
-                    _searchController.text.trim().isEmpty,
+                enableSecondChild: tabController.index != 1 || _searchController.text.trim().isEmpty,
                 duration: const Duration(seconds: 1),
                 child: IconButton(
                   onPressed: () {
@@ -133,23 +111,18 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
                 ),
               );
             },
-          )
+          ),
         ],
         barLeading: FadeThroughTransitionSwitcher(
           enableSecondChild: valueNotifierList.isNotEmpty,
           duration: const Duration(milliseconds: 350),
-          secondChild: IconButton(
-            onPressed: valueNotifierList.clear,
-            icon: Icon(MdiIcons.close),
-          ),
+          secondChild: IconButton(onPressed: valueNotifierList.clear, icon: Icon(MdiIcons.close)),
           child: Icon(MdiIcons.magnify),
         ),
         searchController: _searchController,
         constraints: const BoxConstraints(maxHeight: 42, minHeight: 42),
         barShape: _BarShapeMaterialState(),
-        labelText: valueNotifierList.isNotEmpty
-            ? 'itens ${valueNotifierList.length}'
-            : 'Pesquisa',
+        labelText: _labelText(valueNotifierList, tabController),
         barElevation: const WidgetStatePropertyAll(0),
         barSide: _BarSideMaterialState(themeData.colorScheme),
         viewElevation: 0,
@@ -158,10 +131,17 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
     );
   }
 
-  FutureOr<Widget> _suggestionsBuilder(
-    BuildContext context,
-    CustomSearchController controller,
-  ) async {
+  String _labelText(ValueNotifierList valueNotifierList, TabController tabController) {
+    if (valueNotifierList.isNotEmpty) return 'itens ${valueNotifierList.length}';
+    return switch (tabController.index) {
+      0 => 'Pesquisa',
+      1 => 'Historico',
+      2 => 'Biblioteca',
+      _ => "",
+    };
+  }
+
+  FutureOr<Widget> _suggestionsBuilder(BuildContext context, CustomSearchController controller) async {
     return ValueListenableBuilder(
       valueListenable: _isLoading,
       builder: (context, loading, child) {
@@ -170,15 +150,9 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
         return ListView.builder(
           itemCount: _contents.entries.length,
           itemBuilder: (context, index) {
-            final MapEntry<Source, List<Content>> entry =
-                _contents.entries.elementAt(index);
+            final MapEntry<Source, List<Content>> entry = _contents.entries.elementAt(index);
             return ExpansionTile(
-              shape: Border(
-                bottom: BorderSide(
-                  width: 1,
-                  color: DividerTheme.of(context).color ?? Colors.transparent,
-                ),
-              ),
+              shape: Border(bottom: BorderSide(width: 1, color: DividerTheme.of(context).color ?? Colors.transparent)),
               title: Text(entry.key.name),
               initiallyExpanded: entry.value.isNotEmpty,
               maintainState: true,
@@ -197,11 +171,10 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
                         padding: const EdgeInsets.only(right: 8),
                         child: SizedBox(
                           width: 140,
-                          child: ItemContent.search(
+                          child: ContentTile.search(
                             content: content,
                             onTap: (content) {
-                              if (_searchController.isAttached &&
-                                  _searchController.isOpen) {
+                              if (_searchController.isAttached && _searchController.isOpen) {
                                 context.unFocusKeyBoard();
                               }
                             },
@@ -228,38 +201,8 @@ class _HomeViewFlexibleSpaceState extends State<HomeViewFlexibleSpace> {
   }
 }
 
-// class _OverlayColor extends WidgetStateProperty<Color?> {
-//   _OverlayColor(this.content) {
-//     if (content is Anime) {
-//       _color = ((content as Anime).isDublado ||
-//               content.title.toLowerCase().contains('dublado'))
-//           ? Colors.blue
-//           : Colors.red;
-//     }
-//   }
-
-//   Color? _color;
-
-//   final Content content;
-
-//   @override
-//   Color? resolve(Set<WidgetState> states) {
-//     if (states.contains(WidgetState.pressed)) {
-//       return _color?.withOpacity(0.12);
-//     } else if (states.contains(WidgetState.hovered)) {
-//       return _color?.withOpacity(0.08);
-//     } else if (states.contains(WidgetState.focused)) {
-//       return Colors.transparent;
-//     }
-//     return Colors.transparent;
-//   }
-// }
-
-class _BarShapeMaterialState
-    extends WidgetStateProperty<RoundedRectangleBorder?> {
-  final _defaultBarShape = RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(12),
-  );
+class _BarShapeMaterialState extends WidgetStateProperty<RoundedRectangleBorder?> {
+  final _defaultBarShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(12));
 
   _BarShapeMaterialState();
 
@@ -281,8 +224,6 @@ class _BarSideMaterialState extends WidgetStateProperty<BorderSide?> {
     //     color: colorScheme.primary.withOpacity(0.10),
     //   );
     // }
-    return BorderSide(
-      color: colorScheme.primary.withAlpha(26),
-    );
+    return BorderSide(color: colorScheme.primary.withAlpha(26));
   }
 }
