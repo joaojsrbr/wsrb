@@ -52,11 +52,11 @@ class HistoricController extends ChangeNotifier {
     _debouncer.call(notifyListeners);
   }
 
-  Future<Result<(bool, List<int>?)>> add({required HistoricEntity HistoricEntity}) async {
+  Future<Result<(bool, List<int>?)>> add({required HistoricEntity historic}) async {
     bool isSucess = false;
     final List<int> ids = [];
 
-    final result = await _isarService.add(entity: HistoricEntity);
+    final result = await _isarService.add(entity: historic);
 
     result.fold(
       onSuccess: (data) {
@@ -116,13 +116,11 @@ class HistoricController extends ChangeNotifier {
     return Result.success((isSucess, ids));
   }
 
-  Future<Result<(bool, List<int>?)>> remove({
-    required HistoricEntity HistoricEntity,
-  }) async {
+  Future<Result<(bool, List<int>?)>> remove({required HistoricEntity historic}) async {
     bool isSucess = false;
     final List<int> ids = [];
 
-    final result = await _isarService.remove(entity: HistoricEntity);
+    final result = await _isarService.remove(entity: historic);
 
     result.fold(
       onSuccess: (data) {

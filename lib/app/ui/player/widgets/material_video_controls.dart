@@ -669,7 +669,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                           duration: const Duration(milliseconds: 200),
                           paddingTop: true,
                           height: MediaQuery.sizeOf(context).height,
-                          width: 170,
+                          width: MediaQuery.sizeOf(context).width * 0.18,
                           show: openMenuInFullScreen,
                           items: scope.playerArgs.anime.releases,
                           builderFunction: (context, index, episode) {

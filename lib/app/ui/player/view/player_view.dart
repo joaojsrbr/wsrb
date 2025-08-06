@@ -87,6 +87,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   int _currentValueCircularAnimation = 0;
   Timer? _disposePlayer;
   Duration? _oldPositionAfterDispose;
+  Timer? _setContinueVideoTimer;
 
   final List<Data> data = [];
   final Debouncer _nextEpisodeDebouncer = Debouncer(
@@ -104,8 +105,6 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
   late final AnimeSkipController _animeSkipController;
   late final HistoricController _historicController;
   late final Timer _systemUIModeTimer;
-
-  Timer? _setContinueVideoTimer;
 
   bool get _hasNextEpisode {
     if (!_playerArgs.getAnimeData || _playerArgs.anime.releases.isEmpty) {
@@ -194,6 +193,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
 
   @override
   void didResumed() async {
+    _systemUIModeTimer.cancel();
     _systemUIModeTimer = Timer.periodic(
       const Duration(seconds: 1),
       _setEnabledSystemUIMode,
@@ -584,7 +584,7 @@ class _PlayerViewState extends StateByArgument<PlayerView, PlayerArgs>
       await _animeSkipController.save(animeEntity.animeSkip.value!);
     }
     await _libraryController.add(contentEntity: animeEntity);
-    await _historicController.add(HistoricEntity: episodeEntity);
+    await _historicController.add(historic: episodeEntity);
   }
 
   void _handleClickSkipAnime(AnimeTimeStamp item) {
@@ -735,6 +735,34 @@ class _VideoPlayerArea extends StatelessWidget {
   Widget build(BuildContext context) {
     final scope = PlayerScope.of(context);
     final size = MediaQuery.sizeOf(context);
+
+    final videoWidget = Video(
+      key: scope.isPipActivated ? null : PlayerView.videoStateKey,
+      aspectRatio: 16 / 9,
+      fit: fit,
+      controller: controller,
+      onEnterFullscreen: scope.isPipActivated
+          ? () async {}
+          : () async {
+              await SystemChrome.setPreferredOrientations([
+                DeviceOrientation.landscapeRight,
+                DeviceOrientation.landscapeLeft,
+              ]);
+              // SystemChrome.setEnabledSystemUIMode(
+              //   SystemUiMode.immersive,
+              // );
+            },
+      onExitFullscreen: scope.isPipActivated
+          ? () async {}
+          : () async {
+              SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+            },
+      controls: (state) {
+        if (scope.isPipActivated) const SizedBox.shrink();
+        return CustomMaterialControls(state);
+      },
+    );
+
     return SizedBox(
       height: scope.isPipActivated ? size.height : size.height * 0.4,
       width: double.infinity,
@@ -743,39 +771,8 @@ class _VideoPlayerArea extends StatelessWidget {
         onPipEntered: scope.onPipChange,
         onPipExited: scope.onPipChange,
         pipLayout: PipActionsLayout.media_only_pause,
-        pipChild: Video(
-          aspectRatio: 16 / 9,
-          fit: fit,
-          controls: (_) => const SizedBox.shrink(),
-          controller: controller,
-        ),
-        child: Video(
-          key: PlayerView.videoStateKey,
-          aspectRatio: 16 / 9,
-          fit: fit,
-          controller: controller,
-          onEnterFullscreen: scope.isPipActivated
-              ? () async {}
-              : () async {
-                  await SystemChrome.setPreferredOrientations([
-                    DeviceOrientation.landscapeRight,
-                    DeviceOrientation.landscapeLeft,
-                  ]);
-                  // SystemChrome.setEnabledSystemUIMode(
-                  //   SystemUiMode.immersive,
-                  // );
-                },
-
-          onExitFullscreen: scope.isPipActivated
-              ? () async {}
-              : () async {
-                  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-                },
-          controls: (state) {
-            if (!scope.isPipActivated) return CustomMaterialControls(state);
-            return const SizedBox.shrink();
-          },
-        ),
+        pipChild: videoWidget,
+        child: videoWidget,
       ),
     );
   }

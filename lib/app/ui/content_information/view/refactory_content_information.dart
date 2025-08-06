@@ -7,6 +7,7 @@ import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
 import 'package:app_wsrb_jsr/app/utils/content_utils.dart';
 import 'package:app_wsrb_jsr/app/utils/download_release_helper.dart';
+import 'package:app_wsrb_jsr/app/utils/history_utils.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -40,7 +41,11 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   @override
   void initState() {
     super.initState();
-    _bottomMenuController = BottomMenuController(minHeight: 60, initialArgs: []);
+    _bottomMenuController = BottomMenuController(
+      minHeight: 60,
+      initialArgs: [],
+      onClose: _bottomMenuController.args.clear,
+    );
     _historicController = read<HistoricController>();
     _libraryController = read<LibraryController>();
     _repository = read<ContentRepository>();
@@ -152,7 +157,11 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
       _bottomMenuController.close();
     }
 
-    // if (_bottomMenuController.args case List<String> data) {
+    if (data.isNotEmpty && !_bottomMenuController.isOpen) {
+      _bottomMenuController.open();
+    }
+
+    // if (data.isNotEmpty) {
     //   if (data.contains(release.stringID)) {
     //     data.remove(release.stringID);
     //     _bottomMenuController.update();
@@ -162,11 +171,11 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
     //   }
 
     //   if (data.isEmpty) {
-    //     _bottomMenuController.args = null;
+    //     data.clear();
     //     _bottomMenuController.close();
     //   }
     // } else {
-    //   _bottomMenuController.args = [release.stringID];
+    //   _bottomMenuController.args.add(release.stringID);
     //   _bottomMenuController.open();
     // }
   }
@@ -263,8 +272,24 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   void _deleteSelectEpisodeEntity() async {
     final args = _bottomMenuController.args;
     if (_content case Anime _) {
-      final historicEntities = _historicController.repo.getAllHistoricEntityByID(args);
-      await _historicController.removeAll(historyEntities: historicEntities);
+      final historicEntities = _historicController.repo.getAllByIDs(args);
+      // await _historicController.removeAll(historyEntities: historicEntities);
+      HistoryUtils.questionDelete(
+        context,
+        historicEntities,
+        onConfirmDelete: () {
+          _historicController.addAll(
+            historyEntities: historicEntities
+                .map(
+                  (entity) => entity.copyWith(positions: [], updatedAt: DateTime.now()),
+                )
+                .toList(),
+          );
+        },
+        onUndoDelete: (oldHistoric) {
+          _historicController.addAll(historyEntities: oldHistoric);
+        },
+      );
       _bottomMenuController.args.clear();
       _bottomMenuController.close();
     }
@@ -275,13 +300,13 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
     customLog('$widget[build]');
 
     return ContentScope(
-      index: _index,
-      noContent: noContent,
       onLongPressed: _handleLongPressed,
-      informationArgs: _informationArgs,
-      isLoading: _isLoading,
       setListIndex: _handleSetListIndex,
       downloadRelease: _downloadRelease,
+      index: _index,
+      noContent: noContent,
+      informationArgs: _informationArgs,
+      isLoading: _isLoading,
       releases: _releases,
       content: _content,
       releasesIsLoading: _releasesIsLoading,
@@ -297,9 +322,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
                 (release) => args.contains(release.stringID),
               );
 
-              final historicEntities = _historicController.repo.getAllHistoricEntityByID(
-                args,
-              );
+              final historicEntities = _historicController.repo.getAllByIDs(args);
 
               return Align(
                 alignment: Alignment.centerLeft,

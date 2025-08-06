@@ -102,8 +102,9 @@ class CustomCachedNetworkImage extends StatelessWidget {
       );
     }
 
-    if (height != null || width != null)
+    if (height != null || width != null) {
       container = SizedBox(height: height, width: width, child: container);
+    }
 
     if (onTap != null) {
       container = SizedBox(

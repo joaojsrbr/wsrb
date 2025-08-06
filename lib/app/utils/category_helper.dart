@@ -205,7 +205,7 @@ class CategoryHelper {
                             onFieldSubmitted: (_) {
                               if (currentEntity != null) {
                                 if (!(formKey.currentState?.validate() ?? false)) return;
-                                context.read<CategoryController>().add(
+                                controller.add(
                                   currentEntity.copyWith(
                                     title: ctrl.text.trim(),
                                     updatedAt: DateTime.now(),
@@ -237,9 +237,10 @@ class CategoryHelper {
                                 ),
                                 onPressed: () {
                                   if (currentEntity != null) {
-                                    if (!(formKey.currentState?.validate() ?? false))
+                                    if (!(formKey.currentState?.validate() ?? false)) {
                                       return;
-                                    context.read<CategoryController>().add(
+                                    }
+                                    controller.add(
                                       currentEntity.copyWith(
                                         title: ctrl.text.trim(),
                                         updatedAt: DateTime.now(),

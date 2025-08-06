@@ -325,18 +325,21 @@ class _HistoryDestinationState extends State<HistoryDestination>
                       IconButton(
                         icon: Icon(MdiIcons.delete, size: 20),
                         onPressed: () async {
-                          final result = await HistoryUtils.questionDelete(
+                          await HistoryUtils.questionDelete(
                             context,
-                            historic,
+                            [historic],
+                            onConfirmDelete: () {
+                              historicController.add(
+                                historic: historic.copyWith(
+                                  positions: [],
+                                  updatedAt: DateTime.now(),
+                                ),
+                              );
+                            },
+                            onUndoDelete: (oldHistoric) {
+                              historicController.addAll(historyEntities: oldHistoric);
+                            },
                           );
-                          if (result) {
-                            historicController.add(
-                              HistoricEntity: historic.copyWith(
-                                positions: [],
-                                updatedAt: DateTime.now(),
-                              ),
-                            );
-                          }
                         },
                       ),
                     ],

@@ -214,73 +214,75 @@ class _HomeButtonMenuSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TabController tabController = HomeScope.of(context).tabController;
-    final subordinateLibraryTabController = HomeScope.of(
-      context,
-    ).subordinateLibraryTabController;
+    final HomeScope scope = HomeScope.of(context);
+    final TabController tabController = scope.tabController;
+    final SubordinateLibraryTabController subordinateLibraryTabController =
+        scope.subordinateLibraryTabController;
     final CategoryController categoryController = context.watch<CategoryController>();
     final AppConfigController appConfigController = context.watch<AppConfigController>();
     return SliverAnimatedPaintExtent(
       duration: const Duration(milliseconds: 350),
       child: SliverToBoxAdapter(
-        child: identical(tabController.index, 2)
-            ? TabBar(
-                tabAlignment: TabAlignment.start,
-                controller: subordinateLibraryTabController,
-                tabs: categoryController.categories.map<Widget>((CategoryEntity entity) {
-                  return GestureDetector(
-                    onLongPress: () {
-                      CategoryHelper.openCategoryCreator(context, entity);
-                    },
-                    child: Tab(text: entity.title),
-                  );
-                }).toList()..insert(0, const Tab(text: 'Padrão')),
-                isScrollable: true,
-              )
-            : SizedBox(
-                width: double.infinity,
-                height: tabController.index == 0 ? 58 : 0,
-                child: ListView(
-                  padding: tabController.index != 0
-                      ? EdgeInsets.zero
-                      : EdgeInsets.only(right: 12, top: 12),
-                  physics: const BouncingScrollPhysics(),
-                  scrollDirection: Axis.horizontal,
-                  shrinkWrap: true,
-                  children: [
-                    MenuButton(
-                      data: Source.list,
-                      onTap: appConfigController.setSource,
-                      enableSecondChild: tabController.index != 0,
-                      enableMenuItem: (data) =>
-                          !(appConfigController.config.source == data),
-                      child: Text(
-                        appConfigController.config.source.toString(),
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          letterSpacing: 1.2,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+        child: Visibility(
+          maintainState: false,
+          visible: identical(tabController.index, 2),
+          replacement: SizedBox(
+            width: double.infinity,
+            height: tabController.index == 0 ? 58 : 0,
+            child: ListView(
+              padding: tabController.index != 0
+                  ? EdgeInsets.zero
+                  : EdgeInsets.only(right: 12, top: 12),
+              physics: const BouncingScrollPhysics(),
+              scrollDirection: Axis.horizontal,
+              shrinkWrap: true,
+              children: [
+                DropdownMenuButton<Source>(
+                  onSelected: appConfigController.setSource,
 
-                    // ! menu de tipo de anime
-                    // MenuButton(
-                    //   data: OrderBy.list,
-                    //   onTap: hiveController.setOrderBy,
-                    //   leadingMenuItem: (data) =>
-                    //       Icon(data.iconData),
-                    //   enableSecondChild:
-                    //       Source.disableSourceMenuFilter(
-                    //             hiveController.source,
-                    //           ) ||
-                    //           tabController.index != 0,
-                    //   child: Text(
-                    //     hiveController.orderBy.toString(),
-                    //   ),
-                    // ),
-                  ],
+                  items: Source.list,
+
+                  enableSecondChild: tabController.index != 0,
+                  itemEnabled: (data) => !(appConfigController.config.source == data),
+                  child: Text(
+                    appConfigController.config.source.toString(),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      letterSpacing: 1.2,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
+
+                // ! menu de tipo de anime
+                // MenuButton(
+                //   data: OrderBy.list,
+                //   onTap: hiveController.setOrderBy,
+                //   leadingMenuItem: (data) =>
+                //       Icon(data.iconData),
+                //   enableSecondChild:
+                //       Source.disableSourceMenuFilter(
+                //             hiveController.source,
+                //           ) ||
+                //           tabController.index != 0,
+                //   child: Text(
+                //     hiveController.orderBy.toString(),
+                //   ),
+                // ),
+              ],
+            ),
+          ),
+          child: TabBar(
+            tabAlignment: TabAlignment.start,
+            controller: subordinateLibraryTabController,
+            tabs: categoryController.categories.map<Widget>((CategoryEntity entity) {
+              return GestureDetector(
+                onLongPress: () => CategoryHelper.openCategoryCreator(context, entity),
+                child: Tab(text: entity.title),
+              );
+            }).toList()..insert(0, const Tab(text: 'Padrão')),
+            isScrollable: true,
+          ),
+        ),
       ),
     );
   }

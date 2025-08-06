@@ -11,12 +11,12 @@ import 'package:go_router/go_router.dart';
 
 enum RouteName {
   HOME("/"),
-  CONTENTINFO("content_info"),
-  READ("read"),
-  PLAYER("player"),
-  DOWNLOAD("download_view"),
-  SETTINGS("settings"),
-  WEBVIEW("webview");
+  CONTENTINFO("/content_info"),
+  READ("/read"),
+  PLAYER("/player"),
+  DOWNLOAD("/download_view"),
+  SETTINGS("/settings"),
+  WEBVIEW("/webview");
 
   final String route;
   const RouteName(this.route);
@@ -72,7 +72,7 @@ final appRoutes = GoRouter(
             );
           },
         ),
-        // ! descomentar se for usar
+        // !descomentar se for usar
         // GoRoute(
         //   path: RouteName.READ.subRouter,
         //   pageBuilder: (context, state) {

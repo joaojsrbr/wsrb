@@ -83,108 +83,108 @@ class ContentTile extends StatelessWidget {
     int cacheHeight = isFromLibrary ? 250 : 150;
 
     if (isListTile) {
-      return Padding(
-        padding: padding,
-        child: InkWell(
-          onLongPress: valueNotifierList.isEmpty
-              ? () => valueNotifierList.toggle(content.stringID)
+      return InkWell(
+        onLongPress: valueNotifierList.isEmpty
+            ? () => valueNotifierList.toggle(content.stringID)
+            : null,
+        onTap: () async {
+          onTap?.call(content);
+          if (searchController?.isAttached == true && searchController!.isOpen) {
+            context.unFocusKeyBoard();
+          }
+          if (valueNotifierList.isNotEmpty) {
+            valueNotifierList.toggle(content.stringID);
+            return;
+          }
+          if (content is Anime &&
+              content.releases.length == 1 &&
+              !isFromLibrary &&
+              !isFromSearch) {
+            await context.push(
+              RouteName.PLAYER.route,
+              extra: PlayerArgs(anime: content, episode: content.releases.first),
+            );
+          } else {
+            final result = await context.push(
+              RouteName.CONTENTINFO.route,
+              extra: ContentInformationArgs(content: content, isLibrary: isFromLibrary),
+            );
+            if (result != null && context.mounted) {
+              await context.showErrorSnackBar(result);
+            }
+          }
+        },
+        splashFactory: InkRipple.splashFactory,
+        overlayColor: WidgetStatePropertyAll(theme.colorScheme.primary.withAlpha(36)),
+        child: ListTile(
+          selectedTileColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16.0).add(padding),
+          selected: isSelected,
+          title: Text(
+            content.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: textTheme.titleMedium,
+          ),
+          subtitle: content is Anime
+              ? Text(
+                  'Episódio ${content.releases.last.number} - ${content.releases.last.isDublado ? "DUB" : "LEG"}',
+                )
               : null,
-          onTap: () async {
-            onTap?.call(content);
-            if (searchController?.isAttached == true && searchController!.isOpen) {
-              context.unFocusKeyBoard();
-            }
-            if (valueNotifierList.isNotEmpty) {
-              valueNotifierList.toggle(content.stringID);
-              return;
-            }
-            if (content is Anime &&
-                content.releases.length == 1 &&
-                !isFromLibrary &&
-                !isFromSearch) {
-              await context.push(
-                RouteName.PLAYER.route,
-                extra: PlayerArgs(anime: content, episode: content.releases.first),
-              );
-            } else {
-              final result = await context.push(
-                RouteName.CONTENTINFO.route,
-                extra: ContentInformationArgs(content: content, isLibrary: isFromLibrary),
-              );
-              if (result != null && context.mounted) {
-                await context.showErrorSnackBar(result);
-              }
-            }
-          },
-          splashFactory: InkRipple.splashFactory,
-          overlayColor: WidgetStatePropertyAll(theme.colorScheme.primary.withAlpha(36)),
-          child: ListTile(
-            title: Text(
-              content.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.titleMedium,
-            ),
-            subtitle: content is Anime
-                ? Text(
-                    'Episódio ${content.releases.last.number} - ${content.releases.last.isDublado ? "DUB" : "LEG"}',
-                  )
-                : null,
-            leading: Container(
-              width: 100,
-              margin: const EdgeInsets.symmetric(vertical: 3),
-              child: ClipRRect(
-                borderRadius: _radius,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    CustomCachedNetworkImage(
-                      imageUrl: content.imageUrl,
-                      fit: BoxFit.cover,
-                      height: height,
-                      width: double.infinity,
-                      onTap: () async {
-                        if (searchController?.isAttached == true &&
-                            searchController!.isOpen) {
-                          context.unFocusKeyBoard();
-                        }
-                        if (valueNotifierList.isNotEmpty) {
-                          valueNotifierList.toggle(content.stringID);
-                          return;
-                        }
-                        final result = await context.push(
-                          RouteName.CONTENTINFO.route,
-                          extra: ContentInformationArgs(
-                            content: content,
-                            isLibrary: isFromLibrary,
-                          ),
-                        );
-                        if (result != null && context.mounted) {
-                          await context.showErrorSnackBar(result);
-                        }
-                      },
-                      borderRadius: _radius,
-                      alignment: Alignment.center,
-                      memCacheHeight: cacheHeight,
-                      memCacheWidth: cacheWidth,
-                      httpHeaders: headers,
-                    ),
-                    if (isSelected)
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.white, width: 1.5),
-                          borderRadius: _radius,
+          leading: Container(
+            width: 100,
+            margin: const EdgeInsets.symmetric(vertical: 3),
+            child: ClipRRect(
+              borderRadius: _radius,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CustomCachedNetworkImage(
+                    imageUrl: content.imageUrl,
+                    fit: BoxFit.cover,
+                    height: height,
+                    width: double.infinity,
+                    onTap: () async {
+                      if (searchController?.isAttached == true &&
+                          searchController!.isOpen) {
+                        context.unFocusKeyBoard();
+                      }
+                      if (valueNotifierList.isNotEmpty) {
+                        valueNotifierList.toggle(content.stringID);
+                        return;
+                      }
+                      final result = await context.push(
+                        RouteName.CONTENTINFO.route,
+                        extra: ContentInformationArgs(
+                          content: content,
+                          isLibrary: isFromLibrary,
                         ),
-                      ),
-                  ],
-                ),
+                      );
+                      if (result != null && context.mounted) {
+                        await context.showErrorSnackBar(result);
+                      }
+                    },
+                    borderRadius: _radius,
+                    alignment: Alignment.center,
+                    memCacheHeight: cacheHeight,
+                    memCacheWidth: cacheWidth,
+                    httpHeaders: headers,
+                  ),
+                  // if (isSelected)
+                  //   Container(
+                  //     decoration: BoxDecoration(
+                  //       border: Border.all(color: Colors.white, width: 1.5),
+                  //       borderRadius: _radius,
+                  //     ),
+                  //   ),
+                ],
               ),
             ),
-            dense: true,
-            minTileHeight: 68,
-            minVerticalPadding: 0,
-            visualDensity: const VisualDensity(vertical: 4, horizontal: -2),
           ),
+          dense: true,
+          minTileHeight: 68,
+          minVerticalPadding: 0,
+          visualDensity: const VisualDensity(vertical: 4, horizontal: -2),
         ),
       );
     }
@@ -194,8 +194,10 @@ class ContentTile extends StatelessWidget {
       height: height,
       width: width,
       decoration: BoxDecoration(
-        borderRadius: _radius,
-        border: isSelected ? Border.all(color: Colors.white, width: 1.5) : null,
+        borderRadius: _radius.add(BorderRadiusGeometry.circular(2)),
+        border: isSelected
+            ? Border.all(color: Colors.white, width: 1.5)
+            : Border.all(color: Colors.transparent, width: 1.5),
       ),
       child: ClipRRect(
         borderRadius: _radius,

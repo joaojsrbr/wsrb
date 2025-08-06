@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_popup.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/utils/category_helper.dart';
 import 'package:content_library/content_library.dart';
@@ -79,19 +78,35 @@ class _BottomMenuState<T> extends AnimatedWidgetBaseState<BottomMenu<T>> {
                   ],
                 ),
               ),
-              CustomPopup.builder(
-                show: railMenuController.isOpen,
-                width: MediaQuery.sizeOf(context).width,
-                reverseDuration: const Duration(milliseconds: 250),
-                shape: RoundedRectangleBorder(),
-                startAnimatedAlignment: Alignment.center,
-                duration: const Duration(milliseconds: 250),
-                height: railMenuController._menuSize.height,
-                builder: (context) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: widget.buttons?.call(context) ?? const _LibraryButtons(),
-                ),
+
+              AnimatedSize(
+                reverseDuration: Duration(milliseconds: 450),
+                duration: Duration(milliseconds: 450),
+                curve: Curves.fastOutSlowIn,
+                child: railMenuController.isOpen
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: SizedBox(
+                          width: MediaQuery.sizeOf(context).width,
+                          height: railMenuController.menuSize.height,
+                          child: widget.buttons?.call(context) ?? const _LibraryButtons(),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
               ),
+              // CustomPopup.builder(
+              //   show: railMenuController.isOpen,
+              //   width: MediaQuery.sizeOf(context).width,
+              //   reverseDuration: const Duration(milliseconds: 250),
+              //   shape: RoundedRectangleBorder(),
+              //   startAnimatedAlignment: Alignment.bottomCenter,
+              //   duration: const Duration(milliseconds: 250),
+              //   height: railMenuController._menuSize.height,
+              //   builder: (context) => Padding(
+              //     padding: const EdgeInsets.symmetric(horizontal: 8),
+              //     child: widget.buttons?.call(context) ?? const _LibraryButtons(),
+              //   ),
+              // ),
             ],
           );
         },
@@ -134,34 +149,38 @@ class BottomMenuController<T> extends ChangeNotifier {
   BottomMenuController({
     bool opened = false,
     double minHeight = 50,
+    this.menuSize = const Size(double.infinity, 50),
     required T initialArgs,
+    this.onClose,
   }) {
     _openMenu = opened;
-    args = initialArgs;
-    _menuSize = Size.fromHeight(minHeight);
+    setArgs = initialArgs;
   }
 
-  late Size _menuSize;
+  void Function()? onClose;
 
-  late T args;
+  final Size menuSize;
 
-  void update() => notifyListeners();
+  late T _args;
 
-  Size get menuSize => _menuSize;
+  set setArgs(T value) {
+    _args = value;
+  }
 
-  void Function()? _onClose;
+  T get args => _args;
 
-  void open({void Function()? onClose}) {
+  void open() {
     _openMenu = true;
-    _onClose = onClose;
     notifyListeners();
   }
 
   void close() {
     _openMenu = false;
-    _onClose?.call();
+    onClose?.call();
     notifyListeners();
   }
+
+  void update() => notifyListeners();
 
   void toogle() {
     _openMenu = !_openMenu;
