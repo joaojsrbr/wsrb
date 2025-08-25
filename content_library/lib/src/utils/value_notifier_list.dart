@@ -43,8 +43,8 @@ class ValueNotifierList extends ChangeNotifier with ListBase<String> {
   void operator []=(int index, String value) => _array[index] = value;
 
   @override
-  void clear() {
+  void clear([bool notifyListeners = true]) {
     super.clear();
-    notifyListeners();
+    if (notifyListeners) this.notifyListeners();
   }
 }

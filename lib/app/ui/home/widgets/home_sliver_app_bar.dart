@@ -1,9 +1,9 @@
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/home/widgets/filtro_bottom_sheet.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/sliver_app_bar_flexible_space.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
 import 'package:app_wsrb_jsr/app/utils/category_helper.dart';
+import 'package:app_wsrb_jsr/app/utils/history_utils.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -14,21 +14,7 @@ class HomeSliverAppBar extends StatelessWidget {
   const HomeSliverAppBar({super.key});
 
   void _pushTofilter(BuildContext context) async {
-    final result = await Navigator.push(
-      context,
-      FiltroBottomSheetRoute(
-        // genres: _map.keys.map((entity) => entity.anilistMedia?.genres).nonNulls.flattened.toList(),
-        appConfigController: context.read(),
-        bottomSheetAnimationController: HomeScope.of(
-          context,
-        ).bottomSheetAnimationController,
-      ),
-    );
-
-    if (result != null) {
-      // _appConfigController.setFilterWatching(result);
-      customLog(result);
-    }
+    HistoryUtils.historicFilterSheet(context);
   }
 
   @override

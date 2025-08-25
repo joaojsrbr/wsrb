@@ -102,29 +102,25 @@ class CustomCachedNetworkImage extends StatelessWidget {
       );
     }
 
-    if (height != null || width != null) {
-      container = SizedBox(height: height, width: width, child: container);
+    if (onTap != null) {
+      container = Stack(
+        fit: StackFit.expand,
+        children: [
+          container,
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: borderRadius,
+              onLongPress: onLongPress,
+            ),
+          ),
+        ],
+      );
     }
 
-    if (onTap != null) {
-      container = SizedBox(
-        height: height,
-        width: width,
-        child: Stack(
-          fit: StackFit.loose,
-          children: [
-            container,
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: onTap,
-                borderRadius: borderRadius,
-                onLongPress: onLongPress,
-              ),
-            ),
-          ],
-        ),
-      );
+    if (height != null || width != null) {
+      container = SizedBox(height: height, width: width, child: container);
     }
 
     return container;

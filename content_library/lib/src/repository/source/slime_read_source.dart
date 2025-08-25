@@ -37,7 +37,6 @@ class SlimeReadSource extends RSource {
       // contentRepository._dio.removeInterceptor(_DefaultAppHeadersInterceptor());
       final Response response = await contentRepository._dio.get(
         apiURL,
-        headers: {'user-agent': 'PostmanRuntime/7.43.0'},
         responseType: ResponseType.json,
       );
 

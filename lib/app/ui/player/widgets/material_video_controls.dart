@@ -301,18 +301,15 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
             visible = false;
           });
 
-          if (_playerScope.openMenuInFullScreen.value) {
-            _playerScope.openMenuInFullScreen.value = false;
-          }
+          _playerScope.openMenuInFullScreen.value = false;
+
+          _playerScope.showButtonQuality.value = false;
 
           unshiftSubtitle();
         }
       });
     } else {
-      if (_playerScope.showButtonQuality.value) {
-        _playerScope.showButtonQuality.value = false;
-        return;
-      }
+      _playerScope.showButtonQuality.value = false;
       setState(() {
         visible = false;
       });
@@ -423,12 +420,11 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
         videoState: widget.state,
         builder: (context) {
           final showAnimeSkip = ControlScope.of(context).showAnimeSkip;
+          final showButtonQuality = scope.showButtonQuality.value;
           final openMenuInFullScreen = ControlScope.of(context).openMenuInFullScreen;
-          final size = isFullscreen(context) && (showAnimeSkip || openMenuInFullScreen)
-              ? 150.0
-              : scope.showButtonQuality.value && isFullscreen(context)
-              ? 60.0
-              : 0.0;
+          final sized =
+              isFullscreen(context) &&
+              (showAnimeSkip || openMenuInFullScreen || showButtonQuality);
           final videoData = scope.data.whereType<VideoData>();
           return PopScope(
             onPopInvokedWithResult: (didPop, result) {
@@ -607,281 +603,328 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                             ],
                           ),
                         ),
-                    if (isFullscreen(context) &&
-                        scope.playerArgs.times.isNotEmpty &&
-                        mount)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: CustomPopup(
-                          startAnimatedAlignment: Alignment.centerRight,
-                          duration: const Duration(milliseconds: 200),
-                          paddingTop: true,
-                          height: MediaQuery.sizeOf(context).height,
-                          width: 170,
-                          show: showAnimeSkip,
-                          shape: RoundedRectangleBorder(),
-                          items: scope.playerArgs.times,
-                          builderFunction: (context, index, item) {
-                            if (!showAnimeSkip) {
-                              return const SizedBox.shrink();
-                            }
 
-                            final selectedAnimeTimeStamp = ControlScope.of(
-                              context,
-                            ).selectedAnimeTimeStamp;
-                            return ListTile(
-                              dense: true,
-                              onTap: () => scope.onClickSkipAnime.call(item),
-                              selected:
-                                  selectedAnimeTimeStamp?.id.contains(item.id) ?? false,
-                              leading: Text(Duration(microseconds: item.at).label()),
-                              title: Text(item.timeStampType.label),
-                              visualDensity: const VisualDensity(vertical: -4),
-                            );
-                          },
-                        ),
-                      ),
-                    CustomPopup(
-                      startAnimatedAlignment: Alignment.centerRight,
-                      duration: const Duration(milliseconds: 200),
-                      paddingTop: true,
-                      height: MediaQuery.sizeOf(context).height,
-                      width: 80,
-                      show: scope.showButtonQuality.value && isFullscreen(context),
-                      card: true,
-                      items: videoData.toList(),
-                      builderFunction: (context, index, data) {
-                        return ListTile(
-                          title: Text(data.quality.label),
-                          dense: true,
-                          onTap: data == scope.mainData
-                              ? null
-                              : () => scope.onTapData(data),
-                          selected: data == scope.mainData,
-                        );
-                      },
-                    ),
-                    if (isFullscreen(context) && mount)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: CustomPopup(
-                          startAnimatedAlignment: Alignment.centerRight,
-                          duration: const Duration(milliseconds: 200),
-                          paddingTop: true,
-                          height: MediaQuery.sizeOf(context).height,
-                          width: MediaQuery.sizeOf(context).width * 0.18,
-                          show: openMenuInFullScreen,
-                          items: scope.playerArgs.anime.releases,
-                          builderFunction: (context, index, episode) {
-                            final cardTheme = CardTheme.of(context);
-
-                            final borderRadius =
-                                ((cardTheme.shape as RoundedRectangleBorder?)
-                                        ?.borderRadius
-                                    as BorderRadius?);
-
-                            return ListTile(
-                              titleAlignment: ListTileTitleAlignment.center,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.only(
-                                  topLeft: index == 0
-                                      ? borderRadius?.topLeft ?? const Radius.circular(8)
-                                      : Radius.zero,
-                                  topRight: index == 0
-                                      ? borderRadius?.topLeft ?? const Radius.circular(8)
-                                      : Radius.zero,
-                                  bottomLeft:
-                                      index == scope.playerArgs.anime.releases.length - 1
-                                      ? borderRadius?.topLeft ?? const Radius.circular(8)
-                                      : Radius.zero,
-                                  bottomRight:
-                                      index == scope.playerArgs.anime.releases.length - 1
-                                      ? borderRadius?.topLeft ?? const Radius.circular(8)
-                                      : Radius.zero,
-                                ),
-                              ),
-                              onTap: () {
-                                customLog(
-                                  'tapped name: ${episode.title} - id: ${episode.stringID}',
-                                );
-                                scope.onTapEpisode(episode);
-                              },
-                              onLongPress: () {
-                                scope.openMenuInFullScreen.value = false;
-                              },
-                              selected: episode.stringID.contains(
-                                scope.playerArgs.episode.stringID,
-                              ),
-                              titleTextStyle: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
-                              title: Text('Episódio ${episode.number}'),
-                            );
-                          },
-                        ),
-                      ),
-                    AnimatedPositioned(
-                      duration: const Duration(milliseconds: 300),
-                      right: size,
+                    Positioned.fill(
+                      // duration: const Duration(milliseconds: 300),
+                      right: 0,
                       left: 0,
                       bottom: 0,
                       top: 0,
-                      child: Stack(
-                        fit: StackFit.expand,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          IgnorePointer(child: Center(child: _CustomIndicator(this))),
-                          IgnorePointer(child: _BufferingIndicator(this)),
-                          _Controlls(this),
-                          IgnorePointer(
-                            child: Padding(
-                              padding: (isFullscreen(context)
-                                  ? MediaQuery.of(context).padding
-                                  : EdgeInsets.zero),
-                              child: AnimatedOpacity(
-                                duration: _theme(context).controlsTransitionDuration,
-                                opacity: _speedUpIndicator ? 1 : 0,
-                                child: Container(
-                                  alignment: Alignment.center,
-                                  child: Container(
-                                    margin: const EdgeInsets.all(16.0),
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0x88000000),
-                                      borderRadius: BorderRadius.circular(64.0),
-                                    ),
-                                    height: 48.0,
-                                    width: 108.0,
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        const SizedBox(width: 16.0),
-                                        Expanded(
-                                          child: Text(
-                                            '${_theme(context).speedUpFactor.toStringAsFixed(1)}x',
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              fontSize: 14.0,
-                                              color: Color(0xFFFFFFFF),
-                                            ),
+                          Expanded(
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                IgnorePointer(
+                                  child: Center(child: _CustomIndicator(this)),
+                                ),
+                                // IgnorePointer(
+                                //   child: Center(child: _BufferingIndicator(this)),
+                                // ),
+                                Center(child: _Controlls(this)),
+                                IgnorePointer(
+                                  child: Padding(
+                                    padding: (isFullscreen(context)
+                                        ? MediaQuery.of(context).padding
+                                        : EdgeInsets.zero),
+                                    child: AnimatedOpacity(
+                                      duration: _theme(
+                                        context,
+                                      ).controlsTransitionDuration,
+                                      opacity: _speedUpIndicator ? 1 : 0,
+                                      child: Container(
+                                        alignment: Alignment.center,
+                                        child: Container(
+                                          margin: const EdgeInsets.all(16.0),
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0x88000000),
+                                            borderRadius: BorderRadius.circular(64.0),
                                           ),
-                                        ),
-                                        Container(
                                           height: 48.0,
-                                          width: 48.0 - 16.0,
-                                          alignment: Alignment.centerRight,
-                                          child: const Icon(
-                                            Icons.fast_forward,
-                                            color: Color(0xFFFFFFFF),
-                                            size: 24.0,
+                                          width: 108.0,
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              const SizedBox(width: 16.0),
+                                              Expanded(
+                                                child: Text(
+                                                  '${_theme(context).speedUpFactor.toStringAsFixed(1)}x',
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                    fontSize: 14.0,
+                                                    color: Color(0xFFFFFFFF),
+                                                  ),
+                                                ),
+                                              ),
+                                              Container(
+                                                height: 48.0,
+                                                width: 48.0 - 16.0,
+                                                alignment: Alignment.centerRight,
+                                                child: const Icon(
+                                                  Icons.fast_forward,
+                                                  color: Color(0xFFFFFFFF),
+                                                  size: 24.0,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 16.0),
+                                            ],
                                           ),
                                         ),
-                                        const SizedBox(width: 16.0),
-                                      ],
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ),
-                          ),
-                          if (!mount)
-                            if (_mountSeekBackwardButton | _mountSeekForwardButton ||
-                                showSwipeDuration)
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                left: 0,
-                                child: IgnorePointer(
-                                  child: isFullscreen(context)
-                                      ? SafeArea(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(10.0),
-                                            child: _MaterialSeekBar(
-                                              this,
-                                              delta: _seekBarDeltaValueNotifier,
-                                            ),
-                                          ),
-                                        )
-                                      : _MaterialSeekBar(
-                                          this,
-                                          delta: _seekBarDeltaValueNotifier,
-                                        ),
-                                ),
-                              ),
-                          IgnorePointer(
-                            child: Center(
-                              child: AnimatedOpacity(
-                                duration: _theme(context).controlsTransitionDuration,
-                                opacity: showSwipeDuration ? 1 : 0,
-                                child:
-                                    _theme(context).seekIndicatorBuilder?.call(
-                                      context,
-                                      Duration(seconds: swipeDuration),
-                                    ) ??
-                                    Container(
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0x88000000),
-                                        borderRadius: BorderRadius.circular(64.0),
-                                      ),
-                                      height: 52.0,
-                                      width: 108.0,
-                                      child: Text(
-                                        swipeDuration > 0
-                                            ? "+ ${Duration(seconds: swipeDuration).label()}"
-                                            : "- ${Duration(seconds: swipeDuration).label()}",
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontSize: 14.0,
-                                          color: Color(0xFFFFFFFF),
-                                        ),
+                                if (!mount)
+                                  if (_mountSeekBackwardButton |
+                                          _mountSeekForwardButton ||
+                                      showSwipeDuration)
+                                    Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      left: 0,
+                                      child: IgnorePointer(
+                                        child: isFullscreen(context)
+                                            ? SafeArea(
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(10.0),
+                                                  child: _MaterialSeekBar(
+                                                    this,
+                                                    delta: _seekBarDeltaValueNotifier,
+                                                  ),
+                                                ),
+                                              )
+                                            : _MaterialSeekBar(
+                                                this,
+                                                delta: _seekBarDeltaValueNotifier,
+                                              ),
                                       ),
                                     ),
-                              ),
+                                IgnorePointer(
+                                  child: Center(
+                                    child: AnimatedOpacity(
+                                      duration: _theme(
+                                        context,
+                                      ).controlsTransitionDuration,
+                                      opacity: showSwipeDuration ? 1 : 0,
+                                      child:
+                                          _theme(context).seekIndicatorBuilder?.call(
+                                            context,
+                                            Duration(seconds: swipeDuration),
+                                          ) ??
+                                          Container(
+                                            alignment: Alignment.center,
+                                            decoration: BoxDecoration(
+                                              color: const Color(0x88000000),
+                                              borderRadius: BorderRadius.circular(64.0),
+                                            ),
+                                            height: 52.0,
+                                            width: 108.0,
+                                            child: Text(
+                                              swipeDuration > 0
+                                                  ? "+ ${Duration(seconds: swipeDuration).label()}"
+                                                  : "- ${Duration(seconds: swipeDuration).label()}",
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontSize: 14.0,
+                                                color: Color(0xFFFFFFFF),
+                                              ),
+                                            ),
+                                          ),
+                                    ),
+                                  ),
+                                ),
+
+                                if (!sized) ...[
+                                  Positioned(
+                                    top: 0,
+                                    left: 0,
+                                    child: Padding(
+                                      padding: EdgeInsets.only(top: !isPortrait ? 20 : 8),
+                                      child: PlayerCustomOverlay(
+                                        key: const ValueKey('custom_overlay_1'),
+                                        begin: const Offset(-1, 0),
+                                        notifierChange: scope.overlayBoxFit,
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: !isPortrait ? 100 : 70,
+                                    right: 0,
+                                    top: 0,
+                                    child: Align(
+                                      alignment: Alignment.bottomRight,
+                                      child: PlayerCustomOverlay(
+                                        reversedBorder: true,
+                                        key: const ValueKey('custom_overlay_2'),
+                                        begin: const Offset(1, 0),
+                                        end: Offset.zero,
+                                        enableCancelReversed: false,
+                                        notifierChange: scope.overlayNextEpisode,
+                                        onTap: scope.onTapEpisodeInOverlay,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+
+                                // if (isFullscreen(context))
+                                //   ValueListenableBuilder(
+                                //     valueListenable: scope.openMenuInFullScreen,
+                                //     builder: (context, value, _) => AnimatedPositioned(
+                                //       duration: const Duration(milliseconds: 350),
+                                //       width: value ? 200 : 0,
+                                //       child: const SizedBox.shrink(),
+                                //     ),
+                                //   ),
+                              ],
                             ),
                           ),
 
-                          if (size == 0) ...[
-                            Positioned(
-                              top: 0,
-                              left: 0,
-                              child: Padding(
-                                padding: EdgeInsets.only(top: !isPortrait ? 20 : 8),
-                                child: PlayerCustomOverlay(
-                                  key: const ValueKey('custom_overlay_1'),
-                                  begin: const Offset(-1, 0),
-                                  notifierChange: scope.overlayBoxFit,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: !isPortrait ? 100 : 70,
-                              right: 0,
-                              top: 0,
-                              child: Align(
-                                alignment: Alignment.bottomRight,
-                                child: PlayerCustomOverlay(
-                                  reversedBorder: true,
-                                  key: const ValueKey('custom_overlay_2'),
-                                  begin: const Offset(1, 0),
-                                  end: Offset.zero,
-                                  enableCancelReversed: false,
-                                  notifierChange: scope.overlayNextEpisode,
-                                  onTap: scope.onTapEpisodeInOverlay,
-                                ),
-                              ),
-                            ),
-                          ],
+                          if (isFullscreen(context) &&
+                              (showAnimeSkip ||
+                                  openMenuInFullScreen ||
+                                  scope.showButtonQuality.value))
+                            const SizedBox(width: 8),
+                          if (isFullscreen(context) &&
+                              scope.playerArgs.times.isNotEmpty &&
+                              mount)
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: CustomPopup.items(
+                                startAnimatedAlignment: Alignment.centerRight,
+                                duration: const Duration(milliseconds: 200),
+                                paddingTop: false,
+                                height: MediaQuery.sizeOf(context).height,
+                                width: 170,
+                                show: showAnimeSkip,
+                                shape: RoundedRectangleBorder(),
+                                items: scope.playerArgs.times,
+                                itemBuilder: (context, index, item) {
+                                  if (!showAnimeSkip) {
+                                    return const SizedBox.shrink();
+                                  }
 
-                          // if (isFullscreen(context))
-                          //   ValueListenableBuilder(
-                          //     valueListenable: scope.openMenuInFullScreen,
-                          //     builder: (context, value, _) => AnimatedPositioned(
-                          //       duration: const Duration(milliseconds: 350),
-                          //       width: value ? 200 : 0,
-                          //       child: const SizedBox.shrink(),
-                          //     ),
-                          //   ),
+                                  final selectedAnimeTimeStamp = ControlScope.of(
+                                    context,
+                                  ).selectedAnimeTimeStamp;
+                                  return ListTile(
+                                    dense: true,
+                                    onTap: () => scope.onClickSkipAnime.call(item),
+                                    selected:
+                                        selectedAnimeTimeStamp?.id.contains(item.id) ??
+                                        false,
+                                    leading: Text(
+                                      Duration(microseconds: item.at).label(),
+                                    ),
+                                    title: Text(item.timeStampType.label),
+                                    visualDensity: const VisualDensity(vertical: -4),
+                                  );
+                                },
+                              ),
+                            ),
+                          if (isFullscreen(context) && videoData.isNotEmpty && mount)
+                            CustomPopup.items(
+                              startAnimatedAlignment: Alignment.centerRight,
+                              duration: const Duration(milliseconds: 200),
+                              paddingTop: false,
+                              height: MediaQuery.sizeOf(context).height,
+                              width: 80,
+                              show:
+                                  scope.showButtonQuality.value && isFullscreen(context),
+                              card: true,
+                              items: videoData.toList(),
+                              itemBuilder: (context, index, data) {
+                                return ListTile(
+                                  title: Text(data.quality.label),
+                                  dense: true,
+                                  onTap: data == scope.mainData
+                                      ? null
+                                      : () => scope.onTapData(data),
+                                  selected: data == scope.mainData,
+                                );
+                              },
+                            ),
+                          if (isFullscreen(context) &&
+                              scope.playerArgs.anime.releases.isNotEmpty &&
+                              mount)
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: CustomPopup.items(
+                                startAnimatedAlignment: Alignment.centerRight,
+                                duration: const Duration(milliseconds: 200),
+                                paddingTop: false,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadiusGeometry.circular(8),
+                                ),
+                                height: MediaQuery.sizeOf(context).height,
+                                width: MediaQuery.sizeOf(context).width * 0.18,
+                                show: openMenuInFullScreen,
+                                items: scope.playerArgs.anime.releases,
+                                itemBuilder: (context, index, episode) {
+                                  final cardWidget = context
+                                      .findAncestorWidgetOfExactType<Card>();
+
+                                  final borderRadius =
+                                      ((cardWidget?.shape as RoundedRectangleBorder?)
+                                              ?.borderRadius
+                                          as BorderRadius?);
+
+                                  final selected = episode.stringID.contains(
+                                    scope.playerArgs.episode.stringID,
+                                  );
+
+                                  return ListTile(
+                                    titleAlignment: ListTileTitleAlignment.center,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: index == 0
+                                            ? borderRadius?.topLeft ??
+                                                  const Radius.circular(8)
+                                            : Radius.zero,
+                                        topRight: index == 0
+                                            ? borderRadius?.topLeft ??
+                                                  const Radius.circular(8)
+                                            : Radius.zero,
+                                        bottomLeft:
+                                            index ==
+                                                scope.playerArgs.anime.releases.length - 1
+                                            ? borderRadius?.topLeft ??
+                                                  const Radius.circular(8)
+                                            : Radius.zero,
+                                        bottomRight:
+                                            index ==
+                                                scope.playerArgs.anime.releases.length - 1
+                                            ? borderRadius?.topLeft ??
+                                                  const Radius.circular(8)
+                                            : Radius.zero,
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      customLog(
+                                        'tapped name: ${episode.title} - id: ${episode.stringID}',
+                                      );
+                                      scope.onTapEpisode(episode);
+                                    },
+                                    onLongPress: () {
+                                      scope.openMenuInFullScreen.value = false;
+                                    },
+                                    selected: selected,
+                                    titleTextStyle: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                    title: Text(episode.getEpisodeTitle()),
+                                  );
+                                },
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -1262,6 +1305,8 @@ class _ControllsState extends State<_Controlls>
                 ),
               ),
             ),
+
+            IgnorePointer(child: Center(child: _BufferingIndicator(widget.state))),
             _BottomButtons(this),
           ],
         ),
@@ -1326,7 +1371,7 @@ class _BottomButtons extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
             textDirection: Directionality.of(context),
             children: [
               _LockWidget(
@@ -1407,7 +1452,7 @@ class _BottomButtons extends StatelessWidget {
                             child: Text(mainData.quality.label),
                           ),
                         ),
-                        CustomPopup(
+                        CustomPopup.items(
                           startAnimatedAlignment: Alignment.centerRight,
                           duration: const Duration(milliseconds: 200),
                           paddingTop: false,
@@ -1416,7 +1461,7 @@ class _BottomButtons extends StatelessWidget {
                           show: showButtonQuality.value && !isFullscreen(context),
                           card: true,
                           items: videoData.toList(),
-                          builderFunction: (context, index, data) {
+                          itemBuilder: (context, index, data) {
                             // final cardTheme = CardTheme.of(context);
 
                             // String text = "";
@@ -1564,26 +1609,20 @@ class _BufferingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      child: Padding(
-        padding: (isFullscreen(context)
-            ? MediaQuery.of(context).padding
-            : EdgeInsets.zero),
-        child: Center(
-          child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0.0, end: state.buffering ? 1.0 : 0.0),
-            duration: _theme(context).controlsTransitionDuration,
-            builder: (context, value, child) {
-              if (value > 0.0) {
-                return Opacity(
-                  opacity: value,
-                  child:
-                      _theme(context).bufferingIndicatorBuilder?.call(context) ?? child!,
-                );
-              }
-              return const SizedBox.shrink();
-            },
-            child: const CircularProgressIndicator.adaptive(),
-          ),
+      child: Center(
+        child: TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0.0, end: state.buffering ? 1.0 : 0.0),
+          duration: _theme(context).controlsTransitionDuration,
+          builder: (context, value, child) {
+            if (value > 0.0) {
+              return Opacity(
+                opacity: value,
+                child: _theme(context).bufferingIndicatorBuilder?.call(context) ?? child!,
+              );
+            }
+            return const SizedBox.shrink();
+          },
+          child: const CircularProgressIndicator.adaptive(),
         ),
       ),
     );

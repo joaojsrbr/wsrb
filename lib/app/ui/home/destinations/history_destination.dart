@@ -1,9 +1,12 @@
+import 'dart:collection';
+
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_network_image_cache.dart';
-import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
 import 'package:app_wsrb_jsr/app/utils/history_utils.dart';
+import 'package:app_wsrb_jsr/app/utils/multi_comparator.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -20,7 +23,11 @@ class HistoryDestination extends StatefulWidget {
 
 class _HistoryDestinationState extends State<HistoryDestination>
     with AutomaticKeepAliveClientMixin {
-  final Map<DateTime, (List<ContentEntity>, List<HistoricEntity>)> _map = {};
+  final Map<DateTime, ContentHistoricGroup> _map = SplayTreeMap();
+
+  // late final DateTime _minDateTime = _formatDataToDM(
+  //   DateTime.now().subtract(Duration(days: 7)),
+  // )!;
 
   @override
   void didChangeDependencies() {
@@ -70,15 +77,30 @@ class _HistoryDestinationState extends State<HistoryDestination>
           if (date == null) continue;
 
           if (_map[date] != null) {
-            final list = _map[date]?.$2;
-            for (var entity in entry.value) {
-              list?.addOrUpdateWhere(entity, entity.contains);
-            }
+            final list = _map[date]?.historics;
+            list?.addAll(entry.value);
+            // for (var entity in entry.value) {
+            //   list?.add(entity);
+            // }
 
-            _map[date]?.$1.addOrUpdateWhere(content, content.contains);
-            _map[date]?.$2.sort(_sorted);
+            _map[date]?.contents.add(content);
           } else {
-            _map[date] = ([content], sortedHistorics);
+            _map[date] = ContentHistoricGroup(
+              contents: {content},
+              historics: SplayTreeSet.from(
+                sortedHistorics,
+                multiComparator<HistoricEntity>({
+                  _sorted,
+                  (a, b) => content.title.length,
+                  (a, b) {
+                    if (a is EpisodeEntity && b is EpisodeEntity) {
+                      return a.numberEpisode.compareTo(b.numberEpisode);
+                    }
+                    return 0;
+                  },
+                }),
+              ),
+            );
           }
         }
       }
@@ -86,11 +108,13 @@ class _HistoryDestinationState extends State<HistoryDestination>
   }
 
   int _sorted(HistoricEntity a, HistoricEntity b) {
-    if (a is EpisodeEntity &&
-        b is EpisodeEntity &&
-        b.updatedAt != null &&
-        a.updatedAt != null) {
-      return a.updatedAt!.compareTo(b.updatedAt!);
+    if ((a, b) case (
+      EpisodeEntity data1,
+      EpisodeEntity data2,
+    ) when data1.position?.createdAt != null && data2.position?.createdAt != null) {
+      final createdAt1 = data1.position!.createdAt!;
+      final createdAt2 = data1.position!.createdAt!;
+      return createdAt1.compareTo(createdAt2);
     }
 
     return -1;
@@ -111,6 +135,7 @@ class _HistoryDestinationState extends State<HistoryDestination>
     if (entity is! EpisodeEntity || entity.createdAt == null) {
       return true; // Manter se não for episódio ou data inválida
     }
+    if (entity.isComplete) return false;
 
     final createdAt = _formatDataToDM(entity.createdAt)!;
     final start = filterWatching.start;
@@ -164,7 +189,7 @@ class _HistoryDestinationState extends State<HistoryDestination>
   @override
   bool get wantKeepAlive => true;
 
-  ContentEntity _getContentByList(List<ContentEntity> data, HistoricEntity historic) {
+  ContentEntity _getContentByList(Iterable<ContentEntity> data, HistoricEntity historic) {
     final id = switch (historic) {
       EpisodeEntity data => data.animeStringID,
       ChapterEntity data => data.bookStringID,
@@ -177,11 +202,9 @@ class _HistoryDestinationState extends State<HistoryDestination>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
     final theme = Theme.of(context);
-    // final searchController = HomeScope.of(context).searchController;
-    // final searchQuery = searchController.text.trim();
-    // final searchOpen = searchController.isOpen;
-    // final contentRepo = context.watch<ContentRepository>();
+
     final borderRadius = BorderRadius.circular(8);
     final library = context.watch<LibraryController>();
     final historicController = context.watch<HistoricController>();
@@ -193,9 +216,10 @@ class _HistoryDestinationState extends State<HistoryDestination>
       itemCount: _map.length,
       itemBuilder: (context, index) {
         final entry = _map.entries.toList().reverse(true).elementAt(index);
-        final (contents, historics) = entry.value;
+        final (contents, historics) = (entry.value.contents, entry.value.historics);
         final date = entry.key;
         return Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
@@ -205,20 +229,6 @@ class _HistoryDestinationState extends State<HistoryDestination>
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               ),
             ),
-            //  const SizedBox(height: 16),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            //   child: Row(
-            //     children: [
-            //       const Expanded(child: Divider(thickness: 1)),
-            //       const SizedBox(width: 8),
-            //       Text(_dateLabelMelhorado(date), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            //       const SizedBox(width: 8),
-            //       const Expanded(child: Divider(thickness: 1)),
-            //     ],
-            //   ),
-            // ),
-            // const SizedBox(height: 12),
             ...List.generate(historics.length, (index) {
               final historic = historics.elementAt(index);
               final content = _getContentByList(contents, historic);
@@ -237,8 +247,7 @@ class _HistoryDestinationState extends State<HistoryDestination>
                       RouteName.PLAYER.route,
                       extra: PlayerArgs(
                         forceEnterFullScreen: true,
-                        data: videoFile != null ? [FileVideoData(file: videoFile)] : null,
-                        getAnimeData: true,
+                        data: [if (videoFile != null) FileVideoData(file: videoFile)],
                         anime: anime.toAnime(),
                         episode: episode.toEpisode(anime.isDublado),
                         startPossition: episode.cdToDuration,
@@ -265,7 +274,7 @@ class _HistoryDestinationState extends State<HistoryDestination>
                               ),
                             );
                             if (result != null && context.mounted) {
-                              context.showErrorSnackBar(result);
+                              context.showErrorNotification(result.toString());
                             }
                           }
                         },
@@ -273,8 +282,8 @@ class _HistoryDestinationState extends State<HistoryDestination>
                             ? historic.thumbnail ?? content.imageUrl
                             : content.imageUrl,
                         borderRadius: borderRadius,
-                        height: 80,
-                        width: 60,
+                        height: 100,
+                        width: 80,
                         fit: BoxFit.cover,
                         memCacheHeight: 300,
                         memCacheWidth: 200,
@@ -331,7 +340,7 @@ class _HistoryDestinationState extends State<HistoryDestination>
                             onConfirmDelete: () {
                               historicController.add(
                                 historic: historic.copyWith(
-                                  positions: [],
+                                  position: null,
                                   updatedAt: DateTime.now(),
                                 ),
                               );

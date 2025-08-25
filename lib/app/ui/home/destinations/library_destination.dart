@@ -227,7 +227,9 @@ class LibraryeDestinationState extends State<LibraryDestination>
               if (filter.isEmpty) return const SizedBox.shrink();
               return GridView.builder(
                 itemCount: filter.length,
-                physics: const NeverScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 gridDelegate: _gridDelegate,
                 shrinkWrap: true,
                 padding: const EdgeInsets.only(bottom: 40, left: 8, right: 8, top: 12),

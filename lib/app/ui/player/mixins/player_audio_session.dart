@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
@@ -11,7 +10,7 @@ import 'package:content_library/content_library.dart';
 mixin PlayerAudioSessionMixin
     on
         PlayerControllerMixin,
-        SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs>,
+        SubscriptionsByStateArgumentMixin<PlayerView>,
         PlayerAudioHandlerMixin {
   @override
   void initState() {

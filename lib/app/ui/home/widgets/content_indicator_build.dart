@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -171,7 +171,7 @@ class _FullScreenErrorWidgetState extends State<FullScreenErrorWidget> {
       final fullScreenError = _contentRepository.fullScreenError;
       setStateIfMounted(() {});
       if (fullScreenError is DioException) {
-        context.showAppSnackBar(const Text('Verifique sua conexão com a internet.'));
+        context.showTopNotification(const Text('Verifique sua conexão com a internet.'));
       }
     });
   }

@@ -22,85 +22,40 @@ class GoyabuSource extends RSource {
     try {
       final List<Data> data = [];
 
-      final Response response = await contentRepository._dio.get(
-        release.url,
-        responseType: ResponseType.plain,
+      final parser = await contentRepository.session.fetchDocument(
+        Uri.parse(release.url),
+        captchaHandler: HumanCaptchaHandler(
+          context: contentRepository.anchor.currentContext,
+        ),
       );
-      final Document document = parse(response.data);
 
-      final fremeSrc = document.querySelector('.metaframe.rptss')?.attributes['src'];
+      final fremeSrc = parser.queryAttr(".metaframe.rptss", "src");
 
       if (fremeSrc != null) {
-        Completer<Data> completer = Completer();
-
-        final controller = WebViewController()
-          ..loadRequest(
-            Uri.parse(fremeSrc),
-            headers: {
-              'Access-Control-Allow-Origin': '*',
-              "Accept":
-                  "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-            },
-          )
-          ..setJavaScriptMode(JavaScriptMode.unrestricted)
-          ..setUserAgent(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-          );
-
-        await controller.setNavigationDelegate(
-          NavigationDelegate(
-            onNavigationRequest: (NavigationRequest request) {
-              return NavigationDecision.navigate;
-            },
-            onPageFinished: (url) async {
-              if (completer.isCompleted) return;
-              // await Future.wait([
-              //   contentRepository._dio.post(
-              //       r'https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/Create',
-              //       responseType: ResponseType.json,
-              //       data: jsonEncode(["O43z0dpjhgX20SCx4KAo"]),
-              //       headers: {
-              //         "Content-Type": "application/json+protobuf",
-              //         "X-Goog-Api-Key": "AIzaSyDyT5W0Jh49F30Pqqtyfdf7pDLFKLJoAnw"
-              //       }),
-              //   contentRepository._dio.post(
-              //       r'https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/GenerateIT',
-              //       responseType: ResponseType.json,
-              //       data: jsonEncode(["O43z0dpjhgX20SCx4KAo"]),
-              //       headers: {
-              //         "Content-Type": "application/json+protobuf",
-              //         "X-Goog-Api-Key": "AIzaSyDyT5W0Jh49F30Pqqtyfdf7pDLFKLJoAnw"
-              //       }),
-              // ]);
-              await controller.runJavaScript(
-                r'''document.querySelector('.play-button').click();''',
-              );
-
-              await Future.delayed(const Duration(seconds: 2));
-
-              var videoConfig = await controller.runJavaScriptReturningResult(
-                r"VIDEO_CONFIG;",
-              );
-
-              final videoConfigJson = jsonDecode(videoConfig.toString());
-              final playURL =
-                  (videoConfigJson['streams'] as List).first['play_url'] as String;
-              if (completer.isCompleted) return;
-              completer.complete(
-                Data.videoData(
-                  videoContent: playURL,
-                  httpHeaders: const {
-                    "User-Agent":
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-                  },
-                ),
-              );
-            },
-          ),
+        final acoes = <DomAction>[
+          ExecuteScriptAction("document.querySelector('.play-button').click();"),
+          WaitAction(const Duration(seconds: 2)),
+          ExecuteScriptAction("VIDEO_CONFIG;", resultKey: "VIDEO_CONFIG"),
+        ];
+        final result = await contentRepository.session.executeActionsAndScrape(
+          url: Uri.parse(fremeSrc),
+          actions: acoes,
         );
 
-        data.add(await completer.future);
+        final playURL =
+            (result['VIDEO_CONFIG']['streams'] as List).first['play_url'] as String;
+
+        final videoData = Data.videoData(
+          videoContent: playURL,
+          httpHeaders: const {
+            "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+          },
+        );
+        data.add(videoData);
       }
+
+      await contentRepository.session.closePage();
 
       return Result.success(data);
     } on DioException catch (error) {

@@ -21,7 +21,7 @@ class AnrollSource extends RSource {
 
     final List<Data> data = [];
 
-    final numberInt = int.parse(release.number);
+    final numberInt = release.numberInt;
 
     String stringNumber;
 
@@ -188,9 +188,7 @@ class AnrollSource extends RSource {
 
       final lastENumber = int.parse(episodesList.last['n_episodio']);
 
-      anime.releases.removeWhere(
-        (element) => (int.tryParse(element.number) ?? 0) > lastENumber,
-      );
+      anime.releases.removeWhere((element) => element.numberInt > lastENumber);
 
       for (final map in episodesList) {
         // final number = int.parse(map['n_episodio']);

@@ -157,27 +157,25 @@ class IsarServiceImpl implements IsarService {
     bool isSucess = false;
 
     if (entities.isNotEmpty) {
-      final animeEntitys = entities.whereType<AnimeEntity>().toList();
-      final animeSkipEntitys = entities.whereType<AnimeSkipEntity>().toList();
-      final bookEntitys = entities.whereType<BookEntity>().toList();
-      final categoryEntitys = entities.whereType<CategoryEntity>().toList();
-      final chapterEntitys = entities.whereType<ChapterEntity>().toList();
-      final episodeEntitys = entities.whereType<EpisodeEntity>().toList();
+      await isar.writeTxn(() async {
+        final animeEntitys = entities.whereType<AnimeEntity>().toList();
+        final animeSkipEntitys = entities.whereType<AnimeSkipEntity>().toList();
+        final bookEntitys = entities.whereType<BookEntity>().toList();
+        final categoryEntitys = entities.whereType<CategoryEntity>().toList();
+        final chapterEntitys = entities.whereType<ChapterEntity>().toList();
+        final episodeEntitys = entities.whereType<EpisodeEntity>().toList();
 
-      if (animeSkipEntitys.isNotEmpty) {
-        await isar.writeTxn(() async {
+        if (animeSkipEntitys.isNotEmpty) {
           final addIds = await isar.animeSkipEntitys.putAllByAnimeSkipId(
             animeSkipEntitys,
           );
 
           ids.addAll(addIds);
-        });
 
-        isSucess = true;
-      }
+          isSucess = true;
+        }
 
-      if (animeEntitys.isNotEmpty) {
-        await isar.writeTxn(() async {
+        if (animeEntitys.isNotEmpty) {
           final futures = animeEntitys.map((anime) async {
             AnimeEntity? animeEntity = await isar.animeEntitys.getByStringID(
               anime.stringID,
@@ -186,7 +184,7 @@ class IsarServiceImpl implements IsarService {
             return anime.copyWith(
               updatedAt: DateTime.now(),
               createdAt: animeEntity?.createdAt,
-              isFavorite: animeEntity?.isFavorite,
+              isFavorite: anime.isFavorite,
             );
           });
 
@@ -194,13 +192,11 @@ class IsarServiceImpl implements IsarService {
           final addIds = await isar.animeEntitys.putAllByStringID(animes);
           await Future.wait(animes.map((anime) => anime.animeSkip.save()));
           ids.addAll(addIds);
-        });
 
-        isSucess = true;
-      }
+          isSucess = true;
+        }
 
-      if (bookEntitys.isNotEmpty) {
-        await isar.writeTxn(() async {
+        if (bookEntitys.isNotEmpty) {
           final futures = bookEntitys.map((book) async {
             final bookEntitys = await isar.bookEntitys.getByStringID(book.stringID);
 
@@ -212,31 +208,27 @@ class IsarServiceImpl implements IsarService {
           final books = await Future.wait(futures);
           final addIds = await isar.bookEntitys.putAllByStringID(books);
           ids.addAll(addIds);
-        });
 
-        isSucess = true;
-      }
+          isSucess = true;
+        }
 
-      if (categoryEntitys.isNotEmpty) {
-        await isar.writeTxn(() async {
+        if (categoryEntitys.isNotEmpty) {
           final addIds = await isar.categoryEntitys.putAllByStringID(categoryEntitys);
 
           ids.addAll(addIds);
-        });
-        isSucess = true;
-      }
 
-      if (chapterEntitys.isNotEmpty) {
-        await isar.writeTxn(() async {
+          isSucess = true;
+        }
+
+        if (chapterEntitys.isNotEmpty) {
           final addIds = await isar.chapterEntitys.putAllByStringID(chapterEntitys);
 
           ids.addAll(addIds);
-        });
-        isSucess = true;
-      }
 
-      if (episodeEntitys.isNotEmpty) {
-        await isar.writeTxn(() async {
+          isSucess = true;
+        }
+
+        if (episodeEntitys.isNotEmpty) {
           final anime = await isar.animeEntitys
               .getByStringID(episodeEntitys.first.animeStringID)
               .then((anime) => anime?.copyWith(updatedAt: DateTime.now()));
@@ -274,9 +266,8 @@ class IsarServiceImpl implements IsarService {
           //     isSucess = true;
           //   }
           // }
-        });
-      }
-
+        }
+      });
       // final futures = await Future.wait(entities.map((e) => add(entity: e)));
       // futures
       //     .map((e) => e.fold(onSuccess: (data) => data.$2))

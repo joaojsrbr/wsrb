@@ -1,5 +1,4 @@
-import 'package:another_flushbar/flushbar.dart';
-import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -13,13 +12,13 @@ Future<void> copyToClipboard(
   final ClipboardData data = ClipboardData(text: messageCopy);
   await Clipboard.setData(data).whenComplete(() {
     if (snackBar && context.mounted) {
-      context.showAppSnackBar(
+      context.showTopNotification(
         Text(
           messageSnackBar ??
               '$messageCopy '
                   'copiado para a área de transferência!',
+          textAlign: TextAlign.start,
         ),
-        flushbarPosition: FlushbarPosition.TOP,
         duration: duration,
       );
     }

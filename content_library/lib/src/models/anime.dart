@@ -127,16 +127,14 @@ class Anime extends Content {
 
   @override
   String get imageUrl {
-    // if (originalImage.isEmpty && releases.isEmpty) {
-    //   return releases.first.thumbnail ?? '';
-    // }
-    return [
+    return {
+          anilistMedia?.bannerImage?.medium,
           anilistMedia?.coverImage?.large,
           anilistMedia?.coverImage?.medium,
           extraLarge,
           largeImage,
           mediumImage,
-        ].firstWhereOrNull((img) => img != null) ??
+        }.firstWhereOrNull((img) => img != null) ??
         originalImage;
   }
 }

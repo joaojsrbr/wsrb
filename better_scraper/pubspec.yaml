@@ -1,0 +1,24 @@
+name: better_scraper
+description: Generic headless WebView scraper (Flutter InAppWebView) with human-in-the-loop captcha flow and HTML parsing utilities.
+version: 0.2.0
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.16.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_inappwebview: ^6.1.5
+  html: ^0.15.6
+  collection: ^1.19.1
+  # shared_preferences: ^2.5.3 # ou a versão mais recente
+  flutter_lints: ^5.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

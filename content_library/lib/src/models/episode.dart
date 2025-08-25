@@ -8,7 +8,7 @@ class Episode extends Release {
     required super.title,
     this.generateID,
     this.slugSerie,
-    this.numberEpisode,
+    super.numberEpisode,
     this.pageNumber,
     this.registrationData,
     this.sinopse,
@@ -18,14 +18,14 @@ class Episode extends Release {
 
   final String? sinopse;
   final int? pageNumber;
-  final int? numberEpisode;
+
   final String? generateID;
   final String? thumbnail;
   final bool isDublado;
   final String? slugSerie;
   final DateTime? registrationData;
 
-  bool isEqualStringID(Release release) => release.stringID.contains(stringID);
+  bool isEqualStringID(Release release) => stringID.contains(release.stringID);
 
   String formatRegistrationData() {
     if (registrationData == null) return '';
@@ -36,7 +36,6 @@ class Episode extends Release {
   List<Object?> get props => [
     stringID,
     title,
-    url,
     pageNumber,
     generateID,
     isDublado,
@@ -45,15 +44,6 @@ class Episode extends Release {
     sinopse,
     slugSerie,
   ];
-
-  @override
-  String get number {
-    return numberEpisode?.toString() ?? title.replaceAll(RegExp(r'[^0-9]'), '').trim();
-  }
-
-  int get numberInt {
-    return int.parse(number);
-  }
 
   EpisodeEntity toEntity({
     required Anime anime,
@@ -72,7 +62,7 @@ class Episode extends Release {
     updatedAt: updatedAt ?? DateTime.now(),
     stringID: stringID,
     sinopse: sinopse,
-    numberEpisode: int.tryParse(number),
+    numberEpisode: numberInt,
   );
 
   Map<String, dynamic> get toMap {

@@ -49,12 +49,13 @@ void main(List<String> arguments) async {
     categoryController.start(),
     animeSkipController.start(),
     libraryController.start(),
+    Workmanager().initialize(callbackDispatcher, isInDebugMode: true),
   ]);
 
+  // WorkmanagerPlatform.instance;
+
   await Future.wait([
-    // PermissionUtils.manageExternalStorage(),
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
-    // Workmanager().initialize(callbackDispatcher),
     PlayerAudioHandlerMixin.startPlayerAudio(),
     dotenv.load(fileName: "assets/.env"),
   ]);
@@ -66,6 +67,8 @@ void main(List<String> arguments) async {
     dioClient,
     animeSkipRepository,
   );
+
+  await contentRepository.session.init();
 
   runApp(
     MultiProvider(
@@ -88,18 +91,68 @@ void main(List<String> arguments) async {
   );
 }
 
-// @pragma('vm:entry-point')
-// void callbackDispatcher() {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   Workmanager().executeTask((task, inputData) async {
-//     customLog('running $task');
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  WidgetsFlutterBinding.ensureInitialized();
+  Workmanager().executeTask((task, inputData) async {
+    customLog('running $task');
 
-//     // if ([App.APP_CACHE_TASK_DELETE_BY_ID, App.APP_CACHE_TASK_DELETE_ALL]
-//     //         .contains(task) &&
-//     //     inputData != null) {
-//     //   return Future.value(false);
-//     // }
+    // if (App.APP_RELEASE_DOWNLOAD.contains(task) && inputData != null) {
+    //   await DownloadService.downloadReleaseVideoByHLSWork(inputData);
+    //   return Future.value(true);
+    // }
 
-//     return Future.value(false);
-//   });
-// }
+    return Future.value(true);
+  });
+}
+
+
+//  runApp(
+//     StatefulBuilder(
+//       builder: (context, setState) => MaterialApp(
+//         theme: ThemeData.dark(),
+//         builder: (context, child) {
+//           return AppNotificationOverlay(child: child!);
+//         },
+//         home: Scaffold(
+//           appBar: AppBar(title: Text("Demo Overlay")),
+//           body: Builder(
+//             builder: (context) {
+//               return Center(
+//                 child: Column(
+//                   mainAxisAlignment: MainAxisAlignment.center,
+//                   children: [
+//                     ElevatedButton(
+//                       onPressed: () {
+//                         context.showTopNotification(
+//                           Text("Olá do Top!"),
+//                           showCountdown: false,
+//                         );
+//                       },
+//                       child: Text("Show Top"),
+//                     ),
+//                     ElevatedButton(
+//                       onPressed: () {
+//                         context.showBottomNotification(
+//                           Text("Olá do Bottom!"),
+//                           showCountdown: false,
+//                         );
+//                       },
+//                       child: Text("Show Bottom"),
+//                     ),
+//                     ElevatedButton(
+//                       onPressed: () {
+//                         context.showErrorNotification(Exception("test123").toString());
+//                       },
+//                       child: Text("Show Error"),
+//                     ),
+//                   ],
+//                 ),
+//               );
+//             },
+//           ),
+//         ),
+//       ),
+//     ),
+//   );
+//   return;

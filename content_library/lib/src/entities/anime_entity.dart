@@ -106,7 +106,7 @@ class AnimeEntity extends ContentEntity {
       totalOfEpisodes: totalOfEpisodes,
       slugSerie: slugSerie,
       source: source,
-      sinopse: sinopse,
+      sinopse: sinopse ?? "",
       releases: EpisodeReleases.from(
         episodes.map((entity) => entity.toEpisode(isDublado)).toList(),
       ),

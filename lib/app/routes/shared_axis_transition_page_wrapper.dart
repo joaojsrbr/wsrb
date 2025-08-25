@@ -25,7 +25,7 @@ class SharedAxisTransitionPageWrapper extends Page {
       fullscreenDialog: true,
       transitionDuration: transitionDuration ?? const Duration(milliseconds: 700),
       reverseTransitionDuration:
-          reverseTransitionDuration ?? const Duration(milliseconds: 500),
+          reverseTransitionDuration ?? const Duration(milliseconds: 700),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         final curvedAnimation = CurvedAnimation(
           parent: animation,
@@ -41,7 +41,7 @@ class SharedAxisTransitionPageWrapper extends Page {
         return SharedAxisTransition(
           animation: curvedAnimation,
           secondaryAnimation: curvedSecondary,
-          transitionType: SharedAxisTransitionType.horizontal,
+          transitionType: SharedAxisTransitionType.scaled,
           fillColor: Theme.of(context).scaffoldBackgroundColor,
           child: child,
         );

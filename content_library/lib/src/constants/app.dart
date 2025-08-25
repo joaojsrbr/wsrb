@@ -28,7 +28,7 @@ class App {
 
   static Map<String, String> HEADERS = {
     "user-agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0",
   };
 
   static const CONTENT_APP_CACHE_CONFIG = CacheConfiguration(
@@ -63,6 +63,6 @@ class App {
   static const String APP_CACHE_BOX_NAME = 'WSRB_HIVE_CACHE';
 
   static const String APP_DIRECTORY = "/storage/emulated/0/Wsrb";
-  // static const String APP_CACHE_TASK_DELETE_BY_ID = 'TASK_CLEAR_CACHE_BY_ID';
+  // static const String APP_RELEASE_DOWNLOAD = 'APP_RELEASE_DOWNLOAD';
   // static const String APP_CACHE_TASK_DELETE_ALL = 'TASK_CLEAR_CACHE_ALL';
 }

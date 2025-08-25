@@ -1,9 +1,32 @@
-import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
+import 'package:app_wsrb_jsr/app/ui/home/widgets/filtro_bottom_sheet.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 
 class HistoryUtils {
   HistoryUtils._();
+
+  static Future<void> historicFilterSheet(BuildContext context) async {
+    // final result = await Navigator.push(
+    //   context,
+    //   FiltroBottomSheetRoute(
+    //     appConfigController: context.read(),
+    //     bottomSheetAnimationController: HomeScope.of(
+    //       context,
+    //     ).bottomSheetAnimationController,
+    //   ),
+    // );
+
+    final result = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Necessário para ajustar à altura do conteúdo/teclado
+      shape: RoundedRectangleBorder(),
+      builder: (context) => FiltroBottomSheet(),
+    );
+
+    // _appConfigController.setFilterWatching(result);
+    customLog(result);
+  }
 
   static Future<void> questionDelete(
     BuildContext context,
@@ -11,23 +34,18 @@ class HistoryUtils {
     required VoidCallback onConfirmDelete,
     required ValueChanged<List<HistoricEntity>> onUndoDelete,
   }) async {
-    String listText = "";
-
-    if (entity.length == 1) {
-      listText = "item ${entity.first.title}";
-    } else {
-      // listText = entity
-      //     .sublist(0, entity.length > 2 ? 2 : entity.length)
-      //     .map((entity) => entity.title)
-      //     .join(" ,")
-      //     .padLeft(1, "...");
-      listText = "${entity.length} itens";
-    }
+    String listText = entity.length == 1
+        ? "item ${entity.first.title}"
+        : "${entity.length} itens";
 
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Deseja remover $listText?"),
+        title: Text(
+          "Deseja remover $listText?",
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
         content: const Text("Essa ação não pode ser desfeita depois de 5 segundos."),
         actionsAlignment: MainAxisAlignment.spaceBetween,
         actions: [
@@ -46,8 +64,9 @@ class HistoryUtils {
     if (result == true && context.mounted) {
       onConfirmDelete();
 
-      await context.showCancelableSnackBar(
-        content: Text("$listText removido."),
+      context.showCancelableNotification(
+        "$listText removido.",
+        position: NotificationPosition.top,
         onCancel: () => onUndoDelete.call(entity),
       );
     }

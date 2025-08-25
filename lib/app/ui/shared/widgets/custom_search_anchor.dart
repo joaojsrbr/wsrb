@@ -365,6 +365,9 @@ class _SearchViewRoute extends PopupRoute<_SearchViewRoute> {
     assert(anchorKey.currentContext != null);
     updateTweens(anchorKey.currentContext!);
     toggleVisibility?.call();
+    if (searchController.text.length <= 3) {
+      searchController.clear();
+    }
     return super.didPop(result);
   }
 
@@ -1232,13 +1235,18 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                       effectiveShape?.copyWith(side: effectiveSide).borderRadius
                           as BorderRadius,
                 ),
-                focusColor: colorScheme.surface.withAlpha(128),
+                focusColor: colorScheme.primary.withAlpha(128),
                 focusedBorder: OutlineInputBorder(
                   borderRadius:
                       effectiveShape?.copyWith(side: effectiveSide).borderRadius
                           as BorderRadius,
                   borderSide:
-                      effectiveSide ?? const BorderSide(color: Colors.transparent),
+                      (effectiveSide ?? const BorderSide(color: Colors.transparent))
+                          .copyWith(
+                            color: widget.controller?.isOpen == true
+                                ? Colors.transparent
+                                : colorScheme.primary.withAlpha(128),
+                          ),
                 ),
               ),
               textCapitalization: effectiveTextCapitalization,

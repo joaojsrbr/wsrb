@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
@@ -11,10 +10,10 @@ import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 
 mixin PlayerScreenshotMixin
-    on SubscriptionsByStateArgumentMixin<PlayerView, PlayerArgs>, PlayerControllerMixin {
+    on SubscriptionsByStateArgumentMixin<PlayerView>, PlayerControllerMixin {
   /// Captura a imagem do vídeo, redimensiona, comprime e retorna base64 compactado
   Future<String?> videoScreenshotBase64() async {
-    final capture = await player?.screenshot(); // captura em Uint8List
+    final capture = await player.screenshot(); // captura em Uint8List
 
     if (capture != null) {
       // decode with 'image' package

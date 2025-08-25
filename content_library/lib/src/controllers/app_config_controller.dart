@@ -52,11 +52,6 @@ class AppConfigController extends ChangeNotifier {
     _updateController.add(this);
   }
 
-  Future<void> setBetterAnimeCookies(List<ContentCookie> values) async {
-    repo.updateConfig((config) => config.copyWith(betterAnimeCookies: values));
-    await _addConfig();
-  }
-
   Future<void> setReverseContents(bool value) async {
     if (value == repo.config.reverseContents) return;
     repo.updateConfig((config) => config.copyWith(reverseContents: value));

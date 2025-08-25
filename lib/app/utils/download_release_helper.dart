@@ -1,4 +1,4 @@
-import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -48,11 +48,13 @@ class DownloadReleaseHelper {
 
             switch (result) {
               case Failure error when navigatorContext.mounted:
-                navigatorContext.showErrorSnackBar(error);
+                navigatorContext.showErrorNotification(error.toString());
+
               case Success _ when navigatorContext.mounted:
-                navigatorContext.showAppSnackBar(
+                navigatorContext.showTopNotification(
                   Text('Baixado com sucesso: ${episode.title}'),
                 );
+
               case _:
             }
           },

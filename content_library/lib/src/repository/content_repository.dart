@@ -2,12 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/repository/models/slime_read_response.dart';
-import 'package:flutter/foundation.dart';
+import 'package:content_library/src/models/slime_read_response.dart';
 import 'package:flutter/material.dart' as ui;
 import 'package:html/dom.dart';
-import 'package:html/parser.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:html/parser.dart' hide HtmlParser;
 
 import '../utils/scraping.util.dart';
 import 'source/source.dart';
@@ -27,15 +25,16 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   Exception? fullScreenError;
 
   late final DioClient _dio;
-  // late final JikanService _jikanService;
-  late final List<RSource> _sources;
+  late final Set<RSource> _sources;
+  late final ScrapingSession session;
 
-  final List<int> totalPerPage = [];
+  final Set<int> totalPerPage = {};
   final Subscriptions _subscriptions = Subscriptions();
+  final ui.GlobalKey anchor = ui.GlobalKey();
+
   final AppConfigController? _appConfigController;
   final Source? initialSource;
   final AnimeSkipRepository _animeSkipRepository;
-  final ValueNotifier<ContentChallenge> contentChallenge = ValueNotifier(NoChallenge());
 
   AppConfigEntity get config =>
       _appConfigController?.repo.config ?? AppConfigEntity.init();
@@ -46,38 +45,38 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
     this._animeSkipRepository,
     this.initialSource,
   ) {
-    _sources = [
+    _sources = {
       NeoxSource(this),
       GoyabuSource(this),
       SlimeReadSource(this),
       AnrollSource(this),
       DemonSect(this),
       BetterAnimeSource(this),
-    ];
+    };
 
-    if (_appConfigController?.config.source == Source.BETTER_ANIME) {
-      _dio.addInterceptor(
-        _BetterAnimeInterceptor(appConfigController: _appConfigController!),
-      );
+    _maybeAddBetterAnimeInterceptor(_appConfigController);
+
+    if (_appConfigController != null) {
+      _subscriptions.add(_appConfigController.update.listen(_listen));
     }
 
-    _subscriptions.addAll([
-      if (_appConfigController != null) _appConfigController.update.listen(_listen),
-    ]);
+    session = ScrapingSession(
+      userAgent:
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      debugLogging: false,
+    );
   }
 
   void _listen(AppConfigController appConfigController) {
-    ui.WidgetsBinding.instance.addPostFrameCallback((timeStamp) => refresh(true));
+    ui.WidgetsBinding.instance.addPostFrameCallback((_) => refresh(true));
+    _maybeAddBetterAnimeInterceptor(appConfigController);
+  }
 
-    if (appConfigController.repo.config.source == Source.BETTER_ANIME) {
-      _dio.addInterceptor(
-        _BetterAnimeInterceptor(appConfigController: appConfigController),
-      );
+  void _maybeAddBetterAnimeInterceptor(AppConfigController? controller) {
+    if (controller?.config.source == Source.BETTER_ANIME) {
+      _dio.addInterceptor(_BetterAnimeInterceptor());
     } else {
-      _dio.removeInterceptor(
-        _BetterAnimeInterceptor(appConfigController: appConfigController),
-      );
-      contentChallenge.value = NoChallenge();
+      _dio.removeInterceptor(_BetterAnimeInterceptor);
     }
   }
 
@@ -95,8 +94,10 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
     Source initialSource,
   ) => _ContentRepositoryImp.test(animeSkipRepository, dio, initialSource);
 
-  RSource source(Source source) =>
-      _sources.firstWhere((element) => source == element.source);
+  RSource source(Source source) => _sources.firstWhere((s) => source == s.source);
+
+  RSource get currentSource =>
+      source(_appConfigController?.repo.config.source ?? initialSource ?? Source.ANROLL);
 
   Future<Result<Content>> getData(Content content);
 
@@ -120,9 +121,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       ..withImage();
 
     final title = content.title
-        .replaceAll(' - Dublado', '')
-        .replaceAll('dublado', '')
-        .replaceAll('Dublado', '')
+        .replaceAll(RegExp(' -? ?Dublado', caseSensitive: false), '')
         .trim();
 
     final request = AnilistMediaRequest(client: _dio.client)
@@ -131,7 +130,6 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       ..withType()
       ..withEpisodes()
       ..withFormat()
-      ..withIdMal()
       ..withStatus()
       ..withDescription()
       ..withStartDate()
@@ -147,7 +145,6 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       ..withBannerImage()
       ..withGenres()
       ..withSynonyms()
-      ..withBannerImage()
       ..withMeanScore()
       ..withAverageScore()
       ..withPopularity()
@@ -163,9 +160,6 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
 
     try {
       final results = (await request.list(2, 1)).results;
-      // final animeMedia = results?.firstWhereOrNull(
-      //   (media) => media.type == (content is Anime ? AnilistMediaType.ANIME : AnilistMediaType.MANGA),
-      // );
       return results?.firstOrNull;
     } catch (e) {
       customLog(e.toString());
@@ -173,16 +167,13 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
     }
   }
 
-  RSource get currentSource =>
-      source(_appConfigController?.repo.config.source ?? initialSource ?? Source.ANROLL);
-
   @override
   Future<bool> refresh([bool notifyStateChanged = false]) async {
     index = currentSource.initialIndex;
     isSuccess = false;
     _hasMore = false;
     forceRefresh = notifyStateChanged;
-    bool result = await super.refresh(notifyStateChanged);
+    final result = await super.refresh(notifyStateChanged);
     forceRefresh = false;
     totalPerPage.clear();
     return result;
@@ -193,7 +184,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
 
   @override
   void dispose() {
-    contentChallenge.dispose();
+    session.dispose();
     _subscriptions.cancelAll();
     super.dispose();
   }
@@ -211,9 +202,7 @@ class _ContentRepositoryImp extends ContentRepository {
     AnimeSkipRepository animeSkipRepository,
     DioClient dio,
     Source initialSource,
-  ) {
-    return _ContentRepositoryImp(null, dio, animeSkipRepository, initialSource);
-  }
+  ) => _ContentRepositoryImp(null, dio, animeSkipRepository, initialSource);
 
   @override
   Future<bool> loadData([bool isLoadMoreAction = false]) async =>
@@ -222,20 +211,21 @@ class _ContentRepositoryImp extends ContentRepository {
   @override
   Future<Result<Content>> getData(Content content) async {
     final result = await currentSource.getData(content);
+
     if (result case Success<Content> data when data.data is Anime) {
       Anime anime = data.data as Anime;
+
       final anilistMedia = await getAnilistMedia(anime);
 
       if (anilistMedia != null) {
         anime = anime.copyWith(
-          sinopse: anime.sinopse?.isEmpty == true || anime.sinopse == null
-              ? anilistMedia.description
-              : null,
+          sinopse: anime.sinopse.isNotEmpty ? anilistMedia.description : null,
           anilistMedia: AniListMedia.fromJson(AnilistMedia.toJson(anilistMedia)),
           largeImage: anilistMedia.coverImage?.large,
           mediumImage: anilistMedia.coverImage?.medium,
         );
       }
+
       return Result.success(anime);
     }
 
@@ -256,36 +246,26 @@ class _ContentRepositoryImp extends ContentRepository {
     required List<Source> searchSources,
     required ui.ValueChanged<(Source, List<Content>)> onSuccess,
   }) async {
-    final futures = _sources
-        .where((source) => searchSources.contains(source.source))
-        .map(
-          (source) => source
-              .search(query)
-              .then(
-                (value) =>
-                    value.fold(onSuccess: (data) => onSuccess((source.source, data))),
-              ),
-        );
-    for (final future in futures) {
-      try {
-        await future;
-      } catch (_) {}
-    }
+    final futures = _sources.where((source) => searchSources.contains(source.source)).map(
+      (source) async {
+        try {
+          final result = await source.search(query);
+          result.fold(onSuccess: (data) => onSuccess((source.source, data)));
+        } catch (_) {}
+      },
+    );
+
+    await Future.wait(futures);
   }
 }
 
-sealed class ContentChallenge {}
+class _BetterAnimeInterceptor extends Interceptor {
+  _BetterAnimeInterceptor();
 
-final class BetterAnimeChallenge implements ContentChallenge {
-  const BetterAnimeChallenge({
-    required this.url,
-    required this.headers,
-    required this.onSolve,
-  });
-
-  final String url;
-  final Map<String, dynamic> headers;
-  final void Function(List<ContentCookie> cookies) onSolve;
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+    final cookies = await CookieUtil.getCookies(WebUri(options.uri.toString()));
+    options.headers["Cookie"] = CookieUtil.stringifyCookies(cookies);
+    return super.onRequest(options, handler);
+  }
 }
-
-final class NoChallenge implements ContentChallenge {}

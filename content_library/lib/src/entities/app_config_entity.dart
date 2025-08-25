@@ -17,8 +17,6 @@ class AppConfigEntity extends OtherEntity {
   @enumerated
   final Source source;
 
-  final List<ContentCookie> betterAnimeCookies;
-
   @override
   List<Object?> get props => [orderBy, reverseContents, source];
 
@@ -27,12 +25,11 @@ class AppConfigEntity extends OtherEntity {
     required this.filterWatching,
     required this.reverseContents,
     required this.source,
-    this.betterAnimeCookies = const [],
   });
 
   factory AppConfigEntity.init() => AppConfigEntity(
     orderBy: OrderBy.LATEST,
-    betterAnimeCookies: [],
+
     filterWatching: FilterWatching.dafult(),
     source: Source.ANROLL,
     reverseContents: true,
@@ -43,12 +40,11 @@ class AppConfigEntity extends OtherEntity {
     bool? reverseContents,
     Source? source,
     ConnectivityResult? connectivityResult,
-    List<ContentCookie>? betterAnimeCookies,
+
     double? historicSavePercent,
     FilterWatching? filterWatching,
   }) {
     final newConfig = AppConfigEntity(
-      betterAnimeCookies: betterAnimeCookies ?? this.betterAnimeCookies,
       filterWatching: filterWatching ?? this.filterWatching,
       orderBy: orderBy ?? this.orderBy,
       reverseContents: reverseContents ?? this.reverseContents,
@@ -60,22 +56,6 @@ class AppConfigEntity extends OtherEntity {
 
   @override
   bool? get stringify => true;
-}
-
-@Embedded(ignore: {"toJson", "fromJson", "props", "stringify", "hashCode"})
-class ContentCookie with EquatableMixin {
-  ContentCookie({this.value = "", this.key = "", this.expiresDate});
-
-  final String value;
-  final String key;
-  final int? expiresDate;
-
-  static String stringifyCookies(List<ContentCookie> cookies) {
-    return cookies.map((cookie) => '${cookie.key}=${cookie.value}').join('; ');
-  }
-
-  @override
-  List<Object?> get props => [value, key];
 }
 
 @Embedded(ignore: {"toJson", "fromJson", "props", "stringify", "hashCode"})

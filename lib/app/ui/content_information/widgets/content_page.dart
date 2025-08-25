@@ -1,7 +1,6 @@
 import 'package:app_wsrb_jsr/app/ui/content_information/destinations/information_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/destinations/release_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_network_image_cache.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/dot_text.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
@@ -9,9 +8,9 @@ import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer_container.dart';
 import 'package:app_wsrb_jsr/app/utils/content_utils.dart';
 import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
 import 'package:content_library/content_library.dart';
+import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:nested_scroll_view_plus/nested_scroll_view_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -22,12 +21,13 @@ class ContentPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final noContent = ContentScope.noContentOf(context);
     final isLoading = ContentScope.isLoadingOf(context);
-
-    return NestedScrollViewPlus(
-      overscrollBehavior: OverscrollBehavior.outer,
+    // NestedScrollViewPlus
+    return ExtendedNestedScrollView(
+      // overscrollBehavior: OverscrollBehavior.outer,
+      onlyOneScrollInBody: true,
       physics: isLoading
           ? const NeverScrollableScrollPhysics()
-          : const BouncingScrollPhysics(),
+          : const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       headerSliverBuilder: (context, __) => [_Header()],
       body: TabBarView(
         physics: isLoading || noContent
@@ -45,21 +45,27 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = ContentScope.contentOf(context);
-    final menu = BottomMenu.menuControllerMaybeOf<List<String>>(context);
+    final valueNotifierList = context.watch<ValueNotifierList>();
     final noContent = ContentScope.noContentOf(context);
     final isLoading = ContentScope.isLoadingOf(context);
-    final isOpen = menu?.isOpen ?? false;
+    final isOpen = valueNotifierList.isNotEmpty;
 
     return SliverAppBar(
-      expandedHeight: 300,
-      pinned: true,
-      floating: true,
+      forceElevated: false,
+      forceMaterialTransparency: true,
+      expandedHeight: 250,
+      pinned: false,
+      floating: false,
       leading: IconButton(
         icon: Icon(isOpen ? Icons.close : Icons.arrow_back, color: Colors.white),
-        onPressed: isOpen ? () => menu?.close() : () => Navigator.of(context).pop(),
+        onPressed: isOpen
+            ? () => valueNotifierList.clear()
+            : () => Navigator.of(context).pop(),
       ),
       actions: isLoading ? null : [_ShareButton(), _FavoriteButton()],
       flexibleSpace: FlexibleSpaceBar(
+        collapseMode: CollapseMode.pin,
+        stretchModes: [],
         background: _BannerContent(content: content, isLoading: isLoading),
       ),
       bottom: _TabHeader(noContent: noContent, content: content),
@@ -75,35 +81,225 @@ class _BannerContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        if (content.anilistMedia?.bannerImage?.extraLarge != null)
-          CustomCachedNetworkImage(
-            fit: BoxFit.fitWidth,
-            imageUrl: content.anilistMedia!.bannerImage!.extraLarge!,
-            httpHeaders: App.HEADERS,
-          ),
-        Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.black54, Color(0x3C000000), Colors.black54],
-              stops: [0.0, 0.4, 1.0],
+    final size = context.calculateImageCacheSize(
+      displayHeight: 250,
+      optimizeMemory: true,
+      displayWidth: 500,
+      aspectRatio: 16 / 9,
+    );
+
+    // return Stack(
+    //   fit: StackFit.expand,
+    //   children: [
+    //     ClipPath(
+    //       clipper: ReversedBorderClipper(borderRadius: 20.0),
+    //       child: ShimmerContainer(
+    //         enable: isLoading,
+    //         borderRadius: BorderRadius.circular(8),
+    //         child: CustomCachedNetworkImage(
+    //           memCacheHeight: size.height.round(),
+    //           memCacheWidth: size.width.round(),
+    //           width: double.infinity,
+    //           height: double.infinity,
+    //           imageUrl: content.imageUrl,
+    //           fit: BoxFit.cover,
+    //           httpHeaders: App.HEADERS,
+    //           alignment: Alignment.center,
+    //           shaderCallback: (bounds) => LinearGradient(
+    //             begin: Alignment.center,
+    //             end: Alignment.center,
+    //             colors: [Colors.black.withAlpha(60), Colors.black.withAlpha(60)],
+    //           ).createShader(bounds),
+    //         ),
+    //       ),
+    //     ),
+    //     Positioned(
+    //       bottom: 70,
+    //       right: 0,
+    //       left: 0,
+    //       child: SafeArea(
+    //         child: _ContentDetails(content: content, isLoading: isLoading),
+    //       ),
+    //     ),
+    //   ],
+    // );
+
+    // ClipPath(
+    //     clipper: ReversedBorderClipper(borderRadius: 20.0),
+    //     child:
+
+    return SafeArea(
+      child: Material(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        child: Stack(
+          fit: StackFit.loose,
+          alignment: AlignmentDirectional.center,
+          children: [
+            if (content.anilistMedia?.bannerImage?.extraLarge != null && !isLoading)
+              CustomCachedNetworkImage(
+                height: 100,
+                width: double.infinity,
+                alignment: Alignment.center,
+                memCacheHeight: size.height.round(),
+                memCacheWidth: size.width.round(),
+                fit: BoxFit.cover,
+                imageUrl: content.anilistMedia!.bannerImage!.extraLarge!,
+                httpHeaders: App.HEADERS,
+                shaderCallback: (rect) => LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.black54, Color(0x3C000000), Colors.black54],
+                  stops: [0.0, 0.4, 1.0],
+                ).createShader(rect),
+              ),
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 12, bottom: 70, right: 12),
+                child: SafeArea(
+                  child: _ContentDetails(content: content, isLoading: isLoading),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.only(left: 12, bottom: 60, right: 12),
-          child: SafeArea(
-            child: _ContentDetails(content: content, isLoading: isLoading),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
+
+class ReversedBorderClipper extends CustomClipper<Path> {
+  final double borderRadius;
+
+  ReversedBorderClipper({this.borderRadius = 0.0});
+
+  @override
+  Path getClip(Size size) {
+    final tabHeight = 58.0;
+    final height = size.height - tabHeight;
+
+    // final outerRect = Rect.fromLTWH(0, 90, size.width, size.height * 0.76);
+    final outerRect = Rect.fromLTWH(0, 0, size.width, height);
+    final outerRRect = RRect.fromRectAndRadius(outerRect, Radius.circular(borderRadius));
+
+    // final testRect = Rect.fromLTWH(350, 260, size.width * 0.2, 80);
+    // final testRRect = RRect.fromRectAndCorners(
+    //   testRect,
+    //   topLeft: Radius.circular(borderRadius),
+    //   bottomLeft: Radius.circular(borderRadius),
+    // );
+
+    // final testPath = Path()..addRRect(testRRect);
+
+    // Create paths for outer and inner rectangles
+    final outerPath = Path()..addRRect(outerRRect);
+
+    return Path.combine(PathOperation.difference, outerPath, Path());
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => true;
+}
+
+// class _ContentDetails extends StatelessWidget {
+//   final Content content;
+//   final bool isLoading;
+
+//   const _ContentDetails({required this.content, required this.isLoading});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final genres = content.anilistMedia?.genres.getMax(4) ?? [];
+
+//     return Padding(
+//       padding: const EdgeInsets.symmetric(horizontal: 16),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         mainAxisSize: MainAxisSize.min,
+//         children: [
+//           // Gêneros
+//           if (genres.isNotEmpty || isLoading)
+//             ShimmerContainer(
+//               height: 16,
+//               enable: isLoading,
+//               child: Row(
+//                 spacing: 8,
+//                 mainAxisSize: MainAxisSize.min,
+//                 children: List.generate(genres.length, (index) {
+//                   final txt = genres.elementAt(index);
+//                   return DotText(
+//                     text: txt,
+//                     dotSize: 6,
+//                     spacing: 6,
+//                     textStyle: TextStyle(color: Colors.white70, fontSize: 12),
+//                     dotColor: Colors.white70,
+//                   );
+//                 }),
+//               ),
+//             ),
+
+//           const SizedBox(height: 4),
+
+//           // Título
+//           GestureDetector(
+//             onLongPress: () {
+//               copyToClipboard(
+//                 context,
+//                 messageSnackBar: "Texto copiado para a área de transferência!",
+//                 messageCopy: content.title,
+//               );
+//               Feedback.forLongPress(context);
+//             },
+//             child: Text(
+//               content.title,
+//               maxLines: 2,
+//               overflow: TextOverflow.ellipsis,
+//               style: const TextStyle(
+//                 color: Colors.white,
+//                 fontSize: 24,
+//                 fontWeight: FontWeight.bold,
+//               ),
+//             ),
+//           ),
+
+//           const SizedBox(height: 4),
+
+//           // Ícones: Popularidade / Favoritos / Nota
+//           ShimmerContainer(
+//             height: 18,
+//             enable: isLoading,
+//             width: 180,
+//             child: Row(
+//               children: [
+//                 if (content.anilistMedia?.popularity != null)
+//                   _IconText(
+//                     ico: Icons.people,
+//                     txt: content.anilistMedia!.popularity!.toString(),
+//                   ),
+//                 if (content.anilistMedia?.favourites != null)
+//                   Padding(
+//                     padding: const EdgeInsets.only(left: 16),
+//                     child: _IconText(
+//                       ico: MdiIcons.heart,
+//                       txt: content.anilistMedia!.favourites.toString(),
+//                     ),
+//                   ),
+//                 if (content.anilistMedia?.averageScore != null)
+//                   Padding(
+//                     padding: const EdgeInsets.only(left: 16),
+//                     child: _IconText(
+//                       ico: MdiIcons.star,
+//                       txt: (content.anilistMedia!.averageScore! / 10).toStringAsFixed(1),
+//                     ),
+//                   ),
+//               ],
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
 
 class _ContentDetails extends StatelessWidget {
   final Content content;
@@ -113,6 +309,11 @@ class _ContentDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = context.calculateImageCacheSize(
+      displayHeight: 200,
+      displayWidth: 180,
+      optimizeMemory: true,
+    );
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -123,8 +324,8 @@ class _ContentDetails extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: CustomCachedNetworkImage(
             fit: BoxFit.cover,
-            memCacheHeight: 300,
-            memCacheWidth: 250,
+            memCacheHeight: size.height.round(),
+            memCacheWidth: size.width.round(),
             imageUrl: content.imageUrl,
             httpHeaders: App.HEADERS,
           ),
@@ -167,6 +368,7 @@ class _ContentDetails extends StatelessWidget {
                     messageSnackBar: "Texto copiado para a área de transferência!",
                     messageCopy: content.title,
                   );
+
                   Feedback.forLongPress(context);
                 },
                 child: Text(
@@ -227,9 +429,19 @@ class _TabHeader extends StatelessWidget implements PreferredSizeWidget {
     final theme = Theme.of(context);
 
     return TabBar(
-      indicatorColor: Colors.white,
+      dividerColor: Colors.transparent,
+      indicatorColor: Colors.transparent,
+      // indicatorColor: Colors.white,
       labelColor: Colors.white,
       unselectedLabelColor: Colors.white54,
+      indicator: Material3TabIndicator(
+        color: Theme.of(context).colorScheme.primary.withAlpha(26),
+        height: 48,
+        borderRadius: 8.0,
+      ),
+      splashFactory: NoSplash.splashFactory,
+      overlayColor: OverlaySplashColor(theme.colorScheme),
+      splashBorderRadius: BorderRadius.circular(8.0),
       onTap: (index) {
         final selected = ContentTabBar.values[index];
         if (noContent && selected == ContentTabBar.INFORMATION) {
@@ -298,6 +510,7 @@ class _FavoriteButton extends StatelessWidget {
         } else {
           customLog('Favorite add: ${content.title}');
           ContentUtils.saveOrUpdate(context, content);
+          Feedback.forLongPress(context);
           // ContentScope.of(context).saveData();
         }
       },
@@ -325,5 +538,66 @@ class _IconText extends StatelessWidget {
         Text(txt, style: const TextStyle(color: Colors.white70, fontSize: 12)),
       ],
     );
+  }
+}
+
+class Material3TabIndicator extends Decoration {
+  final Color color;
+  final double height;
+  final double borderRadius;
+
+  const Material3TabIndicator({
+    required this.color,
+    this.height = 4.0,
+    this.borderRadius = 2.0,
+  });
+
+  @override
+  BoxPainter createBoxPainter([VoidCallback? onChanged]) {
+    return _Material3TabIndicatorPainter(
+      color: color,
+      height: height,
+      borderRadius: borderRadius,
+    );
+  }
+}
+
+class _Material3TabIndicatorPainter extends BoxPainter {
+  final Color color;
+  final double height;
+  final double borderRadius;
+
+  _Material3TabIndicatorPainter({
+    required this.color,
+    required this.height,
+    required this.borderRadius,
+  });
+
+  @override
+  void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
+    final Rect rect =
+        Offset(offset.dx, configuration.size!.height - height) &
+        Size(configuration.size!.width, height);
+
+    final Paint paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    // Draw rounded rectangle for the indicator
+    canvas.drawRRect(RRect.fromRectAndRadius(rect, Radius.circular(borderRadius)), paint);
+  }
+}
+
+class OverlaySplashColor extends WidgetStateProperty<Color> {
+  final ColorScheme colorScheme;
+
+  OverlaySplashColor(this.colorScheme);
+
+  @override
+  Color resolve(Set<WidgetState> states) {
+    // if (states.contains(WidgetState.pressed)) {
+    //   return colorScheme.primary.withOpacity(0.1);
+    // }
+    return Colors.transparent;
   }
 }

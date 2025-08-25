@@ -27,7 +27,7 @@ class ChapterEntity extends HistoricEntity {
     super.updatedAt,
     super.percent = 0.0,
     super.isComplete = false,
-    super.positions = const [],
+    super.position,
   });
 
   @override
@@ -44,7 +44,7 @@ class ChapterEntity extends HistoricEntity {
 
   @override
   ChapterEntity copyWith({
-    List<CurrentPosition>? positions,
+    CurrentPosition? position,
     double? readPercent,
     String? stringID,
     String? bookStringID,
@@ -65,7 +65,7 @@ class ChapterEntity extends HistoricEntity {
       url: url ?? this.url,
       isComplete: isComplete ?? this.isComplete,
       percent: percent ?? this.percent,
-      positions: positions ?? this.positions,
+      position: position,
     );
   }
 }

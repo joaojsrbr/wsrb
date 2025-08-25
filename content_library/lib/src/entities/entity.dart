@@ -17,7 +17,7 @@ abstract class OtherEntity implements Entity {
   bool? get stringify => true;
 }
 
-abstract class ContentEntity implements Entity {
+abstract class ContentEntity implements Entity, Comparable<ContentEntity> {
   @Index(replace: true, unique: true)
   final String stringID;
   final AniListMedia? anilistMedia;
@@ -30,6 +30,14 @@ abstract class ContentEntity implements Entity {
   final String? sinopse;
 
   String get imageUrl;
+
+  @override
+  int compareTo(ContentEntity other) {
+    return stringID.compareTo(other.stringID);
+  }
+
+  @override
+  List<Object?> get props => [stringID];
 
   ContentEntity({
     required this.title,
@@ -61,13 +69,14 @@ abstract class HistoricEntity implements Entity, Comparable<HistoricEntity> {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String url;
-  final List<CurrentPosition> positions;
+  // final List<CurrentPosition> positions;
+  final CurrentPosition? position;
   final String? thumbnail;
 
-  double getPercent() {
-    if (isComplete) return 1.0;
-    return percent.isNaN ? 0.0 : percent;
-  }
+  // double getPercent() {
+  //   if (isComplete) return 1.0;
+  //   return percent.isNaN ? 0.0 : percent;
+  // }
 
   HistoricEntity({
     required this.url,
@@ -77,7 +86,7 @@ abstract class HistoricEntity implements Entity, Comparable<HistoricEntity> {
     this.updatedAt,
     this.isComplete = false,
     this.percent = 0.0,
-    this.positions = const [],
+    this.position,
   });
 
   Color completeColor(ColorScheme scheme) => Colors.white;
@@ -91,7 +100,10 @@ abstract class HistoricEntity implements Entity, Comparable<HistoricEntity> {
   bool? get stringify => true;
 
   HistoricEntity copyWith({
-    List<CurrentPosition>? positions,
+    bool? isComplete,
+    String? title,
+    String? url,
+    CurrentPosition? position,
     DateTime? createdAt,
     DateTime? updatedAt,
   });

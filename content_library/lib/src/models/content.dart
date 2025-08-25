@@ -23,7 +23,7 @@ abstract class Content extends Equatable {
 
   final String url;
 
-  final String? sinopse;
+  final String sinopse;
 
   final bool cached;
 
@@ -46,7 +46,7 @@ abstract class Content extends Equatable {
     required this.url,
     required this.source,
     required this.title,
-    this.sinopse,
+    this.sinopse = "",
     this.anilistMedia,
   });
 

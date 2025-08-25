@@ -1,0 +1,42 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "dart",
+			"command": "dart",
+			"args": [
+				"run",
+				"build_runner",
+				"build"
+			],
+			 "options": {
+                "cwd": "${workspaceFolder}/content_library"
+            },
+			"problemMatcher": [
+				"$dart-build_runner"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true 
+			},
+			"label": "dart: dart run build_runner build",
+			"detail": "content_library"
+		},
+		{
+			"label": "Build & Install APK (Production)",
+			"type": "shell",
+			"command": "flutter build apk --flavor Production --release --split-per-abi && adb install -r build/app/outputs/flutter-apk/app-arm64-v8a-production-release.apk",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$dart-build_runner"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true 
+			},
+			"detail": "Compila o APK de produção e o instala via ADB."
+		}
+	]
+}

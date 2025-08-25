@@ -7,6 +7,7 @@ import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
 import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
 import 'package:app_wsrb_jsr/app/ui/settings/view/settings_view.dart';
 import 'package:app_wsrb_jsr/app/ui/webview/view/webview_view.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 enum RouteName {
@@ -25,11 +26,14 @@ enum RouteName {
 
   @override
   String toString() => route;
+
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 }
 
 final appRoutes = GoRouter(
   // restorationScopeId: 'router',
   initialLocation: RouteName.HOME.route,
+
   routes: [
     GoRoute(
       path: RouteName.HOME.route,

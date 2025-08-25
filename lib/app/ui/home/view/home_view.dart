@@ -3,15 +3,17 @@ import 'package:app_wsrb_jsr/app/ui/home/destinations/history_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/home/destinations/library_destination.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_sliver_app_bar.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
+import 'package:app_wsrb_jsr/app/ui/home/widgets/library_buttons.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/highlight.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/menu_button.dart';
 import 'package:app_wsrb_jsr/app/utils/category_helper.dart';
 import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
 import 'package:content_library/content_library.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:nested_scroll_view_plus/nested_scroll_view_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
@@ -30,12 +32,15 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   late final ScrollController _keepWatchingScrollController;
   late final CategoryController _categoryController;
   late final ValueNotifierList _valueNotifierList;
-  late final BottomMenuController _bottomMenuController;
+
   late final AnimationController _bottomSheetAnimationController;
+  late final HighlightController<String> _highlightController;
 
   @override
   void initState() {
     super.initState();
+
+    _highlightController = HighlightController();
     _bottomSheetAnimationController = BottomSheet.createAnimationController(this);
     _tabController = TabController(vsync: this, length: 3)
       ..addListener(_tabControllerListener);
@@ -52,8 +57,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     _valueNotifierList = context.read<ValueNotifierList>()
       ..addListener(_valueNotifierListListener);
 
-    _bottomMenuController = BottomMenuController(minHeight: 60, initialArgs: null);
-
     _startTabController(false);
   }
 
@@ -64,9 +67,23 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
   void _valueNotifierListListener() {
     if (_valueNotifierList.isEmpty) {
-      _bottomMenuController.close();
+      context.closeNotification();
+    } else if (!context.hasNotification()) {
+      context.showBottomNotification(
+        LibraryButtons(
+          tabController: _tabController,
+          onAdd: () {
+            context.showSuccessNotification(
+              "${_valueNotifierList.isEmpty ? "Item" : "Itens"} adicionados com sucesso.",
+            );
+          },
+        ),
+        height: 52,
+        showCountdown: true,
+        duration: Duration(seconds: 20),
+      );
     } else {
-      _bottomMenuController.open();
+      context.maintainOverlap(duration: const Duration(seconds: 20));
     }
   }
 
@@ -130,61 +147,84 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     return const FixedOverscrollBouncingScrollPhysics();
   }
 
-  Future<void> _onRefresh() async {
-    final contentRepository = context.read<ContentRepository>();
-    if (_tabController.index != 0) return;
-    await contentRepository.refresh(true);
-  }
-
   List<Widget> _headerSliverBuilder(BuildContext context, bool innerBoxIsScrolled) {
-    final tabController = HomeScope.of(context).tabController;
+    // final tabController = HomeScope.of(context).tabController;
     final List<Widget> slivers = [];
 
     slivers.add(const HomeSliverAppBar());
 
-    if (tabController.index == 0) {
-      slivers.add(
-        CupertinoSliverRefreshControl(
-          refreshTriggerPullDistance: 130,
-          onRefresh: _onRefresh,
-        ),
-      );
-    }
+    // if (tabController.index == 0) {
+    //   slivers.add(
+    //     CupertinoSliverRefreshControl(
+    //       refreshTriggerPullDistance: 130,
+    //       onRefresh: _onRefresh,
+    //     ),
+    //   );
+    // }
 
     slivers.add(const _HomeButtonMenuSliver());
 
     return slivers;
   }
 
+  Future<void> _onRefresh() async {
+    final contentRepository = context.read<ContentRepository>();
+
+    if (_tabController.index != 0) return;
+    await contentRepository.refresh(true);
+  }
+
   @override
   Widget build(BuildContext context) {
     customLog('$widget[build]');
 
-    return Scaffold(
-      body: HomeScope(
-        bottomSheetAnimationController: _bottomSheetAnimationController,
-        bottomMenuController: _bottomMenuController,
-        keepWatchingScrollController: _keepWatchingScrollController,
-        homeController: _scrollController,
-        subordinateLibraryTabController: _subordinateLibraryTabController,
-        searchController: _searchController,
-        tabController: _tabController,
-        child: BottomMenu(
-          isDismissible: false,
-          bottomMenuController: _bottomMenuController,
-          child: NestedScrollViewPlus(
-            overscrollBehavior: OverscrollBehavior.outer,
+    final contentRepository = context.read<ContentRepository>();
+
+    return CustomHighlight(
+      controller: _highlightController,
+      child: Scaffold(
+        key: contentRepository.anchor,
+        floatingActionButton: kDebugMode
+            ? FloatingActionButton(
+                onPressed: () {
+                  // context.showTopNotification(Text("test"), overlay: true);
+                  // context.showCancelableNotification(
+                  //   "test",
+                  //   position: NotificationPosition.bottom,
+                  // );
+                  // context.showTopNotification(Text("test"), overlay: false);
+                  // context.showSuccessNotification("test");
+                },
+              )
+            : null,
+        body: HomeScope(
+          bottomSheetAnimationController: _bottomSheetAnimationController,
+          keepWatchingScrollController: _keepWatchingScrollController,
+          homeController: _scrollController,
+          subordinateLibraryTabController: _subordinateLibraryTabController,
+          searchController: _searchController,
+          tabController: _tabController,
+          child: ExtendedNestedScrollView(
+            // overscrollBehavior: OverscrollBehavior.outer,
+            onlyOneScrollInBody: true,
             controller: _scrollController,
             physics: _mainPhysics,
             headerSliverBuilder: _headerSliverBuilder,
-            body: TabBarView(
-              physics: _tabPhysics,
-              controller: _tabController,
-              children: const [
-                ContentDestination(),
-                HistoryDestination(),
-                LibraryDestination(),
-              ],
+            body: RefreshIndicator(
+              notificationPredicate: (notification) {
+                return {0, 1, 2}.contains(notification.depth) &&
+                    _tabController.index == 0;
+              },
+              onRefresh: _onRefresh,
+              child: TabBarView(
+                physics: _tabPhysics,
+                controller: _tabController,
+                children: const [
+                  ContentDestination(),
+                  HistoryDestination(),
+                  LibraryDestination(),
+                ],
+              ),
             ),
           ),
         ),
@@ -220,6 +260,7 @@ class _HomeButtonMenuSliver extends StatelessWidget {
         scope.subordinateLibraryTabController;
     final CategoryController categoryController = context.watch<CategoryController>();
     final AppConfigController appConfigController = context.watch<AppConfigController>();
+    // final popupKey = GlobalKey<pop.CustomPopupState>();
     return SliverAnimatedPaintExtent(
       duration: const Duration(milliseconds: 350),
       child: SliverToBoxAdapter(
@@ -239,9 +280,7 @@ class _HomeButtonMenuSliver extends StatelessWidget {
               children: [
                 DropdownMenuButton<Source>(
                   onSelected: appConfigController.setSource,
-
                   items: Source.list,
-
                   enableSecondChild: tabController.index != 0,
                   itemEnabled: (data) => !(appConfigController.config.source == data),
                   child: Text(
@@ -252,7 +291,34 @@ class _HomeButtonMenuSliver extends StatelessWidget {
                     ),
                   ),
                 ),
-
+                // pop.CustomPopup(
+                //   key: popupKey,
+                //   backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                //   contentPadding: EdgeInsets.zero,
+                //   content: Column(
+                //     mainAxisSize: MainAxisSize.min,
+                //     spacing: 8,
+                //     children: List.generate(
+                //       Source.list.length,
+                //       (index) => SizedBox(
+                //         width: 160,
+                //         child: ListTile(
+                //           contentPadding: EdgeInsets.zero,
+                //           horizontalTitleGap: 0,
+                //           title: Text(Source.list.elementAt(index).label),
+                //           onTap: () {
+                //             final context = popupKey.currentContext;
+                //             if (context != null) {
+                //               Navigator.pop(context);
+                //             }
+                //             // appConfigController.setSource(Source.list.elementAt(index));
+                //           },
+                //         ),
+                //       ),
+                //     ),
+                //   ),
+                //   child: Icon(Icons.help),
+                // ),
                 // ! menu de tipo de anime
                 // MenuButton(
                 //   data: OrderBy.list,

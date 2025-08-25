@@ -57,7 +57,7 @@ class DioClient implements IHttpService<dio.ResponseType, dio.Response, dio.Inte
 
   void disableDioStatus() {
     interceptors.removeWhere((element) => element is _DioStatus);
-    removeInterceptor(_DioStatus());
+    removeInterceptor(_DioStatus);
   }
 
   void enableDioStatus() {
@@ -69,15 +69,15 @@ class DioClient implements IHttpService<dio.ResponseType, dio.Response, dio.Inte
   }
 
   @override
-  bool removeInterceptor(dio.Interceptor element) {
-    interceptors.removeWhere((a) => element.runtimeType == a.runtimeType);
+  bool removeInterceptor(Type element) {
+    interceptors.removeWhere((a) => element == a.runtimeType);
     return true;
   }
 
   @override
   void addInterceptor(dio.Interceptor interceptor) {
     if (interceptors.contains(interceptor)) {
-      removeInterceptor(interceptor);
+      removeInterceptor(interceptor.runtimeType);
     }
 
     interceptors.add(interceptor);

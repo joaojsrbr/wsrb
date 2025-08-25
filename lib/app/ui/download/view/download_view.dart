@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -65,7 +65,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
   final Debouncer _debouncer = Debouncer(duration: const Duration(milliseconds: 150));
 
   final List<_FileData> _files = [];
-  late final BottomMenuController _bottomMenuController;
+  late final ValueNotifierList _valueNotifierList;
   late final LibraryController _libraryController;
   final List<String> _fileSelected = [];
 
@@ -75,7 +75,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
 
   @override
   void initState() {
-    _bottomMenuController = BottomMenuController(initialArgs: null);
+    _valueNotifierList = context.read<ValueNotifierList>();
     _downloadService = context.read<DownloadService>();
     _libraryController = context.read<LibraryController>();
     scheduleMicrotask(_onInit);
@@ -89,10 +89,32 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
       setState(() => _fileSelected.remove(id));
     }
 
-    if (_fileSelected.isNotEmpty) {
-      _bottomMenuController.open();
-    } else if (_fileSelected.isEmpty && _bottomMenuController.isOpen) {
-      _bottomMenuController.close();
+    if (_fileSelected.isNotEmpty && _valueNotifierList.isEmpty) {
+      _valueNotifierList.toggle(id);
+      context.showBottomNotification(
+        _DownloadBottomButtons(
+          onTap: () async {
+            final allSelected = _files.where(
+              (file) => _fileSelected.contains(file.file.path),
+            );
+
+            for (final file in allSelected) {
+              await file.file.delete();
+            }
+
+            setStateIfMounted(_fileSelected.clear);
+          },
+        ),
+        height: 52,
+        showCountdown: true,
+        duration: Duration(seconds: 20),
+      );
+    } else {
+      _valueNotifierList.toggle(id);
+      context.maintainOverlap(duration: Duration(seconds: 20));
+      if (_valueNotifierList.isEmpty) {
+        context.closeNotification();
+      }
     }
   }
 
@@ -192,195 +214,164 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
           await subscriptions.cancelAll();
           _onInit();
         },
-        child: BottomMenu(
-          bottomMenuController: _bottomMenuController,
-          buttons: (context) {
-            return OverflowBar(
-              spacing: 8,
-              textDirection: Directionality.of(context),
-              overflowAlignment: OverflowBarAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: () async {
-                    final allSelected = _files.where(
-                      (file) => _fileSelected.contains(file.file.path),
-                    );
-
-                    for (final file in allSelected) {
-                      await file.file.delete();
-                    }
-
-                    _bottomMenuController.close();
-
-                    setStateIfMounted(_fileSelected.clear);
-                  },
-                  icon: Icon(MdiIcons.delete),
-                ),
-              ],
-            );
-          },
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (_isLoading)
-                const Align(
-                  alignment: Alignment.topCenter,
-                  child: LinearProgressIndicator(minHeight: 2),
-                )
-              else
-                const Align(alignment: Alignment.topCenter, child: Divider(height: 2)),
-              Builder(
-                builder: (context) {
-                  return ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(
-                      parent: BouncingScrollPhysics(),
-                    ),
-                    padding: const EdgeInsets.only(top: 8, right: 8, left: 8),
-                    itemCount: _files.isNotEmpty ? _files.length : 1,
-                    itemBuilder: (context, index) {
-                      if (_files.isEmpty) {
-                        return const Align(
-                          alignment: Alignment.topCenter,
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 12),
-                            child: Text('Nenhum arquivo encontrado.'),
-                          ),
-                        );
-                      }
-
-                      final data = _files.elementAt(index);
-
-                      final selected = _fileSelected.contains(data.file.path);
-
-                      return Padding(
-                        padding: index != 0
-                            ? const EdgeInsets.only(top: 8)
-                            : EdgeInsets.zero,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 450),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8).add(
-                              selected ? BorderRadius.circular(2) : BorderRadius.zero,
-                            ),
-                            border: selected
-                                ? Border.all(color: Colors.white, width: 1.5)
-                                : null,
-                          ),
-                          child: Stack(
-                            children: [
-                              Card(
-                                child: Row(
-                                  children: [
-                                    SizedBox(
-                                      width: 100,
-                                      height: 90,
-                                      child: ClipRRect(
-                                        borderRadius: const BorderRadius.horizontal(
-                                          left: Radius.circular(8),
-                                        ),
-                                        child: data.imageThumbnail.isNotEmpty
-                                            ? _Image(path: data.imageThumbnail)
-                                            : DecoratedBox(
-                                                decoration: BoxDecoration(
-                                                  color: data.isVideo
-                                                      ? Colors.blue
-                                                      : Colors.orange,
-                                                ),
-                                                child: Center(
-                                                  child: Text(data.number.toString()),
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Flexible(
-                                      child: ListTile(
-                                        subtitle: Text('Episódio ${data.number}'),
-                                        title: Text(
-                                          data.title,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Positioned.fill(
-                                child: Material(
-                                  type: MaterialType.transparency,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(8),
-                                    onLongPress: selected
-                                        ? null
-                                        : () {
-                                            add(data.file.path);
-                                          },
-                                    onTap: _fileSelected.isNotEmpty
-                                        ? () {
-                                            add(data.file.path);
-                                          }
-                                        : () async {
-                                            final animeEntity = _libraryController
-                                                .repo
-                                                .entities
-                                                .firstWhereOrNull(
-                                                  (entity) => switch (entity) {
-                                                    AnimeEntity anime =>
-                                                      anime.title.toID.contains(
-                                                        data.title.toID,
-                                                      ),
-                                                    _ => false,
-                                                  },
-                                                );
-
-                                            if (animeEntity != null &&
-                                                animeEntity is AnimeEntity) {
-                                              final episode = animeEntity.episodes
-                                                  .firstWhere(
-                                                    (episode) =>
-                                                        episode.numberEpisode ==
-                                                        data.number,
-                                                  );
-
-                                              await context.push(
-                                                RouteName.PLAYER.route,
-                                                extra: PlayerArgs(
-                                                  getAnimeData: false,
-                                                  forceEnterFullScreen: true,
-                                                  startPossition:
-                                                      (episode
-                                                                  .getLastCurrentPosition()
-                                                                  ?.currentDuration ??
-                                                              0) >
-                                                          0
-                                                      ? episode.cdToDuration
-                                                      : null,
-                                                  episode: episode.toEpisode(
-                                                    animeEntity.isDublado,
-                                                  ),
-                                                  anime: animeEntity.toAnime(),
-                                                  data: [
-                                                    FileVideoData(
-                                                      file: File(data.file.path),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            }
-                                          },
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (_isLoading)
+              const Align(
+                alignment: Alignment.topCenter,
+                child: LinearProgressIndicator(minHeight: 2),
+              )
+            else
+              const Align(alignment: Alignment.topCenter, child: Divider(height: 2)),
+            Builder(
+              builder: (context) {
+                return ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  padding: const EdgeInsets.only(top: 8, right: 8, left: 8),
+                  itemCount: _files.isNotEmpty ? _files.length : 1,
+                  itemBuilder: (context, index) {
+                    if (_files.isEmpty) {
+                      return const Align(
+                        alignment: Alignment.topCenter,
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 12),
+                          child: Text('Nenhum arquivo encontrado.'),
                         ),
                       );
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
+                    }
+
+                    final data = _files.elementAt(index);
+
+                    final selected = _fileSelected.contains(data.file.path);
+
+                    return Padding(
+                      padding: index != 0
+                          ? const EdgeInsets.only(top: 8)
+                          : EdgeInsets.zero,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 450),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(
+                            8,
+                          ).add(selected ? BorderRadius.circular(2) : BorderRadius.zero),
+                          border: selected
+                              ? Border.all(color: Colors.white, width: 1.5)
+                              : null,
+                        ),
+                        child: Stack(
+                          children: [
+                            Card(
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 100,
+                                    height: 90,
+                                    child: ClipRRect(
+                                      borderRadius: const BorderRadius.horizontal(
+                                        left: Radius.circular(8),
+                                      ),
+                                      child: data.imageThumbnail.isNotEmpty
+                                          ? _Image(path: data.imageThumbnail)
+                                          : DecoratedBox(
+                                              decoration: BoxDecoration(
+                                                color: data.isVideo
+                                                    ? Colors.blue
+                                                    : Colors.orange,
+                                              ),
+                                              child: Center(
+                                                child: Text(data.number.toString()),
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: ListTile(
+                                      subtitle: Text('Episódio ${data.number}'),
+                                      title: Text(
+                                        data.title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Positioned.fill(
+                              child: Material(
+                                type: MaterialType.transparency,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onLongPress: selected
+                                      ? null
+                                      : () {
+                                          add(data.file.path);
+                                        },
+                                  onTap: _fileSelected.isNotEmpty
+                                      ? () {
+                                          add(data.file.path);
+                                        }
+                                      : () async {
+                                          final animeEntity = _libraryController
+                                              .repo
+                                              .entities
+                                              .firstWhereOrNull(
+                                                (entity) => switch (entity) {
+                                                  AnimeEntity anime =>
+                                                    anime.title.toID.contains(
+                                                      data.title.toID,
+                                                    ),
+                                                  _ => false,
+                                                },
+                                              );
+
+                                          if (animeEntity != null &&
+                                              animeEntity is AnimeEntity) {
+                                            final episode = animeEntity.episodes
+                                                .firstWhere(
+                                                  (episode) =>
+                                                      episode.numberEpisode ==
+                                                      data.number,
+                                                );
+
+                                            await context.push(
+                                              RouteName.PLAYER.route,
+                                              extra: PlayerArgs(
+                                                forceEnterFullScreen: true,
+                                                startPossition:
+                                                    (episode.position?.currentDuration ??
+                                                            0) >
+                                                        0
+                                                    ? episode.cdToDuration
+                                                    : null,
+                                                episode: episode.toEpisode(
+                                                  animeEntity.isDublado,
+                                                ),
+                                                anime: animeEntity.toAnime(),
+                                                data: [
+                                                  FileVideoData(
+                                                    file: File(data.file.path),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }
+                                        },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -390,6 +381,41 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
   void dispose() {
     _debouncer.cancel();
     super.dispose();
+  }
+}
+
+class _DownloadBottomButtons extends StatefulWidget {
+  const _DownloadBottomButtons({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  State<_DownloadBottomButtons> createState() => DownloadoBottomButtonsState();
+}
+
+class DownloadoBottomButtonsState extends State<_DownloadBottomButtons> {
+  late final ValueNotifierList _valueNotifierList;
+
+  @override
+  void initState() {
+    _valueNotifierList = context.read<ValueNotifierList>();
+
+    super.initState();
+  }
+
+  @override
+  void deactivate() {
+    _valueNotifierList.clear(false);
+    super.deactivate();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return OverflowBar(
+      spacing: 8,
+      textDirection: Directionality.of(context),
+      overflowAlignment: OverflowBarAlignment.center,
+      children: [IconButton(onPressed: widget.onTap, icon: Icon(MdiIcons.delete))],
+    );
   }
 }
 

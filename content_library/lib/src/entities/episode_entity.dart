@@ -10,7 +10,7 @@ part 'episode_entity.g.dart';
 )
 class EpisodeEntity extends HistoricEntity {
   final String? sinopse;
-  final int? numberEpisode;
+  final int numberEpisode;
   @Index(replace: true, unique: true)
   final String stringID;
   final String animeStringID;
@@ -19,27 +19,20 @@ class EpisodeEntity extends HistoricEntity {
   final String? slugSerie;
   final String? generateID;
 
-  CurrentPosition? getLastCurrentPosition() {
-    return positions.reduceOrNull(
-      (position1, position2) =>
-          (position1.createdAt != null && position2.createdAt != null) &&
-              (position1.createdAt!.millisecond > position2.createdAt!.millisecond)
-          ? position1
-          : position2,
-    );
-  }
-
   @override
-  double get percent => getPercent();
-
-  @override
-  double getPercent() {
-    final percent = getLastCurrentPosition()?.percent;
+  double get percent {
+    final percent = position?.percent;
     return isComplete == true ? 1.0 : (percent?.isNaN == true ? 0.0 : percent) ?? 0.0;
   }
 
+  // @override
+  // double getPercent() {
+  //   final percent = getLastCurrentPosition()?.percent;
+  //   return isComplete == true ? 1.0 : (percent?.isNaN == true ? 0.0 : percent) ?? 0.0;
+  // }
+
   EpisodeEntity({
-    super.positions = const [],
+    super.position,
     required this.stringID,
     required super.title,
     required this.animeStringID,
@@ -65,6 +58,25 @@ class EpisodeEntity extends HistoricEntity {
     String? currentPositionBase64,
     EpisodeEntity? entity,
   }) {
+    CurrentPosition? cPosition;
+
+    final ePosition = duration != null && position != null;
+
+    if (entity?.position != null && ePosition) {
+      cPosition = entity!.position!.copyWith(
+        currentPositionBase64: currentPositionBase64,
+        episodeDuration: duration.inMicroseconds,
+        currentDuration: position.inMicroseconds,
+      );
+    } else if (ePosition) {
+      cPosition = CurrentPosition(
+        createdAt: DateTime.now(),
+        episodeDuration: duration.inMicroseconds,
+        currentPositionBase64: currentPositionBase64,
+        currentDuration: position.inMicroseconds,
+      );
+    }
+
     return EpisodeEntity(
       title: episode.title,
       registrationData: episode.registrationData ?? entity?.registrationData,
@@ -73,30 +85,20 @@ class EpisodeEntity extends HistoricEntity {
       slugSerie: episode.slugSerie,
       pageNumber: episode.pageNumber,
       url: episode.url,
-      positions: [
-        if (duration != null && position != null)
-          CurrentPosition(
-            createdAt: DateTime.now(),
-            episodeDuration: duration.inMicroseconds,
-            currentPositionBase64: currentPositionBase64,
-            currentDuration: position.inMicroseconds,
-          )
-        else
-          ...?entity?.positions,
-      ],
+      position: cPosition,
       thumbnail: episode.thumbnail,
       createdAt: entity?.createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),
       stringID: episode.stringID,
       isComplete: isComplete,
       sinopse: episode.sinopse,
-      numberEpisode: int.tryParse(episode.number),
+      numberEpisode: episode.numberEpisode ?? episode.numberInt,
     );
   }
 
   @override
   List<Object?> get props => [
-    positions,
+    position,
     thumbnail,
     animeStringID,
     pageNumber,
@@ -111,12 +113,8 @@ class EpisodeEntity extends HistoricEntity {
 
   @override
   int compareTo(HistoricEntity other) {
-    if (updatedAt != null && (other as EpisodeEntity).updatedAt != null) {
-      return other.updatedAt!.compareTo(updatedAt!);
-    } else if (updatedAt != null && (other as EpisodeEntity).updatedAt == null) {
-      return 1;
-    } else if (updatedAt == null && (other as EpisodeEntity).updatedAt != null) {
-      return 0;
+    if (other is EpisodeEntity) {
+      return other.numberEpisode.compareTo(numberEpisode);
     }
     return -1;
   }
@@ -138,7 +136,7 @@ class EpisodeEntity extends HistoricEntity {
 
   @override
   EpisodeEntity copyWith({
-    List<CurrentPosition>? positions,
+    CurrentPosition? position,
     bool? isComplete,
     String? sinopse,
     int? numberEpisode,
@@ -169,7 +167,7 @@ class EpisodeEntity extends HistoricEntity {
       generateID: generateID ?? this.generateID,
       url: url ?? this.url,
       title: title ?? this.title,
-      positions: positions ?? this.positions,
+      position: position,
     );
   }
 }
@@ -193,4 +191,19 @@ class CurrentPosition with EquatableMixin {
 
   @override
   List<Object?> get props => [currentPositionBase64, currentDuration];
+
+  CurrentPosition copyWith({
+    int? currentDuration,
+    int? episodeDuration,
+    String? currentPositionBase64,
+    DateTime? createdAt,
+    double? percent,
+  }) {
+    return CurrentPosition(
+      currentDuration: currentDuration ?? this.currentDuration,
+      episodeDuration: episodeDuration ?? this.episodeDuration,
+      currentPositionBase64: currentPositionBase64 ?? this.currentPositionBase64,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

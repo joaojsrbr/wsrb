@@ -1,5 +1,4 @@
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_network_image_cache.dart';
 import 'package:border_progress_indicator/border_progress_indicator.dart';
 import 'package:content_library/content_library.dart';
@@ -40,16 +39,23 @@ class ReleaseContent<T extends Release> extends StatelessWidget {
 
     final colorScheme = Theme.of(context).colorScheme;
 
+    final splashColor = colorScheme.primary.withAlpha(25);
+
     Widget container = ListTile(
       selected: selected,
       isThreeLine: false,
-      dense: true,
-      // isThreeLine: false,
+      dense: false,
+      onTap: onTap != null ? () => onTap?.call(release) : null,
+      selectedTileColor: splashColor,
+      onLongPress: () => onLongPress?.call(release),
+      hoverColor: splashColor,
+      focusColor: splashColor,
+      splashColor: splashColor,
       subtitle: _ReleaseSubtitle(release: release),
       horizontalTitleGap: 20,
       contentPadding: const EdgeInsets.only(left: 16.0, right: 8),
       trailing: trailing ?? ReleaseTrailing(content: content, release: release),
-      leading: leading ?? ReleaseLeading(content: content, release: release),
+      leading: leading ?? ReleaseLeading(width: 120, content: content, release: release),
       subtitleTextStyle: const TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w400,
@@ -63,26 +69,25 @@ class ReleaseContent<T extends Release> extends StatelessWidget {
         height: 1.3,
         overflow: TextOverflow.ellipsis,
       ),
-      // onTap: () => _listTitleOntap(context),
-      onTap: null,
       minVerticalPadding: 0,
       minTileHeight: 76,
-      visualDensity: const VisualDensity(vertical: 3, horizontal: -2),
-      title: Text('${release.number}. ${release.title}', maxLines: 2),
+      visualDensity: const VisualDensity(vertical: 4, horizontal: -2),
+      title: Text('${release.numberInt}. ${release.title}', maxLines: 2),
     );
 
     if (downloadInfo != null) {
       container = ChangeNotifierProvider.value(value: downloadInfo, child: container);
     }
 
-    return InkWell(
-      onTap: onTap != null ? () => onTap?.call(release) : null,
-      onDoubleTap: () => onDoubleTap?.call(release),
-      splashFactory: InkRipple.splashFactory,
-      onLongPress: () => onLongPress?.call(release),
-      overlayColor: _OverlayColor(colorScheme),
-      child: container,
-    );
+    return container;
+    // return InkWell(
+    //   onTap: onTap != null ? () => onTap?.call(release) : null,
+    //   onDoubleTap: () => onDoubleTap?.call(release),
+    //   splashFactory: InkRipple.splashFactory,
+    //   onLongPress: () => onLongPress?.call(release),
+    //   overlayColor: _OverlayColor(colorScheme),
+    //   child: container,
+    // );
   }
 }
 
@@ -124,10 +129,23 @@ class ReleaseLeading extends StatelessWidget {
     // A propriedade 'content' não estava sendo usada, mas a mantive.
     // Considere removê-la se não for necessária.
     required this.content,
+    this.onTap,
+    this.width = 110,
+    this.height = double.infinity,
+    this.shaderCallback,
+    this.blendMode = BlendMode.srcOver,
+    this.memCacheWidth,
+    this.memCacheHeight,
   });
-
+  final Shader Function(Rect)? shaderCallback;
+  final BlendMode blendMode;
   final Release release;
+  final VoidCallback? onTap;
   final Content content;
+  final double width;
+  final double height;
+  final int? memCacheWidth;
+  final int? memCacheHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -138,11 +156,11 @@ class ReleaseLeading extends StatelessWidget {
     final historicController = context.watch<HistoricController>();
     // final appConfigController = context.watch<AppConfigController>();
     final downloadInfo = context.watch<DownloadInfo?>();
-    final bottomMenuController = BottomMenu.menuControllerMaybeOf<List<String>>(context);
+    final valueNotifierList = context.watch<ValueNotifierList>();
 
     // Dados do Histórico
     final historic = historicController.repo.getHistoric(release: release);
-    final watchPercent = historic?.getPercent() ?? 0.0; // e.g., 0.75 for 75%
+    final watchPercent = historic?.percent ?? 0.0; // e.g., 0.75 for 75%
     final isWatched = historic?.isComplete == true;
 
     // Durações
@@ -150,7 +168,7 @@ class ReleaseLeading extends StatelessWidget {
     final episodeCurrentDuration = historic?.cdToDuration ?? Duration.zero;
 
     // Estado da UI
-    final selectedIDs = bottomMenuController?.args ?? const [];
+    final selectedIDs = valueNotifierList;
     final isSelected = selectedIDs.contains(release.stringID);
     final progressColor = isWatched ? colorScheme.primary : colorScheme.secondary;
     final showDurationLabel = episodeCurrentDuration != Duration.zero && watchPercent > 0;
@@ -158,13 +176,15 @@ class ReleaseLeading extends StatelessWidget {
     // --- 2. Construção do Widget ---
     return AnimatedContainer(
       duration: const Duration(milliseconds: 350),
-      width: 110,
-      height: double.infinity,
+      width: width,
+      height: height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
 
         // A borda de seleção é aplicada aqui.
-        border: isSelected ? Border.all(color: Colors.white) : null,
+        // border: isSelected
+        //     ? Border.all(color: Colors.white)
+        //     : Border.all(color: Colors.transparent),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
@@ -172,7 +192,22 @@ class ReleaseLeading extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             // Camada 1: Thumbnail ou Placeholder
-            BuildThumbnail(release: release),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final cacheSize = context.calculateImageCacheSizeByBoxConstraints(
+                  constraints: constraints,
+                  optimizeMemory: true,
+                );
+                return BuildThumbnail(
+                  release: release,
+                  // onTap: onTap,
+                  shaderCallback: shaderCallback,
+                  blendMode: blendMode,
+                  memCacheWidth: memCacheWidth ?? cacheSize.width.round(),
+                  memCacheHeight: memCacheHeight ?? cacheSize.height.round(),
+                );
+              },
+            ),
 
             // Camada 2: Indicador de Progresso de Visualização
             BuildWatchProgressIndicator(
@@ -185,6 +220,15 @@ class ReleaseLeading extends StatelessWidget {
             BuildDownloadProgressIndicator(
               downloadInfo: downloadInfo,
               progressColor: progressColor,
+            ),
+
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(8),
+                onLongPress: () {},
+              ),
             ),
 
             // Camada 4: Rótulo de Duração (se aplicável)
@@ -257,9 +301,22 @@ class BuildDownloadProgressIndicator extends StatelessWidget {
 }
 
 class BuildThumbnail extends StatelessWidget {
-  const BuildThumbnail({super.key, required this.release});
+  const BuildThumbnail({
+    super.key,
+    required this.release,
+    this.onTap,
+    this.shaderCallback,
+    this.blendMode = BlendMode.srcOver,
+    this.memCacheHeight,
+    this.memCacheWidth,
+  });
 
   final Release release;
+  final int? memCacheWidth;
+  final int? memCacheHeight;
+  final VoidCallback? onTap;
+  final Shader Function(Rect)? shaderCallback;
+  final BlendMode blendMode;
 
   @override
   Widget build(BuildContext context) {
@@ -267,8 +324,21 @@ class BuildThumbnail extends StatelessWidget {
 
     if (thumbnail == null) {
       // Retorna um placeholder se não houver thumbnail.
-      return Card.filled(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Card.filled(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(8),
+              onLongPress: () {},
+            ),
+          ),
+        ],
       );
     }
 
@@ -277,14 +347,12 @@ class BuildThumbnail extends StatelessWidget {
     return CustomCachedNetworkImage(
       imageUrl: thumbnail,
       borderRadius: BorderRadius.circular(8),
-      blendMode: BlendMode.srcOver,
-      memCacheWidth: 200,
-      memCacheHeight: 150,
-      shaderCallback: (bounds) => LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Colors.black.withAlpha(50), Colors.black.withAlpha(50)],
-      ).createShader(bounds),
+      height: double.infinity,
+      width: double.infinity,
+      memCacheWidth: memCacheWidth,
+      memCacheHeight: memCacheHeight,
+      fit: BoxFit.cover,
+      onTap: onTap,
     );
   }
 }
@@ -389,7 +457,7 @@ class ReleaseTrailing extends StatelessWidget {
           final confirm = await _showConfirmationDialog(
             context,
             title: 'Cancelar Download?',
-            content: 'Deseja cancelar o download do episódio ${release.number}?',
+            content: 'Deseja cancelar o download do episódio ${release.numberInt}?',
             confirmText: 'SIM, CANCELAR',
           );
           if (confirm && downloadInfo?.id != null && context.mounted) {
@@ -411,7 +479,7 @@ class ReleaseTrailing extends StatelessWidget {
           final confirm = await _showConfirmationDialog(
             context,
             title: 'Deletar Episódio?',
-            content: 'O arquivo baixado do episódio ${release.number} será removido.',
+            content: 'O arquivo baixado do episódio ${release.numberInt} será removido.',
             confirmText: 'DELETAR',
             isDestructive: true,
           );
@@ -426,7 +494,31 @@ class ReleaseTrailing extends StatelessWidget {
         key: const ValueKey('default'),
         padding: EdgeInsets.zero,
         icon: Icon(MdiIcons.downloadCircleOutline, size: 28),
-        onPressed: () => downloadRelease?.call(release),
+        onPressed: () {
+          // context.showAppSnackBar(
+          //   Center(child: Text("Iniciando Download")),
+          //   flushbarPosition: FlushbarPosition.TOP,
+          //   snackBarTheme: Theme.of(
+          //     context,
+          //   ).snackBarTheme.copyWith(backgroundColor: Colors.blue),
+          // );
+          // final service = context.read<NotificationService>();
+
+          // service.show(
+          //   color: Theme.of(context).colorScheme.primary.withAlpha(26),
+          //   content: Align(
+          //     alignment: Alignment.center,
+          //     child: Text(
+          //       "Iniciando Download",
+          //       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          //       maxLines: 2,
+          //       overflow: TextOverflow.ellipsis,
+          //     ),
+          //   ),
+          //   layoutType: NotificationLayoutType.inFlowTop,
+          // );
+          downloadRelease?.call(release);
+        },
       );
     }
   }
@@ -465,7 +557,7 @@ class _DownloadProgressIndicator extends StatelessWidget {
           CircularProgressIndicator.adaptive(
             value: percent / 100,
             strokeWidth: 3,
-            backgroundColor: Colors.grey.withOpacity(0.3),
+            backgroundColor: Colors.grey.withAlpha(76),
           ),
           Center(
             child: Text(
@@ -515,22 +607,22 @@ Future<bool> _showConfirmationDialog(
   return result ?? false;
 }
 
-class _OverlayColor extends WidgetStateProperty<Color?> {
-  _OverlayColor(ColorScheme colorScheme) {
-    _color = colorScheme.primary;
-  }
+// class _OverlayColor extends WidgetStateProperty<Color?> {
+//   _OverlayColor(ColorScheme colorScheme) {
+//     _color = colorScheme.primary;
+//   }
 
-  Color? _color;
+//   Color? _color;
 
-  @override
-  Color? resolve(Set<WidgetState> states) {
-    if (states.contains(WidgetState.pressed)) {
-      return _color?.withAlpha(36);
-    } else if (states.contains(WidgetState.hovered)) {
-      return _color?.withAlpha(20);
-    } else if (states.contains(WidgetState.focused)) {
-      return Colors.transparent;
-    }
-    return Colors.transparent;
-  }
-}
+//   @override
+//   Color? resolve(Set<WidgetState> states) {
+//     if (states.contains(WidgetState.pressed)) {
+//       return _color?.withAlpha(36);
+//     } else if (states.contains(WidgetState.hovered)) {
+//       return _color?.withAlpha(20);
+//     } else if (states.contains(WidgetState.focused)) {
+//       return Colors.transparent;
+//     }
+//     return Colors.transparent;
+//   }
+// }

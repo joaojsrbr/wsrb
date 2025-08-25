@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,30 +20,21 @@ class _WebViewPageState extends State<WebViewPage> with SingleTickerProviderStat
 
   String _title = '';
   double _progress = 0;
-  BetterAnimeChallenge? _betterAnimeChallenge;
 
   // late WebViewArguments _webViewArguments;
   bool? _isSecure;
   InAppWebViewController? _webViewController;
 
   @override
-  void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) => _onInit());
-    super.initState();
-  }
-
-  void _onInit() {
+  void didChangeDependencies() {
     final args = ModalRoute.of(context)!.settings.arguments;
 
     switch (args) {
       case String data:
         _url = data;
-      case BetterAnimeChallenge data:
-        _betterAnimeChallenge = data;
-        _url = data.url;
     }
 
-    setState(() {});
+    super.didChangeDependencies();
   }
 
   void _goBack(bool canGoBack) {
@@ -89,20 +79,8 @@ class _WebViewPageState extends State<WebViewPage> with SingleTickerProviderStat
     if (mounted) super.setState(fn);
   }
 
-  final CookieManager cookieManager = CookieManager.instance();
-
   @override
   Widget build(BuildContext context) {
-    // final url = ModalRoute.of(context)!.settings.arguments as String;
-    final args = ModalRoute.of(context)!.settings.arguments;
-
-    switch (args) {
-      case String data:
-        _url = data;
-      case BetterAnimeChallenge data:
-        _betterAnimeChallenge = data;
-        _url = data.url;
-    }
     final sizeOf = MediaQuery.sizeOf(context);
     return Scaffold(
       appBar: _AppBarWrapper(
@@ -213,35 +191,6 @@ class _WebViewPageState extends State<WebViewPage> with SingleTickerProviderStat
 
             shouldOverrideUrlLoading: (controller, navigationAction) async {
               final url = navigationAction.request.url;
-
-              if (_betterAnimeChallenge != null) {
-                if (navigationAction.request.url != null) {
-                  List<Cookie> cookies = await cookieManager.getCookies(
-                    url: WebUri.uri(Uri.parse("https://betteranime.net")),
-                  );
-
-                  if (cookies.isNotEmpty) {
-                    final list = cookies.map((cookie) {
-                      final key = cookie.name;
-                      final value = cookie.value;
-                      final expiresDate = cookie.expiresDate;
-                      return ContentCookie(
-                        key: key.replaceAll('"', ''),
-                        value: value.replaceAll('"', ''),
-                        expiresDate: expiresDate,
-                      );
-                    }).toList();
-                    _betterAnimeChallenge?.onSolve(list);
-                    ifMounted(() {
-                      Navigator.pop(context);
-                    });
-                  }
-                }
-
-                if (url.toString().contains("ak.amskiploomr.com")) {
-                  return NavigationActionPolicy.CANCEL;
-                }
-              }
 
               if (navigationAction.isForMainFrame &&
                   url != null &&

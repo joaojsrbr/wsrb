@@ -60,7 +60,7 @@ class InHistoricRepository extends InRepository<HistoricEntity> {
       ChapterEntity c => c.stringID == release?.stringID,
       EpisodeEntity ep =>
         ep.stringID == release?.stringID &&
-            int.tryParse(release?.number ?? '') == ep.numberEpisode &&
+            release?.numberEpisode == ep.numberEpisode &&
             (content == null || ep.animeStringID.contains(content.stringID)),
       _ => false,
     };

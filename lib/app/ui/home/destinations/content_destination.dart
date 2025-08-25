@@ -1,9 +1,8 @@
-import 'package:app_wsrb_jsr/app/routes/routes.dart';
 import 'package:app_wsrb_jsr/app/ui/home/widgets/content_indicator_build.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/highlight.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class ContentDestination extends StatefulWidget {
@@ -17,21 +16,15 @@ class _ContentDestinationState extends State<ContentDestination>
     with AutomaticKeepAliveClientMixin {
   late final ContentRepository _contentRepository;
 
+  late final TextEditingController _editingController;
+  final Debouncer cookieDebouncer = Debouncer(duration: Duration(seconds: 1));
+
   @override
   void initState() {
     super.initState();
+    _editingController = TextEditingController();
     _contentRepository = context.read<ContentRepository>();
     _contentRepository.refresh(true);
-    _contentRepository.contentChallenge.addListener(_contentChallengeListener);
-  }
-
-  void _contentChallengeListener() async {
-    final value = _contentRepository.contentChallenge.value;
-    switch (value) {
-      case BetterAnimeChallenge data:
-        await context.push(RouteName.WEBVIEW.route, extra: data);
-      default:
-    }
   }
 
   @override
@@ -45,7 +38,7 @@ class _ContentDestinationState extends State<ContentDestination>
     return LoadingMoreList(
       ListConfig<Content>(
         shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         padding: const EdgeInsets.symmetric(vertical: 6),
         indicatorBuilder: contentIndicatorBuilder,
         itemBuilder: _itemBuilder,
@@ -58,6 +51,14 @@ class _ContentDestinationState extends State<ContentDestination>
     final lastOrNull = _contentRepository.totalPerPage.lastOrNull;
 
     final isNewPageHeader = lastOrNull != null && lastOrNull == index;
+
+    final contentWidget = CustomValueChangeHighlight(
+      value: content.stringID,
+      child: ContentTile.list(
+        content: content,
+        padding: isNewPageHeader ? EdgeInsets.zero : const EdgeInsets.only(bottom: 4),
+      ),
+    );
 
     if (isNewPageHeader) {
       final style = Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -81,20 +82,18 @@ class _ContentDestinationState extends State<ContentDestination>
             ),
           ),
           const SizedBox(height: 12),
-          ContentTile.list(content: content, padding: const EdgeInsets.only(bottom: 4)),
+          contentWidget,
         ],
       );
     }
 
-    return ContentTile.list(
-      content: content,
-      padding: isNewPageHeader ? EdgeInsets.zero : const EdgeInsets.only(bottom: 4),
-    );
+    return contentWidget;
   }
 
   @override
   void dispose() {
-    _contentRepository.contentChallenge.removeListener(_contentChallengeListener);
+    _editingController.dispose();
+    cookieDebouncer.cancel();
     super.dispose();
   }
 }

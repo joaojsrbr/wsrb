@@ -3,36 +3,39 @@ import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
-  FiltroBottomSheetRoute({
-    required this.appConfigController,
-    required this.bottomSheetAnimationController,
-    this.onlyFavorites = false,
-  });
-
-  final bool onlyFavorites;
-  final AnimationController bottomSheetAnimationController;
-  final AppConfigController appConfigController;
+class FiltroBottomSheet extends StatefulWidget {
+  const FiltroBottomSheet({super.key});
 
   @override
-  Color? get barrierColor => Colors.black26;
-  // @override
-  // Color? get barrierColor => Colors.transparent;
+  State<FiltroBottomSheet> createState() => FiltroBottomSheetState();
+
+  static FiltroBottomSheetState of(BuildContext context) =>
+      context.findAncestorStateOfType<FiltroBottomSheetState>()!;
+}
+
+class FiltroBottomSheetState extends State<FiltroBottomSheet> {
+  late final AppConfigController _appConfigController;
+  late FilterWatching _newFilterWatching;
+  bool _onlyFavorites = false;
 
   @override
-  bool get barrierDismissible => true;
+  void initState() {
+    _appConfigController = context.read<AppConfigController>();
+    _newFilterWatching = _appConfigController.config.filterWatching;
+    super.initState();
+  }
 
   @override
-  bool get opaque => false;
+  void didChangeDependencies() {
+    final args = ModalRoute.of(context)?.settings.arguments;
 
-  @override
-  String? get barrierLabel => 'Dismiss';
+    _onlyFavorites = args != null;
 
-  @override
-  bool didPop(FilterWatching? result) => super.didPop(newFilterWatching);
+    super.didChangeDependencies();
+  }
 
   void _handleFiltroDeDias(DateTime? start, DateTime? end, bool dataInfinita) {
-    newFilterWatching = newFilterWatching.copyWith(
+    _newFilterWatching = _newFilterWatching.copyWith(
       start: start,
       end: end,
       infiniteDate: dataInfinita,
@@ -41,7 +44,7 @@ class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
   }
 
   void _handleLimparFiltroDeDias() {
-    newFilterWatching = newFilterWatching.copyWith(
+    _newFilterWatching = _newFilterWatching.copyWith(
       start: DateTime(0),
       end: DateTime(0),
       infiniteDate: false,
@@ -50,156 +53,156 @@ class FiltroBottomSheetRoute extends PopupRoute<FilterWatching> {
   }
 
   void _handleGenresFilterChipSelector(List<String> data) {
-    newFilterWatching = newFilterWatching.copyWith(genresFilter: data);
+    _newFilterWatching = _newFilterWatching.copyWith(genresFilter: data);
     _updateFilter();
   }
 
   void _handleSourceFilterChipSelector(List<Source> data) {
     if (data.isNotEmpty) {
-      newFilterWatching = newFilterWatching.copyWith(filterSources: data);
+      _newFilterWatching = _newFilterWatching.copyWith(filterSources: data);
     } else {
-      newFilterWatching = newFilterWatching.copyWith(filterSources: []);
+      _newFilterWatching = _newFilterWatching.copyWith(filterSources: []);
     }
     _updateFilter();
   }
 
   void _updateFilter() {
-    appConfigController.setFilterWatching(newFilterWatching);
-    newFilterWatching = appConfigController.config.filterWatching;
+    _appConfigController.setFilterWatching(_newFilterWatching);
+    _newFilterWatching = _appConfigController.config.filterWatching;
   }
 
-  late FilterWatching newFilterWatching = appConfigController.config.filterWatching;
+  @override
+  Widget build(BuildContext context) {
+    final titleStyle = Theme.of(context).textTheme.titleMedium;
+    final shape = context.findAncestorWidgetOfExactType<Material>()?.shape;
+
+    return DefaultTabController(
+      length: 2,
+      child: Material(
+        shape: shape,
+        child: Column(
+          mainAxisSize: MainAxisSize.min, // <-- Isso permite altura dinâmica
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              child: TabBar(
+                tabs: [
+                  Tab(height: 52, child: Text("Geral", style: titleStyle)),
+                  Tab(height: 52, child: Text("test", style: titleStyle)),
+                ],
+              ),
+            ),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _Page1(),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Page1 extends StatelessWidget {
+  const _Page1();
 
   @override
-  Duration get transitionDuration => Duration(milliseconds: 300);
+  Widget build(BuildContext context) {
+    final state = FiltroBottomSheet.of(context);
+    final onlyFavorites = state._onlyFavorites;
+    final handleFiltroDeDias = state._handleFiltroDeDias;
+    final handleLimparFiltroDeDias = state._handleLimparFiltroDeDias;
+    final newFilterWatching = state._newFilterWatching;
+    final appConfigController = state._appConfigController;
+    final handleSourceFilterChipSelector = state._handleSourceFilterChipSelector;
+    final handleGenresFilterChipSelector = state._handleGenresFilterChipSelector;
 
-  @override
-  Widget buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
-    final appConfigController = context.watch<AppConfigController>();
     final libraryController = context.watch<LibraryController>();
 
     final libraRepo = libraryController.repo;
     final entities = onlyFavorites ? libraRepo.favorites : libraRepo.noFavorites;
 
-    final titleStyle = Theme.of(context).textTheme.titleMedium;
     final genres = entities
         .map((content) => content.anilistMedia?.genres)
         .nonNulls
         .flattened
         .toList();
-    final filterWatching = appConfigController.config.filterWatching;
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return DraggableScrollableSheet(
-          // showDragHandle: true,
-          maxChildSize: 0.9,
-          minChildSize: 0.4,
-          initialChildSize: 0.6,
-          // animationController: bottomSheetAnimationController,
-          // onClosing: () => Navigator.pop(context),
-          builder: (context, controller) {
-            return Material(
-              child: SingleChildScrollView(
-                controller: controller,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        BackButton(),
-                        Center(child: Text("Filtro", style: titleStyle)),
-                      ],
-                    ),
-                    Divider(),
-                    FiltroDiasComInfinito(
-                      onChanged: _handleFiltroDeDias,
-                      onClear: _handleLimparFiltroDeDias,
-                      isInfinite: filterWatching.infiniteDate,
-                      current: filterWatching.end != null
-                          ? DateTimeRange(
-                              start:
-                                  filterWatching.start ??
-                                  DateTime(DateTime.now().year, DateTime.january, 1),
-                              end: filterWatching.end ?? DateTime.now(),
-                            )
-                          : null,
-                    ),
-                    FilterChipSelector(
-                      limpar: RawChip(
-                        onPressed: () {
-                          appConfigController.setFilterWatching(
-                            filterWatching.copyWith(
-                              filterSources: filterWatching.filterSources.isEmpty
-                                  ? Source.values
-                                  : [],
-                            ),
-                          );
-                        },
-                        label: filterWatching.filterSources.isEmpty
-                            ? const Text("Reset")
-                            : const Text("Limpar"),
-                        padding: EdgeInsets.zero,
-                      ),
-                      title: "Fonte",
-                      initialSelected: filterWatching.filterSources,
-                      filter: Source.list,
-                      filterToString: (data) => data.label,
-                      onChanged: _handleSourceFilterChipSelector,
-                    ),
-                    if (genres.isNotEmpty)
-                      FilterChipSelector(
-                        limpar: filterWatching.genresFilter.isEmpty
-                            ? const SizedBox.shrink()
-                            : RawChip(
-                                isEnabled: filterWatching.genresFilter.isNotEmpty,
-                                onPressed: () {
-                                  // newFilterWatching = newFilterWatching.copyWith(genresFilter: );
-                                  appConfigController.setFilterWatching(
-                                    // filterWatching.copyWith(
-                                    //   genresFilter: filterWatching.genresFilter.isEmpty ? genres.unique() : [],
-                                    // ),
-                                    filterWatching.copyWith(genresFilter: []),
-                                  );
-                                },
-                                label: const Text("Limpar"),
-                                padding: EdgeInsets.zero,
-                              ),
-                        title: "Generos",
-                        filterToString: (data) => data,
-                        filter: genres.unique(),
-                        initialSelected: filterWatching.genresFilter,
-                        onChanged: _handleGenresFilterChipSelector,
-                      ),
-                  ],
-                ),
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        customLog(constraints);
+        return Padding(
+          padding: const EdgeInsets.only(right: 4.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              FiltroDiasComInfinito(
+                onChanged: handleFiltroDeDias,
+                onClear: handleLimparFiltroDeDias,
+                isInfinite: newFilterWatching.infiniteDate,
+                current: newFilterWatching.end != null
+                    ? DateTimeRange(
+                        start:
+                            newFilterWatching.start ??
+                            DateTime(DateTime.now().year, DateTime.january, 1),
+                        end: newFilterWatching.end ?? DateTime.now(),
+                      )
+                    : null,
               ),
-            );
-          },
+              FilterChipSelector(
+                limpar: RawChip(
+                  onPressed: () {
+                    appConfigController.setFilterWatching(
+                      newFilterWatching.copyWith(
+                        filterSources: newFilterWatching.filterSources.isEmpty
+                            ? Source.values
+                            : [],
+                      ),
+                    );
+                  },
+                  label: newFilterWatching.filterSources.isEmpty
+                      ? const Text("Reset")
+                      : const Text("Limpar"),
+                  padding: EdgeInsets.zero,
+                ),
+                title: "Fonte",
+                initialSelected: newFilterWatching.filterSources,
+                filter: Source.list,
+                filterToString: (data) => data.label,
+                onChanged: handleSourceFilterChipSelector,
+              ),
+              if (genres.isNotEmpty)
+                FilterChipSelector(
+                  limpar: newFilterWatching.genresFilter.isEmpty
+                      ? const SizedBox.shrink()
+                      : RawChip(
+                          isEnabled: newFilterWatching.genresFilter.isNotEmpty,
+                          onPressed: () {
+                            appConfigController.setFilterWatching(
+                              newFilterWatching.copyWith(genresFilter: []),
+                            );
+                          },
+                          label: const Text("Limpar"),
+                          padding: EdgeInsets.zero,
+                        ),
+                  title: "Generos",
+                  filterToString: (data) => data,
+                  filter: genres.unique(),
+                  initialSelected: newFilterWatching.genresFilter,
+                  onChanged: handleGenresFilterChipSelector,
+                ),
+            ],
+          ),
         );
       },
-    );
-  }
-
-  @override
-  Widget buildTransitions(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) {
-    // Animação de deslizar de baixo para cima
-    return SlideTransition(
-      position: Tween<Offset>(
-        begin: Offset(0, 1),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
-      child: child,
     );
   }
 }
@@ -222,10 +225,10 @@ class FilterChipSelector<T> extends StatefulWidget {
   final ValueChanged<List<T>>? onChanged;
 
   @override
-  State<FilterChipSelector<T>> createState() => FiltereChipSelectorState<T>();
+  State<FilterChipSelector<T>> createState() => _FiltereChipSelectorState<T>();
 }
 
-class FiltereChipSelectorState<T> extends State<FilterChipSelector<T>> {
+class _FiltereChipSelectorState<T> extends State<FilterChipSelector<T>> {
   late List<T> _selected;
 
   @override

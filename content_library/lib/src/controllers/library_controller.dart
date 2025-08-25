@@ -118,23 +118,9 @@ class LibraryController extends ChangeNotifier {
   Future<Result<(bool, List<int>?)>> addAll({
     required List<ContentEntity> contentEntities,
   }) async {
-    bool isSucess = false;
-    final List<int> ids = [];
-
     final entities = contentEntities.nonNulls.cast<ContentEntity>().toList();
 
-    // entities.forEach(_setDateTime);
-
-    final result = await _isarService.addAll(entities: entities);
-
-    result.fold(
-      onSuccess: (data) {
-        if (data.$2 != null) ids.addAll(data.$2!);
-        if (data.$1) isSucess = data.$1;
-      },
-    );
-
-    return Result.success((isSucess, ids));
+    return await _isarService.addAll(entities: entities);
   }
 
   Future<Result<(bool, List<int>?)>> removeAll({

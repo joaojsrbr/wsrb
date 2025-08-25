@@ -1,6 +1,7 @@
 library;
 
 export 'package:anilist_dart/anilist.dart';
+export 'package:better_scraper/better_scraper.dart';
 export 'package:collection/collection.dart';
 export 'package:connectivity_plus/connectivity_plus.dart';
 export 'package:content_library/src/repository/anime_skip_imp.dart';
@@ -8,6 +9,7 @@ export 'package:content_library/src/services/graphql_api_client.dart';
 export 'package:dio/dio.dart';
 export 'package:loading_more_list/loading_more_list.dart';
 export 'package:path_provider/path_provider.dart';
+export 'package:workmanager/workmanager.dart';
 
 export 'src/constants/app.dart';
 export 'src/constants/order.dart';
@@ -41,12 +43,12 @@ export 'src/models/anime_skip.dart';
 export 'src/models/book.dart';
 export 'src/models/chapter.dart';
 export 'src/models/content.dart';
+export 'src/models/content_historic_group.dart';
 export 'src/models/data.dart';
 export 'src/models/episode.dart';
 export 'src/models/genre.dart';
 export 'src/models/release.dart';
-export 'src/repository/content_repository.dart'
-    show ContentRepository, NoChallenge, ContentChallenge, BetterAnimeChallenge;
+export 'src/repository/content_repository.dart' show ContentRepository;
 export 'src/services/anroll_login_service.dart';
 export 'src/services/category_controller.dart';
 export 'src/services/dio_client.dart';

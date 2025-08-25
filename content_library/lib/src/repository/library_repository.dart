@@ -118,17 +118,13 @@ class InLibraryRepository extends InRepository<ContentEntity> {
         .where(
           (content) => switch (content) {
             AnimeEntity data when favoritesIDS.contains(data.stringID) && noCategory =>
-              !categoryController.categories.any(
-                (element) => element.ids.contains(data.stringID),
-              ),
-            BookEntity data when favoritesIDS.contains(data.stringID) && noCategory =>
-              !categoryController.categories.any(
-                (element) => element.ids.contains(data.stringID),
-              ),
+              true,
             AnimeEntity data when favoritesIDS.contains(data.stringID) && !noCategory =>
               categoryController.categories.any(
                 (element) => element.ids.contains(data.stringID),
               ),
+            BookEntity data when favoritesIDS.contains(data.stringID) && noCategory =>
+              true,
             BookEntity data when favoritesIDS.contains(data.stringID) && !noCategory =>
               categoryController.categories.any(
                 (element) => element.ids.contains(data.stringID),
@@ -181,12 +177,8 @@ class InLibraryRepository extends InRepository<ContentEntity> {
     return favoritesIDS.contains(contentEntity?.stringID ?? content?.stringID ?? "");
   }
 
-  String? _map(ContentEntity contentEntity) {
-    return switch (contentEntity) {
-      AnimeEntity data => data.stringID,
-      BookEntity data => data.stringID,
-      _ => null,
-    };
+  String _map(ContentEntity contentEntity) {
+    return contentEntity.stringID;
   }
 
   String? _map2(ContentEntity contentEntity) {

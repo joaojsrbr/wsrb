@@ -17,6 +17,14 @@ extension StringExtensions on String {
     return list.reduce((value, element) => '$value$element');
   }
 
+  Color toColor() {
+    String hex = replaceAll('#', '');
+    if (hex.length == 6) {
+      hex = 'FF$hex'; // Adiciona opacidade total se não for especificada
+    }
+    return Color(int.parse(hex, radix: 16));
+  }
+
   String get toID => slugify(trim(), delimiter: '_');
 
   String get toUuID => const Uuid().v5(Namespace.url.value, trim());

@@ -1,4 +1,5 @@
 import 'package:app_wsrb_jsr/app/routes/routes.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,10 +11,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     debugInvertOversizedImages = true;
-
+    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
     );
+
     customLog('$this[build]');
 
     final light = ColorScheme.fromSeed(
@@ -30,11 +32,13 @@ class MyApp extends StatelessWidget {
         colorScheme: light,
         cardTheme: CardThemeData(margin: EdgeInsets.zero),
         splashFactory: InkRipple.splashFactory,
+        useSystemColors: true,
       ),
       darkTheme: ThemeData(
         colorScheme: dark,
         splashFactory: InkRipple.splashFactory,
         cardTheme: CardThemeData(margin: EdgeInsets.zero),
+        useSystemColors: true,
       ),
       themeMode: ThemeMode.system,
       supportedLocales: const [Locale('pt')],
@@ -43,6 +47,7 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      builder: (context, child) => AppNotificationOverlay(child: child!),
       debugShowCheckedModeBanner: false,
       routerDelegate: appRoutes.routerDelegate,
       routeInformationParser: appRoutes.routeInformationParser,

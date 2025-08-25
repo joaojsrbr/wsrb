@@ -2,7 +2,6 @@
 
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
@@ -22,8 +21,7 @@ class ReadingView extends StatefulWidget {
   State<ReadingView> createState() => _ReadingViewState();
 }
 
-class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
-    with _ReadingVars, _ReadingScroll {
+class _ReadingViewState extends State<ReadingView> with _ReadingVars, _ReadingScroll {
   late final BoxScrollObserver<RenderObject> _observer;
 
   @override
@@ -169,7 +167,7 @@ class _ReadingViewState extends StateByArgument<ReadingView, ReadingViewArgs>
   }
 
   @override
-  Widget buildByArgument(BuildContext context, ReadingViewArgs argument) {
+  Widget build(BuildContext context) {
     return ReadingScope(
       observer: _observer,
       showFooterWidget: _showFooterWidget,

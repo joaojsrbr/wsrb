@@ -56,5 +56,5 @@ abstract interface class IHttpService<IResponseType, IResponse, IE> {
   });
 
   void addInterceptor(IE element);
-  bool removeInterceptor(IE element);
+  bool removeInterceptor(Type element);
 }

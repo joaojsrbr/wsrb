@@ -22,6 +22,17 @@ class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
     ).toList();
   }
 
+  void addOrUpdateMany(Iterable<T> items, bool Function(T existing, T newItem) isSame) {
+    for (final item in items) {
+      final index = indexWhere((e) => isSame(e, item));
+      if (index != -1) {
+        this[index] = item;
+      } else {
+        add(item);
+      }
+    }
+  }
+
   final List<T> _array = [];
 
   List<Releases> partition(int size) {
@@ -38,7 +49,7 @@ class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
 
   @override
   void sort([int Function(T a, T b)? compare]) {
-    _array.sort((release1, release2) => release1.compareTo(release2));
+    _array.sort(compare);
   }
 
   @override

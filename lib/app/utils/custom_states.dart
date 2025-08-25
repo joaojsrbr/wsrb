@@ -1,40 +1,6 @@
 import 'dart:async';
 
-import 'package:content_library/content_library.dart';
 import 'package:flutter/widgets.dart';
-
-abstract class StateByArgument<T extends StatefulWidget, A extends Object>
-    extends State<T> {
-  @override
-  Widget build(BuildContext context) {
-    final argument = parse(ModalRoute.of(context)?.settings.arguments);
-
-    assert(argument is A);
-    return buildByArgument(context, argument as A);
-  }
-
-  Object parse(Object? argument) => argument as A;
-
-  A argument() {
-    Object? argument;
-    if (!mounted) {
-      addPostFrameCallback((data) {
-        argument = parse(ModalRoute.of(context)?.settings.arguments);
-      });
-    } else {
-      argument = parse(ModalRoute.of(context)?.settings.arguments);
-    }
-
-    bool checksArguments() {
-      return argument is A;
-    }
-
-    assert(checksArguments(), "o argumento não é do tipo ${A.runtimeType}");
-    return argument as A;
-  }
-
-  Widget buildByArgument(BuildContext context, A argument);
-}
 
 abstract class CustomOverlayState<T extends StatefulWidget> extends State<T>
     with SingleTickerProviderStateMixin<T> {

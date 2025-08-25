@@ -4,7 +4,7 @@ import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_inform
 import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_network_image_cache.dart';
-import 'package:app_wsrb_jsr/app/utils/app_snack_bar.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -79,9 +79,6 @@ class ContentTile extends StatelessWidget {
     final isSelected = valueNotifierList.contains(content.stringID);
     final headers = {...App.HEADERS, 'Referer': '${appConfig.config.source.baseURL}/'};
 
-    int cacheWidth = isFromLibrary ? 200 : 200;
-    int cacheHeight = isFromLibrary ? 250 : 150;
-
     if (isListTile) {
       return InkWell(
         onLongPress: valueNotifierList.isEmpty
@@ -110,14 +107,14 @@ class ContentTile extends StatelessWidget {
               extra: ContentInformationArgs(content: content, isLibrary: isFromLibrary),
             );
             if (result != null && context.mounted) {
-              await context.showErrorSnackBar(result);
+              context.showErrorNotification(result.toString());
             }
           }
         },
         splashFactory: InkRipple.splashFactory,
         overlayColor: WidgetStatePropertyAll(theme.colorScheme.primary.withAlpha(36)),
         child: ListTile(
-          selectedTileColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+          selectedTileColor: Theme.of(context).colorScheme.primary.withAlpha(25),
           contentPadding: EdgeInsets.symmetric(horizontal: 16.0).add(padding),
           selected: isSelected,
           title: Text(
@@ -128,59 +125,54 @@ class ContentTile extends StatelessWidget {
           ),
           subtitle: content is Anime
               ? Text(
-                  'Episódio ${content.releases.last.number} - ${content.releases.last.isDublado ? "DUB" : "LEG"}',
+                  '${content.releases.last.getEpisodeTitle()} - ${content.releases.last.isDublado ? "DUB" : "LEG"}',
                 )
               : null,
           leading: Container(
             width: 100,
-            margin: const EdgeInsets.symmetric(vertical: 3),
-            child: ClipRRect(
-              borderRadius: _radius,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CustomCachedNetworkImage(
-                    imageUrl: content.imageUrl,
-                    fit: BoxFit.cover,
-                    height: height,
-                    width: double.infinity,
-                    onTap: () async {
-                      if (searchController?.isAttached == true &&
-                          searchController!.isOpen) {
-                        context.unFocusKeyBoard();
-                      }
-                      if (valueNotifierList.isNotEmpty) {
-                        valueNotifierList.toggle(content.stringID);
-                        return;
-                      }
-                      final result = await context.push(
-                        RouteName.CONTENTINFO.route,
-                        extra: ContentInformationArgs(
-                          content: content,
-                          isLibrary: isFromLibrary,
-                        ),
-                      );
-                      if (result != null && context.mounted) {
-                        await context.showErrorSnackBar(result);
-                      }
-                    },
-                    borderRadius: _radius,
-                    alignment: Alignment.center,
-                    memCacheHeight: cacheHeight,
-                    memCacheWidth: cacheWidth,
-                    httpHeaders: headers,
-                  ),
-                  // if (isSelected)
-                  //   Container(
-                  //     decoration: BoxDecoration(
-                  //       border: Border.all(color: Colors.white, width: 1.5),
-                  //       borderRadius: _radius,
-                  //     ),
-                  //   ),
-                ],
-              ),
+            margin: const EdgeInsets.symmetric(vertical: 2),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final cacheSize = context.calculateImageCacheSizeByBoxConstraints(
+                  constraints: constraints,
+                  optimizeMemory: true,
+                );
+
+                return CustomCachedNetworkImage(
+                  imageUrl: content.imageUrl,
+                  width: cacheSize.width,
+                  height: cacheSize.height,
+                  fit: BoxFit.cover,
+                  onTap: () async {
+                    if (searchController?.isAttached == true &&
+                        searchController!.isOpen) {
+                      context.unFocusKeyBoard();
+                    }
+                    if (valueNotifierList.isNotEmpty) {
+                      valueNotifierList.toggle(content.stringID);
+                      return;
+                    }
+                    final result = await context.push(
+                      RouteName.CONTENTINFO.route,
+                      extra: ContentInformationArgs(
+                        content: content,
+                        isLibrary: isFromLibrary,
+                      ),
+                    );
+                    if (result != null && context.mounted) {
+                      context.showErrorNotification(result.toString());
+                    }
+                  },
+                  borderRadius: _radius,
+                  alignment: Alignment.center,
+                  memCacheHeight: cacheSize.height.round(),
+                  memCacheWidth: cacheSize.width.round(),
+                  httpHeaders: headers,
+                );
+              },
             ),
           ),
+
           dense: true,
           minTileHeight: 68,
           minVerticalPadding: 0,
@@ -204,20 +196,29 @@ class ContentTile extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            CustomCachedNetworkImage(
-              imageUrl: content.imageUrl,
-              fit: BoxFit.cover,
-              borderRadius: _radius,
-              alignment: Alignment.center,
-              memCacheHeight: cacheHeight,
-              memCacheWidth: cacheWidth,
-              httpHeaders: headers,
-              shaderCallback: (bounds) => LinearGradient(
-                begin: Alignment.center,
-                end: Alignment.bottomCenter,
-                colors: [Colors.transparent, Colors.black54.withAlpha(140)],
-                stops: const [0.0, .9],
-              ).createShader(bounds),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final cacheSize = context.calculateImageCacheSizeByBoxConstraints(
+                  constraints: constraints,
+                  optimizeMemory: true,
+                );
+
+                return CustomCachedNetworkImage(
+                  imageUrl: content.imageUrl,
+                  fit: BoxFit.cover,
+                  borderRadius: _radius,
+                  alignment: Alignment.center,
+                  memCacheHeight: cacheSize.height.round(),
+                  memCacheWidth: cacheSize.width.round(),
+                  httpHeaders: headers,
+                  shaderCallback: (bounds) => LinearGradient(
+                    begin: Alignment.center,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.transparent, Colors.black54.withAlpha(140)],
+                    stops: const [0.0, .9],
+                  ).createShader(bounds),
+                );
+              },
             ),
             Positioned(
               bottom: 8,
@@ -232,7 +233,7 @@ class ContentTile extends StatelessWidget {
                         children: [
                           if (content.releases.length == 1) ...[
                             TextSpan(
-                              text: 'Episódio ${content.releases.first.number} - ',
+                              text: '${content.releases.first.getEpisodeTitle()} - ',
                             ),
                           ],
                           if (content is Anime)
@@ -287,7 +288,7 @@ class ContentTile extends StatelessWidget {
                       ),
                     );
                     if (result != null && context.mounted) {
-                      await context.showErrorSnackBar(result);
+                      context.showErrorNotification(result.toString());
                     }
                   }
                 },
@@ -310,7 +311,7 @@ class ContentTile extends StatelessWidget {
                             extra: ContentInformationArgs(content: content),
                           );
                           if (result != null && context.mounted) {
-                            await context.showErrorSnackBar(result);
+                            context.showErrorNotification(result.toString());
                           }
                         }
                       : null,

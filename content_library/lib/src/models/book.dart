@@ -47,12 +47,7 @@ class Book extends Content {
   @override
   String get imageUrl => extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
-  bool get searchNewImage {
-    if ([extraLarge, largeImage, mediumImage].contains(null)) {
-      return true;
-    }
-    return false;
-  }
+  bool get searchNewImage => [extraLarge, largeImage, mediumImage].contains(null);
 
   @override
   Book copyWith({

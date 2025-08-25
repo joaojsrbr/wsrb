@@ -13,7 +13,6 @@ class Chapter extends Release {
     required super.title,
   });
 
-  @override
   String get number {
     final rgx = RegExp(r'Cap.+[0-9].-');
     final rgx2 = RegExp(r'Cap.+[0-9]');

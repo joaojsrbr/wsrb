@@ -4,13 +4,14 @@ import 'dart:async';
 import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/content_page.dart';
 import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/bottom_menu.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
 import 'package:app_wsrb_jsr/app/utils/content_utils.dart';
 import 'package:app_wsrb_jsr/app/utils/download_release_helper.dart';
 import 'package:app_wsrb_jsr/app/utils/history_utils.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class RefContentInformationView extends StatefulWidget {
@@ -26,9 +27,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   late ContentInformationArgs _informationArgs;
 
   late final ContentRepository _repository;
-  late final BottomMenuController<List<String>> _bottomMenuController;
   late final LibraryController _libraryController;
-  late final HistoricController _historicController;
 
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
@@ -41,12 +40,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   @override
   void initState() {
     super.initState();
-    _bottomMenuController = BottomMenuController(
-      minHeight: 60,
-      initialArgs: [],
-      onClose: _bottomMenuController.args.clear,
-    );
-    _historicController = read<HistoricController>();
+
     _libraryController = read<LibraryController>();
     _repository = read<ContentRepository>();
     scheduleMicrotask(_onInit);
@@ -95,7 +89,9 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
 
   @override
   void setState(VoidCallback fn) {
-    if (mounted) super.setState(fn);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) super.setState(fn);
+    });
   }
 
   void _onSuccess(
@@ -104,8 +100,8 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
     bool forceSaveCache = false,
   ]) async {
     setState(() {
-      _content = data.copyWith(releases: _releases[_index], cached: true);
       _releases[_index] = data.releases;
+      _content = data.copyWith(releases: _releases[_index], cached: true);
       _releasesIsLoading = false;
       _isLoading = false;
     });
@@ -143,22 +139,22 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   }
 
   void _handleLongPressed(Release release) {
-    final data = _bottomMenuController.args;
-    if (data.contains(release.stringID)) {
-      data.remove(release.stringID);
-      _bottomMenuController.update();
+    final ValueNotifierList valueNotifierList = context.read<ValueNotifierList>();
+
+    if (valueNotifierList.isEmpty) {
+      valueNotifierList.toggle(release.stringID);
+      context.showBottomNotification(
+        _ContentInfoBottomButtons(context, _content, release),
+        height: 52,
+        showCountdown: true,
+        duration: Duration(seconds: 20),
+      );
     } else {
-      data.add(release.stringID);
-      _bottomMenuController.update();
-    }
-
-    if (data.isEmpty) {
-      data.clear();
-      _bottomMenuController.close();
-    }
-
-    if (data.isNotEmpty && !_bottomMenuController.isOpen) {
-      _bottomMenuController.open();
+      valueNotifierList.toggle(release.stringID);
+      context.maintainOverlap(duration: Duration(seconds: 20));
+      if (valueNotifierList.isEmpty) {
+        context.closeNotification();
+      }
     }
 
     // if (data.isNotEmpty) {
@@ -182,21 +178,25 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
 
   @override
   void didChangeDependencies() {
-    _informationArgs = _parseArguments();
-    _content = _informationArgs.content;
+    final args = _parseArguments();
+    if (args != null) {
+      _informationArgs = args;
+      _content = _informationArgs.content;
+    }
+
     super.didChangeDependencies();
   }
 
-  bool _assertCheckArgs(args) {
-    assert(args != null);
-    assert(args is ContentInformationArgs);
-    return true;
-  }
+  // bool _assertCheckArgs(args) {
+  //   assert(args != null);
+  //   assert(args is ContentInformationArgs);
+  //   return true;
+  // }
 
-  ContentInformationArgs _parseArguments() {
+  ContentInformationArgs? _parseArguments() {
     final args = ModalRoute.settingsOf(context)?.arguments;
-    assert(_assertCheckArgs(args));
-    return args as ContentInformationArgs;
+
+    return args as ContentInformationArgs?;
     // if (args is String) {
     //   return ContentInformationArgs.fromJson(args);
     // } else {
@@ -205,7 +205,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   }
 
   bool get noContent =>
-      (_content.sinopse ?? "").isEmpty &&
+      _content.sinopse.isEmpty &&
       _content.anilistMedia == null &&
       (_content.anilistMedia?.genres == null || _content.genres.isEmpty) &&
       _content.anilistMedia?.characters == null &&
@@ -224,141 +224,40 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
         .then(_handleResult);
   }
 
-  void _shareButton() async {
-    final args = _bottomMenuController.args;
-    final releases = _content.releases.where(
-      (release) => args.contains(release.stringID),
-    );
-    final release = releases.single;
-    final uri = Uri.parse(release.url);
-    _bottomMenuController.args.clear();
-    _bottomMenuController.close();
-    final result = await SharePlus.instance.share(ShareParams(uri: uri));
-
-    if (result.status == ShareResultStatus.success) {
-      customLog('Thank you for sharing my website!');
-    }
-  }
-
-  void _saveSelectEpisodeEntity() async {
-    if (_content case Anime data) {
-      final animeEntity = _libraryController.repo.getContentEntityByStringID(
-        data.stringID,
-        orElse: () => data.toEntity(createdAt: DateTime.now()),
-      );
-      if (animeEntity == null) return;
-      final args = _bottomMenuController.args;
-
-      final toEntities = data.releases.where((test) => args.contains(test.stringID)).map((
-        map,
-      ) {
-        final entity = _historicController.repo.getHistoric<EpisodeEntity>(
-          release: map,
-          orElse: () => map.toEntity(anime: data, createdAt: DateTime.now()),
-        );
-
-        return entity?.copyWith(isComplete: true, updatedAt: DateTime.now());
-      }).toList();
-
-      animeEntity.episodes.addAll(toEntities.nonNulls);
-
-      await _libraryController.add(contentEntity: animeEntity);
-      await _historicController.addAll(historyEntities: toEntities.nonNulls.toList());
-      _bottomMenuController.args.clear();
-      _bottomMenuController.close();
-    }
-  }
-
-  void _deleteSelectEpisodeEntity() async {
-    final args = _bottomMenuController.args;
-    if (_content case Anime _) {
-      final historicEntities = _historicController.repo.getAllByIDs(args);
-      // await _historicController.removeAll(historyEntities: historicEntities);
-      HistoryUtils.questionDelete(
-        context,
-        historicEntities,
-        onConfirmDelete: () {
-          _historicController.addAll(
-            historyEntities: historicEntities
-                .map(
-                  (entity) => entity.copyWith(positions: [], updatedAt: DateTime.now()),
-                )
-                .toList(),
-          );
-        },
-        onUndoDelete: (oldHistoric) {
-          _historicController.addAll(historyEntities: oldHistoric);
-        },
-      );
-      _bottomMenuController.args.clear();
-      _bottomMenuController.close();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     customLog('$widget[build]');
-
-    return ContentScope(
-      onLongPressed: _handleLongPressed,
-      setListIndex: _handleSetListIndex,
-      downloadRelease: _downloadRelease,
-      index: _index,
-      noContent: noContent,
-      informationArgs: _informationArgs,
-      isLoading: _isLoading,
-      releases: _releases,
-      content: _content,
-      releasesIsLoading: _releasesIsLoading,
-      child: Scaffold(
-        body: DefaultTabController(
-          length: 2,
-          child: BottomMenu(
-            isDismissible: false,
-            bottomMenuController: _bottomMenuController,
-            buttons: (context) {
-              final args = _bottomMenuController.args;
-              final releases = _content.releases.where(
-                (release) => args.contains(release.stringID),
-              );
-
-              final historicEntities = _historicController.repo.getAllByIDs(args);
-
-              return Align(
-                alignment: Alignment.centerLeft,
-                child: OverflowBar(
-                  spacing: 8,
-                  overflowAlignment: OverflowBarAlignment.center,
-                  children: [
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: releases.length > 1 ? null : _shareButton,
-                      icon: Icon(MdiIcons.share),
-                    ),
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: historicEntities.isNotEmpty
-                          ? null
-                          : _saveSelectEpisodeEntity,
-                      icon: Icon(MdiIcons.eyeCheck),
-                    ),
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: historicEntities.isEmpty
-                          ? null
-                          : _deleteSelectEpisodeEntity,
-                      icon: Icon(MdiIcons.eyeMinus),
-                    ),
-                  ],
-                ),
-              );
-            },
+    _content.anilistMedia;
+    return Theme(
+      data: Theme.of(context).copyWith(
+        colorScheme: _content.anilistMedia?.coverImage?.color != null
+            ? ColorScheme.fromSeed(
+                seedColor: _content.anilistMedia!.coverImage!.color!.toColor(),
+                brightness: Theme.of(context).brightness,
+              )
+            : null,
+      ),
+      child: ContentScope(
+        onLongPressed: _handleLongPressed,
+        setListIndex: _handleSetListIndex,
+        downloadRelease: _downloadRelease,
+        index: _index,
+        noContent: noContent,
+        informationArgs: _informationArgs,
+        isLoading: _isLoading,
+        releases: _releases,
+        content: _content,
+        releasesIsLoading: _releasesIsLoading,
+        child: Scaffold(
+          // extendBodyBehindAppBar: true,
+          // extendBody: true,
+          // primary: false,
+          extendBodyBehindAppBar: true,
+          body: DefaultTabController(
+            length: 2,
             child: RefreshIndicator.adaptive(
               notificationPredicate: (notification) {
-                if (notification is OverscrollNotification) {
-                  return notification.depth == 2;
-                }
-                return notification.depth == 0;
+                return notification.depth == 0 || notification.depth == 2;
               },
               onRefresh: _onRefresh,
               key: _refreshIndicatorKey,
@@ -382,5 +281,165 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
     }
 
     super.deactivate();
+  }
+}
+
+class _ContentInfoBottomButtons extends StatefulWidget {
+  const _ContentInfoBottomButtons(this.context, this.content, this.release);
+  final Content content;
+  final Release release;
+  final BuildContext context;
+
+  @override
+  State<_ContentInfoBottomButtons> createState() => _ContentInfoBottomButtonsState();
+}
+
+class _ContentInfoBottomButtonsState extends State<_ContentInfoBottomButtons> {
+  late final ValueNotifierList _valueNotifierList;
+
+  @override
+  void initState() {
+    _valueNotifierList = context.read<ValueNotifierList>();
+
+    super.initState();
+  }
+
+  @override
+  void deactivate() {
+    _valueNotifierList.clear(false);
+    super.deactivate();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ValueNotifierList valueNotifierList = context.watch<ValueNotifierList>();
+
+    final releases = widget.content.releases.where(
+      (release) => valueNotifierList.contains(release.stringID),
+    );
+
+    final historicController = context.watch<HistoricController>();
+
+    final isComplete = historicController.repo
+        .getAllByIDs(valueNotifierList)
+        .any((entity) => entity.isComplete);
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 8.0),
+      child: OverflowBar(
+        spacing: 8,
+        alignment: MainAxisAlignment.start,
+        overflowAlignment: OverflowBarAlignment.center,
+        children: [
+          IconButton(
+            padding: EdgeInsets.zero,
+            onPressed: releases.length > 1 ? null : () => _shareButton(widget.context),
+            icon: Icon(MdiIcons.share),
+          ),
+          IconButton(
+            padding: EdgeInsets.zero,
+            onPressed: isComplete ? null : () => _saveSelectEpisodeEntity(widget.context),
+            icon: Icon(MdiIcons.eyeCheck),
+          ),
+          IconButton(
+            padding: EdgeInsets.zero,
+            onPressed: !isComplete
+                ? null
+                : () => _deleteSelectEpisodeEntity(widget.context),
+            icon: Icon(MdiIcons.eyeMinus),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _shareButton(BuildContext context) async {
+    final ValueNotifierList valueNotifierList = context.read<ValueNotifierList>();
+
+    final releases = widget.content.releases.where(
+      (release) => valueNotifierList.contains(release.stringID),
+    );
+
+    final release = releases.single;
+    final uri = Uri.parse(release.url);
+    valueNotifierList.clear();
+    context.closeNotification();
+    final result = await SharePlus.instance.share(ShareParams(uri: uri));
+
+    if (result.status == ShareResultStatus.success) {
+      customLog('Thank you for sharing my website!');
+    }
+  }
+
+  void _saveSelectEpisodeEntity(BuildContext context) async {
+    final ValueNotifierList valueNotifierList = context.read<ValueNotifierList>();
+
+    final historicController = context.read<HistoricController>();
+
+    final libraryController = context.read<LibraryController>();
+    if (widget.content case Anime data) {
+      final animeEntity = libraryController.repo.getContentEntityByStringID(
+        data.stringID,
+        orElse: () => data.toEntity(createdAt: DateTime.now()),
+      );
+      if (animeEntity == null) return;
+      final args = valueNotifierList;
+
+      final toEntities = data.releases.where((test) => args.contains(test.stringID)).map((
+        map,
+      ) {
+        final entity = historicController.repo.getHistoric<EpisodeEntity>(
+          release: map,
+          orElse: () => map.toEntity(anime: data, createdAt: DateTime.now()),
+        );
+
+        return entity?.copyWith(isComplete: true, updatedAt: DateTime.now());
+      }).toList();
+
+      animeEntity.episodes.addAll(toEntities.nonNulls);
+
+      await libraryController.add(contentEntity: animeEntity);
+      await historicController.addAll(historyEntities: toEntities.nonNulls.toList());
+      if (context.mounted) {
+        valueNotifierList.clear();
+        context.closeNotification();
+      }
+    }
+  }
+
+  void _deleteSelectEpisodeEntity(BuildContext context) async {
+    final ValueNotifierList valueNotifierList = context.read<ValueNotifierList>();
+
+    final historicController = context.read<HistoricController>();
+
+    final args = valueNotifierList;
+    if (widget.content case Anime _) {
+      final historicEntities = historicController.repo.getAllByIDs(args);
+      // await _historicController.removeAll(historyEntities: historicEntities);
+      HistoryUtils.questionDelete(
+        context,
+        historicEntities,
+        onConfirmDelete: () {
+          historicController.addAll(
+            historyEntities: historicEntities
+                .map(
+                  (entity) => entity.copyWith(
+                    position: null,
+                    updatedAt: DateTime.now(),
+                    isComplete: false,
+                  ),
+                )
+                .toList(),
+          );
+        },
+        onUndoDelete: (oldHistoric) {
+          historicController.addAll(historyEntities: oldHistoric);
+        },
+      );
+      if (context.mounted) {
+        valueNotifierList.clear();
+        context.closeNotification();
+      }
+    }
   }
 }

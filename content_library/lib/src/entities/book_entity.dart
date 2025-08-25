@@ -72,7 +72,7 @@ class BookEntity extends ContentEntity {
   Book toBook() {
     return Book(
       anilistMedia: anilistMedia,
-      sinopse: sinopse,
+      sinopse: sinopse ?? "",
       source: source,
       url: url,
       title: title,

@@ -1,13 +1,16 @@
 import 'dart:async';
 
-import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 
+/// A compact, efficient popup that animates its width/height and fades
+/// its children in only when the expansion is mostly complete.
 class CustomPopup<E> extends StatefulWidget {
-  const CustomPopup({
+  /// Constructor for a list-backed popup (itemBuilder).
+  const CustomPopup.items({
     super.key,
     required this.show,
     required this.items,
+    required this.itemBuilder,
     required this.height,
     required this.width,
     this.duration,
@@ -18,25 +21,25 @@ class CustomPopup<E> extends StatefulWidget {
     this.scrollDirection = Axis.vertical,
     this.paddingTop = false,
     this.card = true,
-    required this.builderFunction,
   }) : builder = null;
 
+  /// Constructor for a single-builder popup.
   const CustomPopup.builder({
     super.key,
     required this.show,
+    required this.builder,
     required this.height,
-    this.color,
     required this.width,
-    this.startAnimatedAlignment = Alignment.topCenter,
     this.duration,
     this.reverseDuration,
+    this.color,
     this.shape,
+    this.startAnimatedAlignment = Alignment.topCenter,
     this.scrollDirection = Axis.vertical,
     this.paddingTop = false,
-    required this.builder,
     this.card = true,
-  }) : builderFunction = null,
-       items = const [];
+  }) : items = const [],
+       itemBuilder = null;
 
   final bool paddingTop;
   final Axis scrollDirection;
@@ -47,9 +50,10 @@ class CustomPopup<E> extends StatefulWidget {
   final Duration? duration;
   final Duration? reverseDuration;
   final ShapeBorder? shape;
+
   final List<E> items;
-  final Widget Function(BuildContext context)? builder;
-  final Widget Function(BuildContext context, int index, E item)? builderFunction;
+  final Widget? builder;
+  final Widget Function(BuildContext context, int index, E item)? itemBuilder;
 
   final double height;
   final double width;
@@ -60,216 +64,181 @@ class CustomPopup<E> extends StatefulWidget {
 
 class _CustomPopupState<E> extends State<CustomPopup<E>> with TickerProviderStateMixin {
   late final ScrollController _localController;
-  final Debouncer _debouncer = Debouncer(duration: const Duration(milliseconds: 250));
-  final Debouncer _debouncerShowWiget = Debouncer(
-    duration: const Duration(milliseconds: 250),
-  );
-  late final AnimationController _animationController;
+
+  late final AnimationController _controller;
   late Animation<double> _animationHeight;
   late Animation<double> _animationWidth;
+  late Animation<double> _fadeIn;
 
-  bool _show = false;
-  bool _showWidget = false;
+  final _SimpleDebouncer _debouncer = _SimpleDebouncer(milliseconds: 120);
+
+  bool _showInner = false;
 
   @override
   void initState() {
-    _show = widget.show;
-    _animationController = AnimationController(
-      vsync: this,
-      duration: widget.duration ?? const Duration(milliseconds: 300),
-      reverseDuration: widget.reverseDuration ?? const Duration(milliseconds: 300),
-    )..addListener(_animationShowWidgetListener);
+    super.initState();
 
     _localController = ScrollController();
 
-    _animationHeight = _animationController.drive(Tween(begin: 0.0, end: widget.height));
+    _controller = AnimationController(
+      vsync: this,
+      duration: widget.duration ?? const Duration(milliseconds: 300),
+      reverseDuration: widget.reverseDuration ?? const Duration(milliseconds: 300),
+    );
 
-    _animationWidth = _animationController.drive(Tween(begin: 0.0, end: widget.width));
+    _initAnimations();
 
-    // _animationWidth = Tween(
-    //   begin: 0.0,
-    //   end: widget.width,
-    // ).animate(_animationHeight);
-
-    scheduleMicrotask(_init);
-    super.initState();
-  }
-
-  void _animationShowWidgetListener() {
-    if (_animationController.value > 0.8) {
-      _debouncer.call(() {
-        setState(() {
-          _showWidget = true;
-        });
-      });
-    } else {
-      _debouncer.call(() {
-        setState(() {
-          _showWidget = false;
-        });
-      });
-    }
-  }
-
-  void _init() async {
-    // await Future.delayed(const Duration(milliseconds: 350));
     if (widget.show) {
-      _animationController.forward();
+      _controller.value = 1.0;
+      _showInner = true;
+    } else {
+      _controller.value = 0.0;
+      _showInner = false;
     }
-    scheduleMicrotask(_scrollToTop);
+
+    _controller.addListener(_controllerListener);
+  }
+
+  void _initAnimations() {
+    final curved = CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn);
+
+    _animationHeight = Tween(begin: 0.0, end: widget.height).animate(curved);
+    _animationWidth = Tween(begin: 0.0, end: widget.width).animate(curved);
+
+    _fadeIn = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.6, 1.0, curve: Curves.easeIn),
+      ),
+    );
+  }
+
+  void _controllerListener() {
+    final shouldShowInner = _controller.value > 0.8;
+    if (shouldShowInner != _showInner) {
+      _debouncer.call(() {
+        if (!mounted) return;
+        setState(() => _showInner = shouldShowInner);
+      });
+    }
   }
 
   @override
   void didUpdateWidget(covariant CustomPopup<E> oldWidget) {
-    // if (widget.duration != oldWidget.duration) {
-    //   _animationController.duration = widget.duration;
-    // }
+    super.didUpdateWidget(oldWidget);
 
-    if (widget.height != oldWidget.height) {
-      _animationHeight = _animationController.drive(
-        Tween(begin: 0.0, end: widget.height),
-      );
-    }
-    if (widget.width != oldWidget.width) {
-      // _animationWidth = Tween(
-      //   begin: 0.0,
-      //   end: widget.width,
-      // ).animate(_animationHeight);
-      _animationWidth = _animationController.drive(Tween(begin: 0.0, end: widget.width));
+    if (widget.height != oldWidget.height || widget.width != oldWidget.width) {
+      _initAnimations();
     }
 
     if (oldWidget.show != widget.show) {
-      _animationController.toggle();
-      _show = widget.show;
-
-      // _show = widget.show;
+      if (widget.show) {
+        _controller.forward();
+        scheduleMicrotask(_scrollToTop);
+      } else {
+        _controller.reverse();
+      }
     }
-
-    super.didUpdateWidget(oldWidget);
   }
 
-  void _scrollToTop() async {
+  Future<void> _scrollToTop() async {
     if (!_localController.hasClients) return;
 
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 120));
 
-    await _localController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.fastEaseInToSlowEaseOut,
-    );
+    if (!_localController.hasClients) return;
+
+    try {
+      await _localController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.fastOutSlowIn,
+      );
+    } catch (_) {}
   }
 
   @override
   void dispose() {
-    _debouncerShowWiget.cancel();
     _debouncer.cancel();
     _localController.dispose();
-    _animationController
-      ..removeListener(_animationShowWidgetListener)
-      ..dispose();
-    _animationHeight;
+    _controller.removeListener(_controllerListener);
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final padding = MediaQuery.paddingOf(context);
+    final padding = MediaQuery.of(context).padding;
 
     return AnimatedBuilder(
-      animation: Listenable.merge([_animationHeight, _animationWidth]),
-      builder: (context, child) => Align(
-        alignment: widget.startAnimatedAlignment,
-        child: Offstage(
-          offstage: !_show && !_showWidget,
-          child: AnimatedContainer(
-            width: _animationWidth.value,
-            height: _animationHeight.value,
-            duration: widget.duration ?? const Duration(milliseconds: 150),
-            curve: Curves.fastOutSlowIn,
-            child: widget.card
-                ? Card(
-                    margin: EdgeInsets.zero,
-                    shape: widget.shape,
-                    elevation: 3,
-                    child: MediaQuery.removePadding(
-                      context: context,
-                      removeTop: true,
-                      removeLeft: true,
-                      removeRight: true,
-                      child: Builder(
-                        builder: (context) {
-                          return widget.builder != null
-                              ? FadeTransition(
-                                  opacity: _animationController,
-                                  child: !_showWidget
-                                      ? const SizedBox.shrink()
-                                      : widget.builder!(context),
-                                )
-                              : ListView.builder(
-                                  primary: false,
-                                  padding: EdgeInsets.only(
-                                    top: widget.paddingTop ? padding.top : 0,
-                                    right: 0,
-                                    left: 0,
-                                    bottom: 0,
-                                  ),
-                                  shrinkWrap: true,
-                                  controller: _localController,
-                                  scrollDirection: widget.scrollDirection,
-                                  itemCount: widget.items.length,
-                                  itemBuilder: (context, index) {
-                                    return FadeTransition(
-                                      opacity: _animationController,
-                                      child: !_showWidget
-                                          ? const SizedBox.shrink()
-                                          : widget.builderFunction!(
-                                              context,
-                                              index,
-                                              widget.items[index],
-                                            ),
-                                    );
-                                  },
-                                );
-                        },
-                      ),
-                    ),
-                  )
-                : widget.builder != null
-                ? FadeTransition(
-                    opacity: _animationController,
-                    child: !_showWidget
-                        ? const SizedBox.shrink()
-                        : widget.builder!(context),
-                  )
-                : ListView.builder(
-                    primary: false,
-                    padding: EdgeInsets.only(
-                      top: widget.paddingTop ? padding.top : 0,
-                      right: 0,
-                      left: 0,
-                      bottom: 0,
-                    ),
-                    shrinkWrap: true,
-                    controller: _localController,
-                    scrollDirection: widget.scrollDirection,
-                    itemCount: widget.items.length,
-                    itemBuilder: (context, index) {
-                      return FadeTransition(
-                        opacity: _animationController,
-                        child: !_showWidget
-                            ? const SizedBox.shrink()
-                            : widget.builderFunction!(
-                                context,
-                                index,
-                                widget.items[index],
-                              ),
-                      );
-                    },
-                  ),
+      animation: _controller,
+      builder: (context, child) {
+        final width = _animationWidth.value;
+        final height = _animationHeight.value;
+
+        final isVisible = _controller.value > 0.001;
+
+        Widget content;
+        if (widget.builder != null) {
+          content = widget.builder!;
+        } else {
+          content = ListView.builder(
+            primary: false,
+            padding: EdgeInsets.only(
+              top: widget.paddingTop ? padding.top : 0,
+              right: 0,
+              left: 0,
+              bottom: 0,
+            ),
+            shrinkWrap: true,
+            controller: _localController,
+            scrollDirection: widget.scrollDirection,
+            itemCount: widget.items.length,
+            itemBuilder: (context, index) {
+              if (!_showInner) return const SizedBox.shrink();
+              return widget.itemBuilder!(context, index, widget.items[index]);
+            },
+          );
+        }
+
+        return Align(
+          alignment: widget.startAnimatedAlignment,
+          child: Offstage(
+            offstage: !isVisible,
+            child: SizedBox(
+              width: width,
+              height: height,
+              child: widget.card
+                  ? Card(
+                      margin: EdgeInsets.zero,
+                      shape: widget.shape,
+                      elevation: 3,
+                      color: widget.color,
+                      child: FadeTransition(opacity: _fadeIn, child: content),
+                    )
+                  : FadeTransition(opacity: _fadeIn, child: content),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
+  }
+}
+
+class _SimpleDebouncer {
+  _SimpleDebouncer({required int milliseconds})
+    : _duration = Duration(milliseconds: milliseconds);
+
+  final Duration _duration;
+  Timer? _timer;
+
+  void call(VoidCallback action) {
+    _timer?.cancel();
+    _timer = Timer(_duration, action);
+  }
+
+  void cancel() {
+    _timer?.cancel();
+    _timer = null;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:content_library/src/repository/anime_skip_query.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gql/ast.dart';
 import "package:gql/language.dart" as lang;
@@ -11,6 +12,6 @@ void main() {
       // AddTypenames(),
     ]);
 
-    print(lang.printNode(withTypenames));
+    debugPrint(lang.printNode(withTypenames));
   });
 }

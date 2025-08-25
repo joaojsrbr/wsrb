@@ -62,7 +62,7 @@ class _InformationDestinationState extends State<InformationDestination>
         : ListView(
             shrinkWrap: true,
             padding: const EdgeInsets.only(top: 4),
-            physics: const NeverScrollableScrollPhysics(),
+            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
             children: [
               if (sinopse.isNotEmpty)
                 Padding(

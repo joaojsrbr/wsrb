@@ -50,6 +50,7 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
 
   static bool isLoadingOf(BuildContext context) =>
       _of(context, ContentScopeAspect.ISLOADING).isLoading;
+
   static bool noContentOf(BuildContext context) =>
       _of(context, ContentScopeAspect.noContent).noContent;
 

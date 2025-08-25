@@ -51,7 +51,7 @@ class DropdownMenuButton<T> extends StatelessWidget {
   }
 
   Future<void> _showDropdownMenu(BuildContext context) async {
-    final Anchor anchor = Anchor();
+    final anchor = Anchor();
     final timer = anchor.autoPopAfterDelay(const Duration(seconds: 10));
 
     final buttonBox = context.findRenderObject();
@@ -59,19 +59,25 @@ class DropdownMenuButton<T> extends StatelessWidget {
 
     if (buttonBox is RenderBox && overlayBox is RenderBox) {
       final size = buttonBox.size;
-      final position = RelativeRect.fromRect(
-        Rect.fromPoints(
-          buttonBox.localToGlobal(size.bottomLeft(Offset.zero)),
-          buttonBox.localToGlobal(size.bottomLeft(Offset.zero)),
-        ),
-        Offset.zero & overlayBox.size,
+      final buttonTopLeft = buttonBox.localToGlobal(Offset.zero, ancestor: overlayBox);
+
+      final left = buttonTopLeft.dx + 10;
+      final top = buttonTopLeft.dy + size.height;
+
+      final position = RelativeRect.fromLTRB(
+        left,
+        top,
+        overlayBox.size.width - left,
+        overlayBox.size.height - top,
       );
 
       final result = await showMenu<T>(
         context: context,
-        menuPadding: EdgeInsets.zero,
         position: position,
+        menuPadding: EdgeInsets.zero,
         clipBehavior: Clip.hardEdge,
+        // 👇 chave: menu com a MESMA largura do botão
+        constraints: BoxConstraints.tightFor(width: size.width),
         items: items.mapIndexed((index, e) {
           return PopupMenuItem<T>(
             key: index == 0 ? anchor : null,
@@ -83,10 +89,7 @@ class DropdownMenuButton<T> extends StatelessWidget {
       );
 
       timer.cancel();
-
-      if (result != null) {
-        onSelected?.call(result);
-      }
+      if (result != null) onSelected?.call(result);
     }
   }
 }
