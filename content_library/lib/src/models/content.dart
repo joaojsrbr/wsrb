@@ -2,7 +2,9 @@ import 'package:content_library/content_library.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 
-abstract class Content extends Equatable {
+sealed class SContent {}
+
+abstract class Content extends Equatable implements SContent {
   @override
   List<Object?> get props => [
     imageUrl,

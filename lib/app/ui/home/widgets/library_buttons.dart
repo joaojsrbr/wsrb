@@ -21,14 +21,19 @@ class _LibraryButtonsState extends State<LibraryButtons> {
 
   @override
   void initState() {
-    _valueNotifierList = context.read<ValueNotifierList>();
-
+    _valueNotifierList = context.read<ValueNotifierList>()..addListener(_listener);
     super.initState();
+  }
+
+  void _listener() {
+    setState(() {});
   }
 
   @override
   void deactivate() {
-    _valueNotifierList.clear(false);
+    _valueNotifierList
+      ..removeListener(_listener)
+      ..clear();
     super.deactivate();
   }
 
@@ -37,6 +42,7 @@ class _LibraryButtonsState extends State<LibraryButtons> {
     final LibraryController libraryController = context.read<LibraryController>();
     final ContentRepository repository = context.read<ContentRepository>();
     final ValueNotifierList valueNotifierList = context.watch<ValueNotifierList>();
+    final CategoryController categoryController = context.read<CategoryController>();
     final libraryRepo = libraryController.repo;
 
     return Padding(
@@ -50,34 +56,21 @@ class _LibraryButtonsState extends State<LibraryButtons> {
           if (widget.tabController.index != 2)
             IconButton(
               onPressed: () async {
-                final allSelected = repository
-                    .where((element) => valueNotifierList.contains(element.stringID))
-                    .toList()
-                    .unique((content) => content.stringID);
+                final allSelected = repository.where(valueNotifierList.contains).toSet();
                 valueNotifierList.clear();
 
-                final contentEntities =
-                    (await Future.wait(
-                          allSelected.map(
-                            (content) => repository
-                                .getData(content)
-                                .then(
-                                  (result) =>
-                                      result.fold(onSuccess: (success) => success),
-                                ),
-                          ),
-                        ))
-                        .map(
-                          (e) => switch (e) {
-                            Anime data => data.toEntity(isFavorite: true),
-                            Book data => data.toEntity(isFavorite: true),
-                            _ => null,
-                          },
-                        )
-                        .nonNulls
-                        .toList();
+                final contents = await Future.wait(
+                  allSelected.map((content) => repository.getData(content)),
+                );
 
-                await libraryController.addAll(contentEntities: contentEntities);
+                final contentEntities = contents
+                    .map((result) => result.fold(onSuccess: (success) => success))
+                    .nonNulls
+                    .map((e) => e.toEntity(isFavorite: true));
+
+                await libraryController.addAll(
+                  contentEntities: contentEntities.nonNulls.toList(),
+                );
                 widget.onAdd?.call();
               },
               icon: FadeThroughTransitionSwitcher(
@@ -90,16 +83,10 @@ class _LibraryButtonsState extends State<LibraryButtons> {
           else ...[
             IconButton(
               onPressed: () async {
-                final CategoryController categoryController = context
-                    .read<CategoryController>();
-                final List<Entity> removeEntities = libraryRepo.entities
-                    .where(
-                      (element) =>
-                          valueNotifierList.contains(libraryRepo.getStringID(element)),
-                    )
-                    .toList()
-                    .unique((content) => content.id);
-
+                final Set<Entity> removeEntities = libraryRepo.entities
+                    .where(valueNotifierList.contains)
+                    .toSet();
+                valueNotifierList.clear();
                 final removeIDS = <CategoryEntity>{};
 
                 for (final category in categoryController.categories) {
@@ -118,13 +105,13 @@ class _LibraryButtonsState extends State<LibraryButtons> {
                 }
 
                 final futures = [
-                  ...removeIDS.map((e) => categoryController.add(e)),
-                  libraryController.removeAll(contentEntities: removeEntities.cast()),
+                  ...removeIDS.map(categoryController.add),
+                  libraryController.removeAll(
+                    contentEntities: removeEntities.toList().cast(),
+                  ),
                 ];
 
                 await Future.wait(futures);
-
-                valueNotifierList.clear();
               },
               icon: FadeThroughTransitionSwitcher(
                 enableSecondChild: valueNotifierList.length > 1,

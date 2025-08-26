@@ -80,30 +80,32 @@ class FiltroBottomSheetState extends State<FiltroBottomSheet> {
       length: 2,
       child: Material(
         shape: shape,
-        child: Column(
-          mainAxisSize: MainAxisSize.min, // <-- Isso permite altura dinâmica
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Flexible(
-              child: TabBar(
-                tabs: [
-                  Tab(height: 52, child: Text("Geral", style: titleStyle)),
-                  Tab(height: 52, child: Text("test", style: titleStyle)),
-                ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                child: TabBar(
+                  tabs: [
+                    Tab(height: 52, child: Text("Geral", style: titleStyle)),
+                    Tab(height: 52, child: Text("test", style: titleStyle)),
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  _Page1(),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                  ),
-                ],
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    _Page1(),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

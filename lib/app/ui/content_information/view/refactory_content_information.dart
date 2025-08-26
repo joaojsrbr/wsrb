@@ -299,29 +299,32 @@ class _ContentInfoBottomButtonsState extends State<_ContentInfoBottomButtons> {
 
   @override
   void initState() {
-    _valueNotifierList = context.read<ValueNotifierList>();
-
+    _valueNotifierList = context.read<ValueNotifierList>()..addListener(_listener);
     super.initState();
+  }
+
+  void _listener() {
+    setState(() {});
   }
 
   @override
   void deactivate() {
-    _valueNotifierList.clear(false);
+    _valueNotifierList
+      ..removeListener(_listener)
+      ..clear();
     super.deactivate();
   }
 
   @override
   Widget build(BuildContext context) {
-    final ValueNotifierList valueNotifierList = context.watch<ValueNotifierList>();
-
-    final releases = widget.content.releases.where(
-      (release) => valueNotifierList.contains(release.stringID),
-    );
+    final ids = widget.content.releases
+        .map((release) => release.stringID)
+        .where(_valueNotifierList.contains);
 
     final historicController = context.watch<HistoricController>();
 
     final isComplete = historicController.repo
-        .getAllByIDs(valueNotifierList)
+        .getAllByIDs(_valueNotifierList)
         .any((entity) => entity.isComplete);
 
     return Padding(
@@ -333,7 +336,7 @@ class _ContentInfoBottomButtonsState extends State<_ContentInfoBottomButtons> {
         children: [
           IconButton(
             padding: EdgeInsets.zero,
-            onPressed: releases.length > 1 ? null : () => _shareButton(widget.context),
+            onPressed: ids.length > 1 ? null : () => _shareButton(widget.context),
             icon: Icon(MdiIcons.share),
           ),
           IconButton(

@@ -39,8 +39,6 @@ class AppConfigEntity extends OtherEntity {
     OrderBy? orderBy,
     bool? reverseContents,
     Source? source,
-    ConnectivityResult? connectivityResult,
-
     double? historicSavePercent,
     FilterWatching? filterWatching,
   }) {

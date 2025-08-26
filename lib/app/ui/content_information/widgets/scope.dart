@@ -16,7 +16,6 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
     required this.noContent,
     required this.setListIndex,
     required this.downloadRelease,
-
     required this.releases,
     required this.content,
     required this.informationArgs,

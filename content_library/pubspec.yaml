@@ -26,13 +26,20 @@ dependencies:
   provider: ^6.1.2
   dynamic_color: ^1.7.0
   workmanager: ^0.9.0+2
-  ffmpeg_kit_flutter_new_gpl: ^1.6.5
-  connectivity_plus: ^6.1.1
-  permission_handler: ^11.3.1
+
+  # ffmpeg_kit_flutter_new_gpl: ^1.6.5
+  # ffmpeg_kit_flutter_new_https_gpl: ^1.1.0
+  ffmpeg_kit_https_flutter: ^1.1.0
+  # ffmpeg_cli: ^0.3.0
+
+
+
+  # connectivity_plus: ^6.1.1
+  permission_handler: ^12.0.1
   slugify: ^2.0.0
   flutter_auto_cache: ^0.0.4
   graphql_flutter: ^5.1.2
-  flutter_dotenv: ^5.2.1
+  flutter_dotenv: ^6.0.0
   intl: ^0.20.2
   anilist_dart:
     git: https://github.com/joaojsrbr/anilist_dart

@@ -397,14 +397,19 @@ class DownloadoBottomButtonsState extends State<_DownloadBottomButtons> {
 
   @override
   void initState() {
-    _valueNotifierList = context.read<ValueNotifierList>();
-
+    _valueNotifierList = context.read<ValueNotifierList>()..addListener(_listener);
     super.initState();
+  }
+
+  void _listener() {
+    setState(() {});
   }
 
   @override
   void deactivate() {
-    _valueNotifierList.clear(false);
+    _valueNotifierList
+      ..removeListener(_listener)
+      ..clear();
     super.deactivate();
   }
 

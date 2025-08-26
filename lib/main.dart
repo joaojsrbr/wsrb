@@ -6,7 +6,6 @@ import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;

@@ -65,11 +65,13 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
   double? _height;
   bool _showCountdown = false;
   bool _mediaQuery = true;
+  bool _isSizeComplete = false;
   bool _isOverlay = false; // mantém comportamento atual para top/bottom overlay
   Color? _backgroundColor;
   TextStyle? _textStyle;
   Alignment _alignment = Alignment.center;
   Timer? _closeTimer;
+  Timer? _sizeTimer;
 
   final List<_ActiveFloating> _activeFloatings = [];
   final List<_PendingFloating> _floatingQueue = [];
@@ -101,8 +103,9 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
     switch (status) {
       case AnimationStatus.dismissed:
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && _currentTag != null) setState(() => _mediaQuery = true);
+          if (_isSizeComplete) setState(() => _mediaQuery = true);
         });
+
       case AnimationStatus.forward:
       case AnimationStatus.reverse:
       case AnimationStatus.completed:
@@ -274,6 +277,7 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
   }) {
     // evita duplicatas por tag
     if (tag != null && tag == _currentTag) return;
+    _isSizeComplete = false;
 
     // Se position for floating, usamos OverlayEntry (novo comportamento)
     if (position == NotificationPosition.floating) {
@@ -328,6 +332,7 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
     _closeTimer?.cancel();
     _progressController.stop();
     setState(() {
+      _isOverlay = overlay;
       _mediaQuery = false;
       _overlayContent = child;
       _currentPosition = position;
@@ -342,8 +347,10 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
       _currentTag = tag;
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+      _sizeTimer?.cancel();
+      _sizeTimer = Timer(Duration(milliseconds: 200), () => _isSizeComplete = true);
       _sharedController.forward(from: 0);
 
       if (progressNotifier == null && !persistent) {
@@ -589,6 +596,7 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
     _sharedController.dispose();
     _progressController.dispose();
     _closeTimer?.cancel();
+    _sizeTimer?.cancel();
     _padding.removeStatusListener(_paddingStatusListener);
     for (final a in _activeFloatings) {
       try {
@@ -653,7 +661,6 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
     };
 
     return Material(
-      // Mantemos sombra só para top/bottom quando necessário
       elevation: overlayWidget != null && _currentPosition == NotificationPosition.top
           ? 6
           : 0,
@@ -667,7 +674,7 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
         child: _isOverlay
             ? Stack(
                 children: [
-                  contentWidget,
+                  Positioned.fill(child: contentWidget),
                   if (overlayWidget != null)
                     Align(
                       alignment: _currentPosition == NotificationPosition.top

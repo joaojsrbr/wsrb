@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 
 class ValueNotifierList extends ChangeNotifier with ListBase<String> {
@@ -43,8 +44,18 @@ class ValueNotifierList extends ChangeNotifier with ListBase<String> {
   void operator []=(int index, String value) => _array[index] = value;
 
   @override
-  void clear([bool notifyListeners = true]) {
-    super.clear();
-    if (notifyListeners) this.notifyListeners();
+  void clear() {
+    _array.clear();
+    notifyListeners();
+  }
+
+  @override
+  bool contains(Object? element) {
+    return switch (element) {
+      Release data => _array.contains(data.stringID),
+      Content data => _array.contains(data.stringID),
+      ContentEntity data => _array.contains(data.stringID),
+      _ => super.contains(element),
+    };
   }
 }

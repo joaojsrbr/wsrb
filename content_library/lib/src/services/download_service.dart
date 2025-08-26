@@ -3,10 +3,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:content_library/content_library.dart';
-import 'package:ffmpeg_kit_flutter_new_gpl/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_new_gpl/ffprobe_kit.dart';
-import 'package:ffmpeg_kit_flutter_new_gpl/return_code.dart';
-import 'package:ffmpeg_kit_flutter_new_gpl/statistics.dart';
+import 'package:ffmpeg_kit_https_flutter/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_https_flutter/ffprobe_kit.dart';
+import 'package:ffmpeg_kit_https_flutter/return_code.dart';
+import 'package:ffmpeg_kit_https_flutter/statistics.dart';
 import 'package:flutter/foundation.dart';
 
 class DownloadService extends ChangeNotifier {
@@ -40,7 +40,7 @@ class DownloadService extends ChangeNotifier {
     );
 
     if (allFiles.listSync(recursive: true).isEmpty) {
-      allFiles.deleteSync();
+      await allFiles.delete();
     }
 
     notifyListeners();
@@ -322,8 +322,8 @@ class DownloadService extends ChangeNotifier {
               },
               (status) async {
                 downloadList
-                    .firstWhere((info) => info.releaseId == release.stringID)
-                    .setValue(
+                    .firstWhereOrNull((info) => info.releaseId == release.stringID)
+                    ?.setValue(
                       time: status.getTime().toDouble(),
                       id: status.getSessionId(),
                       isDownloading: true,
