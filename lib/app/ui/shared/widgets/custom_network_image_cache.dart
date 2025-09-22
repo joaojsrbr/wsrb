@@ -142,7 +142,7 @@ class _CardPlaceholder extends StatelessWidget {
       color: themeData.colorScheme.primary.withAlpha(10),
       shape: clipRRectWidget?.borderRadius != null
           ? RoundedRectangleBorder(borderRadius: clipRRectWidget!.borderRadius)
-          : RoundedRectangleBorder(),
+          : const RoundedRectangleBorder(),
     );
   }
 }

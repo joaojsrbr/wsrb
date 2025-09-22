@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
-import 'package:app_wsrb_jsr/app/ui/player/widgets/player_custom_overlay.dart';
-import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_popup.dart';
+import '../view/player_view.dart';
+import 'player_custom_overlay.dart';
+import 'scope.dart';
+import '../../shared/mixins/subscriptions.dart';
+import '../../shared/widgets/custom_popup.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animated_progress_bar/flutter_animated_progress_bar.dart';
@@ -801,7 +801,7 @@ class _CustomMaterialControlsState extends State<CustomMaterialControls>
                                 height: MediaQuery.sizeOf(context).height,
                                 width: 170,
                                 show: showAnimeSkip,
-                                shape: RoundedRectangleBorder(),
+                                shape: const RoundedRectangleBorder(),
                                 items: scope.playerArgs.times,
                                 itemBuilder: (context, index, item) {
                                   if (!showAnimeSkip) {
@@ -1110,7 +1110,7 @@ class _MaterialSeekBarState extends State<_MaterialSeekBar>
             alignment: isFullscreen(context)
                 ? ProgressBarAlignment.bottom
                 : ProgressBarAlignment.bottom,
-            progressBarIndicator: RoundedRectangularProgressBarIndicator(),
+            progressBarIndicator: const RoundedRectangularProgressBarIndicator(),
             expandedBarHeight: isFullscreen(context) ? 5 : 4,
             collapsedBarHeight: isFullscreen(context) ? 5 : 4,
             controller: _progressBarController,
@@ -1365,9 +1365,9 @@ class _BottomButtons extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (isFullscreen(context)) ...[Expanded(child: SizedBox.shrink()), seekBar],
+        if (isFullscreen(context)) ...[const Expanded(child: SizedBox.shrink()), seekBar],
         Padding(
-          padding: isFullscreen(context) ? EdgeInsets.only(bottom: 8) : EdgeInsets.zero,
+          padding: isFullscreen(context) ? const EdgeInsets.only(bottom: 8) : EdgeInsets.zero,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1401,7 +1401,7 @@ class _BottomButtons extends StatelessWidget {
                   child: Container(
                     width: 8,
                     height: 8,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
                     ),

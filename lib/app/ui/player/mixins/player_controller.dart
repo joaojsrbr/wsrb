@@ -1,4 +1,4 @@
-import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
+import '../view/player_view.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 

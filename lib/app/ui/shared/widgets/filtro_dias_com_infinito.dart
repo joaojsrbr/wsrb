@@ -146,7 +146,7 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
                           widget.onChanged?.call(start, end, isInfinite);
                           Navigator.pop(context);
                         },
-                        child: Text("Aplicar", style: TextStyle(color: Colors.red)),
+                        child: const Text("Aplicar", style: TextStyle(color: Colors.red)),
                       ),
                     ],
                   ),
@@ -180,9 +180,9 @@ class _FiltroDiasComInfinitoState extends State<FiltroDiasComInfinito> {
                 runSpacing: 8,
                 children: [
                   if (_range == null) ...[
-                    Chip(
-                      label: const Text("Selecione..."),
-                      avatar: const Icon(Icons.date_range),
+                    const Chip(
+                      label: Text("Selecione..."),
+                      avatar: Icon(Icons.date_range),
                     ),
                   ] else ...[
                     if (!isInfinite)

@@ -1,12 +1,12 @@
 import 'dart:collection';
 
-import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
-import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_network_image_cache.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
-import 'package:app_wsrb_jsr/app/utils/history_utils.dart';
-import 'package:app_wsrb_jsr/app/utils/multi_comparator.dart';
+import '../../../routes/routes.dart';
+import '../../content_information/arguments/content_information_args.dart';
+import '../../player/arguments/player_args.dart';
+import '../../shared/widgets/custom_network_image_cache.dart';
+import '../../shared/widgets/global_overlay.dart';
+import '../../../utils/history_utils.dart';
+import '../../../utils/multi_comparator.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

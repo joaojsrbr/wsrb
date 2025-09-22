@@ -1,13 +1,13 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, constant_identifier_names
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/widgets/content_page.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
-import 'package:app_wsrb_jsr/app/utils/content_utils.dart';
-import 'package:app_wsrb_jsr/app/utils/download_release_helper.dart';
-import 'package:app_wsrb_jsr/app/utils/history_utils.dart';
+import '../arguments/content_information_args.dart';
+import '../widgets/content_page.dart';
+import '../widgets/scope.dart';
+import '../../shared/widgets/global_overlay.dart';
+import '../../../utils/content_utils.dart';
+import '../../../utils/download_release_helper.dart';
+import '../../../utils/history_utils.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -181,11 +181,11 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
         _ContentInfoBottomButtons(context, _content.value, release),
         height: 52,
         showCountdown: true,
-        duration: Duration(seconds: 20),
+        duration: const Duration(seconds: 20),
       );
     } else {
       valueNotifierList.toggle(release.stringID);
-      context.maintainOverlap(duration: Duration(seconds: 20));
+      context.maintainOverlap(duration: const Duration(seconds: 20));
       if (valueNotifierList.isEmpty) {
         context.closeNotification();
       }

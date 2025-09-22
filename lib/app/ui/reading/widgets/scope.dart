@@ -2,7 +2,7 @@
 
 import 'package:content_library/content_library.dart';
 
-import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
+import '../arguments/reading_args.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:positioned_scroll_observer/positioned_scroll_observer.dart';

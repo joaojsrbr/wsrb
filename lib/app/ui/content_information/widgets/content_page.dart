@@ -1,12 +1,12 @@
-import 'package:app_wsrb_jsr/app/ui/content_information/destinations/information_destination.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/destinations/release_destination.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_network_image_cache.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/dot_text.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer_container.dart';
-import 'package:app_wsrb_jsr/app/utils/content_utils.dart';
-import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
+import '../destinations/information_destination.dart';
+import '../destinations/release_destination.dart';
+import 'scope.dart';
+import '../../shared/widgets/custom_network_image_cache.dart';
+import '../../shared/widgets/dot_text.dart';
+import '../../shared/widgets/fade_through_transition_switcher.dart';
+import '../../shared/widgets/shimmer_container.dart';
+import '../../../utils/content_utils.dart';
+import '../../../utils/copy_to_clipboard.dart';
 import 'package:content_library/content_library.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +28,7 @@ class ContentPage extends StatelessWidget {
       physics: isLoading
           ? const NeverScrollableScrollPhysics()
           : const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-      headerSliverBuilder: (context, __) => [_Header()],
+      headerSliverBuilder: (context, __) => [const _Header()],
       body: TabBarView(
         physics: isLoading || noContent
             ? const NeverScrollableScrollPhysics()
@@ -62,10 +62,10 @@ class _Header extends StatelessWidget {
             ? () => valueNotifierList.clear()
             : () => Navigator.of(context).pop(),
       ),
-      actions: isLoading ? null : [_ShareButton(), _FavoriteButton()],
+      actions: isLoading ? null : [const _ShareButton(), const _FavoriteButton()],
       flexibleSpace: FlexibleSpaceBar(
         collapseMode: CollapseMode.pin,
-        stretchModes: [],
+        stretchModes: const [],
         background: _BannerContent(content: content, isLoading: isLoading),
       ),
       bottom: _TabHeader(noContent: noContent, content: content),
@@ -146,7 +146,7 @@ class _BannerContent extends StatelessWidget {
                 fit: BoxFit.cover,
                 imageUrl: content.anilistMedia!.bannerImage!.extraLarge!,
                 httpHeaders: App.HEADERS,
-                shaderCallback: (rect) => LinearGradient(
+                shaderCallback: (rect) => const LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [Colors.black54, Color(0x3C000000), Colors.black54],
@@ -353,7 +353,7 @@ class _ContentDetails extends StatelessWidget {
                           text: txt,
                           dotSize: 6,
                           spacing: 6,
-                          textStyle: TextStyle(color: Colors.white70, fontSize: 12),
+                          textStyle: const TextStyle(color: Colors.white70, fontSize: 12),
                           dotColor: Colors.white70,
                         );
                       },

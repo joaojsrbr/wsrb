@@ -2,10 +2,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
+import '../../../routes/routes.dart';
+import '../../player/arguments/player_args.dart';
+import '../../shared/mixins/subscriptions.dart';
+import '../../shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -106,11 +106,11 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
         ),
         height: 52,
         showCountdown: true,
-        duration: Duration(seconds: 20),
+        duration: const Duration(seconds: 20),
       );
     } else {
       _valueNotifierList.toggle(id);
-      context.maintainOverlap(duration: Duration(seconds: 20));
+      context.maintainOverlap(duration: const Duration(seconds: 20));
       if (_valueNotifierList.isEmpty) {
         context.closeNotification();
       }
@@ -207,7 +207,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(leading: BackButton()),
+      appBar: AppBar(leading: const BackButton()),
       body: RefreshIndicator(
         onRefresh: () async {
           await subscriptions.cancelAll();

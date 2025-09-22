@@ -1,8 +1,8 @@
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
+import 'player_controller.dart';
 import 'package:equatable/equatable.dart';
 
 mixin PlayerStatusMixin on PlayerControllerMixin {
-  final PlayerStatus status = PlayerStatus();
+  final PlayerStatus status = const PlayerStatus();
 }
 
 class PlayerStatus with EquatableMixin {

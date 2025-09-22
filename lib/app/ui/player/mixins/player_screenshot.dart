@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
-import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
+import 'player_controller.dart';
+import '../view/player_view.dart';
+import '../../shared/mixins/subscriptions.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 

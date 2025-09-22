@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
+import '../../../utils/copy_to_clipboard.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';

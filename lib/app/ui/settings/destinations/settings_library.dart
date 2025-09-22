@@ -1,5 +1,5 @@
 // Updated settings_library.dart
-import 'package:app_wsrb_jsr/app/ui/settings/view/settings_view.dart';
+import '../view/settings_view.dart';
 import 'package:content_library/content_library.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
@@ -22,12 +22,12 @@ class _SettingsLibraryViewState extends State<SettingsLibraryView> {
       body: ExtendedNestedScrollView(
         // overscrollBehavior: OverscrollBehavior.outer,
         headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [SliverAppBar.medium(title: const Text("Biblioteca"))];
+          return [const SliverAppBar.medium(title: Text("Biblioteca"))];
         },
         onlyOneScrollInBody: true,
         body: SettingsList(
           shrinkWrap: true,
-          physics: BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           lightTheme: settingsThemeData(context),
           darkTheme: settingsThemeData(context),
           sections: [

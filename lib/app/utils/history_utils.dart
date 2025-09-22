@@ -1,5 +1,5 @@
-import 'package:app_wsrb_jsr/app/ui/home/widgets/filtro_bottom_sheet.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
+import '../ui/home/widgets/filtro_bottom_sheet.dart';
+import '../ui/shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 
@@ -20,8 +20,8 @@ class HistoryUtils {
     final result = await showModalBottomSheet(
       context: context,
       isScrollControlled: true, // Necessário para ajustar à altura do conteúdo/teclado
-      shape: RoundedRectangleBorder(),
-      builder: (context) => FiltroBottomSheet(),
+      shape: const RoundedRectangleBorder(),
+      builder: (context) => const FiltroBottomSheet(),
     );
 
     // _appConfigController.setFilterWatching(result);

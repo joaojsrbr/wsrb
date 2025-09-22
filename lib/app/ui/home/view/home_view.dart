@@ -1,17 +1,17 @@
-import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/home/destinations/content_destination.dart';
-import 'package:app_wsrb_jsr/app/ui/home/destinations/history_destination.dart';
-import 'package:app_wsrb_jsr/app/ui/home/destinations/library_destination.dart';
-import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
-import 'package:app_wsrb_jsr/app/ui/home/widgets/home_sliver_app_bar.dart';
-import 'package:app_wsrb_jsr/app/ui/home/widgets/library_buttons.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/highlight.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/menu_button.dart';
-import 'package:app_wsrb_jsr/app/utils/category_helper.dart';
-import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
+import '../../../routes/routes.dart';
+import '../destinations/content_destination.dart';
+import '../destinations/history_destination.dart';
+import '../destinations/library_destination.dart';
+import '../widgets/home_scope.dart';
+import '../widgets/home_sliver_app_bar.dart';
+import '../widgets/library_buttons.dart';
+import '../../shared/mixins/subscriptions.dart';
+import '../../shared/widgets/custom_search_anchor.dart';
+import '../../shared/widgets/global_overlay.dart';
+import '../../shared/widgets/highlight.dart';
+import '../../shared/widgets/menu_button.dart';
+import '../../../utils/category_helper.dart';
+import '../../../utils/subordinate_library_tab_controller.dart';
 import 'package:content_library/content_library.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/foundation.dart';
@@ -127,7 +127,7 @@ class _HomeViewState extends State<HomeView>
         ),
         height: 52,
         showCountdown: true,
-        duration: Duration(seconds: 20),
+        duration: const Duration(seconds: 20),
       );
     } else {
       context.maintainOverlap(duration: const Duration(seconds: 20));
@@ -366,7 +366,7 @@ class _HomeButtonMenuSliver extends StatelessWidget {
             child: ListView(
               padding: tabController.index != 0
                   ? EdgeInsets.zero
-                  : EdgeInsets.only(right: 12, top: 12),
+                  : const EdgeInsets.only(right: 12, top: 12),
               physics: const BouncingScrollPhysics(),
               scrollDirection: Axis.horizontal,
               shrinkWrap: true,

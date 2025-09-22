@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
-import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
+import 'player_audio_handler.dart';
+import 'player_controller.dart';
+import '../view/player_view.dart';
+import '../../shared/mixins/subscriptions.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:content_library/content_library.dart';
 

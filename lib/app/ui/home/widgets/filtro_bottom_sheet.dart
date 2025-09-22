@@ -1,4 +1,4 @@
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/filtro_dias_com_infinito.dart';
+import '../../shared/widgets/filtro_dias_com_infinito.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -93,7 +93,7 @@ class FiltroBottomSheetState extends State<FiltroBottomSheet> {
                   ],
                 ),
               ),
-              Expanded(
+              const Expanded(
                 child: TabBarView(
                   children: [
                     _Page1(),
@@ -271,7 +271,7 @@ class _FiltereChipSelectorState<T> extends State<FilterChipSelector<T>> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(widget.title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(widget.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,

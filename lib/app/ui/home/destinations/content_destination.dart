@@ -1,6 +1,6 @@
-import 'package:app_wsrb_jsr/app/ui/home/widgets/content_indicator_build.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/highlight.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
+import '../widgets/content_indicator_build.dart';
+import '../../shared/widgets/highlight.dart';
+import '../../shared/widgets/item_content.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +17,7 @@ class _ContentDestinationState extends State<ContentDestination>
   late final ContentRepository _contentRepository;
 
   late final TextEditingController _editingController;
-  final Debouncer cookieDebouncer = Debouncer(duration: Duration(seconds: 1));
+  final Debouncer cookieDebouncer = Debouncer(duration: const Duration(seconds: 1));
 
   @override
   void initState() {

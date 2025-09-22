@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
+import '../../shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

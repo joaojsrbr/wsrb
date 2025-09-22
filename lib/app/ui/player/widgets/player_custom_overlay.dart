@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/utils/custom_states.dart';
+import '../../../utils/custom_states.dart';
 import 'package:flutter/material.dart';
 
 class PlayerCustomOverlay extends StatefulWidget {

@@ -1,9 +1,9 @@
-import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
-import 'package:app_wsrb_jsr/app/ui/home/widgets/sliver_app_bar_flexible_space.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
-import 'package:app_wsrb_jsr/app/utils/category_helper.dart';
-import 'package:app_wsrb_jsr/app/utils/history_utils.dart';
+import '../../../routes/routes.dart';
+import 'home_scope.dart';
+import 'sliver_app_bar_flexible_space.dart';
+import '../../shared/widgets/custom_search_anchor.dart';
+import '../../../utils/category_helper.dart';
+import '../../../utils/history_utils.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';

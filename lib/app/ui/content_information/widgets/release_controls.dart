@@ -1,6 +1,6 @@
-import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer_container.dart';
+import 'scope.dart';
+import '../../shared/widgets/fade_through_transition_switcher.dart';
+import '../../shared/widgets/shimmer_container.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';

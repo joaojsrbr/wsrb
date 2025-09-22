@@ -10,6 +10,6 @@ class ReadView extends StatefulWidget {
 class _ReadViewState extends State<ReadView> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold();
+    return const Scaffold();
   }
 }

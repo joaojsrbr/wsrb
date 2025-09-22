@@ -1,8 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_network_image_cache.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/expandable_text.dart';
-import 'package:app_wsrb_jsr/app/utils/copy_to_clipboard.dart';
+import '../widgets/scope.dart';
+import '../../shared/widgets/custom_network_image_cache.dart';
+import '../../shared/widgets/expandable_text.dart';
+import '../../../utils/copy_to_clipboard.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -53,7 +53,7 @@ class _InformationDestinationState extends State<InformationDestination>
 
     return noContent
         ? Padding(
-            padding: EdgeInsets.only(top: 22),
+            padding: const EdgeInsets.only(top: 22),
             child: Align(
               alignment: Alignment.topCenter,
               child: Text("Sem informação!!", style: themeData.textTheme.titleLarge),
@@ -117,9 +117,9 @@ class _InformationDestinationState extends State<InformationDestination>
                             ),
                           )
                         else if (_checkData(_content!.anilistMedia?.startDate))
-                          _Information(
+                          const _Information(
                             paddingTop: false,
-                            title: const Text('Data final'),
+                            title: Text('Data final'),
                             child: Text("RELEASING"),
                           ),
                         if (_content!.anilistMedia?.averageScore != null)

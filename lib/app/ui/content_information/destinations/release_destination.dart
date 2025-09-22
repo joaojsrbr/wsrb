@@ -1,8 +1,8 @@
-import 'package:app_wsrb_jsr/app/ui/content_information/widgets/release_controls.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/release_content.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer_container.dart';
-import 'package:app_wsrb_jsr/app/utils/release_utils.dart';
+import '../widgets/release_controls.dart';
+import '../widgets/scope.dart';
+import '../../shared/widgets/release_content.dart';
+import '../../shared/widgets/shimmer_container.dart';
+import '../../../utils/release_utils.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';

@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:android_pip/actions/pip_action.dart';
 import 'package:android_pip/android_pip.dart';
-import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_pip.dart';
-import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
+import '../arguments/player_args.dart';
+import 'player_controller.dart';
+import 'player_pip.dart';
+import '../view/player_view.dart';
+import '../../shared/mixins/subscriptions.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';

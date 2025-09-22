@@ -1,11 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
-import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
-import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_network_image_cache.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
-import 'package:app_wsrb_jsr/app/utils/content_utils.dart';
+import '../../../routes/routes.dart';
+import '../../content_information/arguments/content_information_args.dart';
+import '../../home/widgets/home_scope.dart';
+import '../../player/arguments/player_args.dart';
+import 'custom_network_image_cache.dart';
+import 'global_overlay.dart';
+import '../../../utils/content_utils.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -115,7 +115,7 @@ class ContentTile extends StatelessWidget {
         overlayColor: WidgetStatePropertyAll(theme.colorScheme.primary.withAlpha(36)),
         child: ListTile(
           selectedTileColor: Theme.of(context).colorScheme.primary.withAlpha(25),
-          contentPadding: EdgeInsets.symmetric(horizontal: 16.0).add(padding),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0).add(padding),
           selected: isSelected,
           title: Text(
             content.title,

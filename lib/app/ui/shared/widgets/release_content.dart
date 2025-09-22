@@ -1,5 +1,5 @@
-import 'package:app_wsrb_jsr/app/ui/content_information/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_network_image_cache.dart';
+import '../../content_information/widgets/scope.dart';
+import 'custom_network_image_cache.dart';
 import 'package:border_progress_indicator/border_progress_indicator.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';

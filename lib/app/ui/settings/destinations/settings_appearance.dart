@@ -1,5 +1,5 @@
 // Updated settings_appearance.dart
-import 'package:app_wsrb_jsr/app/ui/settings/view/settings_view.dart';
+import '../view/settings_view.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -13,11 +13,11 @@ class SettingsAppearanceView extends StatelessWidget {
       body: ExtendedNestedScrollView(
         // overscrollBehavior: OverscrollBehavior.outer,
         headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [SliverAppBar.medium(title: const Text("Aparência"))];
+          return [const SliverAppBar.medium(title: Text("Aparência"))];
         },
         onlyOneScrollInBody: true,
         body: SettingsList(
-          physics: BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           lightTheme: settingsThemeData(context),
           darkTheme: settingsThemeData(context),
           sections: [

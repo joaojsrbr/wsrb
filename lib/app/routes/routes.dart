@@ -1,13 +1,13 @@
 // ignore_for_file: constant_identifier_names
 
-import 'package:app_wsrb_jsr/app/routes/shared_axis_transition_page_wrapper.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/view/refactory_content_information.dart';
-import 'package:app_wsrb_jsr/app/ui/download/view/download_view.dart';
-import 'package:app_wsrb_jsr/app/ui/home/view/home_view.dart';
-import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
-import 'package:app_wsrb_jsr/app/ui/settings/view/settings_view.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
-import 'package:app_wsrb_jsr/app/ui/webview/view/webview_view.dart';
+import 'shared_axis_transition_page_wrapper.dart';
+import '../ui/content_information/view/refactory_content_information.dart';
+import '../ui/download/view/download_view.dart';
+import '../ui/home/view/home_view.dart';
+import '../ui/player/view/player_view.dart';
+import '../ui/settings/view/settings_view.dart';
+import '../ui/shared/widgets/global_overlay.dart';
+import '../ui/webview/view/webview_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 

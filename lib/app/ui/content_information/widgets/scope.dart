@@ -1,6 +1,6 @@
 // ignore_for_file: constant_identifier_names
 
-import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
+import '../arguments/content_information_args.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +21,7 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
     required this.informationArgs,
     required this.releasesIsLoading,
     required this.onLongPressed,
-  }) : super(child: Builder(builder: builder ?? (context) => child ?? SizedBox.shrink()));
+  }) : super(child: Builder(builder: builder ?? (context) => child ?? const SizedBox.shrink()));
 
   final ContentInformationArgs? informationArgs;
   final bool releasesIsLoading;

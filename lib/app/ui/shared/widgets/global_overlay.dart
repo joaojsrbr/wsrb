@@ -1375,7 +1375,7 @@ extension NotificationOverlayExtension on BuildContext {
         TextButton(
           style: TextButton.styleFrom(
             padding: EdgeInsets.zero,
-            visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+            visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
           ),
           onPressed: () {
             closeNotification();
@@ -1467,8 +1467,8 @@ extension NotificationOverlayExtension on BuildContext {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Spacer(),
-              SizedBox(
+              const Spacer(),
+              const SizedBox(
                 width: 12,
                 height: 12,
                 child: CircularProgressIndicator.adaptive(strokeWidth: 2),
@@ -1480,7 +1480,7 @@ extension NotificationOverlayExtension on BuildContext {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 14, color: foregroundColor ?? cs.onSurface),
               ),
-              Spacer(),
+              const Spacer(),
             ],
           ),
         );

@@ -1,6 +1,6 @@
 // Updated settings_view.dart
-import 'package:app_wsrb_jsr/app/ui/settings/destinations/settings_appearance.dart';
-import 'package:app_wsrb_jsr/app/ui/settings/destinations/settings_library.dart';
+import '../destinations/settings_appearance.dart';
+import '../destinations/settings_library.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -15,12 +15,12 @@ class SettingsView extends StatelessWidget {
       body: ExtendedNestedScrollView(
         // overscrollBehavior: OverscrollBehavior.outer,
         headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [SliverAppBar.large(title: const Text("Configurações"))];
+          return [const SliverAppBar.large(title: Text("Configurações"))];
         },
         onlyOneScrollInBody: true,
         body: SettingsList(
           shrinkWrap: true,
-          physics: BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           brightness: Theme.brightnessOf(context),
           lightTheme: settingsThemeData(context),
           darkTheme: settingsThemeData(context),
@@ -61,7 +61,7 @@ class SettingsView extends StatelessWidget {
                   },
                 ),
                 SettingsTile.navigation(
-                  leading: Icon(Icons.download),
+                  leading: const Icon(Icons.download),
                   title: const Text("Downloads"),
                   description: const Text("Download automático, download a frente"),
                   onPressed: (context) {
@@ -69,7 +69,7 @@ class SettingsView extends StatelessWidget {
                   },
                 ),
                 SettingsTile.navigation(
-                  leading: Icon(Icons.sync),
+                  leading: const Icon(Icons.sync),
                   title: const Text("Monitoramento"),
                   description: const Text(
                     "Sincronização de progresso unidirecional, sincronização aprimorada",
@@ -79,7 +79,7 @@ class SettingsView extends StatelessWidget {
                   },
                 ),
                 SettingsTile.navigation(
-                  leading: Icon(Icons.search),
+                  leading: const Icon(Icons.search),
                   title: const Text("Navegar"),
                   description: const Text("Fontes, extensões, pesquisa global"),
                   onPressed: (context) {
@@ -87,7 +87,7 @@ class SettingsView extends StatelessWidget {
                   },
                 ),
                 SettingsTile.navigation(
-                  leading: Icon(Icons.storage),
+                  leading: const Icon(Icons.storage),
                   title: const Text("Dados e armazenamento"),
                   description: const Text(
                     "Backups manuais e automáticos, espaço de armazenamento",
@@ -97,7 +97,7 @@ class SettingsView extends StatelessWidget {
                   },
                 ),
                 SettingsTile.navigation(
-                  leading: Icon(Icons.security),
+                  leading: const Icon(Icons.security),
                   title: const Text("Segurança e privacidade"),
                   description: const Text("Bloqueio do aplicativo, tela segura"),
                   onPressed: (context) {

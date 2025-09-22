@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer_container.dart';
+import 'home_scope.dart';
+import '../../shared/widgets/custom_search_anchor.dart';
+import '../../shared/widgets/fade_through_transition_switcher.dart';
+import '../../shared/widgets/item_content.dart';
+import '../../shared/widgets/shimmer_container.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -248,7 +248,7 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
 
         return ListView.builder(
           itemCount: _contents.entries.length,
-          physics: BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           itemBuilder: (context, index) {
             final MapEntry<Source, SearchResult> entry = _contents.entries.elementAt(
               index,
@@ -290,7 +290,7 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
                       },
                     )
                   : null,
-              tilePadding: EdgeInsets.symmetric(horizontal: 8.0),
+              tilePadding: const EdgeInsets.symmetric(horizontal: 8.0),
               controlAffinity: ListTileControlAffinity.leading,
               children: <Widget>[
                 ShimmerContainer(

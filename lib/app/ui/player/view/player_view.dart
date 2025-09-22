@@ -5,22 +5,22 @@ import 'dart:collection';
 import 'package:android_pip/actions/pip_actions_layout.dart';
 import 'package:android_pip/android_pip.dart';
 import 'package:android_pip/pip_widget.dart';
-import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_session.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_controller.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_lifecycles_states.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_pip.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_screenshot.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_status.dart';
-import 'package:app_wsrb_jsr/app/ui/player/widgets/material_video_controls.dart';
-import 'package:app_wsrb_jsr/app/ui/player/widgets/scope.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_popup.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/release_content.dart';
-import 'package:app_wsrb_jsr/app/utils/anchor.dart';
-import 'package:app_wsrb_jsr/app/utils/auto_dispose_mixin.dart';
-import 'package:app_wsrb_jsr/app/utils/release_utils.dart';
+import '../arguments/player_args.dart';
+import '../mixins/player_audio_handler.dart';
+import '../mixins/player_audio_session.dart';
+import '../mixins/player_controller.dart';
+import '../mixins/player_lifecycles_states.dart';
+import '../mixins/player_pip.dart';
+import '../mixins/player_screenshot.dart';
+import '../mixins/player_status.dart';
+import '../widgets/material_video_controls.dart';
+import '../widgets/scope.dart';
+import '../../shared/mixins/subscriptions.dart';
+import '../../shared/widgets/custom_popup.dart';
+import '../../shared/widgets/release_content.dart';
+import '../../../utils/anchor.dart';
+import '../../../utils/auto_dispose_mixin.dart';
+import '../../../utils/release_utils.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
@@ -90,9 +90,9 @@ class _PlayerViewState extends State<PlayerView>
 
   final List<Data> data = [];
   final Debouncer _nextEpisodeDebouncer = Debouncer(
-    duration: Duration(milliseconds: 200),
+    duration: const Duration(milliseconds: 200),
   );
-  final Debouncer _saveData = Debouncer(duration: Duration(milliseconds: 200));
+  final Debouncer _saveData = Debouncer(duration: const Duration(milliseconds: 200));
   final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
   final int _maxValueCircularAnimation = 2;
 
@@ -264,7 +264,7 @@ class _PlayerViewState extends State<PlayerView>
       isPlayerInitialized = false;
     }
 
-    initPlayer(PlayerConfiguration());
+    initPlayer(const PlayerConfiguration());
     _videoController = VideoController(
       player,
       configuration: const VideoControllerConfiguration(),
@@ -793,7 +793,7 @@ class _EpisodesAndSkipList extends StatelessWidget {
             CustomPopup.items(
               startAnimatedAlignment: Alignment.centerRight,
               duration: const Duration(milliseconds: 250),
-              shape: RoundedRectangleBorder(
+              shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(12),
                   bottomLeft: Radius.circular(12),

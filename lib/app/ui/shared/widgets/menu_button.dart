@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
-import 'package:app_wsrb_jsr/app/utils/anchor.dart';
+import 'fade_through_transition_switcher.dart';
+import '../../../utils/anchor.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 

@@ -1,4 +1,4 @@
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
+import '../ui/shared/widgets/global_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

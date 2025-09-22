@@ -1,5 +1,5 @@
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
-import 'package:app_wsrb_jsr/app/utils/subordinate_library_tab_controller.dart';
+import '../../shared/widgets/custom_search_anchor.dart';
+import '../../../utils/subordinate_library_tab_controller.dart';
 import 'package:flutter/material.dart';
 
 class HomeScope extends InheritedNotifier<Listenable> {
@@ -15,7 +15,7 @@ class HomeScope extends InheritedNotifier<Listenable> {
     Widget? child,
   }) : super(
          notifier: Listenable.merge([tabController]),
-         child: Builder(builder: builder ?? (context) => child ?? SizedBox.shrink()),
+         child: Builder(builder: builder ?? (context) => child ?? const SizedBox.shrink()),
        );
 
   final AnimationController bottomSheetAnimationController;

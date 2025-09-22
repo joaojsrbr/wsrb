@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
-import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
+import '../routes/routes.dart';
+import '../ui/player/arguments/player_args.dart';
+import '../ui/reading/arguments/reading_args.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -182,7 +182,7 @@ final class ReleaseUtils {
                         );
                       }
                       return Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         height: 70,
                         width: 120,
                         child: container,

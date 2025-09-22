@@ -1,7 +1,7 @@
 // import 'package:android_intent_plus/android_intent.dart';
-import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
+import '../routes/routes.dart';
+import '../ui/content_information/arguments/content_information_args.dart';
+import '../ui/shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -29,11 +29,11 @@ class ContentUtils {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  BackButton(),
+                  const BackButton(),
                   Center(child: Text("Player", style: titleStyle)),
                 ],
               ),
-              Divider(),
+              const Divider(),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -49,7 +49,7 @@ class ContentUtils {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        Center(child: Text("Outro")),
+                        const Center(child: Text("Outro")),
                         Material(
                           type: MaterialType.transparency,
                           child: InkWell(
@@ -70,7 +70,7 @@ class ContentUtils {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        Center(child: Text("Local")),
+                        const Center(child: Text("Local")),
                         Material(
                           type: MaterialType.transparency,
                           child: InkWell(

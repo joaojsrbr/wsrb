@@ -1,7 +1,7 @@
 import 'package:android_pip/actions/pip_action.dart';
 import 'package:android_pip/android_pip.dart';
-import 'package:app_wsrb_jsr/app/ui/player/view/player_view.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/mixins/subscriptions.dart';
+import '../view/player_view.dart';
+import '../../shared/mixins/subscriptions.dart';
 
 mixin PlayerPipMixin on SubscriptionsByStateArgumentMixin<PlayerView> {
   // late final AndroidPIP androidPIP;

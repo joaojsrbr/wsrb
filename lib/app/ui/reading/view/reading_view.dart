@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
-import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
-import 'package:app_wsrb_jsr/app/ui/reading/widgets/scope.dart';
+import '../arguments/reading_args.dart';
+import '../widgets/scope.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';

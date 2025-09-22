@@ -1,5 +1,5 @@
-import 'package:app_wsrb_jsr/app/routes/routes.dart';
-import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
+import 'routes/routes.dart';
+import 'ui/shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,25 +19,25 @@ class MyApp extends StatelessWidget {
     customLog('$this[build]');
 
     final light = ColorScheme.fromSeed(
-      seedColor: Color(0xFF191724),
+      seedColor: const Color(0xFF191724),
       brightness: Brightness.light,
     );
     final dark = ColorScheme.fromSeed(
-      seedColor: Color(0xFF191724),
+      seedColor: const Color(0xFF191724),
       brightness: Brightness.dark,
     );
 
     return MaterialApp.router(
       theme: ThemeData(
         colorScheme: light,
-        cardTheme: CardThemeData(margin: EdgeInsets.zero),
+        cardTheme: const CardThemeData(margin: EdgeInsets.zero),
         splashFactory: InkRipple.splashFactory,
         useSystemColors: true,
       ),
       darkTheme: ThemeData(
         colorScheme: dark,
         splashFactory: InkRipple.splashFactory,
-        cardTheme: CardThemeData(margin: EdgeInsets.zero),
+        cardTheme: const CardThemeData(margin: EdgeInsets.zero),
         useSystemColors: true,
       ),
       themeMode: ThemeMode.system,
