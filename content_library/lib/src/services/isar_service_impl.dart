@@ -35,7 +35,7 @@ class IsarServiceImpl implements IsarService {
           });
 
         case EpisodeEntity episode:
-          await isar.animeEntitys.getByStringID(episode.animeStringID).then((
+          await isar.animeEntitys.getByStringID(episode.contentStringID).then((
             anime,
           ) async {
             if (anime != null) {
@@ -60,11 +60,6 @@ class IsarServiceImpl implements IsarService {
 
           isSucess = true;
           break;
-        case AnimeSkipEntity data:
-          currentID = await isar.animeSkipEntitys.putByAnimeSkipId(data);
-
-          isSucess = true;
-          break;
 
         case AnimeEntity anime:
           AnimeEntity? animeEntity = await isar.animeEntitys.getByStringID(
@@ -74,8 +69,6 @@ class IsarServiceImpl implements IsarService {
           currentID = await isar.animeEntitys.putByStringID(
             anime.copyWith(createdAt: animeEntity?.createdAt, updatedAt: DateTime.now()),
           );
-
-          await anime.saveAnimeSkip();
 
           isSucess = true;
           break;
@@ -115,8 +108,9 @@ class IsarServiceImpl implements IsarService {
             case AnimeEntity data:
               await isar.episodeEntitys
                   .filter()
-                  .animeStringIDEqualTo(data.stringID)
+                  .contentStringIDEqualTo(data.stringID)
                   .deleteAll();
+
               isSucess = await isar.animeEntitys.deleteByStringID(data.stringID);
               break;
             case BookEntity data:
@@ -159,21 +153,21 @@ class IsarServiceImpl implements IsarService {
     if (entities.isNotEmpty) {
       await isar.writeTxn(() async {
         final animeEntitys = entities.whereType<AnimeEntity>().toList();
-        final animeSkipEntitys = entities.whereType<AnimeSkipEntity>().toList();
+        // final animeSkipEntitys = entities.whereType<AnimeSkipEntity>().toList();
         final bookEntitys = entities.whereType<BookEntity>().toList();
         final categoryEntitys = entities.whereType<CategoryEntity>().toList();
         final chapterEntitys = entities.whereType<ChapterEntity>().toList();
         final episodeEntitys = entities.whereType<EpisodeEntity>().toList();
 
-        if (animeSkipEntitys.isNotEmpty) {
-          final addIds = await isar.animeSkipEntitys.putAllByAnimeSkipId(
-            animeSkipEntitys,
-          );
+        // if (animeSkipEntitys.isNotEmpty) {
+        //   final addIds = await isar.animeSkipEntitys.putAllByAnimeSkipId(
+        //     animeSkipEntitys,
+        //   );
 
-          ids.addAll(addIds);
+        //   ids.addAll(addIds);
 
-          isSucess = true;
-        }
+        //   isSucess = true;
+        // }
 
         if (animeEntitys.isNotEmpty) {
           final futures = animeEntitys.map((anime) async {
@@ -190,7 +184,7 @@ class IsarServiceImpl implements IsarService {
 
           final animes = await Future.wait(futures);
           final addIds = await isar.animeEntitys.putAllByStringID(animes);
-          await Future.wait(animes.map((anime) => anime.animeSkip.save()));
+          // await Future.wait(animes.map((anime) => anime.animeSkip.save()));
           ids.addAll(addIds);
 
           isSucess = true;
@@ -230,7 +224,7 @@ class IsarServiceImpl implements IsarService {
 
         if (episodeEntitys.isNotEmpty) {
           final anime = await isar.animeEntitys
-              .getByStringID(episodeEntitys.first.animeStringID)
+              .getByStringID(episodeEntitys.first.contentStringID)
               .then((anime) => anime?.copyWith(updatedAt: DateTime.now()));
 
           if (anime != null) {
@@ -317,7 +311,7 @@ class IsarServiceImpl implements IsarService {
         EpisodeEntitySchema,
         ChapterEntitySchema,
         CategoryEntitySchema,
-        AnimeSkipEntitySchema,
+
         AppConfigEntitySchema,
       ],
       maxSizeMiB: 3062,

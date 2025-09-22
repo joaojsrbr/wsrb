@@ -1,8 +1,12 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:content_library/content_library.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-class Episode extends Release {
+part 'generated/episode.mapper.dart';
+
+@MappableClass()
+class Episode extends Release with EpisodeMappable {
   const Episode({
     required super.url,
     required super.title,
@@ -53,7 +57,7 @@ class Episode extends Release {
     registrationData: registrationData,
     title: title,
     pageNumber: pageNumber,
-    animeStringID: anime.stringID,
+    contentStringID: anime.stringID,
     generateID: generateID,
     slugSerie: slugSerie,
     url: url,
@@ -65,33 +69,6 @@ class Episode extends Release {
     numberEpisode: numberInt,
   );
 
-  Map<String, dynamic> get toMap {
-    return <String, dynamic>{
-      'title': title,
-      'url': url,
-      'sinopse': sinopse,
-      'pageNumber': pageNumber,
-      'numberEpisode': numberEpisode,
-      'generateID': generateID,
-      'thumbnail': thumbnail,
-      'isDublado': isDublado,
-      'slugSerie': slugSerie,
-    };
-  }
-
-  factory Episode.fromMap(Map<String, dynamic> map) {
-    return Episode(
-      title: map['title'],
-      url: map['url'],
-      sinopse: map['sinopse'] != null ? map['sinopse'] as String : null,
-      pageNumber: map['pageNumber'] != null ? map['pageNumber'] as int : null,
-      numberEpisode: map['numberEpisode'] != null ? map['numberEpisode'] as int : null,
-      generateID: map['generateID'] != null ? map['generateID'] as String : null,
-      thumbnail: map['thumbnail'] != null ? map['thumbnail'] as String : null,
-      isDublado: map['isDublado'] as bool,
-      slugSerie: map['slugSerie'] != null ? map['slugSerie'] as String : null,
-    );
-  }
   factory Episode.fromReleaseMap(
     Map<String, dynamic> map,
     Anime anime, [

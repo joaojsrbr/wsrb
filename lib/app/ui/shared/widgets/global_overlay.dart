@@ -1,28 +1,28 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first, unused_element
+// ignore_for_file: unused_field, unused_element
+
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-
-/// App Notification Overlay
-/// - Mantém comportamento original para top/bottom
-/// - Usa OverlayEntry apenas para NotificationPosition.floating
-/// - Compatível com Material 3 (usa ColorScheme tokens quando possível)
-/// - Features adicionadas: actions, tag (evita duplicatas), fila/stack para floating,
-///   prioridade com preemption, sticky/persistent notifications, callbacks (onShown/onDismissed/onTap),
-///   NotificationType para cores automáticas, haptics, acessibilidade.
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 enum NotificationPosition { top, bottom, floating }
 
 enum NotificationType { neutral, info, success, warning, error }
 
+enum HapticType { light, medium, heavy, selection, vibrate }
+
 class AppNotificationConfig {
-  final int maxFloatingStack; // quantas flutuantes simultâneas
+  final int maxFloatingStack;
   final double floatingCornerRadius;
-  final double floatingMaxWidthFactor; // % da largura da tela
+  final double floatingMaxWidthFactor;
   final bool enableHaptics;
-  final double floatingSpacing; // deslocamento Y entre flutuantes empilhadas
+  final double floatingSpacing;
+  final Curve enterCurve;
+  final Curve exitCurve;
+  final bool highContrastMode;
 
   const AppNotificationConfig({
     this.maxFloatingStack = 3,
@@ -30,6 +30,9 @@ class AppNotificationConfig {
     this.floatingMaxWidthFactor = 0.9,
     this.enableHaptics = true,
     this.floatingSpacing = 12.0,
+    this.enterCurve = Curves.easeOutCubic,
+    this.exitCurve = Curves.easeInCubic,
+    this.highContrastMode = false,
   });
 }
 
@@ -52,21 +55,21 @@ class AppNotificationOverlay extends StatefulWidget {
 class AppNotificationOverlayState extends State<AppNotificationOverlay>
     with TickerProviderStateMixin {
   late final AnimationController _sharedController;
-  late final Animation<double> _sharedFade;
-  late final Animation<double> _sharedSize;
-  late final Animation<double> _padding;
-
+  late Animation<double> _sharedFade;
+  late Animation<double> _sharedSize;
+  late Animation<double> _padding;
   late final AnimationController _progressController;
 
-  Widget? _overlayContent; // usado para top/bottom
+  Widget? _overlayContent;
   NotificationPosition? _currentPosition;
   ValueNotifier<double>? _progressNotifier;
 
   double? _height;
   bool _showCountdown = false;
   bool _mediaQuery = true;
+  NotificationType _type = NotificationType.neutral;
   bool _isSizeComplete = false;
-  bool _isOverlay = false; // mantém comportamento atual para top/bottom overlay
+  bool _isOverlay = false;
   Color? _backgroundColor;
   TextStyle? _textStyle;
   Alignment _alignment = Alignment.center;
@@ -74,9 +77,14 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
   Timer? _sizeTimer;
 
   final List<_ActiveFloating> _activeFloatings = [];
-  final List<_PendingFloating> _floatingQueue = [];
+  final List<_PendingNotification> _floatingQueue = [];
 
-  String? _currentTag; // evita duplicatas por tag
+  final List<_PendingNotification> _topQueue = [];
+  final List<_PendingNotification> _bottomQueue = [];
+
+  final Map<String, int> _tagCounters = {};
+
+  String? _currentTag;
 
   @override
   void initState() {
@@ -85,18 +93,25 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
       vsync: this,
       duration: const Duration(milliseconds: 280),
     );
-    _sharedFade = CurvedAnimation(
-      parent: _sharedController,
-      curve: Curves.easeOutCubic,
-      reverseCurve: Curves.easeInCubic,
-    );
+    _updateAnimations();
     _padding = CurvedAnimation(
       parent: _sharedController,
-      curve: Curves.easeOutCubic,
-      reverseCurve: Curves.easeInCubic,
+      curve: widget.config.enterCurve,
+      reverseCurve: widget.config.exitCurve,
     )..addStatusListener(_paddingStatusListener);
-    _sharedSize = CurvedAnimation(parent: _sharedController, curve: Curves.easeOutCubic);
     _progressController = AnimationController(vsync: this);
+  }
+
+  void _updateAnimations() {
+    _sharedFade = CurvedAnimation(
+      parent: _sharedController,
+      curve: widget.config.enterCurve,
+      reverseCurve: widget.config.exitCurve,
+    );
+    _sharedSize = CurvedAnimation(
+      parent: _sharedController,
+      curve: widget.config.enterCurve,
+    );
   }
 
   void _paddingStatusListener(AnimationStatus status) {
@@ -113,7 +128,6 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
     }
   }
 
-  /// Top / bottom public API — agora aceitam `actions` e `tag`.
   void showTop({
     required Widget child,
     Duration duration = const Duration(seconds: 4),
@@ -132,12 +146,22 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
     NotificationCallback? onShown,
     NotificationCallback? onDismissed,
     NotificationCallback? onTap,
+    Widget? leading,
+    Widget? trailing,
+    bool expandable = false,
+    DismissDirection dismissDirection = DismissDirection.up,
+    bool autoDismissOnTap = false,
+    HapticType hapticType = HapticType.light,
+    Duration? scheduleDelay,
+    String? announceMessage,
+    Key? notificationKey,
+    Offset? enterOffset,
   }) {
-    _show(
+    final pending = _PendingNotification(
       child: child,
       position: NotificationPosition.top,
-      overlay: overlay,
       duration: duration,
+      overlay: overlay,
       showCountdown: showCountdown,
       progressNotifier: progressNotifier,
       backgroundColor: backgroundColor,
@@ -152,7 +176,21 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
       onShown: onShown,
       onDismissed: onDismissed,
       onTap: onTap,
+      leading: leading,
+      trailing: trailing,
+      expandable: expandable,
+      dismissDirection: dismissDirection,
+      autoDismissOnTap: autoDismissOnTap,
+      hapticType: hapticType,
+      announceMessage: announceMessage,
+      notificationKey: notificationKey,
+      enterOffset: enterOffset,
     );
+    if (scheduleDelay != null) {
+      Timer(scheduleDelay, () => _showPending(pending));
+    } else {
+      _showPending(pending);
+    }
   }
 
   void showBottom({
@@ -173,12 +211,22 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
     NotificationCallback? onShown,
     NotificationCallback? onDismissed,
     NotificationCallback? onTap,
+    Widget? leading,
+    Widget? trailing,
+    bool expandable = false,
+    DismissDirection dismissDirection = DismissDirection.down,
+    bool autoDismissOnTap = false,
+    HapticType hapticType = HapticType.light,
+    Duration? scheduleDelay,
+    String? announceMessage,
+    Key? notificationKey,
+    Offset? enterOffset,
   }) {
-    _show(
+    final pending = _PendingNotification(
       child: child,
       position: NotificationPosition.bottom,
-      overlay: overlay,
       duration: duration,
+      overlay: overlay,
       showCountdown: showCountdown,
       progressNotifier: progressNotifier,
       backgroundColor: backgroundColor,
@@ -193,10 +241,23 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
       onShown: onShown,
       onDismissed: onDismissed,
       onTap: onTap,
+      leading: leading,
+      trailing: trailing,
+      expandable: expandable,
+      dismissDirection: dismissDirection,
+      autoDismissOnTap: autoDismissOnTap,
+      hapticType: hapticType,
+      announceMessage: announceMessage,
+      notificationKey: notificationKey,
+      enterOffset: enterOffset,
     );
+    if (scheduleDelay != null) {
+      Timer(scheduleDelay, () => _showPending(pending));
+    } else {
+      _showPending(pending);
+    }
   }
 
-  /// Show floating (public). Accepts priority/persistent etc.
   void showFloating({
     required Widget child,
     Duration duration = const Duration(seconds: 4),
@@ -213,12 +274,23 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
     NotificationCallback? onShown,
     NotificationCallback? onDismissed,
     NotificationCallback? onTap,
+    Widget? leading,
+    Widget? trailing,
+    bool expandable = false,
+    DismissDirection dismissDirection = DismissDirection.horizontal,
+    bool autoDismissOnTap = false,
+
+    HapticType hapticType = HapticType.light,
+    Duration? scheduleDelay,
+    String? announceMessage,
+    Key? notificationKey,
+    Offset? enterOffset,
   }) {
-    _show(
+    final pending = _PendingNotification(
       child: child,
       position: NotificationPosition.floating,
-      overlay: true,
       duration: duration,
+      overlay: true,
       showCountdown: true,
       progressNotifier: progressNotifier,
       backgroundColor: backgroundColor,
@@ -233,10 +305,23 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
       onShown: onShown,
       onDismissed: onDismissed,
       onTap: onTap,
+      leading: leading,
+      trailing: trailing,
+      expandable: expandable,
+      dismissDirection: dismissDirection,
+      autoDismissOnTap: autoDismissOnTap,
+      hapticType: hapticType,
+      announceMessage: announceMessage,
+      notificationKey: notificationKey,
+      enterOffset: enterOffset,
     );
+    if (scheduleDelay != null) {
+      Timer(scheduleDelay, () => _showPending(pending));
+    } else {
+      _showPending(pending);
+    }
   }
 
-  /// Mantém a notificação ativa (reinicia timer ou mostra progresso passado)
   void maintainOverlap({
     Duration duration = const Duration(seconds: 4),
     ValueNotifier<double>? progressNotifier,
@@ -247,6 +332,8 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
       _progressNotifier = progressNotifier;
     });
     if (progressNotifier == null && mounted) {
+      _sizeTimer?.cancel();
+      _sizeTimer = Timer(const Duration(milliseconds: 200), () => _isSizeComplete = true);
       _closeTimer = Timer(duration, closeAnimated);
       if (_showCountdown) {
         _progressController.duration = duration;
@@ -255,167 +342,190 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
     }
   }
 
-  void _show({
-    required Widget child,
-    required NotificationPosition position,
-    required Duration duration,
-    required bool overlay,
-    required bool showCountdown,
-    ValueNotifier<double>? progressNotifier,
-    Color? backgroundColor,
-    double? height,
-    TextStyle? textStyle,
-    Alignment? alignment,
-    List<Widget>? actions,
-    String? tag,
-    int priority = 0,
-    bool persistent = false,
-    NotificationType type = NotificationType.neutral,
-    NotificationCallback? onShown,
-    NotificationCallback? onDismissed,
-    NotificationCallback? onTap,
-  }) {
-    // evita duplicatas por tag
-    if (tag != null && tag == _currentTag) return;
+  void _showPending(_PendingNotification pending) {
+    if (pending.tag != null) {
+      if (_tagCounters.containsKey(pending.tag)) {
+        _tagCounters[pending.tag!] = _tagCounters[pending.tag]! + 1;
+        _isSizeComplete = false;
+
+        pending = pending.copyWith(child: pending.child);
+      } else {
+        _tagCounters[pending.tag!] = 1;
+      }
+    }
+    _showNotification(pending);
+  }
+
+  void _showNotification(_PendingNotification pending) {
+    if (pending.tag != null &&
+        pending.tag == _currentTag &&
+        (_tagCounters[pending.tag!] ?? 1) == 1) {
+      return;
+    }
     _isSizeComplete = false;
 
-    // Se position for floating, usamos OverlayEntry (novo comportamento)
-    if (position == NotificationPosition.floating) {
-      setState(() {
-        _isOverlay = overlay;
-        _mediaQuery = false;
-      });
+    if (pending.position == NotificationPosition.floating) {
+      _handleFloating(pending);
+    } else {
+      _handleTopBottom(pending);
+    }
+  }
 
-      final pending = _PendingFloating(
-        child: child,
-        duration: duration,
-        progressNotifier: progressNotifier,
-        backgroundColor: backgroundColor,
-        textStyle: textStyle,
-        alignment: alignment ?? Alignment.center,
-        height: height,
-        actions: actions,
-        tag: tag,
-        priority: priority,
-        persistent: persistent,
-        type: type,
-        onShown: onShown,
-        onDismissed: onDismissed,
-        onTap: onTap,
-      );
+  void _handleFloating(_PendingNotification pending) {
+    setState(() {
+      _isOverlay = pending.overlay;
+      _mediaQuery = false;
+    });
 
-      // Preemption: se fila cheia e incoming tem prioridade maior que algum ativo
-      if (_activeFloatings.length >= widget.config.maxFloatingStack) {
-        // encontra o ativo de menor prioridade
-        _activeFloatings.sort((a, b) => a.pending.priority.compareTo(b.pending.priority));
-        final lowest = _activeFloatings.first;
-        if (pending.priority > lowest.pending.priority) {
-          // remove lowest e mostra pending
-          _removeActiveFloating(lowest);
-          _insertActiveFloating(pending);
-          return;
-        }
-
-        // se não preemptou, tenta enfileirar
-        if (_floatingQueue.length < 64) {
-          _floatingQueue.add(pending);
-        }
+    if (_activeFloatings.length >= widget.config.maxFloatingStack) {
+      _activeFloatings.sort((a, b) => a.pending.priority.compareTo(b.pending.priority));
+      final lowest = _activeFloatings.first;
+      if (pending.priority > lowest.pending.priority) {
+        _removeActiveFloating(lowest);
+        _insertActiveFloating(pending);
         return;
       }
-
-      // Ainda temos espaço para mostrar imediatamente
-      _insertActiveFloating(pending);
+      if (_floatingQueue.length < 64) {
+        _floatingQueue.add(pending);
+      }
       return;
     }
 
-    // comport. existente para top/bottom (mantive e acrescentei actions)
+    _insertActiveFloating(pending);
+  }
+
+  void _handleTopBottom(_PendingNotification pending) {
+    final queue = pending.position == NotificationPosition.top ? _topQueue : _bottomQueue;
+    queue.add(pending);
+    _processTopBottomQueue(pending.position);
+  }
+
+  void _processTopBottomQueue(NotificationPosition position) {
+    final queue = position == NotificationPosition.top ? _topQueue : _bottomQueue;
+    if (queue.isEmpty || _overlayContent != null) return;
+
+    final pending = queue.removeAt(0);
+    _displayTopBottom(pending);
+  }
+
+  void _displayTopBottom(_PendingNotification pending) {
     _closeTimer?.cancel();
     _progressController.stop();
     setState(() {
-      _isOverlay = overlay;
+      _isOverlay = pending.overlay;
       _mediaQuery = false;
-      _overlayContent = child;
-      _currentPosition = position;
-      _isOverlay = overlay;
-      _height = height;
-      _backgroundColor = backgroundColor;
-      _textStyle = textStyle;
-      _alignment = alignment ?? Alignment.center;
-
-      _progressNotifier = progressNotifier;
-      _showCountdown = (progressNotifier == null && showCountdown);
-      _currentTag = tag;
+      _overlayContent = _buildStyledContent(pending, context);
+      _currentPosition = pending.position;
+      _height = pending.height;
+      _backgroundColor = pending.backgroundColor;
+      _textStyle = pending.textStyle;
+      _type = pending.type;
+      _alignment = pending.alignment;
+      _progressNotifier = pending.progressNotifier;
+      _showCountdown = (pending.progressNotifier == null && pending.showCountdown);
+      _currentTag = pending.tag;
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       _sizeTimer?.cancel();
-      _sizeTimer = Timer(Duration(milliseconds: 200), () => _isSizeComplete = true);
+      _sizeTimer = Timer(const Duration(milliseconds: 200), () => _isSizeComplete = true);
       _sharedController.forward(from: 0);
 
-      if (progressNotifier == null && !persistent) {
-        _closeTimer = Timer(duration, closeAnimated);
+      if (pending.progressNotifier == null && !pending.persistent) {
+        _closeTimer = Timer(pending.duration, closeAnimated);
         if (_showCountdown) {
-          _progressController.duration = duration;
+          _progressController.duration = pending.duration;
           _progressController.forward(from: 0);
         }
       }
 
-      if (onShown != null) onShown();
+      pending.onShown?.call();
+      _triggerHaptic(pending.hapticType);
+      if (pending.announceMessage != null) {
+        SemanticsService.announce(pending.announceMessage!, TextDirection.ltr);
+      }
+      _processTopBottomQueue(pending.position);
     });
   }
 
-  void _insertActiveFloating(_PendingFloating pending) {
+  Widget _buildStyledContent(_PendingNotification pending, BuildContext ctx) {
+    IconData? defaultIcon = _defaultIconForType(pending.type);
+
+    return DefaultTextStyle(
+      style:
+          pending.textStyle ??
+          Theme.of(ctx).textTheme.bodyMedium!.copyWith(
+            color: _colorOnSurfaceForType(pending.type, Theme.of(ctx).colorScheme),
+          ),
+      child: pending.expandable
+          ? ExpansionTile(title: pending.child, children: [pending.child])
+          : Row(
+              children: [
+                if (pending.leading != null)
+                  pending.leading!
+                else if (defaultIcon != null)
+                  Icon(defaultIcon),
+                Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      pending.onTap?.call();
+                      if (pending.autoDismissOnTap) {
+                        closeAnimated();
+                      }
+                    },
+                    child: pending.child,
+                  ),
+                ),
+                if (pending.trailing != null) pending.trailing!,
+                if (pending.actions != null && pending.actions!.isNotEmpty)
+                  ...pending.actions!,
+              ],
+            ),
+    );
+  }
+
+  void _insertActiveFloating(_PendingNotification pending) {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final overlay = Overlay.of(context);
 
-      // haptics
       if (widget.config.enableHaptics) {
-        try {
-          HapticFeedback.lightImpact();
-        } catch (_) {}
+        _triggerHaptic(pending.hapticType);
+      }
+
+      if (pending.announceMessage != null) {
+        SemanticsService.announce(pending.announceMessage!, TextDirection.ltr);
       }
 
       final controller = AnimationController(
         vsync: this,
         duration: const Duration(milliseconds: 280),
       );
-      final fade = CurvedAnimation(parent: controller, curve: Curves.easeOutCubic);
-      final sizeAnim = CurvedAnimation(parent: controller, curve: Curves.easeOutCubic);
-
-      final styledContent = DefaultTextStyle(
-        style:
-            pending.textStyle ??
-            Theme.of(context).textTheme.bodyMedium!.copyWith(
-              color: _colorOnSurfaceForType(pending.type, Theme.of(context).colorScheme),
-            ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                pending.onTap?.call();
-              },
-              child: pending.child,
-            ),
-            if (pending.actions != null && pending.actions!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Row(mainAxisSize: MainAxisSize.min, children: pending.actions!),
-            ],
-          ],
-        ),
+      final fade = CurvedAnimation(
+        parent: controller,
+        curve: widget.config.enterCurve,
+        reverseCurve: widget.config.exitCurve,
       );
+      final sizeAnim = CurvedAnimation(
+        parent: controller,
+        curve: widget.config.enterCurve,
+      );
+      final slideAnim = Tween<Offset>(
+        begin: pending.enterOffset ?? Offset.zero,
+        end: Offset.zero,
+      ).animate(CurvedAnimation(parent: controller, curve: widget.config.enterCurve));
+
+      final styledContent = _buildStyledContent(pending, context);
 
       late OverlayEntry entry;
 
       entry = OverlayEntry(
         builder: (ctx) {
-          // calcula offset baseado em quantos ativos
           final index = _activeFloatings.length;
           final spacing = widget.config.floatingSpacing;
-          final dy = (index * (spacing + (pending.height ?? 64))) * -1; // sobe pra cima
+          final dy = (index * (spacing + (pending.height ?? 64))) * -1;
 
           return Positioned.fill(
             child: IgnorePointer(
@@ -423,7 +533,6 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
               child: SafeArea(
                 child: Stack(
                   children: [
-                    // Backdrop tap area
                     Positioned.fill(
                       child: GestureDetector(
                         behavior: HitTestBehavior.translucent,
@@ -438,33 +547,39 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
                       bottom: null,
                       top: null,
                       child: Center(
-                        child: AnimatedBuilder(
-                          animation: controller,
-                          builder: (context, childW) {
-                            return Opacity(
-                              opacity: fade.value,
-                              child: Transform.translate(
-                                offset: Offset(0, dy * (1 - fade.value)),
-                                child: Transform.scale(
-                                  scale: Tween<double>(
-                                    begin: 0.96,
-                                    end: 1.0,
-                                  ).evaluate(sizeAnim),
-                                  child: childW,
+                        child: Dismissible(
+                          key: pending.notificationKey ?? UniqueKey(),
+                          direction: pending.dismissDirection,
+                          onDismissed: (_) => _removeActiveFloatingByEntry(entry),
+                          child: AnimatedBuilder(
+                            animation: controller,
+                            builder: (context, childW) {
+                              return Opacity(
+                                opacity: fade.value,
+                                child: Transform.translate(
+                                  offset:
+                                      slideAnim.value + Offset(0, dy * (1 - fade.value)),
+                                  child: Transform.scale(
+                                    scale: Tween<double>(
+                                      begin: 0.96,
+                                      end: 1.0,
+                                    ).evaluate(sizeAnim),
+                                    child: childW,
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                          child: _FloatingNotificationContainer(
-                            content: styledContent,
-                            cornerRadius: widget.config.floatingCornerRadius,
-                            maxWidthFactor: widget.config.floatingMaxWidthFactor,
-                            backgroundColor:
-                                pending.backgroundColor ??
-                                _colorForType(
-                                  pending.type,
-                                  Theme.of(context).colorScheme,
-                                ),
+                              );
+                            },
+                            child: _FloatingNotificationContainer(
+                              content: styledContent,
+                              cornerRadius: widget.config.floatingCornerRadius,
+                              maxWidthFactor: widget.config.floatingMaxWidthFactor,
+                              backgroundColor:
+                                  pending.backgroundColor ??
+                                  _colorForType(
+                                    pending.type,
+                                    Theme.of(context).colorScheme,
+                                  ),
+                            ),
                           ),
                         ),
                       ),
@@ -487,15 +602,12 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
 
       await controller.forward();
 
-      // notifica mostrado
       pending.onShown?.call();
 
-      // auto close se não for persistent
       if (!pending.persistent) {
         active.closeTimer = Timer(pending.duration, () => _removeActiveFloating(active));
       }
 
-      // processa fila se ainda tiver espaço
       _processQueueIfNeeded();
     });
   }
@@ -517,21 +629,23 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
       } catch (_) {}
       active.controller.dispose();
       active.pending.onDismissed?.call();
+      if (active.pending.tag != null) {
+        _tagCounters.remove(active.pending.tag);
+      }
       _activeFloatings.remove(active);
       _processQueueIfNeeded();
     });
   }
 
   void _removeActiveFloatingByEntry(OverlayEntry entry) {
-    final found = _activeFloatings.firstWhere((e) => e.entry == entry);
-    _removeActiveFloating(found);
+    final found = _activeFloatings.firstWhereOrNull((e) => e.entry == entry);
+    if (found != null) _removeActiveFloating(found);
   }
 
   void closeAnimated() {
     _closeTimer?.cancel();
     _progressController.stop();
 
-    // fecha todos os flutuantes ativos
     if (_activeFloatings.isNotEmpty) {
       final copy = List<_ActiveFloating>.from(_activeFloatings);
       for (final a in copy) {
@@ -550,7 +664,31 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
         _progressNotifier = null;
         _currentTag = null;
       });
+      _processTopBottomQueue(_currentPosition ?? NotificationPosition.top);
     });
+  }
+
+  void closeByTag(String tag) {
+    _closeFloatingInstantByTag(tag);
+    if (_currentTag == tag) {
+      _closeInstantly();
+    }
+    _topQueue.removeWhere((p) => p.tag == tag);
+    _bottomQueue.removeWhere((p) => p.tag == tag);
+    _tagCounters.remove(tag);
+  }
+
+  void closeByType(NotificationType type) {
+    final toRemove = _activeFloatings.where((e) => e.pending.type == type).toList();
+    for (final a in toRemove) {
+      _removeActiveFloating(a);
+    }
+
+    if (_overlayContent != null /* && current type == type */ ) {
+      _closeInstantly();
+    }
+    _topQueue.removeWhere((p) => p.type == type);
+    _bottomQueue.removeWhere((p) => p.type == type);
   }
 
   void _closeFloatingInstantByTag(String tag) {
@@ -591,6 +729,35 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
     });
   }
 
+  void _triggerHaptic(HapticType type) {
+    if (!widget.config.enableHaptics) return;
+    switch (type) {
+      case HapticType.light:
+        HapticFeedback.lightImpact();
+        break;
+      case HapticType.medium:
+        HapticFeedback.mediumImpact();
+        break;
+      case HapticType.heavy:
+        HapticFeedback.heavyImpact();
+        break;
+      case HapticType.selection:
+        HapticFeedback.selectionClick();
+        break;
+      case HapticType.vibrate:
+        HapticFeedback.vibrate();
+        break;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant AppNotificationOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.config != widget.config) {
+      _updateAnimations();
+    }
+  }
+
   @override
   void dispose() {
     _sharedController.dispose();
@@ -606,6 +773,9 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
     }
     _activeFloatings.clear();
     _floatingQueue.clear();
+    _topQueue.clear();
+    _bottomQueue.clear();
+    _tagCounters.clear();
     super.dispose();
   }
 
@@ -648,7 +818,7 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
       true => MediaQuery(data: mediaQueryData, child: widget.child),
       false => MediaQuery(
         data: mediaQueryData.copyWith(padding: safeAreaPadding),
-        child: CustomAnimatedPadding(
+        child: _CustomAnimatedPadding(
           animation: _padding,
           originalTop: mediaQueryData.padding.top,
           shouldKeepFullTop:
@@ -704,20 +874,23 @@ class AppNotificationOverlayState extends State<AppNotificationOverlay>
 class _ActiveFloating {
   final OverlayEntry entry;
   final AnimationController controller;
-  final _PendingFloating pending;
+  final _PendingNotification pending;
   Timer? closeTimer;
 
   _ActiveFloating({required this.entry, required this.controller, required this.pending});
 }
 
-class _PendingFloating {
+class _PendingNotification {
   final Widget child;
+  final NotificationPosition position;
   final Duration duration;
+  final bool overlay;
+  final bool showCountdown;
   final ValueNotifier<double>? progressNotifier;
   final Color? backgroundColor;
+  final double? height;
   final TextStyle? textStyle;
   final Alignment alignment;
-  final double? height;
   final List<Widget>? actions;
   final String? tag;
   final int priority;
@@ -726,15 +899,27 @@ class _PendingFloating {
   final NotificationCallback? onShown;
   final NotificationCallback? onDismissed;
   final NotificationCallback? onTap;
+  final Widget? leading;
+  final Widget? trailing;
+  final bool expandable;
+  final DismissDirection dismissDirection;
+  final bool autoDismissOnTap;
+  final HapticType hapticType;
+  final String? announceMessage;
+  final Key? notificationKey;
+  final Offset? enterOffset;
 
-  _PendingFloating({
+  _PendingNotification({
     required this.child,
+    required this.position,
     required this.duration,
+    this.overlay = false,
+    this.showCountdown = true,
     this.progressNotifier,
     this.backgroundColor,
+    this.height,
     this.textStyle,
     this.alignment = Alignment.center,
-    this.height,
     this.actions,
     this.tag,
     this.priority = 0,
@@ -743,7 +928,91 @@ class _PendingFloating {
     this.onShown,
     this.onDismissed,
     this.onTap,
+    this.leading,
+    this.trailing,
+    this.expandable = false,
+    this.dismissDirection = DismissDirection.none,
+    this.autoDismissOnTap = false,
+    this.hapticType = HapticType.light,
+    this.announceMessage,
+    this.notificationKey,
+    this.enterOffset,
   });
+
+  _PendingNotification copyWith({
+    Widget? child,
+    NotificationPosition? position,
+    Duration? duration,
+    bool? overlay,
+    bool? showCountdown,
+    ValueNotifier<double>? progressNotifier,
+    Color? backgroundColor,
+    double? height,
+    TextStyle? textStyle,
+    Alignment? alignment,
+    List<Widget>? actions,
+    String? tag,
+    int? priority,
+    bool? persistent,
+    NotificationType? type,
+    NotificationCallback? onShown,
+    NotificationCallback? onDismissed,
+    NotificationCallback? onTap,
+    Widget? leading,
+    Widget? trailing,
+    bool? expandable,
+    DismissDirection? dismissDirection,
+    bool? autoDismissOnTap,
+    HapticType? hapticType,
+    String? announceMessage,
+    Key? notificationKey,
+    Offset? enterOffset,
+  }) {
+    return _PendingNotification(
+      child: child ?? this.child,
+      position: position ?? this.position,
+      duration: duration ?? this.duration,
+      overlay: overlay ?? this.overlay,
+      showCountdown: showCountdown ?? this.showCountdown,
+      progressNotifier: progressNotifier ?? this.progressNotifier,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      height: height ?? this.height,
+      textStyle: textStyle ?? this.textStyle,
+      alignment: alignment ?? this.alignment,
+      actions: actions ?? this.actions,
+      tag: tag ?? this.tag,
+      priority: priority ?? this.priority,
+      persistent: persistent ?? this.persistent,
+      type: type ?? this.type,
+      onShown: onShown ?? this.onShown,
+      onDismissed: onDismissed ?? this.onDismissed,
+      onTap: onTap ?? this.onTap,
+      leading: leading ?? this.leading,
+      trailing: trailing ?? this.trailing,
+      expandable: expandable ?? this.expandable,
+      dismissDirection: dismissDirection ?? this.dismissDirection,
+      autoDismissOnTap: autoDismissOnTap ?? this.autoDismissOnTap,
+      hapticType: hapticType ?? this.hapticType,
+      announceMessage: announceMessage ?? this.announceMessage,
+      notificationKey: notificationKey ?? this.notificationKey,
+      enterOffset: enterOffset ?? this.enterOffset,
+    );
+  }
+}
+
+IconData? _defaultIconForType(NotificationType type) {
+  switch (type) {
+    case NotificationType.info:
+      return Icons.info_outline;
+    case NotificationType.success:
+      return Icons.check_circle_outline;
+    case NotificationType.warning:
+      return Icons.warning_amber_rounded;
+    case NotificationType.error:
+      return Icons.error_outline;
+    case NotificationType.neutral:
+      return null;
+  }
 }
 
 class _NotificationContainer extends StatelessWidget {
@@ -755,7 +1024,6 @@ class _NotificationContainer extends StatelessWidget {
     final state = InheritedNotificationOverlay.of(context);
     final cs = Theme.of(context).colorScheme;
 
-    // Use M3 surfaceVariant if available for contraste sutil
     final bg = state._backgroundColor ?? cs.surfaceContainerHighest;
 
     return Semantics(
@@ -849,7 +1117,6 @@ class InheritedNotificationOverlay extends InheritedWidget {
       state != oldWidget.state;
 }
 
-/// Extension para usar direto do context — adicionei `actions`, `tag`, `priority`, `persistent`
 extension NotificationOverlayExtension on BuildContext {
   void showTopNotification(
     Widget child, {
@@ -869,6 +1136,16 @@ extension NotificationOverlayExtension on BuildContext {
     NotificationCallback? onShown,
     NotificationCallback? onDismissed,
     NotificationCallback? onTap,
+    Widget? leading,
+    Widget? trailing,
+    bool expandable = false,
+    DismissDirection dismissDirection = DismissDirection.up,
+    bool autoDismissOnTap = false,
+    HapticType hapticType = HapticType.light,
+    Duration? scheduleDelay,
+    String? announceMessage,
+    Key? notificationKey,
+    Offset? enterOffset,
   }) => InheritedNotificationOverlay.of(this).showTop(
     child: child,
     height: height,
@@ -887,12 +1164,24 @@ extension NotificationOverlayExtension on BuildContext {
     onShown: onShown,
     onDismissed: onDismissed,
     onTap: onTap,
+    leading: leading,
+    trailing: trailing,
+    expandable: expandable,
+    dismissDirection: dismissDirection,
+    autoDismissOnTap: autoDismissOnTap,
+    hapticType: hapticType,
+    scheduleDelay: scheduleDelay,
+    announceMessage: announceMessage,
+    notificationKey: notificationKey,
+    enterOffset: enterOffset,
   );
 
   bool hasNotification() =>
       InheritedNotificationOverlay.of(this)._overlayContent != null ||
       InheritedNotificationOverlay.of(this)._activeFloatings.isNotEmpty ||
-      InheritedNotificationOverlay.of(this)._floatingQueue.isNotEmpty;
+      InheritedNotificationOverlay.of(this)._floatingQueue.isNotEmpty ||
+      InheritedNotificationOverlay.of(this)._topQueue.isNotEmpty ||
+      InheritedNotificationOverlay.of(this)._bottomQueue.isNotEmpty;
 
   void showBottomNotification(
     Widget child, {
@@ -912,6 +1201,16 @@ extension NotificationOverlayExtension on BuildContext {
     NotificationCallback? onShown,
     NotificationCallback? onDismissed,
     NotificationCallback? onTap,
+    Widget? leading,
+    Widget? trailing,
+    bool expandable = false,
+    DismissDirection dismissDirection = DismissDirection.down,
+    bool autoDismissOnTap = false,
+    HapticType hapticType = HapticType.light,
+    Duration? scheduleDelay,
+    String? announceMessage,
+    Key? notificationKey,
+    Offset? enterOffset,
   }) => InheritedNotificationOverlay.of(this).showBottom(
     child: child,
     height: height,
@@ -930,6 +1229,16 @@ extension NotificationOverlayExtension on BuildContext {
     onShown: onShown,
     onDismissed: onDismissed,
     onTap: onTap,
+    leading: leading,
+    trailing: trailing,
+    expandable: expandable,
+    dismissDirection: dismissDirection,
+    autoDismissOnTap: autoDismissOnTap,
+    hapticType: hapticType,
+    scheduleDelay: scheduleDelay,
+    announceMessage: announceMessage,
+    notificationKey: notificationKey,
+    enterOffset: enterOffset,
   );
 
   void showFloatingNotification(
@@ -948,6 +1257,16 @@ extension NotificationOverlayExtension on BuildContext {
     NotificationCallback? onShown,
     NotificationCallback? onDismissed,
     NotificationCallback? onTap,
+    Widget? leading,
+    Widget? trailing,
+    bool expandable = false,
+    DismissDirection dismissDirection = DismissDirection.horizontal,
+    bool autoDismissOnTap = false,
+    HapticType hapticType = HapticType.light,
+    Duration? scheduleDelay,
+    String? announceMessage,
+    Key? notificationKey,
+    Offset? enterOffset,
   }) => InheritedNotificationOverlay.of(this).showFloating(
     child: child,
     duration: duration,
@@ -964,6 +1283,16 @@ extension NotificationOverlayExtension on BuildContext {
     onShown: onShown,
     onDismissed: onDismissed,
     onTap: onTap,
+    leading: leading,
+    trailing: trailing,
+    expandable: expandable,
+    dismissDirection: dismissDirection,
+    autoDismissOnTap: autoDismissOnTap,
+    hapticType: hapticType,
+    scheduleDelay: scheduleDelay,
+    announceMessage: announceMessage,
+    notificationKey: notificationKey,
+    enterOffset: enterOffset,
   );
 
   void maintainOverlap({
@@ -977,7 +1306,7 @@ extension NotificationOverlayExtension on BuildContext {
     final cs = Theme.of(this).colorScheme;
     _showPresetNotification(
       message: message,
-      iconData: Icons.error_outline,
+      iconData: MdiIcons.alertCircleOutline,
       backgroundColor: cs.errorContainer,
       foregroundColor: cs.onErrorContainer,
       duration: duration ?? const Duration(seconds: 5),
@@ -989,9 +1318,8 @@ extension NotificationOverlayExtension on BuildContext {
     final cs = Theme.of(this).colorScheme;
     _showPresetNotification(
       message: message,
-      iconData: Icons.check_circle_outline,
+      iconData: MdiIcons.checkCircleOutline,
       backgroundColor: cs.tertiaryContainer,
-      // backgroundColor: Color(0xFF4CAF50).withAlpha(120),
       foregroundColor: cs.onTertiaryContainer,
       duration: duration,
       type: NotificationType.success,
@@ -1002,7 +1330,7 @@ extension NotificationOverlayExtension on BuildContext {
     final cs = Theme.of(this).colorScheme;
     _showPresetNotification(
       message: message,
-      iconData: Icons.warning_amber_rounded,
+      iconData: MdiIcons.alertOutline,
       backgroundColor: cs.secondaryContainer,
       foregroundColor: cs.onSecondaryContainer,
       duration: duration ?? const Duration(seconds: 5),
@@ -1014,7 +1342,7 @@ extension NotificationOverlayExtension on BuildContext {
     final cs = Theme.of(this).colorScheme;
     _showPresetNotification(
       message: message,
-      iconData: Icons.info_outline,
+      iconData: MdiIcons.informationOutline,
       backgroundColor: cs.primaryContainer,
       foregroundColor: cs.onPrimaryContainer,
       duration: duration,
@@ -1038,7 +1366,7 @@ extension NotificationOverlayExtension on BuildContext {
         Expanded(
           child: Text(
             message,
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(color: foregroundColor ?? cs.onSurface),
           ),
@@ -1101,10 +1429,15 @@ extension NotificationOverlayExtension on BuildContext {
     final content = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(iconData, color: foregroundColor),
-        const SizedBox(width: 12),
+        // Icon(iconData, color: foregroundColor),
+        const SizedBox(width: 8),
         Expanded(
-          child: Text(message, style: TextStyle(color: foregroundColor)),
+          child: Text(
+            message,
+            style: TextStyle(color: foregroundColor),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );
@@ -1117,7 +1450,79 @@ extension NotificationOverlayExtension on BuildContext {
     );
   }
 
+  void showProgressNotification(
+    String message, {
+    required ValueNotifier<double> progress,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    double height = 86,
+    NotificationPosition position = NotificationPosition.bottom,
+  }) {
+    final cs = Theme.of(this).colorScheme;
+
+    final content = ValueListenableBuilder<double>(
+      valueListenable: progress,
+      builder: (context, value, _) {
+        return Center(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Spacer(),
+              SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator.adaptive(strokeWidth: 2),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                "$message (${(value * 100).toStringAsFixed(0)}%)",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 14, color: foregroundColor ?? cs.onSurface),
+              ),
+              Spacer(),
+            ],
+          ),
+        );
+      },
+    );
+
+    switch (position) {
+      case NotificationPosition.top:
+        showTopNotification(
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: content),
+          height: height,
+          showCountdown: false,
+          persistent: true,
+          duration: const Duration(days: 1),
+          backgroundColor: backgroundColor ?? cs.surfaceContainerHighest,
+          overlay: false,
+        );
+      case NotificationPosition.bottom:
+        showBottomNotification(
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: content),
+          height: height,
+          duration: const Duration(days: 1),
+          backgroundColor: backgroundColor ?? cs.surfaceContainerHighest,
+          overlay: false,
+        );
+      case NotificationPosition.floating:
+        showFloatingNotification(
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: content),
+          height: height,
+          duration: const Duration(days: 1),
+          backgroundColor: backgroundColor ?? cs.surfaceContainerHighest,
+          textStyle: TextStyle(color: foregroundColor ?? cs.onSurface),
+        );
+    }
+  }
+
   void closeNotification() => InheritedNotificationOverlay.of(this).closeAnimated();
+
+  void closeByTag(String tag) => InheritedNotificationOverlay.of(this).closeByTag(tag);
+
+  void closeByType(NotificationType type) =>
+      InheritedNotificationOverlay.of(this).closeByType(type);
 }
 
 class _FloatingNotificationContainer extends StatelessWidget {
@@ -1158,15 +1563,12 @@ class _FloatingNotificationContainer extends StatelessWidget {
   }
 }
 
-/// --- Render object personalizado (mantive) ---
-
-class CustomAnimatedPadding extends SingleChildRenderObjectWidget {
+class _CustomAnimatedPadding extends SingleChildRenderObjectWidget {
   final Animation<double> animation;
   final double originalTop;
   final bool shouldKeepFullTop;
 
-  const CustomAnimatedPadding({
-    super.key,
+  const _CustomAnimatedPadding({
     required this.animation,
     required this.originalTop,
     required this.shouldKeepFullTop,
@@ -1242,10 +1644,7 @@ class _RenderCustomAnimatedPadding extends RenderShiftedBox {
   }
 
   double get _effectiveTop {
-    final double value = CurvedAnimation(
-      parent: _animation,
-      curve: Curves.linear, // Ajuste a curva se necessário
-    ).value;
+    final double value = CurvedAnimation(parent: _animation, curve: Curves.linear).value;
     return _shouldKeepFullTop ? _originalTop : _originalTop * (1 - value);
   }
 

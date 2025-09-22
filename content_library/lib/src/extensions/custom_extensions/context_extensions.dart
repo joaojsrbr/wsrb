@@ -44,46 +44,4 @@ extension ContextExtensions on BuildContext {
 
     return Size(memCacheWidth, memCacheHeight);
   }
-
-  /// Calculates memCacheHeight and memCacheWidth for an image based on BoxConstraints,
-  /// optional aspect ratio, and device pixel ratio (DPR).
-  ///
-  /// Parameters:
-  /// - [constraints]: BoxConstraints defining the layout bounds (max/min width/height).
-  /// - [aspectRatio]: Optional aspect ratio (width/height). Defaults to 16:9 if not provided.
-  /// - [optimizeMemory]: If true, uses logical pixel size; if false, scales by DPR for sharp rendering.
-  ///
-  /// Returns: A [Size] with memCacheWidth and memCacheHeight.
-  Size calculateImageCacheSizeByBoxConstraints({
-    required BoxConstraints constraints,
-    double? aspectRatio,
-    bool optimizeMemory = false,
-  }) {
-    // Get device pixel ratio
-    final double dpr = MediaQuery.of(this).devicePixelRatio;
-
-    // Determine effective display height and width from constraints
-    double displayHeight = constraints.maxHeight.isFinite
-        ? constraints.maxHeight
-        : constraints.minHeight;
-    double displayWidth;
-
-    if (constraints.maxWidth.isFinite) {
-      displayWidth = constraints.maxWidth;
-    } else if (constraints.minWidth > 0) {
-      displayWidth = constraints.minWidth;
-    } else {
-      // Fallback to aspect ratio if width is unconstrained
-      final double effectiveAspectRatio = aspectRatio ?? 16 / 9;
-      displayWidth = displayHeight * effectiveAspectRatio;
-    }
-
-    // Calculate memCacheHeight
-    final double memCacheHeight = optimizeMemory ? displayHeight : displayHeight * dpr;
-
-    // Calculate memCacheWidth
-    final double memCacheWidth = optimizeMemory ? displayWidth : displayWidth * dpr;
-
-    return Size(memCacheWidth.roundToDouble(), memCacheHeight.roundToDouble());
-  }
 }

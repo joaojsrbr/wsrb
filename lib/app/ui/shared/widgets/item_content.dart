@@ -5,9 +5,9 @@ import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_network_image_cache.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
+import 'package:app_wsrb_jsr/app/utils/content_utils.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -97,13 +97,13 @@ class ContentTile extends StatelessWidget {
               content.releases.length == 1 &&
               !isFromLibrary &&
               !isFromSearch) {
-            await context.push(
-              RouteName.PLAYER.route,
+            await context.pushEnum(
+              RouteName.PLAYER,
               extra: PlayerArgs(anime: content, episode: content.releases.first),
             );
           } else {
-            final result = await context.push(
-              RouteName.CONTENTINFO.route,
+            final result = await context.pushEnum(
+              RouteName.CONTENTINFO,
               extra: ContentInformationArgs(content: content, isLibrary: isFromLibrary),
             );
             if (result != null && context.mounted) {
@@ -133,15 +133,13 @@ class ContentTile extends StatelessWidget {
             margin: const EdgeInsets.symmetric(vertical: 2),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final cacheSize = context.calculateImageCacheSizeByBoxConstraints(
-                  constraints: constraints,
+                final cacheSize = context.calculateImageCacheSize(
+                  displayHeight: 200,
                   optimizeMemory: true,
                 );
 
                 return CustomCachedNetworkImage(
                   imageUrl: content.imageUrl,
-                  width: cacheSize.width,
-                  height: cacheSize.height,
                   fit: BoxFit.cover,
                   onTap: () async {
                     if (searchController?.isAttached == true &&
@@ -152,16 +150,7 @@ class ContentTile extends StatelessWidget {
                       valueNotifierList.toggle(content.stringID);
                       return;
                     }
-                    final result = await context.push(
-                      RouteName.CONTENTINFO.route,
-                      extra: ContentInformationArgs(
-                        content: content,
-                        isLibrary: isFromLibrary,
-                      ),
-                    );
-                    if (result != null && context.mounted) {
-                      context.showErrorNotification(result.toString());
-                    }
+                    ContentUtils.pushToContentInfo(context, content, isFromLibrary);
                   },
                   borderRadius: _radius,
                   alignment: Alignment.center,
@@ -181,6 +170,10 @@ class ContentTile extends StatelessWidget {
       );
     }
 
+    final libraryController = context.watch<LibraryController>();
+
+    final entity = libraryController.repo.getContentEntityByStringID(content.stringID);
+    final newReleases = entity?.newReleases ?? [];
     return AnimatedContainer(
       duration: const Duration(milliseconds: 350),
       height: height,
@@ -198,8 +191,9 @@ class ContentTile extends StatelessWidget {
           children: [
             LayoutBuilder(
               builder: (context, constraints) {
-                final cacheSize = context.calculateImageCacheSizeByBoxConstraints(
-                  constraints: constraints,
+                final cacheSize = context.calculateImageCacheSize(
+                  displayHeight: 350,
+                  displayWidth: 250,
                   optimizeMemory: true,
                 );
 
@@ -220,10 +214,29 @@ class ContentTile extends StatelessWidget {
                 );
               },
             ),
+            if (newReleases.isNotEmpty)
+              Positioned(
+                top: 6,
+                left: 6,
+                child: Card.outlined(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadiusGeometry.circular(4),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
+                    child: Text(
+                      newReleases.length.toString(),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             Positioned(
               bottom: 8,
-              left: 12,
-              right: 12,
+              left: 8,
+              right: 8,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -253,7 +266,7 @@ class ContentTile extends StatelessWidget {
                     content.title,
                     maxLines: isFromLibrary ? 2 : 1,
                     overflow: TextOverflow.ellipsis,
-                    style: textTheme.titleSmall,
+                    style: textTheme.titleMedium,
                   ),
                 ],
               ),
@@ -271,25 +284,23 @@ class ContentTile extends StatelessWidget {
                     valueNotifierList.toggle(content.stringID);
                     return;
                   }
+
+                  // switch (content as SContent) {
+                  //   case Content():
+                  //     // TODO: Handle this case.
+                  //     throw UnimplementedError();
+                  // }
+
                   if (content is Anime &&
                       content.releases.length == 1 &&
                       !isFromLibrary &&
                       !isFromSearch) {
-                    await context.push(
-                      RouteName.PLAYER.route,
+                    await context.pushEnum(
+                      RouteName.PLAYER,
                       extra: PlayerArgs(anime: content, episode: content.releases.first),
                     );
                   } else {
-                    final result = await context.push(
-                      RouteName.CONTENTINFO.route,
-                      extra: ContentInformationArgs(
-                        content: content,
-                        isLibrary: isFromLibrary,
-                      ),
-                    );
-                    if (result != null && context.mounted) {
-                      context.showErrorNotification(result.toString());
-                    }
+                    ContentUtils.pushToContentInfo(context, content, isFromLibrary);
                   }
                 },
                 onLongPress: isFromSearch
@@ -306,8 +317,8 @@ class ContentTile extends StatelessWidget {
                   visualDensity: const VisualDensity(horizontal: -2, vertical: -2),
                   onPressed: valueNotifierList.isEmpty
                       ? () async {
-                          final result = await context.push(
-                            RouteName.CONTENTINFO.route,
+                          final result = await context.pushEnum(
+                            RouteName.CONTENTINFO,
                             extra: ContentInformationArgs(content: content),
                           );
                           if (result != null && context.mounted) {

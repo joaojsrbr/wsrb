@@ -1,27 +1,48 @@
 {
 	"version": "2.0.0",
 	"tasks": [
-		{
-			"type": "dart",
-			"command": "dart",
-			"args": [
-				"run",
-				"build_runner",
-				"build"
-			],
-			 "options": {
-                "cwd": "${workspaceFolder}/content_library"
-            },
-			"problemMatcher": [
-				"$dart-build_runner"
-			],
-			"group": {
-				"kind": "build",
-				"isDefault": true 
-			},
-			"label": "dart: dart run build_runner build",
-			"detail": "content_library"
-		},
+        {
+        "label": "build_content_library",
+        "type": "shell",
+        "command": "dart",
+        "args": [
+            "run",
+            "build_runner",
+            "build",
+            "--delete-conflicting-outputs"
+        ],
+        "options": {
+            "cwd": "${workspaceFolder}/content_library"
+        },
+        "problemMatcher": ["$dart-build_runner"]
+        },
+        {
+        "label": "build_principal",
+        "type": "shell",
+        "command": "dart",
+        "args": [
+            "run",
+            "build_runner",
+            "build",
+            "--delete-conflicting-outputs"
+        ],
+        "options": {
+            "cwd": "${workspaceFolder}"
+        },
+        "problemMatcher": ["$dart-build_runner"]
+        },
+        {
+        "label": "build_runner: BUILD ALL",
+        "dependsOn": [
+            "build_content_library",
+            "build_principal"
+        ],
+        "dependsOrder": "sequence",
+        "group": {
+            "kind": "build",
+            "isDefault": true
+        }
+        },
 		{
 			"label": "Build & Install APK (Production)",
 			"type": "shell",

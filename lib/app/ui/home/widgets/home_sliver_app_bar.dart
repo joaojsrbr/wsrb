@@ -6,7 +6,6 @@ import 'package:app_wsrb_jsr/app/utils/category_helper.dart';
 import 'package:app_wsrb_jsr/app/utils/history_utils.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -50,7 +49,7 @@ class HomeSliverAppBar extends StatelessWidget {
                 visualDensity: const VisualDensity(horizontal: -4),
                 onPressed: () async {
                   if (await PermissionUtils.manageExternalStorage() && context.mounted) {
-                    context.push(RouteName.DOWNLOAD.route);
+                    context.pushEnum(RouteName.DOWNLOAD);
                   }
                 },
                 icon: Icon(MdiIcons.downloadBox),
@@ -81,7 +80,7 @@ class HomeSliverAppBar extends StatelessWidget {
           child: IconButton(
             visualDensity: const VisualDensity(horizontal: -4),
             onPressed: () {
-              context.push(RouteName.SETTINGS.route);
+              context.pushEnum(RouteName.SETTINGS);
             },
             icon: Icon(MdiIcons.cog),
           ),

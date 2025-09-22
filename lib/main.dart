@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:app_wsrb_jsr/app/my_app.dart';
 import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
+import 'package:app_wsrb_jsr/app/utils/content_utils.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,6 +21,7 @@ void main(List<String> arguments) async {
   final IsarServiceImpl isarServiceImpl = IsarServiceImpl();
 
   final ValueNotifierList valueNotifierList = ValueNotifierList();
+  final DownloadService downloadService = DownloadService();
 
   final AppConfigController appConfigController = AppConfigController(isarServiceImpl);
 
@@ -31,8 +33,6 @@ void main(List<String> arguments) async {
   final GraphQLApiClient graphQLApiClient = GraphQLApiClient();
   final AnimeSkipRepository animeSkipRepository = AnimeSkipRepository(graphQLApiClient);
 
-  final AnimeSkipController animeSkipController = AnimeSkipController(isarServiceImpl);
-
   final HistoricController historicController = HistoricController(isarServiceImpl);
 
   final CategoryController categoryController = CategoryController(isarServiceImpl);
@@ -43,15 +43,14 @@ void main(List<String> arguments) async {
   // Start Isar
   await isarServiceImpl.startDatabase();
   await appConfigController.start();
+
   await Future.wait([
     historicController.start(),
     categoryController.start(),
-    animeSkipController.start(),
     libraryController.start(),
-    Workmanager().initialize(callbackDispatcher, isInDebugMode: true),
+    NotificationService.I.init(onTap: ContentUtils.notificationResponse),
+    Workmanager().initialize(_callbackDispatcher),
   ]);
-
-  // WorkmanagerPlatform.instance;
 
   await Future.wait([
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
@@ -77,9 +76,8 @@ void main(List<String> arguments) async {
         ChangeNotifierProvider(create: (context) => libraryController),
         ChangeNotifierProvider(create: (context) => categoryController),
         ChangeNotifierProvider(create: (context) => historicController),
-        ChangeNotifierProvider(create: (context) => animeSkipController),
         ChangeNotifierProvider(create: (context) => valueNotifierList),
-        ChangeNotifierProvider(create: (context) => DownloadService()),
+        ChangeNotifierProvider(create: (context) => downloadService),
         Provider(
           create: (context) => contentRepository,
           dispose: (context, repository) => repository.dispose(),
@@ -91,15 +89,14 @@ void main(List<String> arguments) async {
 }
 
 @pragma('vm:entry-point')
-void callbackDispatcher() {
-  WidgetsFlutterBinding.ensureInitialized();
+void _callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
-    customLog('running $task');
-
-    // if (App.APP_RELEASE_DOWNLOAD.contains(task) && inputData != null) {
-    //   await DownloadService.downloadReleaseVideoByHLSWork(inputData);
-    //   return Future.value(true);
-    // }
+    WidgetsFlutterBinding.ensureInitialized();
+    switch (task) {
+      case App.APP_WORK_NEW_RELEASE:
+        await ReleaseUpdateService.newReleases();
+        break;
+    }
 
     return Future.value(true);
   });

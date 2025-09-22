@@ -9,10 +9,10 @@ import 'package:app_wsrb_jsr/app/utils/history_utils.dart';
 import 'package:app_wsrb_jsr/app/utils/multi_comparator.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class HistoryDestination extends StatefulWidget {
   const HistoryDestination({super.key});
@@ -25,393 +25,352 @@ class _HistoryDestinationState extends State<HistoryDestination>
     with AutomaticKeepAliveClientMixin {
   final Map<DateTime, ContentHistoricGroup> _map = SplayTreeMap();
 
-  // late final DateTime _minDateTime = _formatDataToDM(
-  //   DateTime.now().subtract(Duration(days: 7)),
-  // )!;
-
   @override
   void didChangeDependencies() {
-    super.didChangeDependencies(); // Chamar super primeiro para seguir boas práticas
-
-    // Limpar o mapa antes de processar novos dados
+    super.didChangeDependencies();
     _map.clear();
 
-    // Obter controladores e configurações do contexto
-    final appConfigController = context.watch<AppConfigController>();
-    final libraryController = context.watch<LibraryController>();
-    final libraRepo = libraryController.repo;
-    final filterWatching = appConfigController.config.filterWatching;
+    final appConfig = context.watch<AppConfigController>();
+    final library = context.watch<LibraryController>();
+    final repo = library.repo;
+
+    final filterWatching = appConfig.config.filterWatching;
     final genresFilter = filterWatching.genresFilter;
     final filterSources = filterWatching.filterSources;
 
-    // Selecionar entidades com base no parâmetro onlyFavorites
-    final entities = libraRepo.entities;
-    // final allGenres = entities.map((content) => content.anilistMedia?.genres).nonNulls.flattened.toList();
+    for (final content in repo.entities) {
+      if (_shouldSkipContent(content, filterSources.toSet(), genresFilter)) continue;
 
-    // Filtrar e mapear entidades
-    for (final content in entities) {
-      if (filterSources.isEmpty || !filterSources.contains(content.source)) continue;
+      final historics = _getFilteredHistorics(library, content, filterWatching);
+      _removePreviousEpisodes(historics);
+      if (historics.isEmpty) continue;
 
-      // Ignorar se não houver gêneros ou se o filtro de gêneros não corresponder
-      final genres = content.anilistMedia?.genres ?? [];
-      if (genresFilter.isNotEmpty && !genresFilter.containsOneElement(genres)) {
-        continue;
-      }
-
-      // Obter históricos filtrados por data
-      final sortedHistorics = _getFilteredHistorics(
-        libraryController,
-        content,
-        filterWatching,
+      final grouped = historics.groupListsBy(
+        (h) => _dateOnly(h.position?.createdAt ?? h.updatedAt),
       );
 
-      // Adicionar ao mapa apenas se houver históricos válidos
-      if (sortedHistorics.isNotEmpty) {
-        final toMap = sortedHistorics.groupListsBy(
-          (date) => _formatDataToDM(date.updatedAt),
+      for (final entry in grouped.entries) {
+        final date = entry.key;
+        if (date == null) continue;
+
+        _map.update(
+          date,
+          (existing) {
+            existing.historics.addAll(entry.value);
+            existing.contents.add(content);
+            return existing;
+          },
+          ifAbsent: () => ContentHistoricGroup(
+            contents: {content},
+            historics: SplayTreeSet.from(
+              historics,
+              multiComparator<HistoricEntity>({
+                _sortByCreatedAt,
+                (a, b) {
+                  if (a is EpisodeEntity && b is EpisodeEntity) {
+                    return a.numberEpisode.compareTo(b.numberEpisode) +
+                        content.title.length;
+                  }
+                  return 0;
+                },
+              }),
+            ),
+          ),
         );
-
-        for (final entry in toMap.entries) {
-          final date = entry.key;
-
-          if (date == null) continue;
-
-          if (_map[date] != null) {
-            final list = _map[date]?.historics;
-            list?.addAll(entry.value);
-            // for (var entity in entry.value) {
-            //   list?.add(entity);
-            // }
-
-            _map[date]?.contents.add(content);
-          } else {
-            _map[date] = ContentHistoricGroup(
-              contents: {content},
-              historics: SplayTreeSet.from(
-                sortedHistorics,
-                multiComparator<HistoricEntity>({
-                  _sorted,
-                  (a, b) => content.title.length,
-                  (a, b) {
-                    if (a is EpisodeEntity && b is EpisodeEntity) {
-                      return a.numberEpisode.compareTo(b.numberEpisode);
-                    }
-                    return 0;
-                  },
-                }),
-              ),
-            );
-          }
-        }
       }
     }
   }
 
-  int _sorted(HistoricEntity a, HistoricEntity b) {
-    if ((a, b) case (
-      EpisodeEntity data1,
-      EpisodeEntity data2,
-    ) when data1.position?.createdAt != null && data2.position?.createdAt != null) {
-      final createdAt1 = data1.position!.createdAt!;
-      final createdAt2 = data1.position!.createdAt!;
-      return createdAt1.compareTo(createdAt2);
+  /// Decide se o conteúdo deve ser ignorado pelo filtro
+  bool _shouldSkipContent(
+    ContentEntity content,
+    Set<Source> filterSources,
+    List<String> genresFilter,
+  ) {
+    if (filterSources.isNotEmpty && !filterSources.contains(content.source)) {
+      return true;
     }
 
+    final genres = content.anilistMedia?.genres ?? [];
+    if (genresFilter.isNotEmpty && !genresFilter.containsOneElement(genres)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Remove episódios anteriores ao último encontrado
+  void _removePreviousEpisodes(List<HistoricEntity> historics) {
+    final grouped = historics.groupSetsBy((e) => e.contentStringID);
+    final all = grouped.values.flattened.toList();
+
+    final maxEp = all.reduceOrNull(_getMaxEpisode);
+    if (maxEp == null) return;
+
+    historics.removeWhere(
+      (a) =>
+          a.numberEpisode < maxEp.numberEpisode &&
+          maxEp.contentStringID.contains(a.contentStringID),
+    );
+  }
+
+  HistoricEntity _getMaxEpisode(HistoricEntity a, HistoricEntity b) {
+    final aNum = a.numberEpisode;
+    final bNum = b.numberEpisode;
+
+    if (aNum > bNum) return a;
+    if (aNum < bNum) return b;
+
+    if (bNum is double) {
+      if (bNum.isNaN) return b;
+      return a;
+    }
+
+    if (bNum == 0 && aNum.isNegative) return b;
+    return a;
+  }
+
+  int _sortByCreatedAt(HistoricEntity a, HistoricEntity b) {
+    if ((a, b) case (
+      EpisodeEntity ep1,
+      EpisodeEntity ep2,
+    ) when ep1.position?.createdAt != null && ep2.position?.createdAt != null) {
+      return ep1.position!.createdAt!.compareTo(ep2.position!.createdAt!);
+    }
     return -1;
   }
 
-  // Função para obter históricos filtrados por intervalo de datas
   List<HistoricEntity> _getFilteredHistorics(
-    LibraryController libraryController,
+    LibraryController library,
     ContentEntity content,
     FilterWatching filterWatching,
   ) {
-    final historics = _getHistorics(libraryController, content, filterWatching);
-    return historics.where((entity) => _applyDateFilter(entity, filterWatching)).toList();
+    final historics = _getHistorics(library, content);
+    return historics.where((e) => _applyDateFilter(e, filterWatching)).toList();
   }
 
-  // Função para aplicar filtro de intervalo de datas
-  bool _applyDateFilter(HistoricEntity entity, FilterWatching filterWatching) {
-    if (entity is! EpisodeEntity || entity.createdAt == null) {
-      return true; // Manter se não for episódio ou data inválida
-    }
+  bool _applyDateFilter(HistoricEntity entity, FilterWatching filter) {
     if (entity.isComplete) return false;
+    if (entity is! EpisodeEntity || entity.createdAt == null) return true;
 
-    final createdAt = _formatDataToDM(entity.createdAt)!;
-    final start = filterWatching.start;
-    final end = filterWatching.end;
-    final infiniteDate = filterWatching.infiniteDate;
+    final createdAt = entity.createdAt!;
+    final start = filter.start;
+    final end = filter.end;
 
-    // Se data infinita estiver ativa, considera apenas datas anteriores ao início
-    if (infiniteDate) {
+    if (filter.infiniteDate) {
       return start == null ||
-          end != null && (createdAt.isAtSameMomentAs(end) || createdAt.isBefore(end));
+          (end != null && (createdAt.isAtSameMomentAs(end) || createdAt.isBefore(end)));
     }
 
-    // Se ambas datas existem, verifica se está dentro do intervalo
     if (start != null && end != null) {
       return (createdAt.isAtSameMomentAs(start) || createdAt.isAfter(start)) &&
           (createdAt.isAtSameMomentAs(end) || createdAt.isBefore(end));
     }
 
-    // Se apenas a data de início existe
     if (start != null) {
       return createdAt.isAtSameMomentAs(start) || createdAt.isAfter(start);
     }
+    if (end != null) return createdAt.isAtSameMomentAs(end) || createdAt.isBefore(end);
 
-    // Se apenas a data de fim existe
-    if (end != null) {
-      return createdAt.isAtSameMomentAs(end) || createdAt.isBefore(end);
-    }
-
-    return true; // Sem filtro
+    return true;
   }
 
-  DateTime? _formatDataToDM(DateTime? data) {
-    if (data == null) return null;
+  DateTime? _dateOnly(DateTime? date) =>
+      date == null ? null : DateTime(date.year, date.month, date.day, date.hour);
 
-    return DateTime(data.year, data.month, data.day);
+  List<HistoricEntity> _getHistorics(LibraryController library, ContentEntity content) {
+    final repo = library.repo;
+    return repo.entities
+        .map(repo.getAll)
+        .nonNulls
+        .flattened
+        .where((e) => e is EpisodeEntity && e.contentStringID.contains(content.stringID))
+        .toList();
   }
 
-  List<HistoricEntity> _getHistorics(
-    LibraryController libraryController,
-    ContentEntity content,
-    FilterWatching filterWatching,
+  ContentEntity _getContentByHistoric(
+    Iterable<ContentEntity> contents,
+    HistoricEntity historic,
   ) {
-    final libraryRepo = libraryController.repo;
-    return libraryRepo.entities.map(libraryRepo.getAll).nonNulls.flattened.where((
-      entity,
-    ) {
-      return (entity is EpisodeEntity && entity.animeStringID.contains(content.stringID));
-    }).toList();
-  }
-
-  @override
-  bool get wantKeepAlive => true;
-
-  ContentEntity _getContentByList(Iterable<ContentEntity> data, HistoricEntity historic) {
     final id = switch (historic) {
-      EpisodeEntity data => data.animeStringID,
-      ChapterEntity data => data.bookStringID,
+      EpisodeEntity e => e.contentStringID,
+      ChapterEntity c => c.bookStringID,
       _ => "",
     };
+    return contents.firstWhere((c) => c.stringID.contains(id));
+  }
 
-    return data.firstWhere((content) => content.stringID.contains(id));
+  String _dateLabel(DateTime date) => timeago.format(date, allowFromNow: true);
+
+  String _chapterInfo(HistoricEntity historic, ContentEntity content) {
+    switch ((historic, content)) {
+      case (EpisodeEntity e, AnimeEntity _) when e.position?.createdAt != null:
+        return "Episódio ${e.numberEpisode} - "
+            "${DateFormat('HH:mm').format(e.position!.createdAt!)}";
+      case (ChapterEntity c, BookEntity _) when c.position?.createdAt != null:
+        return "${c.title} - ${DateFormat('HH:mm').format(c.position!.createdAt!)}";
+      default:
+        return "";
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    final theme = Theme.of(context);
-
-    final borderRadius = BorderRadius.circular(8);
-    final library = context.watch<LibraryController>();
-    final historicController = context.watch<HistoricController>();
+    final entries = _map.entries.toList().reversed.toList();
 
     return ListView.builder(
-      padding: EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.only(top: 8),
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      itemCount: _map.length,
+      physics: const BouncingScrollPhysics(),
+      itemCount: entries.length,
       itemBuilder: (context, index) {
-        final entry = _map.entries.toList().reverse(true).elementAt(index);
+        final entry = entries[index];
         final (contents, historics) = (entry.value.contents, entry.value.historics);
-        final date = entry.key;
+
         return Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
-                _dateLabelMelhorado(date),
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                _dateLabel(entry.key),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               ),
             ),
-            ...List.generate(historics.length, (index) {
-              final historic = historics.elementAt(index);
-              final content = _getContentByList(contents, historic);
 
-              return InkWell(
-                onTap: () async {
-                  if ((historic, content) case (
-                    EpisodeEntity episode,
-                    AnimeEntity anime,
-                  )) {
-                    final videoFile = AppStorage.getReleaseFile(
-                      anime.toAnime(),
-                      episode.toEpisode(anime.isDublado),
-                    );
-                    await context.push(
-                      RouteName.PLAYER.route,
-                      extra: PlayerArgs(
-                        forceEnterFullScreen: true,
-                        data: [if (videoFile != null) FileVideoData(file: videoFile)],
-                        anime: anime.toAnime(),
-                        episode: episode.toEpisode(anime.isDublado),
-                        startPossition: episode.cdToDuration,
-                      ),
-                    );
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomCachedNetworkImage(
-                        onTap: () async {
-                          if ((historic, content) case (
-                            EpisodeEntity _,
-                            AnimeEntity anime,
-                          )) {
-                            final result = await context.push(
-                              RouteName.CONTENTINFO.route,
-                              extra: ContentInformationArgs(
-                                content: anime.toAnime(),
-                                isLibrary: false,
-                              ),
-                            );
-                            if (result != null && context.mounted) {
-                              context.showErrorNotification(result.toString());
-                            }
-                          }
-                        },
-                        imageUrl: content.imageUrl.isEmpty
-                            ? historic.thumbnail ?? content.imageUrl
-                            : content.imageUrl,
-                        borderRadius: borderRadius,
-                        height: 100,
-                        width: 80,
-                        fit: BoxFit.cover,
-                        memCacheHeight: 300,
-                        memCacheWidth: 200,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text(
-                              content.title,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _chapterInfo(historic, content),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.hintColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: Icon(
-                          content.isFavorite ? MdiIcons.heart : MdiIcons.heartOutline,
-                          size: 20,
-                        ),
-                        color: content.isFavorite ? Colors.red : null,
-                        onPressed: () {
-                          if (content.isFavorite) {
-                            library.add(
-                              contentEntity: content.copyWith(isFavorite: false),
-                            );
-                          } else {
-                            library.add(
-                              contentEntity: content.copyWith(isFavorite: true),
-                            );
-                          }
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(MdiIcons.delete, size: 20),
-                        onPressed: () async {
-                          await HistoryUtils.questionDelete(
-                            context,
-                            [historic],
-                            onConfirmDelete: () {
-                              historicController.add(
-                                historic: historic.copyWith(
-                                  position: null,
-                                  updatedAt: DateTime.now(),
-                                ),
-                              );
-                            },
-                            onUndoDelete: (oldHistoric) {
-                              historicController.addAll(historyEntities: oldHistoric);
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
+            ...historics.map((e) => _ItemBuilder(e, contents)),
           ],
         );
       },
     );
   }
 
-  String _dateLabelMelhorado(DateTime date) {
-    // Pega a data e hora de agora
-    final now = DateTime.now();
+  @override
+  bool get wantKeepAlive => true;
+}
 
-    // Cria objetos DateTime apenas com a data (zerando a hora),
-    // para garantir uma comparação de dias precisa.
-    final today = DateTime(now.year, now.month, now.day);
-    final dateOnly = DateTime(date.year, date.month, date.day);
+class _ItemBuilder extends StatelessWidget {
+  const _ItemBuilder(this.historic, this.contents);
+  final HistoricEntity historic;
+  final Set<ContentEntity> contents;
 
-    // Calcula a diferença em dias.
-    // Se o resultado for 0, é hoje.
-    // Se for 1, foi ontem.
-    // Se for -1, será amanhã.
-    final differenceInDays = today.difference(dateOnly).inDays;
-
-    if (differenceInDays == 0) {
-      return 'Hoje';
-    } else if (differenceInDays == 1) {
-      return 'Ontem';
-    } else if (differenceInDays > 1 && differenceInDays <= 6) {
-      // Para datas entre 2 e 6 dias atrás
-      return 'Há $differenceInDays dias';
-    } else if (differenceInDays == -1) {
-      // Para o dia de amanhã
-      return 'Amanhã';
-    } else {
-      // Para qualquer outra data (mais antiga que 6 dias ou no futuro distante),
-      // retorna o formato padrão.
-      // Usar 'pt_BR' garante que a formatação seja consistente.
-      return DateFormat('dd/MM/yyyy', 'pt_BR').format(date);
-    }
-  }
-
-  String _chapterInfo(HistoricEntity historic, ContentEntity content) {
-    // return historic.title;
-
-    switch ((historic, content)) {
-      case (EpisodeEntity data, AnimeEntity _) when data.updatedAt != null:
-        final chapter = 'Episodio ${data.numberEpisode}';
-        final time = DateFormat('HH:mm').format(data.updatedAt!);
-        return [chapter, time].where((e) => e.isNotEmpty).join(' - ');
-      case (ChapterEntity data, BookEntity _) when data.updatedAt != null:
-        final chapter = data.title;
-        final time = DateFormat('HH:mm').format(data.updatedAt!);
-        return [chapter, time].where((e) => e.isNotEmpty).join(' - ');
-    }
-
-    // final chapter = content.chapter != null ? 'Cap. ${content.chapter}' : '';
-    // final time = DateFormat('HH:mm').format(content);
-    // return [chapter, time].where((e) => e.isNotEmpty).join(' - ');
-    return "";
+  @override
+  Widget build(BuildContext context) {
+    final state = context.findAncestorStateOfType<_HistoryDestinationState>()!;
+    final content = state._getContentByHistoric(contents, historic);
+    final theme = Theme.of(context);
+    final library = context.watch<LibraryController>();
+    final historicController = context.watch<HistoricController>();
+    final borderRadius = BorderRadius.circular(8);
+    return InkWell(
+      onTap: () async {
+        if ((historic, content) case (EpisodeEntity ep, AnimeEntity anime)) {
+          final videoFile = AppStorage.getReleaseFile(
+            anime.toContent(),
+            ep.toEpisode(anime.isDublado),
+          );
+          await context.pushEnum(
+            RouteName.PLAYER,
+            extra: PlayerArgs(
+              forceEnterFullScreen: true,
+              data: [if (videoFile != null) FileVideoData(file: videoFile)],
+              anime: anime.toContent(),
+              episode: ep.toEpisode(anime.isDublado),
+              startPossition: ep.cdToDuration,
+            ),
+          );
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomCachedNetworkImage(
+              onTap: () async {
+                if ((historic, content) case (EpisodeEntity _, AnimeEntity anime)) {
+                  final result = await context.pushEnum(
+                    RouteName.CONTENTINFO,
+                    extra: ContentInformationArgs(
+                      content: anime.toContent(),
+                      isLibrary: false,
+                    ),
+                  );
+                  if (result != null && context.mounted) {
+                    context.showErrorNotification(result.toString());
+                  }
+                }
+              },
+              imageUrl: content.imageUrl.isEmpty
+                  ? historic.thumbnail ?? content.imageUrl
+                  : content.imageUrl,
+              borderRadius: borderRadius,
+              height: 100,
+              width: 80,
+              fit: BoxFit.cover,
+              memCacheHeight: 300,
+              memCacheWidth: 200,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 4),
+                  Text(
+                    content.title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    state._chapterInfo(historic, content),
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: Icon(
+                content.isFavorite ? MdiIcons.heart : MdiIcons.heartOutline,
+                size: 20,
+              ),
+              color: content.isFavorite ? Colors.red : null,
+              onPressed: () {
+                library.add(
+                  contentEntity: content.copyWith(isFavorite: !content.isFavorite),
+                );
+              },
+            ),
+            IconButton(
+              icon: Icon(MdiIcons.delete, size: 20),
+              onPressed: () async {
+                await HistoryUtils.questionDelete(
+                  context,
+                  [historic],
+                  onConfirmDelete: () {
+                    historicController.add(
+                      historic: historic.copyWith(
+                        position: null,
+                        updatedAt: DateTime.now(),
+                      ),
+                    );
+                  },
+                  onUndoDelete: (oldHistoric) {
+                    historicController.addAll(historyEntities: oldHistoric);
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

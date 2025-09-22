@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:html/dom.dart';
 
+@Deprecated("Usar o HtmlParser")
 class ScrapingUtil {
   late final Element element;
 

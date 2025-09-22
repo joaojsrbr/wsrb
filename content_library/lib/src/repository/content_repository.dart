@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:content_library/content_library.dart';
@@ -15,6 +16,7 @@ part 'source/better_anime_source.dart';
 part 'source/demon_sect_source.dart';
 part 'source/goyabu_source.dart';
 part 'source/neox_source.dart';
+part 'source/remangas_source.dart';
 part 'source/slime_read_source.dart';
 
 abstract class ContentRepository extends LoadingMoreBase<Content> {
@@ -51,13 +53,14 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
       SlimeReadSource(this),
       AnrollSource(this),
       DemonSect(this),
+      RemangasSource(this),
       BetterAnimeSource(this),
     };
 
     _maybeAddBetterAnimeInterceptor(_appConfigController);
 
     if (_appConfigController != null) {
-      _subscriptions.add(_appConfigController.update.listen(_listen));
+      _subscriptions.add(_appConfigController.updateRepository.listen(_listen));
     }
 
     session = ScrapingSession(
@@ -101,14 +104,14 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
 
   Future<Result<Content>> getData(Content content);
 
-  Future<Result<List<Data>>> getContent(Release releases);
+  Future<Result<List<Data>>> getContent(Release release, Content content);
 
   Future<Result<Content>> getReleases(Content content, int page);
 
   Future<void> searchContents(
-    String query, {
+    SearchFilter filter, {
     required List<Source> searchSources,
-    required ui.ValueChanged<(Source, List<Content>)> onSuccess,
+    required ui.ValueChanged<(Source, SearchResult)> onSuccess,
   });
 
   Future<AnilistMedia?> getAnilistMedia(Content content) async {
@@ -210,7 +213,7 @@ class _ContentRepositoryImp extends ContentRepository {
 
   @override
   Future<Result<Content>> getData(Content content) async {
-    final result = await currentSource.getData(content);
+    final result = await source(content.source).getData(content);
 
     if (result case Success<Content> data when data.data is Anime) {
       Anime anime = data.data as Anime;
@@ -233,24 +236,29 @@ class _ContentRepositoryImp extends ContentRepository {
   }
 
   @override
-  Future<Result<List<Data>>> getContent(Release release) async =>
-      await currentSource.getContent(release);
+  Future<Result<List<Data>>> getContent(Release release, Content content) async =>
+      await source(content.source).getContent(release);
 
   @override
   Future<Result<Content>> getReleases(Content content, int page) async =>
-      await currentSource.getReleases(content, page);
+      await source(content.source).getReleases(content, page);
 
   @override
   Future<void> searchContents(
-    String query, {
+    SearchFilter filter, {
     required List<Source> searchSources,
-    required ui.ValueChanged<(Source, List<Content>)> onSuccess,
+    required ui.ValueChanged<(Source, SearchResult)> onSuccess,
   }) async {
     final futures = _sources.where((source) => searchSources.contains(source.source)).map(
       (source) async {
         try {
-          final result = await source.search(query);
-          result.fold(onSuccess: (data) => onSuccess((source.source, data)));
+          final result = await source.search(filter);
+          result.fold(
+            onSuccess: (data) => onSuccess((source.source, data)),
+            onError: (error) {
+              onSuccess((source.source, SearchResult(contents: SplayTreeSet(), page: 0)));
+            },
+          );
         } catch (_) {}
       },
     );

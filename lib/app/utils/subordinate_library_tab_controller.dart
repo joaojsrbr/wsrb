@@ -13,7 +13,6 @@ class SubordinateLibraryTabController extends TabController {
 
   PageController? _parent;
 
-  /// Atualiza o PageController pai (chamar no initState se mudar dinamicamente)
   void setParentController(PageController? controller) {
     _parent?.removeListener(_pageListener);
     _parent = controller;
@@ -21,8 +20,6 @@ class SubordinateLibraryTabController extends TabController {
   }
 
   void _pageListener() {
-    // Aqui você pode responder ao scroll da PageView
-    // customLog('Page position: ${_parent?.page}');
     _setIgnorePointer(false);
   }
 
@@ -34,6 +31,11 @@ class SubordinateLibraryTabController extends TabController {
     const verticalDirections = {AxisDirection.down, AxisDirection.up};
     final axisDirection = notification.metrics.axisDirection;
 
+    if (index != 0) {
+      _setIgnorePointer(false);
+      return false;
+    }
+
     if (verticalDirections.contains(axisDirection)) {
       _setIgnorePointer(false);
       return false;
@@ -43,7 +45,7 @@ class SubordinateLibraryTabController extends TabController {
       case ScrollUpdateNotification():
         _setIgnorePointer(false);
         break;
-      case OverscrollNotification():
+      case OverscrollNotification() when index == 0:
         final metrics = notification.metrics;
         final pixels = metrics.pixels.roundToDouble();
         final maxScrollExtent = metrics.maxScrollExtent.roundToDouble();
@@ -64,7 +66,6 @@ class SubordinateLibraryTabController extends TabController {
     super.dispose();
   }
 
-  /// Cria uma nova instância com estado preservado e descarta a atual
   SubordinateLibraryTabController copyWithAndDispose({
     required TickerProvider vsync,
     int? length,
@@ -107,12 +108,6 @@ class SubordinateScrollController extends ScrollController {
       _parent.detach(position);
     }
     super.detach(position);
-  }
-
-  @override
-  void dispose() {
-    // Importante: não chamamos parent.dispose() aqui.
-    super.dispose();
   }
 
   @override

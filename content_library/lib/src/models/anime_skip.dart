@@ -4,8 +4,8 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:content_library/src/entities/anime_skip_entity.dart';
 import 'package:content_library/src/extensions/custom_extensions/string_extensions.dart';
+import 'package:content_library/src/models/anime_skip_entity.dart';
 
 class AnimeSkip {
   final String name;

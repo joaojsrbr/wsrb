@@ -5,7 +5,6 @@ import 'package:app_wsrb_jsr/app/ui/player/arguments/player_args.dart';
 import 'package:app_wsrb_jsr/app/ui/reading/arguments/reading_args.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 final class ReleaseUtils {
@@ -63,12 +62,10 @@ final class ReleaseUtils {
 
     customLog('tapped name: ${release.title} - id: ${release.stringID}');
 
-    final GoRouter goRouter = GoRouter.of(context);
-
     switch ((content, release)) {
       case (Book content, Chapter data):
-        await goRouter.push(
-          RouteName.READ.route,
+        await context.pushEnum(
+          RouteName.READ,
           extra: ReadingViewArgs(
             capturedThemes: InheritedTheme.capture(
               from: context,
@@ -81,10 +78,10 @@ final class ReleaseUtils {
         );
         break;
       case (Anime content, Episode data):
-        final result = await _fileOrURL(release, releaseFile, context);
-        if (result != null) {
-          await goRouter.push(
-            RouteName.PLAYER.route,
+        final result = await _fileOrURL(release, releaseFile, context, content);
+        if (result != null && context.mounted) {
+          await context.pushEnum(
+            RouteName.PLAYER,
             extra: PlayerArgs(data: result, anime: content, episode: data),
           );
         }
@@ -96,6 +93,7 @@ final class ReleaseUtils {
     Release release,
     File? file,
     BuildContext context,
+    Content content,
   ) async {
     final repository = context.read<ContentRepository>();
 
@@ -103,6 +101,7 @@ final class ReleaseUtils {
 
     final data = (await repository.getContent(
       release,
+      content,
     )).fold(onSuccess: (success) => success)?.nonNulls.cast<Data?>().toList();
 
     if (!context.mounted || data == null) return null;

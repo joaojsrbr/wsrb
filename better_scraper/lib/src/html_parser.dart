@@ -76,6 +76,28 @@ class HtmlParser {
     return queryAll(selector).map((p) => p.text).whereType<String>().toList();
   }
 
+  String getImage(String? selector) {
+    HtmlParser? $;
+
+    if (selector != null) $ = query(selector);
+    if ($ == null || $._node is! dom.Element) return '';
+    final attributes = $._node.attributes;
+
+    // String src = attributes['data-src'] ?? attributes['src'] ?? '';
+
+    // if (bySrcSet == true) {
+    String src = attributes['src'] ??
+        attributes['data-src'] ??
+        attributes['data-srcset'] ??
+        attributes['srcset'] ??
+        '';
+
+    //   src = _bySrcSet(src, last);
+    // }
+
+    return src.trim();
+  }
+
   List<String> attrList(String selector, String attributeName) {
     return queryAll(selector).map((p) => p[attributeName]).whereType<String>().toList();
   }

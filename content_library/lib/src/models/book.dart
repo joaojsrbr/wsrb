@@ -1,8 +1,12 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'package:content_library/content_library.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-class Book extends Content {
+part 'generated/book.mapper.dart';
+
+@MappableClass()
+class Book extends Content with BookMappable {
   final String? alternativeTitle;
   final List<String> authors;
   final List<String> artists;
@@ -37,7 +41,6 @@ class Book extends Content {
     this.status,
     this.largeImage,
     this.mediumImage,
-    super.cached,
     this.artists = const [],
   }) : super(releases);
 
@@ -48,55 +51,6 @@ class Book extends Content {
   String get imageUrl => extraLarge ?? largeImage ?? mediumImage ?? originalImage;
 
   bool get searchNewImage => [extraLarge, largeImage, mediumImage].contains(null);
-
-  @override
-  Book copyWith({
-    AniListMedia? anilistMedia,
-    Releases? releases,
-    String? title,
-    String? url,
-    bool? nsfw,
-    String? bookId,
-    String? slugId,
-    String? originalImage,
-    Source? source,
-    bool? cached,
-    List<Genre>? genres,
-    List<String>? authors,
-    List<String>? artists,
-    double? score,
-    String? largeImage,
-    String? extraLarge,
-    String? type,
-    String? sinopse,
-    String? alternativeTitle,
-    String? status,
-    String? mediumImage,
-  }) {
-    return Book(
-      releases: ChapterReleases.from(releases ?? this.releases),
-      cached: cached ?? this.cached,
-      bookId: bookId ?? this.bookId,
-      nsfw: nsfw ?? this.nsfw,
-      slugId: slugId ?? this.slugId,
-      type: type ?? this.type,
-      anilistMedia: anilistMedia ?? this.anilistMedia,
-      extraLarge: extraLarge ?? this.extraLarge,
-      title: title ?? this.title,
-      url: url ?? this.url,
-      alternativeTitle: alternativeTitle ?? this.alternativeTitle,
-      originalImage: originalImage ?? this.originalImage,
-      source: source ?? this.source,
-      sinopse: sinopse ?? this.sinopse,
-      genres: genres ?? this.genres,
-      status: status ?? this.status,
-      authors: authors ?? this.authors,
-      artists: artists ?? this.artists,
-      score: score ?? this.score,
-      largeImage: largeImage ?? this.largeImage,
-      mediumImage: mediumImage ?? this.mediumImage,
-    );
-  }
 
   @override
   BookEntity toEntity({

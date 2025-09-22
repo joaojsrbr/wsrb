@@ -4,6 +4,7 @@ import 'package:app_wsrb_jsr/app/ui/home/widgets/home_scope.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/custom_search_anchor.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/fade_through_transition_switcher.dart';
 import 'package:app_wsrb_jsr/app/ui/shared/widgets/item_content.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/shimmer_container.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -19,12 +20,15 @@ class SliverAppBarFlexibleSpace extends StatefulWidget {
 
 class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
   late final ContentRepository _contentRepository;
-
-  final ValueNotifier<bool> _isLoading = ValueNotifier(false);
-
-  final Map<Source, List<Content>> _contents = {};
+  final _SearchIsloading _isLoading = _SearchIsloading();
+  // final ValueNotifier<bool> _isLoading = ValueNotifier(false);
+  final Map<Source, SearchResult> _contents = {};
 
   final Debouncer _searchDebouncer = Debouncer(duration: const Duration(seconds: 1));
+
+  final ValueNotifier<SearchFilter> _filter = ValueNotifier(
+    const SearchFilter(query: ""),
+  );
 
   CustomSearchController get _searchController => widget.searchController;
 
@@ -36,35 +40,39 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
   }
 
   void _searchControllerListener() {
-    customLog(_searchController.isOpen);
+    setState(() {});
   }
 
-  Future<void> _searchContents(String query, [forceSearch = false]) async {
-    if (_contents.values.flattened.any(
-          (content) => content.title.toLowerCase().contains(query.toLowerCase()),
-        ) &&
-        !forceSearch) {
-      return;
-    }
-    _isLoading.value = true;
+  Future<void> _searchContents(
+    String query, {
+    int page = 1,
+    required List<Source> sources,
+  }) async {
+    if (query.isEmpty) return;
+    _isLoading.setIsloading(sources, true);
+
+    _filter.value = _filter.value.copyWith(query: query, page: page);
     await _contentRepository.searchContents(
-      query,
-      searchSources: Source.list,
+      _filter.value,
+      searchSources: sources,
       onSuccess: (value) {
-        final (source, contents) = value;
-        setStateIfMounted(() => _contents[source] = contents);
+        final (source, result) = value;
+        final contents = result.contents;
+        setStateIfMounted(() {
+          if (contents.isNotEmpty) _contents[source] = result;
+          _isLoading.setIsloading([source], false);
+
+          _contents.removeWhere((key, values) => values.contents.isEmpty);
+        });
       },
     );
     _searchController.unFocusKeyBoard();
-    _isLoading.value = false;
   }
 
   @override
   Widget build(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
-
     final TabController tabController = HomeScope.of(context).tabController;
-
     final ValueNotifierList valueNotifierList = context.watch<ValueNotifierList>();
 
     return IgnorePointer(
@@ -81,23 +89,25 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
           }
           if (value.length >= 2) {
             _searchDebouncer.cancel();
-            _searchContents(value, true);
+            _searchContents(value, sources: Source.list);
           }
         },
-        dividerWidget: AnimatedBuilder(
-          animation: _isLoading,
-          child: const LinearProgressIndicator(minHeight: 2),
-          builder: (context, child) =>
-              _isLoading.value ? child! : const Divider(height: 2),
+        dividerWidget: StatefulBuilder(
+          builder: (context, _) {
+            return Column(
+              children: [
+                _buildFilters(context),
+                const SizedBox(height: 4),
+                AnimatedBuilder(
+                  animation: _isLoading,
+                  child: const LinearProgressIndicator(minHeight: 2),
+                  builder: (context, child) =>
+                      _isLoading.isLoading ? child! : const Divider(height: 2),
+                ),
+              ],
+            );
+          },
         ),
-        // onChanged: (String value) {
-        //   if (tabController.index != 0) return;
-        //   if (value.trim().isEmpty && searchController.isOpen) {
-        //     searchController.closeView(value);
-        //   } else if (value.trim().length >= 4) {
-        //     searchController.openView();
-        //   }
-        // },
         barTrailing: [
           AnimatedBuilder(
             animation: _searchController,
@@ -128,6 +138,7 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
         ),
         searchController: _searchController,
         constraints: const BoxConstraints(maxHeight: 42, minHeight: 42),
+        // viewConstraints: const BoxConstraints(maxHeight: 50, minHeight: 50),
         barShape: _BarShapeMaterialState(),
         labelText: _labelText(valueNotifierList, tabController),
         barElevation: const WidgetStatePropertyAll(0),
@@ -148,21 +159,102 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
     };
   }
 
+  Widget _buildFilters(BuildContext context) {
+    return ValueListenableBuilder<SearchFilter>(
+      valueListenable: _filter,
+      builder: (context, filter, _) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            height: 50,
+            child: Row(
+              children: [
+                // _buildDropdown(
+                //   label: "Genres",
+                //   value: filter.genre ?? "Any",
+                //   items: ["Any", "Action", "Romance", "Comedy", "Drama"],
+                //   onChanged: (v) => _filter.value = filter.copyWith(genre: v),
+                // ),
+                _buildDropdown(
+                  label: "Year",
+                  value: filter.year ?? "Any",
+                  items: ["Any", "2023", "2024", "2025"],
+                  onChanged: (v) => _filter.value = filter.copyWith(year: v),
+                ),
+                _buildDropdown(
+                  label: "Season",
+                  value: filter.season ?? "Any",
+                  items: ["Any", "Winter", "Spring", "Summer", "Fall"],
+                  onChanged: (v) => _filter.value = filter.copyWith(season: v),
+                ),
+                _buildDropdown(
+                  label: "Format",
+                  value: filter.format ?? "Any",
+                  items: ["Any", "TV", "Movie", "OVA"],
+                  onChanged: (v) => _filter.value = filter.copyWith(format: v),
+                ),
+                _buildDropdown(
+                  label: "Airing Status",
+                  value: filter.airingStatus ?? "Any",
+                  items: ["Any", "Ongoing", "Completed", "Upcoming"],
+                  onChanged: (v) => _filter.value = filter.copyWith(airingStatus: v),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDropdown<T>({
+    required String label,
+    required T value,
+    required List<T> items,
+    double width = 120,
+    required ValueChanged<T?> onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: SizedBox(
+        width: width,
+        child: DropdownButtonFormField<T>(
+          decoration: InputDecoration(
+            isDense: true,
+            labelText: label,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          ),
+          value: value,
+          items: items
+              .map((e) => DropdownMenuItem<T>(value: e, child: Text(e.toString())))
+              .toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
   FutureOr<Widget> _suggestionsBuilder(
     BuildContext context,
     CustomSearchController controller,
   ) async {
-    return ValueListenableBuilder(
-      valueListenable: _isLoading,
-      builder: (context, loading, child) {
-        if (!loading && _contents.isEmpty) return const SizedBox.shrink();
+    return AnimatedBuilder(
+      animation: _isLoading,
+      builder: (context, child) {
+        if (!_isLoading.isLoading && _contents.isEmpty) {
+          return const SizedBox.shrink();
+        }
 
         return ListView.builder(
           itemCount: _contents.entries.length,
+          physics: BouncingScrollPhysics(),
           itemBuilder: (context, index) {
-            final MapEntry<Source, List<Content>> entry = _contents.entries.elementAt(
+            final MapEntry<Source, SearchResult> entry = _contents.entries.elementAt(
               index,
             );
+            final result = entry.value;
+            final contents = entry.value.contents;
             return ExpansionTile(
               shape: Border(
                 bottom: BorderSide(
@@ -171,19 +263,46 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
                 ),
               ),
               title: Text(entry.key.name),
-              initiallyExpanded: entry.value.isNotEmpty,
+              initiallyExpanded: true,
               maintainState: true,
+              trailing: result.totalOfPages != null
+                  ? ValueListenableBuilder<SearchFilter>(
+                      valueListenable: _filter,
+                      builder: (context, filter, _) {
+                        return _buildDropdown(
+                          label: "Page",
+                          value: filter.page,
+                          items: List.generate(
+                            result.totalOfPages!,
+                            (index) => index + 1,
+                          ),
+                          width: 80,
+                          onChanged: (data) {
+                            if (data != null) {
+                              _searchContents(
+                                filter.query,
+                                page: data,
+                                sources: [contents.first.source],
+                              );
+                            }
+                          },
+                        );
+                      },
+                    )
+                  : null,
+              tilePadding: EdgeInsets.symmetric(horizontal: 8.0),
               controlAffinity: ListTileControlAffinity.leading,
               children: <Widget>[
-                SizedBox(
+                ShimmerContainer(
+                  enable: _isLoading._isLoading[entry.key] ?? false,
                   height: 200,
                   child: ListView.builder(
-                    itemCount: entry.value.length,
+                    itemCount: contents.length,
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
                     padding: const EdgeInsets.all(8.0),
                     itemBuilder: (context, index) {
-                      final content = entry.value[index];
+                      final content = contents.elementAt(index);
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: SizedBox(
@@ -215,6 +334,7 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
     _searchDebouncer.cancel();
     _isLoading.dispose();
     _searchController.removeListener(_searchControllerListener);
+    _filter.dispose();
     super.dispose();
   }
 }
@@ -239,11 +359,19 @@ class _BarSideMaterialState extends WidgetStateProperty<BorderSide?> {
 
   @override
   BorderSide? resolve(Set<WidgetState> states) {
-    // if (states.contains(MaterialState.focused)) {
-    //   return BorderSide(
-    //     color: colorScheme.primary.withOpacity(0.10),
-    //   );
-    // }
     return BorderSide(color: colorScheme.primary.withAlpha(26));
   }
+}
+
+final class _SearchIsloading extends ChangeNotifier {
+  final Map<Source, bool> _isLoading = {};
+
+  void setIsloading(List<Source> sources, bool value) {
+    for (final source in sources) {
+      _isLoading[source] = value;
+      notifyListeners();
+    }
+  }
+
+  bool get isLoading => _isLoading.values.contains(true);
 }

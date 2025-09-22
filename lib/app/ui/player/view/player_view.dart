@@ -102,7 +102,6 @@ class _PlayerViewState extends State<PlayerView>
   late final ContentRepository _repository;
   // late final AppConfigController _appConfigController;
   late final LibraryController _libraryController;
-  late final AnimeSkipController _animeSkipController;
   late final HistoricController _historicController;
   late final Timer _systemUIModeTimer;
 
@@ -118,7 +117,6 @@ class _PlayerViewState extends State<PlayerView>
   void initState() {
     super.initState();
     // _appConfigController = read<AppConfigController>();
-    _animeSkipController = read<AnimeSkipController>();
     _repository = read<ContentRepository>();
     _animationController = AnimationController(
       vsync: this,
@@ -131,6 +129,7 @@ class _PlayerViewState extends State<PlayerView>
       const Duration(seconds: 1),
       _setEnabledSystemUIMode,
     );
+    _initControlls();
     addPostFrameCallback(_onInit);
   }
 
@@ -152,7 +151,7 @@ class _PlayerViewState extends State<PlayerView>
 
   Future<void> _incrementCurrentCircularAnimation() async {
     setState(() => _currentValueCircularAnimation += 1);
-    await Future.delayed(const Duration(milliseconds: 600));
+    // await Future.delayed(const Duration(milliseconds: 600));
   }
 
   @override
@@ -201,7 +200,7 @@ class _PlayerViewState extends State<PlayerView>
         ? Result.success([FileVideoData(file: file)])
         : _playerArgs.data.isNotEmpty
         ? Result.success(_playerArgs.data)
-        : await _repository.getContent(_playerArgs.episode);
+        : await _repository.getContent(_playerArgs.episode, _playerArgs.anime);
 
     result.fold(
       onSuccess: (data) {
@@ -245,7 +244,7 @@ class _PlayerViewState extends State<PlayerView>
     await _getInitMainVideoData().whenComplete(_incrementCurrentCircularAnimation);
 
     await _startPlayerController(
-      onInit: true,
+      onInit: false,
       initPossition: _playerArgs.startPossition,
     ).whenComplete(_incrementCurrentCircularAnimation);
 
@@ -431,7 +430,7 @@ class _PlayerViewState extends State<PlayerView>
     if (entity == null) return;
 
     customLog(
-      '[$runtimeType][_continueVideoByHistoricPosition()][${entity.animeStringID}]',
+      '[$runtimeType][_continueVideoByHistoricPosition()][${entity.contentStringID}]',
     );
     // final currentPosition = data.getLastCurrentPosition();
     if (entity.percent == 0) return;
@@ -550,6 +549,7 @@ class _PlayerViewState extends State<PlayerView>
       currentPositionBase64: currentPositionBase64,
       position: position,
       duration: duration,
+      animeSkipEntity: _playerArgs.anime.animeSkip?.toEntity,
       entity: entity,
     );
 
@@ -570,13 +570,10 @@ class _PlayerViewState extends State<PlayerView>
       updatedAt: other?.updatedAt,
     );
 
-    animeEntity.animeSkip.value ??= _playerArgs.anime.animeSkip?.toEntity;
+    // animeEntity.animeSkip.value ??= _playerArgs.anime.animeSkip?.toEntity;
 
     animeEntity.addEpisode(episodeEntity);
 
-    if (animeEntity.animeSkip.value != null) {
-      await _animeSkipController.save(animeEntity.animeSkip.value!);
-    }
     await _libraryController.add(contentEntity: animeEntity);
     await _historicController.add(historic: episodeEntity);
   }

@@ -1,8 +1,12 @@
 // ignore_for_file: constant_identifier_names
 
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
+part 'generated/order.mapper.dart';
+
+@MappableEnum()
 enum OrderBy {
   LATEST('latest', 'Mais recentes'),
   RELEVANCE('', 'Relevância'),
@@ -26,7 +30,7 @@ enum OrderBy {
 
 extension OrderByExtension on OrderBy {
   IconData get iconData {
-    final map = {
+    return {
       MdiIcons.history,
       MdiIcons.alertCircleOutline,
       MdiIcons.alphabetical,
@@ -34,7 +38,6 @@ extension OrderByExtension on OrderBy {
       MdiIcons.trendingUp,
       MdiIcons.magnifyPlusOutline,
       MdiIcons.newBox,
-    };
-    return map.elementAt(index);
+    }.elementAt(index);
   }
 }

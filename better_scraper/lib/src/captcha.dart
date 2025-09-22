@@ -18,7 +18,7 @@ CaptchaType detectCaptchaByHtml(String html) {
 }
 
 abstract class CaptchaHandler {
-  Future<void> handle({
+  Future<String?> handle({
     required Uri url,
     required CaptchaType type,
     required CookieManager cookieManager,
@@ -40,28 +40,29 @@ class HumanCaptchaHandler extends CaptchaHandler {
   });
 
   @override
-  Future<void> handle({
+  Future<String?> handle({
     required Uri url,
     required CaptchaType type,
     required CookieManager cookieManager,
     Map<String, String>? headers,
   }) async {
-    if (context == null) return;
+    if (context == null) return null;
     final captchaScreen = _CaptchaScreen(
       initialUrl: url,
+      cookieManager: cookieManager,
       userAgent: userAgent,
       headers: headers,
-      displayMode: displayMode, // Passa o modo de exibição para a tela
+      displayMode: displayMode,
     );
 
     // Usa o modo de exibição escolhido
     if (displayMode == CaptchaHandlerDisplayMode.dialog) {
-      await Navigator.of(context!).push(MaterialPageRoute(
+      return await Navigator.of(context!).push(MaterialPageRoute(
         fullscreenDialog: true,
         builder: (_) => captchaScreen,
       ));
     } else {
-      await showModalBottomSheet(
+      return await showModalBottomSheet(
         context: context!,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
@@ -76,9 +77,11 @@ class _CaptchaScreen extends StatefulWidget {
   final String? userAgent;
   final Map<String, String>? headers;
   final CaptchaHandlerDisplayMode displayMode;
+  final CookieManager cookieManager;
 
   const _CaptchaScreen({
     required this.initialUrl,
+    required this.cookieManager,
     this.userAgent,
     this.headers,
     required this.displayMode,
@@ -125,7 +128,12 @@ class _BuildAsPage extends StatelessWidget {
         title: const Text('Verificação'),
         actions: [
           IconButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () async {
+              final html = (await state.controller
+                      ?.evaluateJavascript(source: 'document.documentElement.outerHTML'))
+                  .toString();
+              if (context.mounted) Navigator.of(context).pop(html);
+            },
             icon: const Icon(Icons.check),
             tooltip: 'Concluído',
           ),
@@ -188,11 +196,16 @@ class _BuildAsBottomSheet extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // Usa o novo widget _CaptchaHeader
             _CaptchaHeader(
               controller: state.controller,
               onReload: () => state._setLoading(true),
-              onCompleted: () => Navigator.of(context).pop(),
+              onCompleted: () async {
+                final html = (await state.controller?.evaluateJavascript(
+                        source: 'document.documentElement.outerHTML'))
+                    .toString();
+
+                if (context.mounted) Navigator.of(context).pop(html);
+              },
             ),
             if (state.loading) const LinearProgressIndicator(),
             Expanded(child: _BuildWebView(state)),
@@ -214,18 +227,22 @@ class _BuildWebView extends StatelessWidget {
           url: WebUri(state.widget.initialUrl.toString()), headers: state.widget.headers),
       initialSettings: InAppWebViewSettings(
         javaScriptEnabled: true,
-        transparentBackground: true,
+        useShouldOverrideUrlLoading: true,
         userAgent: state.widget.userAgent,
+        applicationNameForUserAgent: 'WebViewPro',
       ),
       onWebViewCreated: (c) => state.controller = c,
-      onLoadStop: (c, url) {
+      onLoadStop: (c, url) async {
+        if (url == null) return;
+
         state._setLoading(false);
       },
       shouldOverrideUrlLoading: (controller, navigationAction) async {
-        if (navigationAction.request.url.toString().contains("https://bb2r.com") ||
-            navigationAction.request.url.toString().contains("intent://ak")) {
+        final req = navigationAction.request.url.toString();
+        if (req.contains('intent://') || req.contains('bb2r.com')) {
           return NavigationActionPolicy.CANCEL;
         }
+
         return NavigationActionPolicy.ALLOW;
       },
     );

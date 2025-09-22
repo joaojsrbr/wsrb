@@ -194,8 +194,8 @@ class ReleaseLeading extends StatelessWidget {
             // Camada 1: Thumbnail ou Placeholder
             LayoutBuilder(
               builder: (context, constraints) {
-                final cacheSize = context.calculateImageCacheSizeByBoxConstraints(
-                  constraints: constraints,
+                final cacheSize = context.calculateImageCacheSize(
+                  displayHeight: 200,
                   optimizeMemory: true,
                 );
                 return BuildThumbnail(

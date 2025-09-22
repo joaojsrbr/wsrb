@@ -1,8 +1,14 @@
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:equatable/equatable.dart';
 
 import '../extensions/custom_extensions/string_extensions.dart';
 
-abstract class Release extends Equatable implements Comparable<Release> {
+part 'generated/release.mapper.dart';
+
+@MappableClass(discriminatorKey: 'type')
+abstract class Release extends Equatable
+    with ReleaseMappable
+    implements Comparable<Release> {
   const Release({required this.url, required this.title, this.numberEpisode});
 
   final String url;

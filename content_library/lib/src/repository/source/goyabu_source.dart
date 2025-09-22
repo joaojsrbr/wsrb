@@ -9,9 +9,6 @@ class GoyabuSource extends RSource {
   Source get source => Source.GOYABU;
 
   @override
-  String get BASE_URL => source.baseURL;
-
-  @override
   Future<Result<List<Data>>> getContent(Release release) async {
     if (release is! Episode) {
       return Result.failure(
@@ -45,13 +42,7 @@ class GoyabuSource extends RSource {
         final playURL =
             (result['VIDEO_CONFIG']['streams'] as List).first['play_url'] as String;
 
-        final videoData = Data.videoData(
-          videoContent: playURL,
-          httpHeaders: const {
-            "User-Agent":
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-          },
-        );
+        final videoData = Data.videoData(videoContent: playURL, httpHeaders: App.HEADERS);
         data.add(videoData);
       }
 
@@ -67,7 +58,7 @@ class GoyabuSource extends RSource {
   Future<Result<Content>> getReleases(Content content, int page) async {
     if (content is! Anime) throw AnimeGetDataException();
 
-    final Releases cacheRelease = Releases();
+    final EpisodeReleases cacheRelease = EpisodeReleases();
 
     try {
       final Response response = await contentRepository._dio.get(
@@ -147,33 +138,39 @@ class GoyabuSource extends RSource {
         throw AnimeGetDataException(message: 'Element[rwl] == null');
       }
 
-      final ScrapingUtil scrapingUtil = ScrapingUtil(pageElement);
+      // final ScrapingUtil scrapingUtil = ScrapingUtil(pageElement);
 
-      final String originalImage = scrapingUtil.getImage(selector: '.thumb img');
-      final String sinopse = scrapingUtil.getByText(selector: '.sinopse h3');
+      final parser = HtmlParser.fromElement(pageElement);
 
-      final List<Genre> genres = scrapingUtil.element
-          .querySelectorAll('.genres a')
-          .map((element) => Genre(element.text.trim()))
+      final String originalImage = parser.getImage('.thumb img');
+      final sinopse = parser.query('.sinopse h3')?.text;
+
+      final List<Genre> genres = parser
+          .queryAll(".genres a")
+          .map((e) => e.text)
+          .nonNulls
+          .map(Genre.new)
           .toList();
 
-      final List<Element> episodesElements = scrapingUtil.element.querySelectorAll(
-        '.listaEps li',
-      );
+      final List<HtmlParser> episodesElements = parser.queryAll('.listaEps li');
 
-      for (final Element episodeElement in episodesElements) {
-        final ScrapingUtil episodeScrapingUtil = ScrapingUtil(episodeElement);
+      for (final HtmlParser parser in episodesElements) {
+        // final ScrapingUtil episodeScrapingUtil = ScrapingUtil(episodeElement);
+        // final parser = HtmlParser.fromElement(parser);
 
         final int? numberEpisode = int.tryParse(
-          episodeScrapingUtil
-              .getByText(selector: 'a')
-              .trim()
-              .split('-')
-              .last
-              .replaceAll(RegExp(r'[^0-9]'), ''),
+          parser
+                  .queryText('a')
+                  ?.trim()
+                  .split('-')
+                  .last
+                  .replaceAll(RegExp(r'[^0-9]'), '') ??
+              "",
         );
 
-        final String episodeURL = episodeScrapingUtil.getURL(selector: 'a');
+        final episodeURL = parser.queryAttr('a', "href");
+
+        if (episodeURL == null) continue;
 
         final Episode episode = Episode(
           url: episodeURL,
@@ -207,7 +204,7 @@ class GoyabuSource extends RSource {
     try {
       final String subKey = "lancamentos/page/${contentRepository.index}";
 
-      final String mainURL = '$BASE_URL/$subKey';
+      final String mainURL = '${source.baseURL}/$subKey';
 
       final Response response = await contentRepository._dio.get(
         mainURL,
@@ -223,13 +220,22 @@ class GoyabuSource extends RSource {
       }
 
       for (final Element element in elements) {
-        final ScrapingUtil scrapingUtil = ScrapingUtil(element);
+        final parser = HtmlParser.fromElement(element);
+        // final ScrapingUtil scrapingUtil = ScrapingUtil(element);
 
-        final String episodeURL = scrapingUtil.getURL(selector: '.boxEP a');
-        final String thumbnail = scrapingUtil.getImage(selector: 'img');
-        final String episodeTitle = scrapingUtil.getByText(selector: '.titleEP');
-        final bool isDublado =
+        // final String episodeURL = scrapingUtil.getURL(selector: '.boxEP a');
+        // final String thumbnail = scrapingUtil.getImage(selector: 'img');
+        // final String episodeTitle = scrapingUtil.getByText(selector: '.titleEP');
+        // final String animeTitle = scrapingUtil.getByText(selector: '.title');
+
+        final episodeURL = parser.queryAttr(".boxEP a", "href");
+        final thumbnail = parser.getImage('img');
+        final episodeTitle = parser.queryText('.titleEP');
+        final isDublado =
             (element.attributes['data-tar']?.toLowerCase().contains('dub')) ?? false;
+        final animeTitle = parser.queryText('.title');
+
+        if (episodeURL == null || episodeTitle == null || animeTitle == null) continue;
 
         final Episode episode = Episode(
           isDublado: isDublado,
@@ -237,8 +243,6 @@ class GoyabuSource extends RSource {
           title: episodeTitle,
           thumbnail: thumbnail,
         );
-
-        final String animeTitle = scrapingUtil.getByText(selector: '.title');
 
         final Anime anime = Anime(
           title: animeTitle,
@@ -268,7 +272,7 @@ class GoyabuSource extends RSource {
   }
 
   @override
-  Future<Result<List<Content>>> search(String query) async {
+  Future<Result<SearchResult>> search(SearchFilter filter) async {
     return Result.failure(Exception('UnimplementedError'));
   }
 }

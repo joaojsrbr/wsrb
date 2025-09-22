@@ -162,15 +162,15 @@ class InLibraryRepository extends InRepository<ContentEntity> {
     };
   }
 
-  ContentEntity? getContentEntityByStringIDAll(
+  ContentEntity getContentEntityByStringIDAll(
     String animeStringID, {
-    ContentEntity? Function()? orElse,
+    ContentEntity Function()? orElse,
   }) {
     final first = entities.firstWhereOrNull(
       (content) => _byStringID(content, animeStringID),
     );
 
-    return first ?? orElse?.call();
+    return first ?? orElse!.call();
   }
 
   bool containsFav({ContentEntity? contentEntity, Content? content}) {

@@ -5,23 +5,25 @@ import 'package:quiver/iterables.dart' as quiver;
 
 import '../../content_library.dart';
 
+/// Coleção ordenada e única de [Release].
+///
+/// Internamente usa [SplayTreeSet] para manter os elementos ordenados.
+/// Exige que [T] implemente [Comparable] ou que seja fornecido um [Comparator].
 class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
-  Releases();
+  Releases({int Function(T a, T b)? compare}) : _array = SplayTreeSet<T>(compare);
 
-  Releases.fromList(Iterable<Release> contents) {
-    _array.addAll(contents.cast());
+  Releases.fromList(Iterable<T> contents, {int Function(T a, T b)? compare})
+    : _array = SplayTreeSet<T>(compare) {
+    _array.addAll(contents);
   }
 
-  List<Map<String, dynamic>> get toMap {
-    return map<Map<String, dynamic>>(
-      (e) => switch (e) {
-        Chapter data => data.toMap,
-        Episode data => data.toMap,
-        _ => {},
-      },
-    ).toList();
-  }
+  final SplayTreeSet<T> _array;
 
+  /// Converte todos os releases em lista de mapas.
+  List<Map<String, dynamic>> get toMap => map((e) => e.toMap()).toList();
+
+  /// Adiciona ou atualiza múltiplos itens.
+  /// Se [isSame] retornar `true`, o item existente é substituído.
   void addOrUpdateMany(Iterable<T> items, bool Function(T existing, T newItem) isSame) {
     for (final item in items) {
       final index = indexWhere((e) => isSame(e, item));
@@ -33,70 +35,66 @@ class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
     }
   }
 
-  final List<T> _array = [];
-
-  List<Releases> partition(int size) {
-    return quiver.partition(reversed.toList(), size).map(Releases.fromList).toList();
+  /// Divide os releases em blocos de [size].
+  List<Releases<T>> partition(int size) {
+    return quiver
+        .partition(toList(), size)
+        .map((chunk) => Releases.fromList(chunk))
+        .toList();
   }
 
   @override
-  Releases<T> toList({bool growable = true}) {
-    return Releases.fromList(this);
+  Releases<T> toList({bool growable = true}) => Releases.fromList(this);
+
+  @override
+  T operator [](int index) => _array.elementAt(index);
+
+  @override
+  void operator []=(int index, T value) {
+    final copy = List<T>.from(_array);
+    copy[index] = value;
+    _array
+      ..clear()
+      ..addAll(copy); // ordena automaticamente
   }
 
   @override
-  T operator [](int index) => _array[index];
+  void add(T element) => _array.add(element);
 
   @override
   void sort([int Function(T a, T b)? compare]) {
-    _array.sort(compare);
+    // como já é um SplayTreeSet, basta recriar
+    final copy = List<T>.from(_array)..sort(compare);
+    _array
+      ..clear()
+      ..addAll(copy);
   }
-
-  @override
-  void add(T element) {
-    _array.add(element);
-    sort((release1, release2) => release1.compareTo(release2));
-  }
-
-  @override
-  void operator []=(int index, T value) => _array[index] = value;
 
   @override
   int get length => _array.length;
 
   @override
-  set length(int newLength) => _array.length = newLength;
+  set length(int newLength) {
+    final copy = List<T>.from(_array)..length = newLength;
+    _array
+      ..clear()
+      ..addAll(copy);
+  }
 
   @override
-  List<Object?> get props => this;
+  List<Object?> get props => toList();
 }
 
+/// Releases específicos de episódios.
 class EpisodeReleases extends Releases<Episode> {
-  EpisodeReleases() : super();
-  EpisodeReleases.from(super.contents) : super.fromList();
+  EpisodeReleases({super.compare});
 
-  UnmodifiableListView<Episode> get _sorted {
-    return UnmodifiableListView(_array.sortedBy<num>((episode) => episode.numberInt));
-  }
-
-  @override
-  Episode operator [](int index) => _sorted[index];
-
-  @override
-  void operator []=(int index, Episode value) => _array[index] = value;
+  EpisodeReleases.from(super.contents, {super.compare}) : super.fromList();
 }
 
+/// Releases específicos de capítulos.
 class ChapterReleases extends Releases<Chapter> {
-  ChapterReleases() : super();
+  ChapterReleases({super.compare});
 
-  UnmodifiableListView<Chapter> get _sorted {
-    return UnmodifiableListView(
-      _array.sortedBy<num>((episode) => int.parse(episode.number)),
-    );
-  }
-
-  @override
-  Chapter operator [](int index) => _sorted[index];
-
-  ChapterReleases.from(super.contents) : super.fromList();
+  ChapterReleases.from(super.contents, {super.compare}) : super.fromList();
 }

@@ -47,15 +47,17 @@ class LibraryeDestinationState extends State<LibraryDestination>
   }
 
   void _setChildren() {
-    final noCategories = _libraryController.repo
-        .byCategories(_categoryController, true)
-        .getContent
-        .toList();
-
     final yesCategories = _libraryController.repo.entities
         .categoryByID(context)
         .map((e) => e.getContent.toList())
         .toList();
+
+    final noCategories =
+        _libraryController.repo
+            .byCategories(_categoryController, true)
+            .getContent
+            .toList()
+          ..removeWhere(yesCategories.flattened.contains);
 
     // final List<Widget> newChildrens = [
     //   buildGridView(noCategories),
@@ -112,11 +114,11 @@ class LibraryeDestinationState extends State<LibraryDestination>
 
   static const _gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
     // maxCrossAxisExtent: 170,
-    crossAxisCount: 3,
+    crossAxisCount: 2,
     childAspectRatio: 1.0,
     crossAxisSpacing: 8,
     mainAxisSpacing: 8,
-    mainAxisExtent: 150,
+    mainAxisExtent: 220,
   );
 
   @override

@@ -59,6 +59,7 @@ class ScrapingSession {
       javaScriptEnabled: true,
       useShouldOverrideUrlLoading: true,
       transparentBackground: true,
+      applicationNameForUserAgent: 'WebViewPro',
       userAgent: userAgent,
     );
     _headless = HeadlessInAppWebView(
@@ -239,10 +240,12 @@ class ScrapingSession {
     final controller = await _controller.future;
     final settings = _initialSettings.copy();
     settings.userAgent = userAgent;
+    settings.applicationNameForUserAgent = "WebViewPro";
     await controller.setSettings(settings: settings);
 
     await controller.loadUrl(
-        urlRequest: URLRequest(url: WebUri(url.toString()), headers: headers));
+        urlRequest: URLRequest(
+            url: WebUri(url.toString()), headers: headers, allowsCellularAccess: true));
     await _waitDomReady();
 
     String html = (await controller.evaluateJavascript(
@@ -258,20 +261,24 @@ class ScrapingSession {
       }
 
       // Legit human flow: open visible WebView until user finishes.
-
-      await captchaHandler.handle(
+      String? htmlResult = await captchaHandler.handle(
         url: url,
         type: type,
         cookieManager: _cookies,
         headers: headers,
       );
 
-      // After user completes, re-load headless with same URL (cookies are shared).
-      await controller.loadUrl(
-          urlRequest: URLRequest(url: WebUri(url.toString()), headers: headers));
+      if (type == CaptchaType.simpleImage) htmlResult = null;
 
-      await _waitDomReady();
-      html = (await controller.evaluateJavascript(
+      // After user completes, re-load headless with same URL (cookies are shared).
+      if (htmlResult == null) {
+        await controller.loadUrl(
+            urlRequest: URLRequest(url: WebUri(url.toString()), headers: headers));
+        await _waitDomReady();
+      }
+
+      html = htmlResult ??
+          (await controller.evaluateJavascript(
                   source: 'document.documentElement.outerHTML'))
               ?.toString() ??
           '';

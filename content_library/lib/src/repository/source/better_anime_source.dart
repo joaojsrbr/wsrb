@@ -6,9 +6,6 @@ class BetterAnimeSource extends RSource {
   const BetterAnimeSource(super.contentRepository, {super.initialIndex = 1});
 
   @override
-  String get BASE_URL => source.baseURL;
-
-  @override
   Source get source => Source.BETTER_ANIME;
 
   @override
@@ -156,9 +153,67 @@ class BetterAnimeSource extends RSource {
   }
 
   @override
-  Future<Result<List<Content>>> search(String query) {
-    // TODO: implement search
-    throw UnimplementedError();
+  Future<Result<SearchResult>> search(SearchFilter filter) async {
+    try {
+      final query = filter.query;
+      final page = filter.page;
+      final List<Content> data = [];
+
+      final url = 'https://betteranime.net/pesquisa?searchTerm=$query&page=$page';
+
+      final parser = await _fetchHtml(url);
+
+      final list = parser.selectOne("div.list-animes")?.children ?? [];
+
+      final totalOfPages = parser
+          .selectAll(".page-item")
+          .map((e) => int.tryParse(e.text.trim()))
+          .nonNulls
+          .lastOrNull;
+
+      // final activePage = int.tryParse(
+      //   parser.selectOne(".page-item .active span")?.text ?? "",
+      // );
+
+      for (final element in list) {
+        final parser = HtmlParser.fromElement(element);
+        final originalImage = parser.queryAttr(".card-vertical-img img", "src");
+
+        // final episodeUrl = parser.queryAttr("a", "href");
+        final animeUrl = parser.queryAttr("a", "href");
+
+        final animeTitle = parser.queryText("a h3");
+
+        if (animeUrl == null || animeTitle == null) continue;
+        final slugSerie = animeTitle.toID;
+
+        // final parts = episodeUrl.split(RegExp(r'(?<!/)/(?!/)'));
+        final isDublado = parser.queryText(".card-info")?.contains("DUB") ?? false;
+
+        final anime = Anime(
+          slugSerie: slugSerie,
+          url: animeUrl,
+          title: animeTitle,
+          isDublado: isDublado,
+          originalImage: "https:$originalImage",
+          releases: EpisodeReleases(),
+          source: Source.BETTER_ANIME,
+        );
+
+        data.add(anime);
+      }
+
+      await contentRepository.session.closePage();
+      return Result.success(
+        SearchResult(
+          contents: SplayTreeSet.from(data),
+          page: page,
+          totalOfPages: totalOfPages,
+        ),
+      );
+    } on Exception catch (error) {
+      return Result.failure(error);
+    }
   }
 
   // ---------------------- Métodos Privados ------------------------

@@ -5,11 +5,9 @@ import 'package:flutter/material.dart';
 class HomeScope extends InheritedNotifier<Listenable> {
   HomeScope({
     super.key,
-
     required this.tabController,
     required this.homeController,
     required this.searchController,
-
     required this.keepWatchingScrollController,
     required this.subordinateLibraryTabController,
     required this.bottomSheetAnimationController,

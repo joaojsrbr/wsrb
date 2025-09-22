@@ -6,9 +6,6 @@ class AnrollSource extends RSource {
   const AnrollSource(super.contentRepository, {super.initialIndex = 0});
 
   @override
-  String get BASE_URL => source.baseURL;
-
-  @override
   Source get source => Source.ANROLL;
 
   @override
@@ -39,7 +36,7 @@ class AnrollSource extends RSource {
     data.add(
       Data.videoData(
         videoContent: videoContent,
-        httpHeaders: {"origin": BASE_URL, "referer": "$BASE_URL/"},
+        httpHeaders: {"origin": source.baseURL, "referer": "${source.baseURL}/"},
       ),
     );
 
@@ -97,14 +94,15 @@ class AnrollSource extends RSource {
 
       //   return (newAnime.copyWith(buildId: buildId), buildId);
       // }
+
       return await contentRepository._dio
           .get("https://www.anroll.net/a/${anime.generateID}")
           .then(
             (response) {
               final newAnime = anime.copyWith(
-                animeID: parse(
-                  response.data,
-                ).querySelector('#anime_title a')?.attributes['href']?.split('/').last,
+                // animeID: parse(
+                //   response.data,
+                // ).querySelector('#anime_title a')?.attributes['href']?.split('/').last,
               );
 
               final Element? element = parse(
@@ -112,15 +110,26 @@ class AnrollSource extends RSource {
               ).querySelector('#__NEXT_DATA__');
 
               String buildId = "";
+              String animeID = "";
+              String generateId = "";
 
               if (element == null) {
                 throw AnrollGetIdException();
               } else {
                 final map = jsonDecode(element.text);
-                buildId = map['buildId'] as String;
+                buildId = map['buildId'].toString();
+                animeID = map['props']['pageProps']['data']['id_serie'].toString();
+                generateId = map['props']['pageProps']['data']['generate_id'].toString();
               }
 
-              return (newAnime.copyWith(buildId: buildId), buildId);
+              return (
+                newAnime.copyWith(
+                  buildId: buildId,
+                  generateID: generateId,
+                  animeID: animeID,
+                ),
+                buildId,
+              );
             },
             onError: (data) async {
               final response = await contentRepository._dio.get(
@@ -230,11 +239,7 @@ class AnrollSource extends RSource {
       }
 
       return Result.success(
-        anime.copyWith(
-          animeID: animeID,
-          totalOfPages: totalOfPages,
-          totalOfEpisodes: totalOfEpisodes,
-        ),
+        anime.copyWith(totalOfPages: totalOfPages, totalOfEpisodes: totalOfEpisodes),
       );
     } on DioException catch (error) {
       return Result.failure(error);
@@ -260,7 +265,7 @@ class AnrollSource extends RSource {
             .get(animeApiUrl, responseType: ResponseType.json)
             .catchError(
               (error) => contentRepository._dio.get(
-                '$BASE_URL/_next/data/${newAnime.buildId}/e/$generateID.json?episode=$generateID',
+                '${source.baseURL}/_next/data/${newAnime.buildId}/e/$generateID.json?episode=$generateID',
                 responseType: ResponseType.json,
               ),
             );
@@ -270,7 +275,7 @@ class AnrollSource extends RSource {
             responseAnimeData.data['pageProps']['data'] as Map;
 
         final String url =
-            '$BASE_URL/a/${animeData.containsKey('anime') ? animeData['anime']['generate_id'] : animeData['generate_id']}';
+            '${source.baseURL}/a/${animeData.containsKey('anime') ? animeData['anime']['generate_id'] : animeData['generate_id']}';
 
         final String originalImage =
             'https://static.anroll.net/images/animes/capas/${newAnime.slugSerie}.jpg';
@@ -289,7 +294,7 @@ class AnrollSource extends RSource {
 
         newAnime = newAnime.copyWith(
           url: url,
-          animeID: animeID,
+          animeID: newAnime.animeID ?? animeID,
           genres: generos,
           totalOfEpisodes: totalOfEpisodes,
           originalImage: originalImage,
@@ -340,7 +345,7 @@ class AnrollSource extends RSource {
 
   Future<String> getBuildId() async {
     final Response response = await contentRepository._dio.get(
-      BASE_URL,
+      source.baseURL,
       responseType: ResponseType.plain,
     );
 
@@ -362,7 +367,7 @@ class AnrollSource extends RSource {
 
       final String subKey = "_next/data/$buildId/lancamentos.json";
 
-      final String mainURL = '$BASE_URL/$subKey';
+      final String mainURL = '${source.baseURL}/$subKey';
 
       final Response response = await contentRepository._dio.get(
         mainURL,
@@ -387,7 +392,7 @@ class AnrollSource extends RSource {
         final Episode episode = Episode(
           slugSerie: slugSerie,
           isDublado: isDublado,
-          url: '$BASE_URL/e/$episodeGenerateID',
+          url: '${source.baseURL}/e/$episodeGenerateID',
           generateID: episodeGenerateID,
           title: 'Episódio $nEpisodio',
           thumbnail: thumbnail,
@@ -396,7 +401,7 @@ class AnrollSource extends RSource {
         final String subKey =
             '_next/data/$buildId/e/$episodeGenerateID.json?episode=$episodeGenerateID';
 
-        final String mainURL = '$BASE_URL/$subKey';
+        final String mainURL = '${source.baseURL}/$subKey';
 
         final Anime anime = Anime(
           generateID: episodeGenerateID,
@@ -432,15 +437,18 @@ class AnrollSource extends RSource {
   }
 
   @override
-  Future<Result<List<Anime>>> search(String query) async {
+  Future<Result<SearchResult>> search(SearchFilter filter) async {
     try {
+      final query = filter.query;
       final listByRepository = contentRepository
           .where((anime) => anime.title.contains(query))
           .toList()
           .cast<Anime>();
 
       if (listByRepository.isNotEmpty) {
-        return Result.success(listByRepository);
+        return Result.success(
+          SearchResult(contents: SplayTreeSet.from(listByRepository), page: 0),
+        );
       }
 
       final Response response = await contentRepository._dio.get(
@@ -482,7 +490,7 @@ class AnrollSource extends RSource {
         animes.add(anime);
       }
 
-      return Result.success(animes);
+      return Result.success(SearchResult(contents: SplayTreeSet.from(animes), page: 0));
     } on DioException catch (error) {
       return Result.failure(error);
     }

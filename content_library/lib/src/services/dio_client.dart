@@ -39,7 +39,7 @@ class _DioStatus extends dio.Interceptor {
 
   @override
   void onError(dio.DioException err, dio.ErrorInterceptorHandler handler) {
-    customLog('ERROR[${err.runtimeType}]: ${err.message}', stackTrace: err.stackTrace);
+    // customLog('ERROR[${err.runtimeType}]: ${err.message}', stackTrace: err.stackTrace);
     super.onError(err, handler);
   }
 }
@@ -113,11 +113,14 @@ class DioClient implements IHttpService<dio.ResponseType, dio.Response, dio.Inte
     Map<String, dynamic> queryParameters = const {},
     responseType = dio.ResponseType.json,
   }) async {
-    return await _dio.get(
+    // if (disableStatus) disableDioStatus();
+    final response = await _dio.get(
       url,
       queryParameters: queryParameters,
       options: dio.Options(headers: headers, responseType: responseType),
     );
+    // if (disableStatus) enableDioStatus();
+    return response;
   }
 
   @override

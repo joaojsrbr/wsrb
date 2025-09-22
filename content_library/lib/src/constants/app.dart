@@ -22,6 +22,8 @@ class App {
 
   static const String ANROLL_URL = 'https://www.anroll.net';
 
+  static const String REMANGAS_URL = 'https://remangas.net';
+
   static const String ANROLL_USER_URL = 'https://api-user.anroll.net';
 
   static final String? ANIME_SKIP_API_KEY = dotenv.env['ANIME_SKIP_API_KEY'];
@@ -42,8 +44,7 @@ class App {
   static CacheManager APP_IMAGE_CACHE = CacheManager(
     Config(
       "WSRB_IMAGE",
-      maxNrOfCacheObjects: 300,
-      stalePeriod: const Duration(days: 2),
+      stalePeriod: const Duration(days: 1),
       repo: JsonCacheInfoRepository(databaseName: "WSRB_IMAGE"),
       fileSystem: IOFileSystem("WSRB_IMAGE"),
       fileService: HttpFileService(),
@@ -63,6 +64,6 @@ class App {
   static const String APP_CACHE_BOX_NAME = 'WSRB_HIVE_CACHE';
 
   static const String APP_DIRECTORY = "/storage/emulated/0/Wsrb";
-  // static const String APP_RELEASE_DOWNLOAD = 'APP_RELEASE_DOWNLOAD';
+  static const String APP_WORK_NEW_RELEASE = 'APP_WORK_NEW_RELEASE';
   // static const String APP_CACHE_TASK_DELETE_ALL = 'TASK_CLEAR_CACHE_ALL';
 }

@@ -8,8 +8,14 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:provider/provider.dart';
 
 class LibraryButtons extends StatefulWidget {
-  const LibraryButtons({super.key, required this.tabController, this.onAdd});
+  const LibraryButtons({
+    super.key,
+    required this.tabController,
+    this.onAdd,
+    required this.context,
+  });
   final TabController tabController;
+  final BuildContext context;
   final VoidCallback? onAdd;
 
   @override
@@ -30,11 +36,9 @@ class _LibraryButtonsState extends State<LibraryButtons> {
   }
 
   @override
-  void deactivate() {
-    _valueNotifierList
-      ..removeListener(_listener)
-      ..clear();
-    super.deactivate();
+  void dispose() {
+    _valueNotifierList.removeListener(_listener);
+    super.dispose();
   }
 
   @override
@@ -123,7 +127,7 @@ class _LibraryButtonsState extends State<LibraryButtons> {
             IconButton(
               onPressed: libraryRepo.favoritesIDS.containsOneElement(valueNotifierList)
                   ? () {
-                      CategoryHelper.openCategoryDialog(context);
+                      CategoryHelper.openCategoryDialog(widget.context);
                     }
                   : null,
               icon: FadeThroughTransitionSwitcher(

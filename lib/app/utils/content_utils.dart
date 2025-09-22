@@ -1,12 +1,20 @@
 // import 'package:android_intent_plus/android_intent.dart';
+import 'package:app_wsrb_jsr/app/routes/routes.dart';
+import 'package:app_wsrb_jsr/app/ui/content_information/arguments/content_information_args.dart';
+import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class ContentUtils {
   const ContentUtils._();
 
-  static Future<bool> selectTypePlayer(BuildContext context, Episode episode) async {
+  static Future<bool> selectTypePlayer(
+    BuildContext context,
+    Episode episode,
+    Content content,
+  ) async {
     final result = await showModalBottomSheet<bool>(
       context: context,
       builder: (context) {
@@ -84,7 +92,7 @@ class ContentUtils {
 
     customLog(result);
     if (result != null && !result && context.mounted) {
-      await _launcherEpisodeAnotherPlayer(context, episode, context.read());
+      await _launcherEpisodeAnotherPlayer(context, episode, context.read(), content);
       return false;
     }
 
@@ -95,8 +103,9 @@ class ContentUtils {
     BuildContext context,
     Episode episode,
     ContentRepository repository,
+    Content content,
   ) async {
-    final result = await repository.getContent(episode);
+    final result = await repository.getContent(episode, content);
 
     result.fold(
       onSuccess: (data) async {
@@ -129,7 +138,6 @@ class ContentUtils {
   static Future<void> saveOrUpdate(BuildContext context, Content content) async {
     final libraryController = context.read<LibraryController>();
     final historicController = context.read<HistoricController>();
-    final animeSkipController = context.read<AnimeSkipController>();
 
     // Obtém ou cria a ContentEntity
     ContentEntity? contentEntity = libraryController.repo
@@ -137,19 +145,8 @@ class ContentUtils {
           content.stringID,
           orElse: () => content.toEntity(createdAt: DateTime.now()),
         )
-        ?.copyWith(isFavorite: true);
-
-    // final bool shouldSave = _libraryController.repo.contains(content: content);
-
-    if (contentEntity == null) return;
-
-    // Garante que os dados do Anilist estejam presentes
-    if (contentEntity.anilistMedia == null) {
-      contentEntity = contentEntity.copyWith(
-        isFavorite: true,
-        anilistMedia: content.anilistMedia,
-      );
-    }
+        .copyWith
+        .$merge(content.toEntity(isFavorite: true));
 
     final List<HistoricEntity> historyEntities = [];
 
@@ -163,8 +160,7 @@ class ContentUtils {
             _ => null,
           };
         },
-      );
-      if (entity == null) return null;
+      )!;
       return MapEntry(release, entity);
     });
 
@@ -179,22 +175,78 @@ class ContentUtils {
             anime: content as Anime,
             entity: value,
           );
-          anime.episodes.add(saveEpisode);
+          anime.addEpisode(saveEpisode);
           historyEntities.add(saveEpisode);
 
         case BookEntity book when value is ChapterEntity:
-          book.chapters.add(value);
+          book.addChapter(value);
           historyEntities.add(value);
       }
     }
 
-    // Salva configurações de pulo de anime se existirem
-    if (contentEntity case AnimeEntity anime when anime.animeSkip.value != null) {
-      await animeSkipController.save(anime.animeSkip.value!);
-    }
+    // if (contentEntity case AnimeEntity anime when anime.animeSkip.value != null) {
+    //   await animeSkipController.save(anime.animeSkip.value!);
+    // }
 
-    // Salva os dados principais e históricos
-    await libraryController.add(contentEntity: contentEntity);
+    await libraryController.add(contentEntity: contentEntity.copyWith(newReleases: []));
     await historicController.addAll(historyEntities: historyEntities);
+  }
+
+  static void notificationResponse(NotificationResponse response) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final navigatorContext = rootNavigatorKey.currentContext;
+
+      if (navigatorContext != null &&
+          navigatorContext.mounted &&
+          response.payload != null) {
+        final libraryController = navigatorContext.read<LibraryController>();
+        final parts = response.payload!.split('/');
+        final name = parts[0];
+
+        switch (name) {
+          case "contentInfo":
+            final entityFilter = libraryController.repo.getContentEntityByStringID(
+              parts[1],
+            );
+            if (entityFilter == null) return;
+            await pushToContentInfo(navigatorContext, entityFilter.toContent(), true);
+        }
+      }
+    });
+  }
+
+  static Future<void> pushToContentInfo(
+    BuildContext context,
+    Content content,
+    bool isLibrary,
+  ) async {
+    final go = GoRouter.of(context);
+    final path = go.state.path;
+    dynamic result;
+    final extra = ContentInformationArgs(content: content, isLibrary: isLibrary);
+    if (path != null && path.contains(RouteName.CONTENTINFO.subRouter)) {
+      result = await context.pushReplacementEnum(RouteName.CONTENTINFO, extra: extra);
+    } else {
+      // context.goEnum(
+      //   RouteName.CONTENTINFO,
+      //   extra: ContentInformationArgs(content: content, isLibrary: isLibrary),
+      // );
+      result = await context.pushEnum(RouteName.CONTENTINFO, extra: extra);
+
+      // final result = await go.push(
+      //   RouteName.CONTENTINFO.route,
+      //   extra: ContentInformationArgs(content: content, isLibrary: isLibrary),
+      // );
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _error(result);
+    });
+  }
+
+  static void _error(Object? result) {
+    final context = rootNavigatorKey.currentContext;
+    if (context != null && context.mounted && result != null) {
+      context.showErrorNotification(result.toString());
+    }
   }
 }

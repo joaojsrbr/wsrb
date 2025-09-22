@@ -2,21 +2,27 @@
 
 import 'package:content_library/src/constants/app.dart';
 import 'package:content_library/src/constants/content_type.dart';
+import 'package:dart_mappable/dart_mappable.dart';
+
+part 'generated/source.mapper.dart';
 
 abstract class _DisableEnum {
   bool get disable;
 }
 
+@MappableEnum()
 enum Source implements _DisableEnum {
   ANROLL('Anroll', App.ANROLL_URL, 'Anroll', ContentType.ANIME),
   NEOX_SCANS('Neox Scans', App.NEOX_URL, 'Neox Scans', ContentType.BOOK),
   DEMON_SECT('Demon Sect', App.DEMON_SECT_URL, 'Demon Sect', ContentType.BOOK),
   GOYABU('Goyabu', App.GOYABU_URL, 'Goyabu', ContentType.ANIME),
   BETTER_ANIME('BetterAnime', App.BETTER_ANIME_URL, 'Better Anime', ContentType.ANIME),
+  REMANGAS('Remangas', App.REMANGAS_URL, 'Remangas', ContentType.BOOK),
   SLIMEREAD('SlimeRead', App.SLIME_READ_URL, 'SlimeRead', ContentType.BOOK);
 
   static final Set<Source> _disableSource = {
     Source.NEOX_SCANS,
+    Source.REMANGAS,
     Source.DEMON_SECT,
     Source.SLIMEREAD,
   };

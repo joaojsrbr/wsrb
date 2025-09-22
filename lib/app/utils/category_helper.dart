@@ -9,12 +9,13 @@ class CategoryHelper {
   CategoryHelper._();
 
   static Future<void> openCategoryDialog(BuildContext context) async {
-    final ValueNotifierList selection = context.read<ValueNotifierList>();
+    final ValueNotifierList list = context.read<ValueNotifierList>();
+    final copy = List<String>.from(list);
     final CategoryController controller = context.read<CategoryController>();
-
-    final filteredCategories = controller.categories.where(
-      (item) => item.ids.containsOneElement(selection),
-    );
+    // final navigator = Navigator.of(context);
+    final filteredCategories = controller.categories
+        .where((item) => item.ids.containsOneElement(copy))
+        .toList();
 
     final _CategorySelection selectionState = _CategorySelection(filteredCategories);
 
@@ -84,7 +85,7 @@ class CategoryHelper {
 
     switch (dialogResult) {
       case String tag when tag.contains("newCategory"):
-        selection.clear();
+        list.clear();
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           await openCategoryCreator(context);
         });
@@ -94,10 +95,10 @@ class CategoryHelper {
 
         for (final category in controller.categories) {
           final shouldRetain =
-              selected.contains(category) && category.ids.containsOneElement(selection);
+              selected.contains(category) && category.ids.containsOneElement(copy);
           if (!shouldRetain) {
             final newIds = List<String>.from(category.ids)
-              ..removeWhere(selection.contains)
+              ..removeWhere(copy.contains)
               ..unique();
 
             operations.add(
@@ -108,7 +109,7 @@ class CategoryHelper {
 
         for (final category in selected) {
           final newIds = List<String>.from(category.ids)
-            ..addAll(selection)
+            ..addAll(copy)
             ..unique();
 
           operations.add(
@@ -117,7 +118,7 @@ class CategoryHelper {
         }
 
         await Future.wait(operations);
-        selection.clear();
+        list.clear();
         break;
     }
   }

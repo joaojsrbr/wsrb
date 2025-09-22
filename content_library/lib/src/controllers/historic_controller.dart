@@ -23,6 +23,16 @@ class HistoricController extends ChangeNotifier {
     super.dispose();
   }
 
+  Future<QueryBuilder<T, T, QWhere>> where<T extends HistoricEntity>() async {
+    final collection = await _isarService.collection<T>();
+    return collection.where();
+  }
+
+  Future<QueryBuilder<T, T, QFilterCondition>> filter<T extends HistoricEntity>() async {
+    final collection = await _isarService.collection<T>();
+    return collection.filter();
+  }
+
   Future<void> start() async {
     final Elapsed elapsed = Elapsed()..start();
 

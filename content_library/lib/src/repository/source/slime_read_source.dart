@@ -6,16 +6,13 @@ class SlimeReadSource extends RSource {
   const SlimeReadSource(super.contentRepository, {super.initialIndex = 0});
 
   @override
-  String get BASE_URL => source.baseURL;
-
-  @override
   Future<Result<List<Data>>> getContent(Release release) {
     // TODO: implement getContent
     throw UnimplementedError();
   }
 
   @override
-  Future<Result<Content>> getData(Content content) {
+  Future<Result<Content>> getData(Content content) async {
     // TODO: implement getData
     throw UnimplementedError();
   }
@@ -53,7 +50,7 @@ class SlimeReadSource extends RSource {
       for (final responseDto in responseDto.data) {
         final bookId = responseDto.bookId;
         final slug = responseDto.bookName;
-        final url = '$BASE_URL/manga/$bookId/$slug';
+        final url = '${source.baseURL}/manga/$bookId/$slug';
 
         final ChapterReleases releases = ChapterReleases();
 
@@ -74,7 +71,7 @@ class SlimeReadSource extends RSource {
 
         final firstBookTempCap = responseDto.bookTemp.first.bookTempCaps.first;
 
-        final chapterUrl = '$BASE_URL/ler/$bookId/cap-${firstBookTempCap.btcCap}';
+        final chapterUrl = '${source.baseURL}/ler/$bookId/cap-${firstBookTempCap.btcCap}';
 
         releases.add(
           Chapter(
@@ -107,7 +104,7 @@ class SlimeReadSource extends RSource {
   }
 
   @override
-  Future<Result<List<Content>>> search(String query) async {
+  Future<Result<SearchResult>> search(SearchFilter filter) async {
     return const Result.empty();
   }
 

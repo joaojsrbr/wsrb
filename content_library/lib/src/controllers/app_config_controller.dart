@@ -11,15 +11,17 @@ class AppConfigController extends ChangeNotifier {
 
   final Subscriptions _subscriptions = Subscriptions();
 
-  final StreamController<AppConfigController> _updateController =
+  final StreamController<AppConfigController> _updateRepositoryController =
       StreamController.broadcast();
-  Stream<AppConfigController> get update => _updateController.stream;
 
-  AppConfigController(this._isarService) {
+  Stream<AppConfigController> get updateRepository => _updateRepositoryController.stream;
+
+  AppConfigController(this._isarService, [bool setWorkManage = true]) {
     _repository = AppConfigRepository();
+    if (setWorkManage) _setWorkManage();
   }
 
-  final Debouncer _updateDebouncer = Debouncer(
+  final Debouncer _updateRepositoryDebouncer = Debouncer(
     duration: const Duration(milliseconds: 200),
   );
 
@@ -27,8 +29,9 @@ class AppConfigController extends ChangeNotifier {
 
   @override
   void dispose() {
-    _updateDebouncer.cancel();
+    _updateRepositoryDebouncer.cancel();
     _subscriptions.cancelAll();
+    _updateRepositoryController.close();
     super.dispose();
   }
 
@@ -42,14 +45,21 @@ class AppConfigController extends ChangeNotifier {
     if (value == repo.config.orderBy) return;
     repo.updateConfig((config) => config.copyWith(orderBy: value));
     await _addConfig();
-    _updateController.add(this);
+    _updateRepositoryController.add(this);
+  }
+
+  Future<void> setAutoUpdateInterval(AutoUpdateInterval value) async {
+    if (value == repo.config.autoUpdateInterval) return;
+    repo.updateConfig((config) => config.copyWith(autoUpdateInterval: value));
+    await _addConfig();
+    _setWorkManage();
   }
 
   Future<void> setSource(Source value) async {
     if (value == repo.config.source) return;
     repo.updateConfig((config) => config.copyWith(source: value));
     await _addConfig();
-    _updateController.add(this);
+    _updateRepositoryController.add(this);
   }
 
   Future<void> setReverseContents(bool value) async {
@@ -83,7 +93,29 @@ class AppConfigController extends ChangeNotifier {
 
     if (config.isNotEmpty) {
       repo.updateConfig((_) => config.first);
-      _updateDebouncer.call(notifyListeners);
+      _updateRepositoryDebouncer.call(notifyListeners);
     }
+  }
+
+  void _setWorkManage() async {
+    final config = repo.config;
+
+    final intervalDuration = config.autoUpdateInterval.intervalDuration;
+
+    await Workmanager().cancelByTag(App.APP_WORK_NEW_RELEASE);
+
+    if (intervalDuration == Duration.zero) return;
+
+    Workmanager().registerPeriodicTask(
+      UniqueKey().toString(),
+      App.APP_WORK_NEW_RELEASE,
+      tag: App.APP_WORK_NEW_RELEASE,
+      existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
+      frequency: intervalDuration,
+      constraints: Constraints(
+        networkType: NetworkType.connected,
+        requiresBatteryNotLow: true,
+      ),
+    );
   }
 }

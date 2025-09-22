@@ -1,4 +1,4 @@
-import 'package:content_library/src/entities/app_config_entity.dart';
+import 'package:content_library/src/models/app_config_entity.dart';
 
 class AppConfigRepository {
   AppConfigEntity _config = AppConfigEntity.init();

@@ -23,6 +23,16 @@ class LibraryController extends ChangeNotifier {
     duration: const Duration(milliseconds: 100),
   );
 
+  Future<QueryBuilder<T, T, QWhere>> where<T extends ContentEntity>() async {
+    final collection = await _isarService.collection<T>();
+    return collection.where();
+  }
+
+  Future<QueryBuilder<T, T, QFilterCondition>> filter<T extends ContentEntity>() async {
+    final collection = await _isarService.collection<T>();
+    return collection.filter();
+  }
+
   @override
   void dispose() {
     _updateDebouncer.cancel();
@@ -46,7 +56,7 @@ class LibraryController extends ChangeNotifier {
       entities
           .map(
             (entity) => switch (entity) {
-              AnimeEntity data => [data.episodes.load(), data.animeSkip.load()],
+              AnimeEntity data => [data.episodes.load()],
               BookEntity data => [data.chapters.load()],
               _ => null,
             },
@@ -77,7 +87,7 @@ class LibraryController extends ChangeNotifier {
       entities
           .map(
             (entity) => switch (entity) {
-              AnimeEntity data => [data.episodes.load(), data.animeSkip.load()],
+              AnimeEntity data => [data.episodes.load()],
               BookEntity data => [data.chapters.load()],
               _ => null,
             },

@@ -25,7 +25,7 @@ class InHistoricRepository extends InRepository<HistoricEntity> {
   T? getByID<T extends HistoricEntity>(List<String> ids) {
     return entities.firstWhereOrNull((entity) {
           if (entity is EpisodeEntity) {
-            return ids.containsOneElement([entity.stringID, entity.animeStringID]);
+            return ids.containsOneElement([entity.stringID, entity.contentStringID]);
           }
           return false;
         })
@@ -35,7 +35,7 @@ class InHistoricRepository extends InRepository<HistoricEntity> {
   List<HistoricEntity> getAllByIDs(List<String> ids) {
     return entities.where((entity) {
       if (entity is EpisodeEntity) {
-        return ids.containsOneElement([entity.stringID, entity.animeStringID]);
+        return ids.containsOneElement([entity.stringID, entity.contentStringID]);
       }
       return false;
     }).toList();
@@ -61,7 +61,7 @@ class InHistoricRepository extends InRepository<HistoricEntity> {
       EpisodeEntity ep =>
         ep.stringID == release?.stringID &&
             release?.numberEpisode == ep.numberEpisode &&
-            (content == null || ep.animeStringID.contains(content.stringID)),
+            (content == null || ep.contentStringID.contains(content.stringID)),
       _ => false,
     };
 
@@ -74,7 +74,8 @@ class InHistoricRepository extends InRepository<HistoricEntity> {
   }) {
     return entities.firstWhereOrNull(
               (e) =>
-                  e is EpisodeEntity && e.animeStringID.contains(contentEntity.stringID),
+                  e is EpisodeEntity &&
+                  e.contentStringID.contains(contentEntity.stringID),
             )
             as T? ??
         orElse?.call();

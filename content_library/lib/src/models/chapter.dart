@@ -1,8 +1,12 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'package:content_library/content_library.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-class Chapter extends Release {
+part 'generated/chapter.mapper.dart';
+
+@MappableClass()
+class Chapter extends Release with ChapterMappable {
   final bool read;
   final String bookStringID;
 
@@ -11,6 +15,7 @@ class Chapter extends Release {
     required super.url,
     required this.bookStringID,
     required super.title,
+    super.numberEpisode,
   });
 
   String get number {
@@ -29,24 +34,6 @@ class Chapter extends Release {
   @override
   List<Object?> get props => [title, url, read, stringID, bookStringID];
 
-  Map<String, dynamic> get toMap {
-    return <String, dynamic>{
-      'title': title,
-      'url': url,
-      'read': read,
-      'bookStringID': bookStringID,
-    };
-  }
-
-  factory Chapter.fromMap(Map<String, dynamic> map) {
-    return Chapter(
-      title: map['title'] as String,
-      bookStringID: map['bookStringID'] as String,
-      url: map['url'] as String,
-      read: map['read'] as bool,
-    );
-  }
-
   ChapterEntity toEntity(
     double readPercent,
     DateTime? createdAt,
@@ -56,6 +43,7 @@ class Chapter extends Release {
     return ChapterEntity(
       url: url,
       title: title,
+      contentStringID: bookStringID,
       bookStringID: bookStringID,
       readPercent: readPercent,
       stringID: stringID,

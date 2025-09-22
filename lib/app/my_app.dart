@@ -49,9 +49,9 @@ class MyApp extends StatelessWidget {
       ],
       builder: (context, child) => AppNotificationOverlay(child: child!),
       debugShowCheckedModeBanner: false,
-      routerDelegate: appRoutes.routerDelegate,
-      routeInformationParser: appRoutes.routeInformationParser,
-      routeInformationProvider: appRoutes.routeInformationProvider,
+      routerDelegate: appRouter.routerDelegate,
+      routeInformationParser: appRouter.routeInformationParser,
+      routeInformationProvider: appRouter.routeInformationProvider,
     );
   }
 }

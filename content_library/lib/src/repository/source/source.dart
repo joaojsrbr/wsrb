@@ -1,11 +1,9 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 // ignore_for_file: non_constant_identifier_names
 
-import '../../constants/source.dart';
-import '../../models/content.dart';
-import '../../models/data.dart';
-import '../../models/release.dart';
-import '../../utils/result.dart';
-import '../content_repository.dart';
+import 'dart:collection';
+
+import 'package:content_library/content_library.dart';
 
 abstract class RSource {
   final int initialIndex;
@@ -16,8 +14,6 @@ abstract class RSource {
 
   Source get source;
 
-  String get BASE_URL;
-
   Future<bool> loadData();
 
   Future<Result<Content>> getData(Content content);
@@ -26,5 +22,12 @@ abstract class RSource {
 
   Future<Result<Content>> getReleases(Content content, int page);
 
-  Future<Result<List<Content>>> search(String query);
+  Future<Result<SearchResult>> search(SearchFilter filter);
+}
+
+class SearchResult {
+  final SplayTreeSet<Content> contents;
+  final int page;
+  final int? totalOfPages;
+  const SearchResult({required this.contents, required this.page, this.totalOfPages});
 }

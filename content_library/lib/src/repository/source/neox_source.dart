@@ -8,9 +8,6 @@ class NeoxSource extends RSource {
   @override
   Source get source => Source.NEOX_SCANS;
 
-  @override
-  String get BASE_URL => source.baseURL;
-
   /// Scraping [Element]
   Element? _getElementOnly(
     List<Element> postContentItem,
@@ -191,7 +188,7 @@ class NeoxSource extends RSource {
       final String subKey =
           'page/${contentRepository.index}/?s&post_type=wp-manga&m_orderby=${contentRepository.config.orderBy.label}';
 
-      final String mainURL = '$BASE_URL/$subKey';
+      final String mainURL = '${source.baseURL}/$subKey';
 
       final Response response = await contentRepository._dio.get(
         mainURL,
@@ -317,7 +314,7 @@ class NeoxSource extends RSource {
   }
 
   @override
-  Future<Result<List<Content>>> search(String query) async {
+  Future<Result<SearchResult>> search(SearchFilter filter) async {
     return Result.failure(Exception('UnimplementedError'));
   }
 }

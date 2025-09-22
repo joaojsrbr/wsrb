@@ -10,6 +10,7 @@ import 'package:app_wsrb_jsr/app/utils/download_release_helper.dart';
 import 'package:app_wsrb_jsr/app/utils/history_utils.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -21,21 +22,47 @@ class RefContentInformationView extends StatefulWidget {
   State<RefContentInformationView> createState() => _RefContentkInformationViewState();
 }
 
-class _RefContentkInformationViewState extends State<RefContentInformationView> {
-  late Content _content;
+class _RefContentkInformationViewState extends State<RefContentInformationView>
+    with RestorationMixin {
   late Completer _initialRefresh;
-  late ContentInformationArgs _informationArgs;
+  ColorScheme? _colorScheme;
 
   late final ContentRepository _repository;
   late final LibraryController _libraryController;
 
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
+
   final Map<int, Releases> _releases = {};
 
-  bool _isLoading = true;
-  bool _releasesIsLoading = false;
-  int _index = 0;
+  final RestorableContentInformationArgs _informationArgs =
+      RestorableContentInformationArgs();
+  final RestorableContent _content = RestorableContent(Anime.empty());
+  final RestorableBool _isLoading = RestorableBool(true);
+  final RestorableBool _releasesIsLoading = RestorableBool(false);
+  final RestorableInt _index = RestorableInt(0);
+
+  @override
+  void dispose() {
+    _content.dispose();
+    _isLoading.dispose();
+    _releasesIsLoading.dispose();
+    _index.dispose();
+    _informationArgs.dispose();
+    super.dispose();
+  }
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(_content, "content");
+    registerForRestoration(_isLoading, "isLoading");
+    registerForRestoration(_releasesIsLoading, "releasesIsLoading");
+    registerForRestoration(_index, "index");
+    registerForRestoration(_informationArgs, "informationArgs");
+  }
+
+  @override
+  String? get restorationId => 'ref_content_information_view';
 
   @override
   void initState() {
@@ -49,42 +76,43 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   void _onInit() async {
     if (!mounted) return;
     _initialRefresh = Completer();
-    await Future.delayed(const Duration(milliseconds: 850), _loadContentData);
+    await _loadContentData();
+    // await Future.delayed(const Duration(milliseconds: 850), _loadContentData);
   }
 
   Future<void> _loadContentData() async {
-    if (_informationArgs.isLibrary) {
+    if (_informationArgs.value.isLibrary) {
       setState(() {
-        _isLoading = false;
-        _releasesIsLoading = false;
+        _isLoading.value = false;
+        _releasesIsLoading.value = false;
       });
-      final data = _informationArgs.content;
-      _releases[_index] = data.releases;
+      final data = _informationArgs.value.content;
+      _releases[_index.value] = data.releases;
       return;
     }
     _refreshIndicatorKey.currentState?.show();
   }
 
   void _handleResult(Result<Content> result) {
-    final navigationState = Navigator.of(context);
-    result.fold(onError: navigationState.pop, onSuccess: _onSuccess);
+    final go = GoRouter.of(context);
+    result.fold(onError: go.pop, onSuccess: _onSuccess);
   }
 
   Result<Content> _handleTimeout() {
-    if (_informationArgs.content.releases.length > 1 || _content.cached) {
-      return Result.success(_informationArgs.content);
+    if (_informationArgs.value.content.releases.length > 1) {
+      return Result.success(_informationArgs.value.content);
     }
     return Result.failure(TimeoutException("Tempo excedido"));
   }
 
   void _handleSetListIndex(int index) async {
-    if (index == _index) return;
+    if (index == _index.value) return;
 
     setState(() {
-      _index = index;
+      _index.value = index;
     });
 
-    await _getReleases(_content.copyWith(releases: Releases()));
+    await _getReleases(_content.value.copyWith(releases: Releases()));
   }
 
   @override
@@ -100,15 +128,21 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
     bool forceSaveCache = false,
   ]) async {
     setState(() {
-      _releases[_index] = data.releases;
-      _content = data.copyWith(releases: _releases[_index], cached: true);
-      _releasesIsLoading = false;
-      _isLoading = false;
+      _releases[_index.value] = data.releases;
+      _content.value = data.copyWith(releases: _releases[_index.value]);
+      _releasesIsLoading.value = false;
+      _isLoading.value = false;
+      _colorScheme = _content.value.anilistMedia?.coverImage?.color != null
+          ? ColorScheme.fromSeed(
+              seedColor: _content.value.anilistMedia!.coverImage!.color!.toColor(),
+              brightness: Theme.of(context).brightness,
+            )
+          : null;
     });
 
-    if (_content.releases.length == data.releases.length && !refresh) {
+    if (_content.value.releases.length == data.releases.length && !refresh) {
       if (!_initialRefresh.isCompleted) _initialRefresh.complete();
-      _isLoading = false;
+      _isLoading.value = false;
       return;
     }
 
@@ -116,25 +150,25 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   }
 
   Future<void> _getReleases(Content content, [bool onRefresh = false]) async {
-    final releases = _releases[_index];
+    final releases = _releases[_index.value];
 
     if (releases == null || onRefresh) {
       setState(() {
-        _releasesIsLoading = true;
+        _releasesIsLoading.value = true;
       });
-      final result = await _repository.getReleases(content, _index + 1);
+      final result = await _repository.getReleases(content, _index.value + 1);
 
       result.fold(onSuccess: _onSuccess);
     } else {
       setState(() {
-        _content = _content.copyWith(releases: _releases[_index]);
+        _content.value = _content.value.copyWith(releases: _releases[_index.value]);
       });
     }
   }
 
   Future<void> _downloadRelease(Release release) async {
     if (mounted) {
-      await DownloadReleaseHelper.download(context, release, _content);
+      await DownloadReleaseHelper.download(context, release, _content.value);
     }
   }
 
@@ -144,7 +178,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
     if (valueNotifierList.isEmpty) {
       valueNotifierList.toggle(release.stringID);
       context.showBottomNotification(
-        _ContentInfoBottomButtons(context, _content, release),
+        _ContentInfoBottomButtons(context, _content.value, release),
         height: 52,
         showCountdown: true,
         duration: Duration(seconds: 20),
@@ -178,13 +212,12 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
 
   @override
   void didChangeDependencies() {
-    final args = _parseArguments();
-    if (args != null) {
-      _informationArgs = args;
-      _content = _informationArgs.content;
-    }
-
     super.didChangeDependencies();
+    final args = _parseArguments();
+    if (args != null && _informationArgs.enabled) {
+      _informationArgs.value = args;
+      _content.value = _informationArgs.value.content;
+    }
   }
 
   // bool _assertCheckArgs(args) {
@@ -205,21 +238,21 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   }
 
   bool get noContent =>
-      _content.sinopse.isEmpty &&
-      _content.anilistMedia == null &&
-      (_content.anilistMedia?.genres == null || _content.genres.isEmpty) &&
-      _content.anilistMedia?.characters == null &&
-      _content.anilistMedia?.staff == null;
+      _content.value.sinopse.isEmpty &&
+      _content.value.anilistMedia == null &&
+      (_content.value.anilistMedia?.genres == null || _content.value.genres.isEmpty) &&
+      _content.value.anilistMedia?.characters == null &&
+      _content.value.anilistMedia?.staff == null;
 
   Future<void> _onRefresh() async {
     if (!mounted) return;
     setStateIfMounted(() {
-      _index = 0;
-      _isLoading = true;
+      _index.value = 0;
+      if (!_informationArgs.value.isLibrary) _isLoading.value = true;
     });
 
     await _repository
-        .getData(_informationArgs.content)
+        .getData(_informationArgs.value.content)
         .timeout(const Duration(seconds: 30), onTimeout: _handleTimeout)
         .then(_handleResult);
   }
@@ -227,27 +260,20 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   @override
   Widget build(BuildContext context) {
     customLog('$widget[build]');
-    _content.anilistMedia;
+
     return Theme(
-      data: Theme.of(context).copyWith(
-        colorScheme: _content.anilistMedia?.coverImage?.color != null
-            ? ColorScheme.fromSeed(
-                seedColor: _content.anilistMedia!.coverImage!.color!.toColor(),
-                brightness: Theme.of(context).brightness,
-              )
-            : null,
-      ),
+      data: Theme.of(context).copyWith(colorScheme: _colorScheme),
       child: ContentScope(
         onLongPressed: _handleLongPressed,
         setListIndex: _handleSetListIndex,
         downloadRelease: _downloadRelease,
-        index: _index,
+        index: _index.value,
         noContent: noContent,
-        informationArgs: _informationArgs,
-        isLoading: _isLoading,
+        informationArgs: _informationArgs.value,
+        isLoading: _isLoading.value,
         releases: _releases,
-        content: _content,
-        releasesIsLoading: _releasesIsLoading,
+        content: _content.value,
+        releasesIsLoading: _releasesIsLoading.value,
         child: Scaffold(
           // extendBodyBehindAppBar: true,
           // extendBody: true,
@@ -270,14 +296,9 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
   }
 
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   void deactivate() {
-    if (_libraryController.repo.containsFav(content: _content)) {
-      ContentUtils.saveOrUpdate(context, _content);
+    if (_libraryController.repo.containsFav(content: _content.value)) {
+      ContentUtils.saveOrUpdate(context, _content.value);
     }
 
     super.deactivate();
@@ -308,11 +329,9 @@ class _ContentInfoBottomButtonsState extends State<_ContentInfoBottomButtons> {
   }
 
   @override
-  void deactivate() {
-    _valueNotifierList
-      ..removeListener(_listener)
-      ..clear();
-    super.deactivate();
+  void dispose() {
+    _valueNotifierList.removeListener(_listener);
+    super.dispose();
   }
 
   @override

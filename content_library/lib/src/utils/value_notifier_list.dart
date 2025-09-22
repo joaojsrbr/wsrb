@@ -50,6 +50,12 @@ class ValueNotifierList extends ChangeNotifier with ListBase<String> {
   }
 
   @override
+  void removeListener(VoidCallback listener) {
+    _array.clear();
+    super.removeListener(listener);
+  }
+
+  @override
   bool contains(Object? element) {
     return switch (element) {
       Release data => _array.contains(data.stringID),

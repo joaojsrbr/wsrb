@@ -9,7 +9,6 @@ import 'package:app_wsrb_jsr/app/ui/shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
@@ -337,8 +336,8 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                                                       data.number,
                                                 );
 
-                                            await context.push(
-                                              RouteName.PLAYER.route,
+                                            await context.pushEnum(
+                                              RouteName.PLAYER,
                                               extra: PlayerArgs(
                                                 forceEnterFullScreen: true,
                                                 startPossition:
@@ -350,7 +349,7 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
                                                 episode: episode.toEpisode(
                                                   animeEntity.isDublado,
                                                 ),
-                                                anime: animeEntity.toAnime(),
+                                                anime: animeEntity.toContent(),
                                                 data: [
                                                   FileVideoData(
                                                     file: File(data.file.path),
@@ -406,11 +405,9 @@ class DownloadoBottomButtonsState extends State<_DownloadBottomButtons> {
   }
 
   @override
-  void deactivate() {
-    _valueNotifierList
-      ..removeListener(_listener)
-      ..clear();
-    super.deactivate();
+  void dispose() {
+    _valueNotifierList.removeListener(_listener);
+    super.dispose();
   }
 
   @override
