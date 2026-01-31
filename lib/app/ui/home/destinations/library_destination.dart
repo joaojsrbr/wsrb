@@ -1,13 +1,16 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'dart:async';
+import 'dart:collection';
 
-import '../widgets/home_scope.dart';
-import '../../shared/widgets/item_content.dart';
-import '../../../utils/subordinate_library_tab_controller.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../../../utils/multi_comparator.dart';
+import '../../../utils/subordinate_library_tab_controller.dart';
+import '../../shared/widgets/item_content.dart';
+import '../widgets/home_scope.dart';
 
 class LibraryDestination extends StatefulWidget {
   const LibraryDestination({super.key});
@@ -23,11 +26,14 @@ class LibraryeDestinationState extends State<LibraryDestination>
 
   final Debouncer _debouncer = Debouncer(duration: const Duration(milliseconds: 200));
 
-  List<List<Content>> _contents = [];
   int? _initialIndex;
 
   late final LibraryController _libraryController;
   late final CategoryController _categoryController;
+
+  List<CategoryEntity> _categories = [];
+
+  final Map<CategoryEntity, SplayTreeSet<Content>> _contents = {};
 
   @override
   void initState() {
@@ -47,17 +53,29 @@ class LibraryeDestinationState extends State<LibraryDestination>
   }
 
   void _setChildren() {
-    final yesCategories = _libraryController.repo.entities
-        .categoryByID(context)
-        .map((e) => e.getContent.toList())
-        .toList();
+    _categories = List.from(_categoryController.categories)
+      ..insert(0, CategoryEntity(title: "Padrão"));
 
-    final noCategories =
-        _libraryController.repo
-            .byCategories(_categoryController, true)
-            .getContent
-            .toList()
-          ..removeWhere(yesCategories.flattened.contains);
+    final list = List.from(_libraryController.repo.favorites.getContent);
+    _contents.clear();
+    for (final category in _categories) {
+      if (category.title.contains("Padrão")) {
+        final splay = SplayTreeSet.from(
+          list,
+          multiComparator<Content>({(a, b) => a.title.compareTo(b.title)}),
+        );
+        _contents[category] = splay;
+        continue;
+      }
+
+      final splay = SplayTreeSet.from(
+        list.where((content) => category.ids.contains(content.stringID)),
+        multiComparator<Content>({(a, b) => a.title.compareTo(b.title)}),
+      );
+      _contents[category] = splay;
+
+      _contents.values.first.removeAll(splay);
+    }
 
     // final List<Widget> newChildrens = [
     //   buildGridView(noCategories),
@@ -66,9 +84,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
 
     // customLog(noCategories.length);
 
-    setStateIfMounted(() {
-      _contents = [noCategories, ...yesCategories];
-    });
+    setStateIfMounted(() {});
   }
 
   @override
@@ -102,13 +118,24 @@ class LibraryeDestinationState extends State<LibraryDestination>
       return;
     }
 
-    final index = _contents.indexWhere(
+    final indexText = _contents.values.toList().indexWhere(
       (list) => list.any((content) => content.title.toLowerCase().contains(text)),
     );
 
-    if (index != -1 && index != subordinateLibraryTabController.index) {
-      _initialIndex = subordinateLibraryTabController.index;
-      _debouncer.call(() => subordinateLibraryTabController.animateTo(index));
+    final indexCategory = _categories.indexWhere(
+      (category) => category.title.toLowerCase().contains(text),
+    );
+
+    if (indexText != -1 && indexText != subordinateLibraryTabController.index) {
+      _initialIndex ??= subordinateLibraryTabController.index;
+      _debouncer.call(() => subordinateLibraryTabController.animateTo(indexText));
+      return;
+    }
+
+    if (indexCategory != -1 && indexCategory != subordinateLibraryTabController.index) {
+      _initialIndex ??= subordinateLibraryTabController.index;
+      _debouncer.call(() => subordinateLibraryTabController.animateTo(indexCategory));
+      return;
     }
   }
 
@@ -125,7 +152,7 @@ class LibraryeDestinationState extends State<LibraryDestination>
   Widget build(BuildContext context) {
     super.build(context);
 
-    // _setChildren();
+    _setChildren();
     customLog('$widget[build]');
     final SubordinateLibraryTabController subordinateLibraryTabController = HomeScope.of(
       context,
@@ -217,7 +244,8 @@ class LibraryeDestinationState extends State<LibraryDestination>
           // );
           return TabBarView(
             controller: subordinateLibraryTabController,
-            children: _contents.map((items) {
+            children: _contents.entries.map<Widget>((entry) {
+              final items = entry.value;
               if (items.isEmpty) return const SizedBox.shrink();
               final filter = value.text.isNotEmpty
                   ? items.where(
@@ -229,8 +257,8 @@ class LibraryeDestinationState extends State<LibraryDestination>
               if (filter.isEmpty) return const SizedBox.shrink();
               return GridView.builder(
                 itemCount: filter.length,
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
                 ),
                 gridDelegate: _gridDelegate,
                 shrinkWrap: true,
@@ -240,6 +268,31 @@ class LibraryeDestinationState extends State<LibraryDestination>
                 },
               );
             }).toList(),
+
+            // children: _contents.map((items) {
+            //   if (items.isEmpty) return const SizedBox.shrink();
+            //   final filter = value.text.isNotEmpty
+            //       ? items.where(
+            //           (content) => content.title.toLowerCase().trim().contains(
+            //             value.text.toLowerCase().trim(),
+            //           ),
+            //         )
+            //       : items;
+            //   if (filter.isEmpty) return const SizedBox.shrink();
+            //   return GridView.builder(
+            //     itemCount: filter.length,
+            //     physics: const AlwaysScrollableScrollPhysics(
+            //       parent: BouncingScrollPhysics(),
+            //     ),
+
+            //     gridDelegate: _gridDelegate,
+            //     shrinkWrap: true,
+            //     padding: const EdgeInsets.only(bottom: 40, left: 8, right: 8, top: 12),
+            //     itemBuilder: (context, index) {
+            //       return ContentTile.library(content: filter.elementAt(index));
+            //     },
+            //   );
+            // }).toList(),
           );
         },
       ),

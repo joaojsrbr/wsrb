@@ -1,6 +1,4 @@
 import 'package:content_library/content_library.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 extension CustomIterable<E, Id> on Iterable<E> {
   Iterable<E> unique([Id Function(E element)? id, bool inplace = true]) {
@@ -13,11 +11,19 @@ extension CustomIterable<E, Id> on Iterable<E> {
   List<E> getMax(int max) {
     return max > length ? toList().sublist(0, length) : toList().sublist(0, max);
   }
+
+  UnmodifiableListView<E> get unmodifiable {
+    return UnmodifiableListView<E>(this);
+  }
 }
 
 extension CustomListExtensions<E, Id> on List<E> {
   bool get isNull {
     return contains(null);
+  }
+
+  UnmodifiableListView<E> get unmodifiable {
+    return UnmodifiableListView<E>(this);
   }
 
   List<E> reverse(bool reverse) {
@@ -77,26 +83,6 @@ extension CustomListExtensions<E, Id> on List<E> {
 extension EntityListExtensions on Iterable<Entity> {
   Iterable<Content> get getContent =>
       whereType<ContentEntity>().map((entity) => entity.toContent()).nonNulls;
-
-  Iterable<Entity> get getCotentEntity => map(
-    (entity) => switch (entity) {
-      AnimeEntity data => data,
-      BookEntity data => data,
-      _ => null,
-    },
-  ).nonNulls;
-
-  Iterable<Iterable<Entity>> categoryByID(BuildContext context) {
-    return context.read<CategoryController>().categories.map(
-      (category) => where(
-        (entity) => switch (entity) {
-          AnimeEntity data when data.isFavorite => category.ids.contains(data.stringID),
-          BookEntity data when data.isFavorite => category.ids.contains(data.stringID),
-          _ => false,
-        },
-      ),
-    );
-  }
 }
 
 // typedef MapIndexWhere<E>

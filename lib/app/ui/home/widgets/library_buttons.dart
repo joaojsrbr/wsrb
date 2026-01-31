@@ -1,11 +1,12 @@
 import 'dart:async';
 
-import '../../shared/widgets/fade_through_transition_switcher.dart';
-import '../../../utils/category_helper.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
+
+import '../../../utils/category_helper.dart';
+import '../../shared/widgets/fade_through_transition_switcher.dart';
 
 class LibraryButtons extends StatefulWidget {
   const LibraryButtons({

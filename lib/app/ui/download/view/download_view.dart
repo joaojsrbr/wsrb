@@ -2,16 +2,17 @@
 import 'dart:async';
 import 'dart:io';
 
-import '../../../routes/routes.dart';
-import '../../player/arguments/player_args.dart';
-import '../../shared/mixins/subscriptions.dart';
-import '../../shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+
+import '../../../routes/routes.dart';
+import '../../player/arguments/player_args.dart';
+import '../../shared/mixins/subscriptions.dart';
+import '../../shared/widgets/global_overlay.dart';
 
 class _FileData with EquatableMixin implements Comparable<_FileData> {
   final FileSystemEntity file;
@@ -105,8 +106,10 @@ class _DownloadViewState extends State<DownloadView> with SubscriptionsMixin {
           },
         ),
         height: 52,
-        showCountdown: true,
-        duration: const Duration(seconds: 20),
+        persistent: true,
+        showCountdown: false,
+        // showCountdown: true,
+        // duration: const Duration(seconds: 20),
       );
     } else {
       _valueNotifierList.toggle(id);

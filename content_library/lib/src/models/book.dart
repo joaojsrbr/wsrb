@@ -31,6 +31,8 @@ class Book extends Content with BookMappable {
     super.genres,
     this.alternativeTitle,
     super.sinopse,
+    super.repoStatus,
+    super.isMovie = false,
     this.extraLarge,
     this.nsfw = false,
     this.bookId,

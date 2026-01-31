@@ -3,21 +3,18 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:content_library/content_library.dart';
-import 'package:content_library/src/models/slime_read_response.dart';
 import 'package:flutter/material.dart' as ui;
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' hide HtmlParser;
+import 'package:intl/intl.dart';
 
 import '../utils/scraping.util.dart';
 import 'source/source.dart';
 
 part 'source/anroll_source.dart';
 part 'source/better_anime_source.dart';
-part 'source/demon_sect_source.dart';
 part 'source/goyabu_source.dart';
-part 'source/neox_source.dart';
-part 'source/remangas_source.dart';
-part 'source/slime_read_source.dart';
+part 'source/top_animes_source.dart';
 
 abstract class ContentRepository extends LoadingMoreBase<Content> {
   int index = 0;
@@ -34,33 +31,29 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   final Subscriptions _subscriptions = Subscriptions();
   final ui.GlobalKey anchor = ui.GlobalKey();
 
-  final AppConfigController? _appConfigController;
+  final AppConfigService? _appConfigService;
   final Source? initialSource;
   final AnimeSkipRepository _animeSkipRepository;
 
-  AppConfigEntity get config =>
-      _appConfigController?.repo.config ?? AppConfigEntity.init();
+  AppConfigEntity get config => _appConfigService?.repo.config ?? AppConfigEntity.init();
 
   ContentRepository._internal(
-    this._appConfigController,
+    this._appConfigService,
     this._dio,
     this._animeSkipRepository,
     this.initialSource,
   ) {
     _sources = {
-      NeoxSource(this),
       GoyabuSource(this),
-      SlimeReadSource(this),
       AnrollSource(this),
-      DemonSect(this),
-      RemangasSource(this),
       BetterAnimeSource(this),
+      TopAnimesSource(this),
     };
 
-    _maybeAddBetterAnimeInterceptor(_appConfigController);
+    _maybeAddBetterAnimeInterceptor(_appConfigService);
 
-    if (_appConfigController != null) {
-      _subscriptions.add(_appConfigController.updateRepository.listen(_listen));
+    if (_appConfigService != null) {
+      _subscriptions.add(_appConfigService.updateRepository.listen(_listen));
     }
 
     session = ScrapingSession(
@@ -70,12 +63,12 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
     );
   }
 
-  void _listen(AppConfigController appConfigController) {
+  void _listen(AppConfigService appConfigController) {
     ui.WidgetsBinding.instance.addPostFrameCallback((_) => refresh(true));
     _maybeAddBetterAnimeInterceptor(appConfigController);
   }
 
-  void _maybeAddBetterAnimeInterceptor(AppConfigController? controller) {
+  void _maybeAddBetterAnimeInterceptor(AppConfigService? controller) {
     if (controller?.config.source == Source.BETTER_ANIME) {
       _dio.addInterceptor(_BetterAnimeInterceptor());
     } else {
@@ -86,7 +79,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   bool get addMore => isSuccess && _hasMore;
 
   factory ContentRepository(
-    AppConfigController appConfig,
+    AppConfigService appConfig,
     DioClient dio,
     AnimeSkipRepository animeSkipRepository,
   ) => _ContentRepositoryImp(appConfig, dio, animeSkipRepository, null);
@@ -100,7 +93,7 @@ abstract class ContentRepository extends LoadingMoreBase<Content> {
   RSource source(Source source) => _sources.firstWhere((s) => source == s.source);
 
   RSource get currentSource =>
-      source(_appConfigController?.repo.config.source ?? initialSource ?? Source.ANROLL);
+      source(_appConfigService?.repo.config.source ?? initialSource ?? Source.ANROLL);
 
   Future<Result<Content>> getData(Content content);
 
@@ -222,7 +215,7 @@ class _ContentRepositoryImp extends ContentRepository {
 
       if (anilistMedia != null) {
         anime = anime.copyWith(
-          sinopse: anime.sinopse.isNotEmpty ? anilistMedia.description : null,
+          // sinopse: anime.sinopse.isNotEmpty ? anilistMedia.description : null,
           anilistMedia: AniListMedia.fromJson(AnilistMedia.toJson(anilistMedia)),
           largeImage: anilistMedia.coverImage?.large,
           mediumImage: anilistMedia.coverImage?.medium,

@@ -192,21 +192,15 @@ const _AppConfigEntityorderByValueEnumMap = {
 };
 const _AppConfigEntitysourceEnumValueMap = {
   'ANROLL': 0,
-  'NEOX_SCANS': 1,
-  'DEMON_SECT': 2,
-  'GOYABU': 3,
-  'BETTER_ANIME': 4,
-  'REMANGAS': 5,
-  'SLIMEREAD': 6,
+  'GOYABU': 1,
+  'TOP_ANIMES': 2,
+  'BETTER_ANIME': 3,
 };
 const _AppConfigEntitysourceValueEnumMap = {
   0: Source.ANROLL,
-  1: Source.NEOX_SCANS,
-  2: Source.DEMON_SECT,
-  3: Source.GOYABU,
-  4: Source.BETTER_ANIME,
-  5: Source.REMANGAS,
-  6: Source.SLIMEREAD,
+  1: Source.GOYABU,
+  2: Source.TOP_ANIMES,
+  3: Source.BETTER_ANIME,
 };
 
 Id _appConfigEntityGetId(AppConfigEntity object) {
@@ -875,21 +869,15 @@ P _filterWatchingDeserializeProp<P>(
 
 const _FilterWatchingfilterSourcesEnumValueMap = {
   'ANROLL': 0,
-  'NEOX_SCANS': 1,
-  'DEMON_SECT': 2,
-  'GOYABU': 3,
-  'BETTER_ANIME': 4,
-  'REMANGAS': 5,
-  'SLIMEREAD': 6,
+  'GOYABU': 1,
+  'TOP_ANIMES': 2,
+  'BETTER_ANIME': 3,
 };
 const _FilterWatchingfilterSourcesValueEnumMap = {
   0: Source.ANROLL,
-  1: Source.NEOX_SCANS,
-  2: Source.DEMON_SECT,
-  3: Source.GOYABU,
-  4: Source.BETTER_ANIME,
-  5: Source.REMANGAS,
-  6: Source.SLIMEREAD,
+  1: Source.GOYABU,
+  2: Source.TOP_ANIMES,
+  3: Source.BETTER_ANIME,
 };
 
 extension FilterWatchingQueryFilter

@@ -1,15 +1,17 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:content_library/content_library.dart';
+import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:provider/provider.dart';
+
 import '../../../routes/routes.dart';
+import '../../../utils/content_utils.dart';
+import '../../../utils/release_utils.dart';
 import '../../content_information/arguments/content_information_args.dart';
 import '../../home/widgets/home_scope.dart';
 import '../../player/arguments/player_args.dart';
 import 'custom_network_image_cache.dart';
 import 'global_overlay.dart';
-import '../../../utils/content_utils.dart';
-import 'package:content_library/content_library.dart';
-import 'package:flutter/material.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:provider/provider.dart';
 
 class ContentTile extends StatelessWidget {
   final bool isFromLibrary;
@@ -78,6 +80,7 @@ class ContentTile extends StatelessWidget {
 
     final isSelected = valueNotifierList.contains(content.stringID);
     final headers = {...App.HEADERS, 'Referer': '${appConfig.config.source.baseURL}/'};
+    final release = content.releases.lastOrNull;
 
     if (isListTile) {
       return InkWell(
@@ -93,23 +96,35 @@ class ContentTile extends StatelessWidget {
             valueNotifierList.toggle(content.stringID);
             return;
           }
-          if (content is Anime &&
-              content.releases.length == 1 &&
-              !isFromLibrary &&
-              !isFromSearch) {
-            await context.pushEnum(
-              RouteName.PLAYER,
-              extra: PlayerArgs(anime: content, episode: content.releases.first),
-            );
-          } else {
-            final result = await context.pushEnum(
-              RouteName.CONTENTINFO,
-              extra: ContentInformationArgs(content: content, isLibrary: isFromLibrary),
-            );
-            if (result != null && context.mounted) {
-              context.showErrorNotification(result.toString());
-            }
+          // final path = GoRouter.of(context).state.path;
+
+          if (release != null) {
+            ReleaseUtils.onTap(context, release, content);
           }
+
+          // if (content is Anime &&
+          //     content.releases.length == 1 &&
+          //     !isFromLibrary &&
+          //     !isFromSearch) {
+          //   await context.pushEnum(
+          //     RouteName.PLAYER,
+          //     extra: PlayerArgs(
+          //       anime: content.copyWith(),
+          //       episode: content.releases.first,
+          //     ),
+          //   );
+          // } else {
+          //   final result = await context.pushEnum(
+          //     RouteName.CONTENTINFO,
+          //     extra: ContentInformationArgs(
+          //       content: content.copyWith(),
+          //       isLibrary: isFromLibrary,
+          //     ),
+          //   );
+          //   if (result != null && context.mounted) {
+          //     context.showErrorNotification(result.toString());
+          //   }
+          // }
         },
         splashFactory: InkRipple.splashFactory,
         overlayColor: WidgetStatePropertyAll(theme.colorScheme.primary.withAlpha(36)),
@@ -123,9 +138,9 @@ class ContentTile extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: textTheme.titleMedium,
           ),
-          subtitle: content is Anime
+          subtitle: content is Anime && release is Episode
               ? Text(
-                  '${content.releases.last.getEpisodeTitle()} - ${content.releases.last.isDublado ? "DUB" : "LEG"}',
+                  '${release.getEpisodeTitle()} - ${release.isDublado ? "DUB" : "LEG"}',
                 )
               : null,
           leading: Container(
@@ -134,7 +149,7 @@ class ContentTile extends StatelessWidget {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final cacheSize = context.calculateImageCacheSize(
-                  displayHeight: 200,
+                  displayHeight: 150,
                   optimizeMemory: true,
                 );
 
@@ -174,6 +189,25 @@ class ContentTile extends StatelessWidget {
 
     final entity = libraryController.repo.getContentEntityByStringID(content.stringID);
     final newReleases = entity?.newReleases ?? [];
+    // final color = content.anilistMedia?.coverImage?.color?.toColor();
+    // NeonCard(
+    //       intensity: isSelected ? 1 : 0.5,
+    //       borderRadius: BorderRadius.circular(8),
+    //       enable: true,
+    //       firstColor: valueNotifierList.isNotEmpty && !isSelected
+    //           ? Colors.transparent
+    //           : isSelected
+    //           ? Colors.white
+    //           : color ?? const Color(0xFFFF00AA),
+    //       secondColor: valueNotifierList.isNotEmpty && !isSelected
+    //           ? Colors.transparent
+    //           : isSelected
+    //           ? Colors.white
+    //           : const Color(0xFF00FFF1),
+    //       glowSpread: 0,
+    //       blurSigma: 50,
+    //       child:
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 350),
       height: height,
@@ -201,6 +235,7 @@ class ContentTile extends StatelessWidget {
                   imageUrl: content.imageUrl,
                   fit: BoxFit.cover,
                   borderRadius: _radius,
+
                   alignment: Alignment.center,
                   memCacheHeight: cacheSize.height.round(),
                   memCacheWidth: cacheSize.width.round(),
@@ -297,10 +332,17 @@ class ContentTile extends StatelessWidget {
                       !isFromSearch) {
                     await context.pushEnum(
                       RouteName.PLAYER,
-                      extra: PlayerArgs(anime: content, episode: content.releases.first),
+                      extra: PlayerArgs(
+                        anime: content.copyWith(),
+                        episode: content.releases.last,
+                      ),
                     );
                   } else {
-                    ContentUtils.pushToContentInfo(context, content, isFromLibrary);
+                    ContentUtils.pushToContentInfo(
+                      context,
+                      content.copyWith(),
+                      isFromLibrary,
+                    );
                   }
                 },
                 onLongPress: isFromSearch

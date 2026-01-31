@@ -1,11 +1,12 @@
 // import 'package:android_intent_plus/android_intent.dart';
-import '../routes/routes.dart';
-import '../ui/content_information/arguments/content_information_args.dart';
-import '../ui/shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
+import '../routes/routes.dart';
+import '../ui/content_information/arguments/content_information_args.dart';
+import '../ui/shared/widgets/global_overlay.dart';
 
 class ContentUtils {
   const ContentUtils._();
@@ -135,18 +136,25 @@ class ContentUtils {
     );
   }
 
-  static Future<void> saveOrUpdate(BuildContext context, Content content) async {
+  static Future<void> saveOrUpdate(
+    BuildContext context,
+    Content content, [
+    bool isFavorite = false,
+  ]) async {
     final libraryController = context.read<LibraryController>();
     final historicController = context.read<HistoricController>();
+    final fav = libraryController.repo.containsFav(content: content) || isFavorite;
 
     // Obtém ou cria a ContentEntity
-    ContentEntity? contentEntity = libraryController.repo
+    ContentEntity contentEntity = libraryController.repo
         .getContentEntityByStringIDAll(
           content.stringID,
           orElse: () => content.toEntity(createdAt: DateTime.now()),
         )
         .copyWith
-        .$merge(content.toEntity(isFavorite: true));
+        .$merge(content.toEntity(isFavorite: fav));
+
+    contentEntity = contentEntity.copyWith(isFavorite: fav);
 
     final List<HistoricEntity> historyEntities = [];
 
@@ -222,6 +230,8 @@ class ContentUtils {
   ) async {
     final go = GoRouter.of(context);
     final path = go.state.path;
+    final libraryController = context.read<LibraryController>();
+    final repo = libraryController.repo;
     dynamic result;
     final extra = ContentInformationArgs(content: content, isLibrary: isLibrary);
     if (path != null && path.contains(RouteName.CONTENTINFO.subRouter)) {
@@ -239,7 +249,13 @@ class ContentUtils {
       // );
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _error(result);
+      if (result is! Content) {
+        _error(result);
+      } else {
+        saveOrUpdate(context, result);
+        // if (repo.containsFav(content: result) || repo.containsNoFav(content: result)) {
+        // }
+      }
     });
   }
 

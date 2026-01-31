@@ -1,6 +1,7 @@
-import '../view/player_view.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
+
+import '../view/player_view.dart';
 
 mixin PlayerLifecyclesStates on State<PlayerView>, WidgetsBindingObserver {
   @override
@@ -42,7 +43,7 @@ mixin PlayerLifecyclesStates on State<PlayerView>, WidgetsBindingObserver {
 
   @override
   void dispose() {
-    super.dispose();
     WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 }

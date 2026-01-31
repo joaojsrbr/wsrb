@@ -27,18 +27,12 @@ class SourceMapper extends EnumMapper<Source> {
     switch (value) {
       case 'ANROLL':
         return Source.ANROLL;
-      case 'NEOX_SCANS':
-        return Source.NEOX_SCANS;
-      case 'DEMON_SECT':
-        return Source.DEMON_SECT;
       case 'GOYABU':
         return Source.GOYABU;
+      case 'TOP_ANIMES':
+        return Source.TOP_ANIMES;
       case 'BETTER_ANIME':
         return Source.BETTER_ANIME;
-      case 'REMANGAS':
-        return Source.REMANGAS;
-      case 'SLIMEREAD':
-        return Source.SLIMEREAD;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -49,18 +43,12 @@ class SourceMapper extends EnumMapper<Source> {
     switch (self) {
       case Source.ANROLL:
         return 'ANROLL';
-      case Source.NEOX_SCANS:
-        return 'NEOX_SCANS';
-      case Source.DEMON_SECT:
-        return 'DEMON_SECT';
       case Source.GOYABU:
         return 'GOYABU';
+      case Source.TOP_ANIMES:
+        return 'TOP_ANIMES';
       case Source.BETTER_ANIME:
         return 'BETTER_ANIME';
-      case Source.REMANGAS:
-        return 'REMANGAS';
-      case Source.SLIMEREAD:
-        return 'SLIMEREAD';
     }
   }
 }

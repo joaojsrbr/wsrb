@@ -1,9 +1,10 @@
 import 'dart:async';
 
-import 'fade_through_transition_switcher.dart';
-import '../../../utils/anchor.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
+
+import '../../../utils/anchor.dart';
+import 'fade_through_transition_switcher.dart';
 
 /// A custom dropdown menu button with fade-through transition between two visual states.
 class DropdownMenuButton<T> extends StatelessWidget {
@@ -28,6 +29,8 @@ class DropdownMenuButton<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
     return FadeThroughTransitionSwitcher(
       duration: const Duration(milliseconds: 350),
       enableSecondChild: enableSecondChild,
@@ -38,8 +41,10 @@ class DropdownMenuButton<T> extends StatelessWidget {
           child: FilledButton(
             style: FilledButton.styleFrom(
               disabledIconColor: Colors.white,
-              disabledBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              disabledBackgroundColor: theme.colorScheme.primaryContainer,
+              backgroundColor: brightness == Brightness.dark
+                  ? theme.colorScheme.primaryContainer
+                  : null,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: _isDisabled ? null : () => _showDropdownMenu(context),

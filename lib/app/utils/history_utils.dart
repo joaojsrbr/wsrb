@@ -1,7 +1,8 @@
-import '../ui/home/widgets/filtro_bottom_sheet.dart';
-import '../ui/shared/widgets/global_overlay.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
+
+import '../ui/home/widgets/filtro_bottom_sheet.dart';
+import '../ui/shared/widgets/global_overlay.dart';
 
 class HistoryUtils {
   HistoryUtils._();
@@ -19,7 +20,7 @@ class HistoryUtils {
 
     final result = await showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Necessário para ajustar à altura do conteúdo/teclado
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(),
       builder: (context) => const FiltroBottomSheet(),
     );

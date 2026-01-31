@@ -1,19 +1,19 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, constant_identifier_names
 import 'dart:async';
 
-import '../arguments/content_information_args.dart';
-import '../widgets/content_page.dart';
-import '../widgets/scope.dart';
-import '../../shared/widgets/global_overlay.dart';
-import '../../../utils/content_utils.dart';
-import '../../../utils/download_release_helper.dart';
-import '../../../utils/history_utils.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+
+import '../../../utils/download_release_helper.dart';
+import '../../../utils/history_utils.dart';
+import '../../shared/widgets/global_overlay.dart';
+import '../arguments/content_information_args.dart';
+import '../widgets/content_page.dart';
+import '../widgets/scope.dart';
 
 class RefContentInformationView extends StatefulWidget {
   const RefContentInformationView({super.key});
@@ -22,47 +22,23 @@ class RefContentInformationView extends StatefulWidget {
   State<RefContentInformationView> createState() => _RefContentkInformationViewState();
 }
 
-class _RefContentkInformationViewState extends State<RefContentInformationView>
-    with RestorationMixin {
-  late Completer _initialRefresh;
-  ColorScheme? _colorScheme;
-
+class _RefContentkInformationViewState extends State<RefContentInformationView> {
+  late Completer<dynamic> _initialRefresh;
+  late ContentInformationArgs _informationArgs;
+  final Map<int, Releases> _releases = {};
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
   late final ContentRepository _repository;
   late final LibraryController _libraryController;
 
-  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
-      GlobalKey<RefreshIndicatorState>();
-
-  final Map<int, Releases> _releases = {};
-
-  final RestorableContentInformationArgs _informationArgs =
-      RestorableContentInformationArgs();
-  final RestorableContent _content = RestorableContent(Anime.empty());
-  final RestorableBool _isLoading = RestorableBool(true);
-  final RestorableBool _releasesIsLoading = RestorableBool(false);
-  final RestorableInt _index = RestorableInt(0);
-
-  @override
-  void dispose() {
-    _content.dispose();
-    _isLoading.dispose();
-    _releasesIsLoading.dispose();
-    _index.dispose();
-    _informationArgs.dispose();
-    super.dispose();
-  }
-
-  @override
-  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
-    registerForRestoration(_content, "content");
-    registerForRestoration(_isLoading, "isLoading");
-    registerForRestoration(_releasesIsLoading, "releasesIsLoading");
-    registerForRestoration(_index, "index");
-    registerForRestoration(_informationArgs, "informationArgs");
-  }
-
-  @override
-  String? get restorationId => 'ref_content_information_view';
+  Debouncer? _updateReleasesByEntity;
+  ColorScheme? _colorScheme;
+  Key _forceUpdate = UniqueKey();
+  Content _content = Anime.empty();
+  bool _isLoading = true;
+  bool _firstLoading = true;
+  bool _releasesIsLoading = false;
+  int _index = 0;
 
   @override
   void initState() {
@@ -80,17 +56,78 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     // await Future.delayed(const Duration(milliseconds: 850), _loadContentData);
   }
 
-  Future<void> _loadContentData() async {
-    if (_informationArgs.value.isLibrary) {
-      setState(() {
-        _isLoading.value = false;
-        _releasesIsLoading.value = false;
+  void _setReleases(Content data) {
+    if (data.releases.length > 25) {
+      data.releases.partition(25).forEachIndexed((index, releases) {
+        _releases[index] = releases;
       });
-      final data = _informationArgs.value.content;
-      _releases[_index.value] = data.releases;
+    } else {
+      _releases[_index] = data.releases;
+    }
+  }
+
+  Future<void> _loadContentData() async {
+    final entity = _libraryController.repo.getContentEntityByStringID(
+      _informationArgs.content.stringID,
+    );
+
+    if (_informationArgs.isLibrary || entity != null) {
+      final data = (!_informationArgs.isLibrary
+          ? entity?.toContent() ?? _informationArgs.content
+          : _informationArgs.content);
+
+      // data.releases.clear();
+      // data.releases.removeLast();
+
+      setState(() {
+        _setReleases(data);
+        // _content = data
+        //   ..releases.clear()
+        //   ..releases.addAll(_releases[_index] ?? []);
+        _content = data.copyWith(releases: _releases[_index]);
+        _colorScheme = _getColorScheme();
+        _isLoading = data.releases.length == 1;
+        _releasesIsLoading = false;
+      });
+      if (_content.isMovie) return;
+      _updateReleasesByEntity = Debouncer(
+        duration: !_informationArgs.isLibrary
+            ? Duration.zero
+            : const Duration(seconds: 5),
+      );
+      _updateReleasesByEntity?.call(() async {
+        if (!mounted) return;
+        // await _getReleases(_content);
+        final result = await _repository.getReleases(data, -1);
+        if (!mounted) return;
+        _forceUpdate = UniqueKey();
+        result.fold(onSuccess: _onSuccess);
+      });
       return;
     }
+
+    // if (entity != null) {
+    //   final toContent = entity.toContent();
+    //   toContent.releases.removeLast();
+    //   _handleResult(Success(toContent));
+    //   Future.delayed(const Duration(seconds: 2), () async {
+    //     if (!mounted) return;
+    //     // await _getReleases(_content);
+    //     final result = await _repository.getReleases(toContent, -1);
+    //     result.fold(onSuccess: _onSuccess);
+    //   });
+    //   return;
+    // }
     _refreshIndicatorKey.currentState?.show();
+  }
+
+  ColorScheme? _getColorScheme() {
+    return _content.anilistMedia?.coverImage?.color != null
+        ? ColorScheme.fromSeed(
+            seedColor: _content.anilistMedia!.coverImage!.color!.toColor(),
+            brightness: Theme.of(context).brightness,
+          )
+        : null;
   }
 
   void _handleResult(Result<Content> result) {
@@ -99,27 +136,29 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
   }
 
   Result<Content> _handleTimeout() {
-    if (_informationArgs.value.content.releases.length > 1) {
-      return Result.success(_informationArgs.value.content);
+    if (_informationArgs.content.releases.length > 1) {
+      return Result.success(_informationArgs.content);
     }
     return Result.failure(TimeoutException("Tempo excedido"));
   }
 
   void _handleSetListIndex(int index) async {
-    if (index == _index.value) return;
+    if (index == _index) return;
 
     setState(() {
-      _index.value = index;
+      _index = index;
     });
 
-    await _getReleases(_content.value.copyWith(releases: Releases()));
+    await _getReleases(_content);
   }
 
+  // final int _setStateIndex = 1;
   @override
   void setState(VoidCallback fn) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) super.setState(fn);
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {});
+    // setStateIfMounted(fn);
+    if (mounted) super.setState(fn);
+    // customLog(_setStateIndex++);
   }
 
   void _onSuccess(
@@ -127,22 +166,25 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     bool refresh = false,
     bool forceSaveCache = false,
   ]) async {
+    if (data.releases.length > 25) {
+      data.releases.partition(25).forEachIndexed((index, releases) {
+        _releases[index] = releases;
+      });
+    } else {
+      _releases[_index] = data.releases;
+    }
+
     setState(() {
-      _releases[_index.value] = data.releases;
-      _content.value = data.copyWith(releases: _releases[_index.value]);
-      _releasesIsLoading.value = false;
-      _isLoading.value = false;
-      _colorScheme = _content.value.anilistMedia?.coverImage?.color != null
-          ? ColorScheme.fromSeed(
-              seedColor: _content.value.anilistMedia!.coverImage!.color!.toColor(),
-              brightness: Theme.of(context).brightness,
-            )
-          : null;
+      _content = data.copyWith(releases: _releases[_index]);
+      _releasesIsLoading = false;
+      _isLoading = false;
+      if (_firstLoading) _firstLoading = false;
+      _colorScheme = _getColorScheme();
     });
 
-    if (_content.value.releases.length == data.releases.length && !refresh) {
+    if (_content.releases.length == data.releases.length && !refresh) {
       if (!_initialRefresh.isCompleted) _initialRefresh.complete();
-      _isLoading.value = false;
+      _isLoading = false;
       return;
     }
 
@@ -150,25 +192,25 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
   }
 
   Future<void> _getReleases(Content content, [bool onRefresh = false]) async {
-    final releases = _releases[_index.value];
+    final releases = _releases[_index];
 
     if (releases == null || onRefresh) {
       setState(() {
-        _releasesIsLoading.value = true;
+        _releasesIsLoading = true;
       });
-      final result = await _repository.getReleases(content, _index.value + 1);
+      final result = await _repository.getReleases(content, _index + 1);
 
       result.fold(onSuccess: _onSuccess);
     } else {
       setState(() {
-        _content.value = _content.value.copyWith(releases: _releases[_index.value]);
+        _content = _content.copyWith(releases: _releases[_index]);
       });
     }
   }
 
   Future<void> _downloadRelease(Release release) async {
     if (mounted) {
-      await DownloadReleaseHelper.download(context, release, _content.value);
+      await DownloadReleaseHelper.download(context, release, _content);
     }
   }
 
@@ -178,10 +220,12 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
     if (valueNotifierList.isEmpty) {
       valueNotifierList.toggle(release.stringID);
       context.showBottomNotification(
-        _ContentInfoBottomButtons(context, _content.value, release),
+        _ContentInfoBottomButtons(context, _content, release),
         height: 52,
-        showCountdown: true,
-        duration: const Duration(seconds: 20),
+        persistent: true,
+        showCountdown: false,
+        // showCountdown: true,
+        // duration: const Duration(seconds: 20),
       );
     } else {
       valueNotifierList.toggle(release.stringID);
@@ -214,9 +258,9 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
   void didChangeDependencies() {
     super.didChangeDependencies();
     final args = _parseArguments();
-    if (args != null && _informationArgs.enabled) {
-      _informationArgs.value = args;
-      _content.value = _informationArgs.value.content;
+    if (args != null) {
+      _informationArgs = args;
+      _content = _informationArgs.content;
     }
   }
 
@@ -238,70 +282,97 @@ class _RefContentkInformationViewState extends State<RefContentInformationView>
   }
 
   bool get noContent =>
-      _content.value.sinopse.isEmpty &&
-      _content.value.anilistMedia == null &&
-      (_content.value.anilistMedia?.genres == null || _content.value.genres.isEmpty) &&
-      _content.value.anilistMedia?.characters == null &&
-      _content.value.anilistMedia?.staff == null;
+      _content.sinopse.isEmpty &&
+      _content.anilistMedia == null &&
+      (_content.anilistMedia?.genres == null || _content.genres.isEmpty) &&
+      _content.anilistMedia?.characters == null &&
+      _content.anilistMedia?.staff == null;
 
   Future<void> _onRefresh() async {
     if (!mounted) return;
+    _updateReleasesByEntity?.cancel();
     setStateIfMounted(() {
-      _index.value = 0;
-      if (!_informationArgs.value.isLibrary) _isLoading.value = true;
+      _index = 0;
+      if (!_informationArgs.isLibrary) _isLoading = true;
     });
 
     await _repository
-        .getData(_informationArgs.value.content)
+        .getData(_informationArgs.content)
         .timeout(const Duration(seconds: 30), onTimeout: _handleTimeout)
         .then(_handleResult);
+
+    // await Future.delayed(const Duration(milliseconds: 600));
+    // _handleResult(Success(_informationArgs.content));
+  }
+
+  Future<bool> _handleWillPop() async {
+    if (!mounted) return true;
+    final navigator = Navigator.of(context);
+    if (!_isLoading && !_informationArgs.isHistoric) {
+      // _content.releases.clear();
+      for (var value in _releases.values.flattened) {
+        _content.releases.addIfNoContains(value);
+      }
+      navigator.pop(_content);
+      return false;
+    } else {
+      navigator.pop();
+      return false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _updateReleasesByEntity?.cancel();
+    super.dispose();
+  }
+
+  bool _notificationPredicate(ScrollNotification notification) {
+    return notification.depth == 0 || notification.depth == 2;
   }
 
   @override
   Widget build(BuildContext context) {
     customLog('$widget[build]');
 
-    return Theme(
-      data: Theme.of(context).copyWith(colorScheme: _colorScheme),
-      child: ContentScope(
-        onLongPressed: _handleLongPressed,
-        setListIndex: _handleSetListIndex,
-        downloadRelease: _downloadRelease,
-        index: _index.value,
-        noContent: noContent,
-        informationArgs: _informationArgs.value,
-        isLoading: _isLoading.value,
-        releases: _releases,
-        content: _content.value,
-        releasesIsLoading: _releasesIsLoading.value,
-        child: Scaffold(
-          // extendBodyBehindAppBar: true,
-          // extendBody: true,
-          // primary: false,
-          extendBodyBehindAppBar: true,
-          body: DefaultTabController(
-            length: 2,
-            child: RefreshIndicator.adaptive(
-              notificationPredicate: (notification) {
-                return notification.depth == 0 || notification.depth == 2;
-              },
-              onRefresh: _onRefresh,
-              key: _refreshIndicatorKey,
-              child: const ContentPage(),
+    // ignore: deprecated_member_use
+    return WillPopScope(
+      onWillPop: _handleWillPop,
+      child: Theme(
+        data: Theme.of(context).copyWith(colorScheme: _colorScheme),
+        child: PopScope(
+          child: ContentScope(
+            firstLoading: _firstLoading,
+            onLongPressed: _handleLongPressed,
+            handleWillPop: _handleWillPop,
+            setListIndex: _handleSetListIndex,
+            downloadRelease: _downloadRelease,
+            index: _index,
+            forceUpdate: _forceUpdate,
+            noContent: noContent,
+            informationArgs: _informationArgs,
+            isLoading: _isLoading,
+            content: _content,
+            releasesIsLoading: _releasesIsLoading,
+            child: Scaffold(
+              // extendBodyBehindAppBar: true,
+              // extendBody: true,
+              // primary: false,
+              extendBodyBehindAppBar: true,
+              body: DefaultTabController(
+                length: 2,
+                child: RefreshIndicator.adaptive(
+                  notificationPredicate: _notificationPredicate,
+                  onRefresh: _onRefresh,
+                  key: _refreshIndicatorKey,
+                  child: const ContentPage(),
+                ),
+              ),
             ),
           ),
         ),
       ),
     );
-  }
-
-  @override
-  void deactivate() {
-    if (_libraryController.repo.containsFav(content: _content.value)) {
-      ContentUtils.saveOrUpdate(context, _content.value);
-    }
-
-    super.deactivate();
   }
 }
 
@@ -325,7 +396,7 @@ class _ContentInfoBottomButtonsState extends State<_ContentInfoBottomButtons> {
   }
 
   void _listener() {
-    setState(() {});
+    setStateIfMounted(() {});
   }
 
   @override

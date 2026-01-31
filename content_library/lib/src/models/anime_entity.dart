@@ -4,7 +4,6 @@
 import 'package:content_library/src/constants/source.dart';
 import 'package:content_library/src/models/anilist_media.dart';
 import 'package:content_library/src/models/anime.dart';
-import 'package:content_library/src/models/anime_skip_entity.dart';
 import 'package:content_library/src/models/entity.dart';
 import 'package:content_library/src/models/episode_entity.dart';
 import 'package:content_library/src/utils/releases.dart';
@@ -29,7 +28,7 @@ class AnimeEntity extends ContentEntity with AnimeEntityMappable {
   final String? generateID;
   final int? totalOfEpisodes;
   final int? totalOfPages;
-  final IsarLinks<EpisodeEntity> episodes;
+  final IsarLinks<EpisodeEntity> episodes = IsarLinks<EpisodeEntity>();
 
   // @override
   // AnimeEntityCopyWith<AnimeEntity, AnimeEntity, AnimeEntity> get copyWith {
@@ -62,11 +61,12 @@ class AnimeEntity extends ContentEntity with AnimeEntityMappable {
     super.sinopse,
     this.generateID,
     super.isFavorite = false,
+    super.isMovie,
     required this.originalImage,
     this.extraLarge,
     this.largeImage,
     this.mediumImage,
-  }) : episodes = IsarLinks<EpisodeEntity>();
+  });
 
   @override
   String get imageUrl => extraLarge ?? largeImage ?? mediumImage ?? originalImage;
@@ -111,7 +111,7 @@ class AnimeEntity extends ContentEntity with AnimeEntityMappable {
       title: title,
       generateID: generateID,
 
-      totalOfEpisodes: totalOfEpisodes,
+      totalOfEpisodes: totalOfEpisodes ?? 0,
       slugSerie: slugSerie,
       source: source,
       sinopse: sinopse ?? "",

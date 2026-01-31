@@ -1,18 +1,19 @@
-import '../destinations/information_destination.dart';
-import '../destinations/release_destination.dart';
-import 'scope.dart';
-import '../../shared/widgets/custom_network_image_cache.dart';
-import '../../shared/widgets/dot_text.dart';
-import '../../shared/widgets/fade_through_transition_switcher.dart';
-import '../../shared/widgets/shimmer_container.dart';
-import '../../../utils/content_utils.dart';
-import '../../../utils/copy_to_clipboard.dart';
 import 'package:content_library/content_library.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+
+import '../../../utils/content_utils.dart';
+import '../../../utils/copy_to_clipboard.dart';
+import '../../shared/widgets/custom_network_image_cache.dart';
+import '../../shared/widgets/dot_text.dart';
+import '../../shared/widgets/fade_through_transition_switcher.dart';
+import '../../shared/widgets/shimmer_container.dart';
+import '../destinations/information_destination.dart';
+import '../destinations/release_destination.dart';
+import 'scope.dart';
 
 class ContentPage extends StatelessWidget {
   const ContentPage({super.key});
@@ -44,12 +45,13 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scope = ContentScope.of(context);
     final content = ContentScope.contentOf(context);
     final valueNotifierList = context.watch<ValueNotifierList>();
     final noContent = ContentScope.noContentOf(context);
     final isLoading = ContentScope.isLoadingOf(context);
     final isOpen = valueNotifierList.isNotEmpty;
-
+    // final theme = Theme.of(context);
     return SliverAppBar(
       forceElevated: false,
       forceMaterialTransparency: true,
@@ -58,9 +60,7 @@ class _Header extends StatelessWidget {
       floating: false,
       leading: IconButton(
         icon: Icon(isOpen ? Icons.close : Icons.arrow_back, color: Colors.white),
-        onPressed: isOpen
-            ? () => valueNotifierList.clear()
-            : () => Navigator.of(context).pop(),
+        onPressed: isOpen ? valueNotifierList.clear : scope.handleWillPop,
       ),
       actions: isLoading ? null : [const _ShareButton(), const _FavoriteButton()],
       flexibleSpace: FlexibleSpaceBar(
@@ -128,6 +128,8 @@ class _BannerContent extends StatelessWidget {
     //     clipper: ReversedBorderClipper(borderRadius: 20.0),
     //     child:
 
+    final extraLarge = content.anilistMedia?.bannerImage?.extraLarge ?? '';
+
     return SafeArea(
       child: Material(
         color: Theme.of(context).scaffoldBackgroundColor,
@@ -136,22 +138,24 @@ class _BannerContent extends StatelessWidget {
           fit: StackFit.loose,
           alignment: AlignmentDirectional.center,
           children: [
-            if (content.anilistMedia?.bannerImage?.extraLarge != null && !isLoading)
-              CustomCachedNetworkImage(
-                height: 100,
-                width: double.infinity,
-                alignment: Alignment.center,
-                memCacheHeight: size.height.round(),
-                memCacheWidth: size.width.round(),
-                fit: BoxFit.cover,
-                imageUrl: content.anilistMedia!.bannerImage!.extraLarge!,
-                httpHeaders: App.HEADERS,
-                shaderCallback: (rect) => const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.black54, Color(0x3C000000), Colors.black54],
-                  stops: [0.0, 0.4, 1.0],
-                ).createShader(rect),
+            if (extraLarge.isNotEmpty)
+              Center(
+                child: CustomCachedNetworkImage(
+                  height: 100,
+                  width: double.infinity,
+                  alignment: Alignment.center,
+                  memCacheHeight: size.height.round(),
+                  memCacheWidth: size.width.round(),
+                  fit: BoxFit.cover,
+                  imageUrl: extraLarge,
+                  httpHeaders: App.HEADERS,
+                  shaderCallback: (rect) => const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.black54, Color(0x3C000000), Colors.black54],
+                    stops: [0.0, 0.4, 1.0],
+                  ).createShader(rect),
+                ),
               ),
             Positioned.fill(
               child: Padding(
@@ -314,13 +318,34 @@ class _ContentDetails extends StatelessWidget {
       displayWidth: 180,
       optimizeMemory: true,
     );
+
+    final genres = content.anilistMedia?.genres ?? [];
+    final loadingGenres = isLoading && genres.isEmpty;
+    if (loadingGenres) {
+      genres
+        ..add("label")
+        ..add("label")
+        ..add("label");
+    }
+
+    final genresMax = genres.getMax(3);
+
+    final popularity = content.anilistMedia?.popularity ?? -1;
+    final favourites = content.anilistMedia?.favourites ?? -1;
+    final averageScore = content.anilistMedia?.averageScore ?? -1;
+
+    final loadingDetails =
+        {popularity, favourites, averageScore}.contains(-1) && isLoading;
+
+    final imageLoading = ContentScope.of(context).firstLoading && isLoading;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         ShimmerContainer(
           width: 90,
           height: 130,
-          enable: isLoading,
+          enable: imageLoading,
           borderRadius: BorderRadius.circular(8),
           child: CustomCachedNetworkImage(
             fit: BoxFit.cover,
@@ -336,30 +361,24 @@ class _ContentDetails extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (content.anilistMedia?.genres != null || isLoading)
-                ShimmerContainer(
-                  height: 16,
-                  enable: isLoading,
-                  child: Row(
-                    spacing: 8,
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(
-                      (content.anilistMedia?.genres ?? []).getMax(3).length,
-                      (index) {
-                        final txt = content.anilistMedia!.genres
-                            .getMax(3)
-                            .elementAt(index);
-                        return DotText(
-                          text: txt,
-                          dotSize: 6,
-                          spacing: 6,
-                          textStyle: const TextStyle(color: Colors.white70, fontSize: 12),
-                          dotColor: Colors.white70,
-                        );
-                      },
-                    ),
-                  ),
+              ShimmerContainer(
+                height: 16,
+                enable: loadingGenres,
+                child: Row(
+                  spacing: 8,
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(genresMax.length, (index) {
+                    final txt = genresMax.elementAt(index);
+                    return DotText(
+                      text: txt,
+                      dotSize: 6,
+                      spacing: 4,
+                      textStyle: const TextStyle(color: Colors.white70, fontSize: 12),
+                      dotColor: Colors.white70,
+                    );
+                  }),
                 ),
+              ),
               const SizedBox(height: 4),
               GestureDetector(
                 onLongPress: () {
@@ -385,27 +404,19 @@ class _ContentDetails extends StatelessWidget {
               const SizedBox(height: 4),
               ShimmerContainer(
                 height: 18,
-                enable: isLoading,
+                enable: loadingDetails,
                 width: 180,
                 child: Row(
                   spacing: 12,
                   children: [
-                    if (content.anilistMedia?.popularity != null)
-                      _IconText(
-                        ico: Icons.people,
-                        txt: content.anilistMedia!.popularity!.toString(),
-                      ),
-                    if (content.anilistMedia?.favourites != null)
-                      _IconText(
-                        ico: MdiIcons.heart,
-                        txt: content.anilistMedia!.favourites.toString(),
-                      ),
-                    if (content.anilistMedia?.averageScore != null)
+                    if (popularity != -1)
+                      _IconText(ico: Icons.people, txt: popularity.toString()),
+                    if (favourites != -1)
+                      _IconText(ico: MdiIcons.heart, txt: favourites.toString()),
+                    if (averageScore != -1)
                       _IconText(
                         ico: MdiIcons.star,
-                        txt: (content.anilistMedia!.averageScore! / 10).toStringAsFixed(
-                          1,
-                        ),
+                        txt: (averageScore / 10).toStringAsFixed(1),
                       ),
                   ],
                 ),
@@ -500,6 +511,7 @@ class _FavoriteButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final content = ContentScope.contentOf(context);
     final library = context.watch<LibraryController>();
+
     final isFav = library.repo.containsFav(content: content);
 
     return IconButton(
@@ -509,7 +521,7 @@ class _FavoriteButton extends StatelessWidget {
           library.remove(contentEntity: content.toEntity());
         } else {
           customLog('Favorite add: ${content.title}');
-          ContentUtils.saveOrUpdate(context, content);
+          ContentUtils.saveOrUpdate(context, content, true);
           Feedback.forLongPress(context);
           // ContentScope.of(context).saveData();
         }

@@ -1,14 +1,15 @@
 import 'dart:async';
 
-import 'home_scope.dart';
-import '../../shared/widgets/custom_search_anchor.dart';
-import '../../shared/widgets/fade_through_transition_switcher.dart';
-import '../../shared/widgets/item_content.dart';
-import '../../shared/widgets/shimmer_container.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
+
+import '../../shared/widgets/custom_search_anchor.dart';
+import '../../shared/widgets/fade_through_transition_switcher.dart';
+import '../../shared/widgets/item_content.dart';
+import '../../shared/widgets/shimmer_container.dart';
+import 'home_scope.dart';
 
 class SliverAppBarFlexibleSpace extends StatefulWidget {
   const SliverAppBarFlexibleSpace({super.key, required this.searchController});
@@ -76,7 +77,7 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
     final ValueNotifierList valueNotifierList = context.watch<ValueNotifierList>();
 
     return IgnorePointer(
-      ignoring: tabController.index == 2,
+      ignoring: tabController.index == 1,
       child: CustomSearchAnchor(
         onSubmitted: (value) {
           if (value.isEmpty || tabController.index != 0) {

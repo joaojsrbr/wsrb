@@ -1,10 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:animations/animations.dart';
-import 'routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
+import 'routes.dart';
 
 class OpenContainerController extends ChangeNotifier {
   bool _active = false;
@@ -72,7 +73,8 @@ class OpenContainerWidgetWrapper<T> extends StatefulWidget {
       _OpenContainerWidgetWrapperState<T>();
 
   static Future<Object?> action(BuildContext context) async {
-    final state = context.findAncestorStateOfType<_OpenContainerWidgetWrapperState>();
+    final state = context
+        .findAncestorStateOfType<_OpenContainerWidgetWrapperState<Object>>();
     final result = await state?.action();
     return result;
   }

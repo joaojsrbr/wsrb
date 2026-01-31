@@ -1,10 +1,11 @@
-import 'scope.dart';
-import '../../shared/widgets/fade_through_transition_switcher.dart';
-import '../../shared/widgets/shimmer_container.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
+
+import '../../shared/widgets/fade_through_transition_switcher.dart';
+import '../../shared/widgets/shimmer_container.dart';
+import 'scope.dart';
 
 class ReleaseControls extends StatefulWidget {
   const ReleaseControls({super.key, required this.content});

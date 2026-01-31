@@ -2,7 +2,7 @@
 
 import 'dart:async';
 
-import 'package:collection/collection.dart';
+import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -1426,6 +1426,8 @@ extension NotificationOverlayExtension on BuildContext {
     Duration? duration,
     NotificationType type = NotificationType.neutral,
   }) {
+    final size = MediaQuery.sizeOf(this);
+    final height = size.height * .12;
     final content = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1447,6 +1449,7 @@ extension NotificationOverlayExtension on BuildContext {
       backgroundColor: backgroundColor,
       duration: duration ?? const Duration(seconds: 4),
       type: type,
+      height: height,
     );
   }
 

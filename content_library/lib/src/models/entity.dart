@@ -33,6 +33,7 @@ abstract class ContentEntity
   final AniListMedia? anilistMedia;
   final Source source;
   final bool isFavorite;
+  final bool isMovie;
   final String title;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -60,6 +61,7 @@ abstract class ContentEntity
     required this.source,
     required this.isFavorite,
     this.anilistMedia,
+    this.isMovie = false,
     this.sinopse,
     this.newReleases = const [],
     this.createdAt,

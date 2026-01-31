@@ -15,6 +15,7 @@ class AnimeMapper extends SubClassMapperBase<Anime> {
       MapperContainer.globals.use(_instance = AnimeMapper._());
       ContentMapper.ensureInitialized().addSubMapper(_instance!);
       SourceMapper.ensureInitialized();
+      RepositoryStatusMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -74,6 +75,13 @@ class AnimeMapper extends SubClassMapperBase<Anime> {
   static String _$sinopse(Anime v) => v.sinopse;
   static const Field<Anime, String> _f$sinopse =
       Field('sinopse', _$sinopse, opt: true, def: "");
+  static RepositoryStatus _$repoStatus(Anime v) => v.repoStatus;
+  static const Field<Anime, RepositoryStatus> _f$repoStatus = Field(
+      'repoStatus', _$repoStatus,
+      opt: true, def: const RepositoryStatus());
+  static bool _$isMovie(Anime v) => v.isMovie;
+  static const Field<Anime, bool> _f$isMovie =
+      Field('isMovie', _$isMovie, opt: true, def: false);
   static List<Genre> _$genres(Anime v) => v.genres;
   static const Field<Anime, List<Genre>> _f$genres =
       Field('genres', _$genres, opt: true, def: const []);
@@ -98,6 +106,8 @@ class AnimeMapper extends SubClassMapperBase<Anime> {
     #generateID: _f$generateID,
     #isDublado: _f$isDublado,
     #sinopse: _f$sinopse,
+    #repoStatus: _f$repoStatus,
+    #isMovie: _f$isMovie,
     #genres: _f$genres,
   };
 
@@ -128,6 +138,8 @@ class AnimeMapper extends SubClassMapperBase<Anime> {
         generateID: data.dec(_f$generateID),
         isDublado: data.dec(_f$isDublado),
         sinopse: data.dec(_f$sinopse),
+        repoStatus: data.dec(_f$repoStatus),
+        isMovie: data.dec(_f$isMovie),
         genres: data.dec(_f$genres));
   }
 
@@ -178,6 +190,9 @@ extension AnimeValueCopy<$R, $Out> on ObjectCopyWith<$R, Anime, $Out> {
 abstract class AnimeCopyWith<$R, $In extends Anime, $Out>
     implements ContentCopyWith<$R, $In, $Out> {
   @override
+  RepositoryStatusCopyWith<$R, RepositoryStatus, RepositoryStatus>
+      get repoStatus;
+  @override
   ListCopyWith<$R, Genre, ObjectCopyWith<$R, Genre, Genre>> get genres;
   @override
   $R call(
@@ -199,6 +214,8 @@ abstract class AnimeCopyWith<$R, $In extends Anime, $Out>
       String? generateID,
       bool? isDublado,
       String? sinopse,
+      RepositoryStatus? repoStatus,
+      bool? isMovie,
       List<Genre>? genres});
   AnimeCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -209,6 +226,10 @@ class _AnimeCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Anime, $Out>
 
   @override
   late final ClassMapperBase<Anime> $mapper = AnimeMapper.ensureInitialized();
+  @override
+  RepositoryStatusCopyWith<$R, RepositoryStatus, RepositoryStatus>
+      get repoStatus =>
+          $value.repoStatus.copyWith.$chain((v) => call(repoStatus: v));
   @override
   ListCopyWith<$R, Genre, ObjectCopyWith<$R, Genre, Genre>> get genres =>
       ListCopyWith($value.genres, (v, t) => ObjectCopyWith(v, $identity, t),
@@ -233,6 +254,8 @@ class _AnimeCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Anime, $Out>
           Object? generateID = $none,
           bool? isDublado,
           String? sinopse,
+          RepositoryStatus? repoStatus,
+          bool? isMovie,
           List<Genre>? genres}) =>
       $apply(FieldCopyWithData({
         if (url != null) #url: url,
@@ -253,6 +276,8 @@ class _AnimeCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Anime, $Out>
         if (generateID != $none) #generateID: generateID,
         if (isDublado != null) #isDublado: isDublado,
         if (sinopse != null) #sinopse: sinopse,
+        if (repoStatus != null) #repoStatus: repoStatus,
+        if (isMovie != null) #isMovie: isMovie,
         if (genres != null) #genres: genres
       }));
   @override
@@ -275,6 +300,8 @@ class _AnimeCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Anime, $Out>
       generateID: data.get(#generateID, or: $value.generateID),
       isDublado: data.get(#isDublado, or: $value.isDublado),
       sinopse: data.get(#sinopse, or: $value.sinopse),
+      repoStatus: data.get(#repoStatus, or: $value.repoStatus),
+      isMovie: data.get(#isMovie, or: $value.isMovie),
       genres: data.get(#genres, or: $value.genres));
 
   @override

@@ -1,15 +1,16 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 
-import 'package:app_wsrb_jsr/app/my_app.dart';
-import 'package:app_wsrb_jsr/app/ui/player/mixins/player_audio_handler.dart';
-import 'package:app_wsrb_jsr/app/utils/content_utils.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
+
+import 'app/my_app.dart';
+import 'app/ui/player/mixins/player_audio_handler.dart';
+import 'app/utils/content_utils.dart';
 
 @pragma('vm:entry-point')
 void main(List<String> arguments) async {
@@ -18,36 +19,34 @@ void main(List<String> arguments) async {
 
   final DioClient dioClient = DioClient();
 
-  final IsarServiceImpl isarServiceImpl = IsarServiceImpl();
-
   final ValueNotifierList valueNotifierList = ValueNotifierList();
+
+  // Services
+  final IsarServiceImpl isarServiceImpl = IsarServiceImpl();
+  final AppConfigService appConfigService = AppConfigService(isarServiceImpl);
   final DownloadService downloadService = DownloadService();
+  final LibraryService libraryService = LibraryService(isarServiceImpl, appConfigService);
+  final HistoricService historicService = HistoricService(isarServiceImpl);
 
-  final AppConfigController appConfigController = AppConfigController(isarServiceImpl);
-
-  final LibraryController libraryController = LibraryController(
-    isarServiceImpl,
-    appConfigController,
-  );
+  final AppConfigController appConfigController = AppConfigController(appConfigService);
+  final LibraryController libraryController = LibraryController(libraryService);
+  final HistoricController historicController = HistoricController(historicService);
+  final CategoryController categoryController = CategoryController(isarServiceImpl);
 
   final GraphQLApiClient graphQLApiClient = GraphQLApiClient();
   final AnimeSkipRepository animeSkipRepository = AnimeSkipRepository(graphQLApiClient);
-
-  final HistoricController historicController = HistoricController(isarServiceImpl);
-
-  final CategoryController categoryController = CategoryController(isarServiceImpl);
 
   timeago.setLocaleMessages('pt_br', timeago.PtBrMessages());
   timeago.setDefaultLocale('pt_br');
 
   // Start Isar
   await isarServiceImpl.startDatabase();
-  await appConfigController.start();
+  await appConfigService.start();
 
   await Future.wait([
-    historicController.start(),
+    historicService.start(),
     categoryController.start(),
-    libraryController.start(),
+    libraryService.start(),
     NotificationService.I.init(onTap: ContentUtils.notificationResponse),
     Workmanager().initialize(_callbackDispatcher),
   ]);
@@ -56,12 +55,19 @@ void main(List<String> arguments) async {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
     PlayerAudioHandlerMixin.startPlayerAudio(),
     dotenv.load(fileName: "assets/.env"),
+    Workmanager().registerPeriodicTask(
+      UniqueKey().toString(),
+      App.APP_WORK_DELETE_CONTENT,
+      tag: App.APP_WORK_DELETE_CONTENT,
+      frequency: const Duration(days: 3),
+      existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
+    ),
   ]);
 
   // elapsed.printAndStop('MAIN');
 
   final ContentRepository contentRepository = ContentRepository(
-    appConfigController,
+    appConfigService,
     dioClient,
     animeSkipRepository,
   );
@@ -95,6 +101,11 @@ void _callbackDispatcher() {
     switch (task) {
       case App.APP_WORK_NEW_RELEASE:
         await ReleaseUpdateService.newReleases();
+        break;
+      case App.APP_WORK_DELETE_CONTENT:
+        // TODO: IMPLEMENTAR O DIA QUE VAI SER EXCLUIDO E ADICIONAR NAS CONFIG UMA OPCAO
+
+        // await ContentService.deleteNoFavoriteContent();
         break;
     }
 

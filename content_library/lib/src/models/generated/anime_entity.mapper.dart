@@ -70,6 +70,9 @@ class AnimeEntityMapper extends SubClassMapperBase<AnimeEntity> {
   static bool _$isFavorite(AnimeEntity v) => v.isFavorite;
   static const Field<AnimeEntity, bool> _f$isFavorite =
       Field('isFavorite', _$isFavorite, opt: true, def: false);
+  static bool _$isMovie(AnimeEntity v) => v.isMovie;
+  static const Field<AnimeEntity, bool> _f$isMovie =
+      Field('isMovie', _$isMovie, opt: true, def: false);
   static String _$originalImage(AnimeEntity v) => v.originalImage;
   static const Field<AnimeEntity, String> _f$originalImage =
       Field('originalImage', _$originalImage);
@@ -105,6 +108,7 @@ class AnimeEntityMapper extends SubClassMapperBase<AnimeEntity> {
     #sinopse: _f$sinopse,
     #generateID: _f$generateID,
     #isFavorite: _f$isFavorite,
+    #isMovie: _f$isMovie,
     #originalImage: _f$originalImage,
     #extraLarge: _f$extraLarge,
     #largeImage: _f$largeImage,
@@ -139,6 +143,7 @@ class AnimeEntityMapper extends SubClassMapperBase<AnimeEntity> {
         sinopse: data.dec(_f$sinopse),
         generateID: data.dec(_f$generateID),
         isFavorite: data.dec(_f$isFavorite),
+        isMovie: data.dec(_f$isMovie),
         originalImage: data.dec(_f$originalImage),
         extraLarge: data.dec(_f$extraLarge),
         largeImage: data.dec(_f$largeImage),
@@ -217,6 +222,7 @@ abstract class AnimeEntityCopyWith<$R, $In extends AnimeEntity, $Out>
       String? sinopse,
       String? generateID,
       bool? isFavorite,
+      bool? isMovie,
       String? originalImage,
       String? extraLarge,
       String? largeImage,
@@ -257,6 +263,7 @@ class _AnimeEntityCopyWithImpl<$R, $Out>
           Object? sinopse = $none,
           Object? generateID = $none,
           bool? isFavorite,
+          bool? isMovie,
           String? originalImage,
           Object? extraLarge = $none,
           Object? largeImage = $none,
@@ -279,6 +286,7 @@ class _AnimeEntityCopyWithImpl<$R, $Out>
         if (sinopse != $none) #sinopse: sinopse,
         if (generateID != $none) #generateID: generateID,
         if (isFavorite != null) #isFavorite: isFavorite,
+        if (isMovie != null) #isMovie: isMovie,
         if (originalImage != null) #originalImage: originalImage,
         if (extraLarge != $none) #extraLarge: extraLarge,
         if (largeImage != $none) #largeImage: largeImage,
@@ -303,6 +311,7 @@ class _AnimeEntityCopyWithImpl<$R, $Out>
       sinopse: data.get(#sinopse, or: $value.sinopse),
       generateID: data.get(#generateID, or: $value.generateID),
       isFavorite: data.get(#isFavorite, or: $value.isFavorite),
+      isMovie: data.get(#isMovie, or: $value.isMovie),
       originalImage: data.get(#originalImage, or: $value.originalImage),
       extraLarge: data.get(#extraLarge, or: $value.extraLarge),
       largeImage: data.get(#largeImage, or: $value.largeImage),

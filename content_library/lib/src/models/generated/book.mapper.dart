@@ -15,6 +15,7 @@ class BookMapper extends SubClassMapperBase<Book> {
       MapperContainer.globals.use(_instance = BookMapper._());
       ContentMapper.ensureInitialized().addSubMapper(_instance!);
       SourceMapper.ensureInitialized();
+      RepositoryStatusMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -47,6 +48,13 @@ class BookMapper extends SubClassMapperBase<Book> {
   static String _$sinopse(Book v) => v.sinopse;
   static const Field<Book, String> _f$sinopse =
       Field('sinopse', _$sinopse, opt: true, def: "");
+  static RepositoryStatus _$repoStatus(Book v) => v.repoStatus;
+  static const Field<Book, RepositoryStatus> _f$repoStatus = Field(
+      'repoStatus', _$repoStatus,
+      opt: true, def: const RepositoryStatus());
+  static bool _$isMovie(Book v) => v.isMovie;
+  static const Field<Book, bool> _f$isMovie =
+      Field('isMovie', _$isMovie, opt: true, def: false);
   static String? _$extraLarge(Book v) => v.extraLarge;
   static const Field<Book, String> _f$extraLarge =
       Field('extraLarge', _$extraLarge, opt: true);
@@ -91,6 +99,8 @@ class BookMapper extends SubClassMapperBase<Book> {
     #genres: _f$genres,
     #alternativeTitle: _f$alternativeTitle,
     #sinopse: _f$sinopse,
+    #repoStatus: _f$repoStatus,
+    #isMovie: _f$isMovie,
     #extraLarge: _f$extraLarge,
     #nsfw: _f$nsfw,
     #bookId: _f$bookId,
@@ -122,6 +132,8 @@ class BookMapper extends SubClassMapperBase<Book> {
         genres: data.dec(_f$genres),
         alternativeTitle: data.dec(_f$alternativeTitle),
         sinopse: data.dec(_f$sinopse),
+        repoStatus: data.dec(_f$repoStatus),
+        isMovie: data.dec(_f$isMovie),
         extraLarge: data.dec(_f$extraLarge),
         nsfw: data.dec(_f$nsfw),
         bookId: data.dec(_f$bookId),
@@ -183,6 +195,9 @@ abstract class BookCopyWith<$R, $In extends Book, $Out>
     implements ContentCopyWith<$R, $In, $Out> {
   @override
   ListCopyWith<$R, Genre, ObjectCopyWith<$R, Genre, Genre>> get genres;
+  @override
+  RepositoryStatusCopyWith<$R, RepositoryStatus, RepositoryStatus>
+      get repoStatus;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get authors;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get artists;
   @override
@@ -196,6 +211,8 @@ abstract class BookCopyWith<$R, $In extends Book, $Out>
       List<Genre>? genres,
       String? alternativeTitle,
       String? sinopse,
+      RepositoryStatus? repoStatus,
+      bool? isMovie,
       String? extraLarge,
       bool? nsfw,
       String? bookId,
@@ -221,6 +238,10 @@ class _BookCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Book, $Out>
       ListCopyWith($value.genres, (v, t) => ObjectCopyWith(v, $identity, t),
           (v) => call(genres: v));
   @override
+  RepositoryStatusCopyWith<$R, RepositoryStatus, RepositoryStatus>
+      get repoStatus =>
+          $value.repoStatus.copyWith.$chain((v) => call(repoStatus: v));
+  @override
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get authors =>
       ListCopyWith($value.authors, (v, t) => ObjectCopyWith(v, $identity, t),
           (v) => call(authors: v));
@@ -239,6 +260,8 @@ class _BookCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Book, $Out>
           List<Genre>? genres,
           Object? alternativeTitle = $none,
           String? sinopse,
+          RepositoryStatus? repoStatus,
+          bool? isMovie,
           Object? extraLarge = $none,
           bool? nsfw,
           Object? bookId = $none,
@@ -260,6 +283,8 @@ class _BookCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Book, $Out>
         if (genres != null) #genres: genres,
         if (alternativeTitle != $none) #alternativeTitle: alternativeTitle,
         if (sinopse != null) #sinopse: sinopse,
+        if (repoStatus != null) #repoStatus: repoStatus,
+        if (isMovie != null) #isMovie: isMovie,
         if (extraLarge != $none) #extraLarge: extraLarge,
         if (nsfw != null) #nsfw: nsfw,
         if (bookId != $none) #bookId: bookId,
@@ -284,6 +309,8 @@ class _BookCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Book, $Out>
       alternativeTitle:
           data.get(#alternativeTitle, or: $value.alternativeTitle),
       sinopse: data.get(#sinopse, or: $value.sinopse),
+      repoStatus: data.get(#repoStatus, or: $value.repoStatus),
+      isMovie: data.get(#isMovie, or: $value.isMovie),
       extraLarge: data.get(#extraLarge, or: $value.extraLarge),
       nsfw: data.get(#nsfw, or: $value.nsfw),
       bookId: data.get(#bookId, or: $value.bookId),

@@ -1,18 +1,19 @@
-import 'player_controller.dart';
 import 'package:equatable/equatable.dart';
 
+import 'player_controller.dart';
+
 mixin PlayerStatusMixin on PlayerControllerMixin {
-  final PlayerStatus status = const PlayerStatus();
+  final PlayerStatus status = PlayerStatus();
 }
 
-class PlayerStatus with EquatableMixin {
-  final bool _playing;
-  final Duration _position;
-  final Duration _duration;
-  final Duration _buffer;
-  final bool _completed;
+class PlayerStatus extends Equatable {
+  bool _playing;
+  Duration _position;
+  Duration _duration;
+  Duration _buffer;
+  bool _completed;
 
-  const PlayerStatus({
+  PlayerStatus({
     bool playing = false,
     Duration position = Duration.zero,
     Duration duration = Duration.zero,
@@ -31,19 +32,24 @@ class PlayerStatus with EquatableMixin {
     Duration? buffer,
     bool? completed,
   }) {
-    final status = PlayerStatus(
-      playing: playing ?? _playing,
-      position: position ?? _position,
-      duration: duration ?? _duration,
-      buffer: buffer ?? _buffer,
-      completed: completed ?? _completed,
-    );
+    _playing = playing ?? _playing;
+    _position = position ?? _position;
+    _duration = duration ?? _duration;
+    _buffer = buffer ?? _buffer;
+    _completed = completed ?? _completed;
+    // final status = PlayerStatus(
+    //   playing: playing ?? _playing,
+    //   position: position ?? _position,
+    //   duration: duration ?? _duration,
+    //   buffer: buffer ?? _buffer,
+    //   completed: completed ?? _completed,
+    // );
     // if (_position.inMilliseconds != position?.inMilliseconds &&
     //     _position.inMilliseconds > 0) {
     //   customLog(toString());
     // }
 
-    return status;
+    return this;
   }
 
   @override

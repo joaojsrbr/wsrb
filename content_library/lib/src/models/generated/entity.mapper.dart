@@ -153,6 +153,9 @@ class ContentEntityMapper extends SubClassMapperBase<ContentEntity> {
   static AniListMedia? _$anilistMedia(ContentEntity v) => v.anilistMedia;
   static const Field<ContentEntity, AniListMedia> _f$anilistMedia =
       Field('anilistMedia', _$anilistMedia, opt: true);
+  static bool _$isMovie(ContentEntity v) => v.isMovie;
+  static const Field<ContentEntity, bool> _f$isMovie =
+      Field('isMovie', _$isMovie, opt: true, def: false);
   static String? _$sinopse(ContentEntity v) => v.sinopse;
   static const Field<ContentEntity, String> _f$sinopse =
       Field('sinopse', _$sinopse, opt: true);
@@ -177,6 +180,7 @@ class ContentEntityMapper extends SubClassMapperBase<ContentEntity> {
     #source: _f$source,
     #isFavorite: _f$isFavorite,
     #anilistMedia: _f$anilistMedia,
+    #isMovie: _f$isMovie,
     #sinopse: _f$sinopse,
     #newReleases: _f$newReleases,
     #createdAt: _f$createdAt,
@@ -225,6 +229,7 @@ abstract class ContentEntityCopyWith<$R, $In extends ContentEntity, $Out>
       Source? source,
       bool? isFavorite,
       AniListMedia? anilistMedia,
+      bool? isMovie,
       String? sinopse,
       List<String>? newReleases,
       DateTime? createdAt,

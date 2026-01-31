@@ -4,73 +4,37 @@ import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
 class HistoricController extends ChangeNotifier {
-  final IsarServiceImpl _isarService;
-  final Subscriptions _subscriptions = Subscriptions();
-  final Debouncer _debouncer = Debouncer(duration: const Duration(milliseconds: 200));
+  final HistoricService _historicService;
 
-  HistoricController(this._isarService) {
-    _repository = InHistoricRepository();
+  HistoricController(this._historicService) {
+    _historicService.addNotifyListeners(notifyListeners);
   }
 
-  late final InHistoricRepository _repository;
-
-  InHistoricRepository get repo => _repository;
+  InHistoricRepository get repo => _historicService.repo;
 
   @override
   void dispose() {
-    _debouncer.cancel();
-    _subscriptions.cancelAll();
+    _historicService.dispose();
     super.dispose();
   }
 
   Future<QueryBuilder<T, T, QWhere>> where<T extends HistoricEntity>() async {
-    final collection = await _isarService.collection<T>();
-    return collection.where();
+    return _historicService.where<T>();
   }
 
   Future<QueryBuilder<T, T, QFilterCondition>> filter<T extends HistoricEntity>() async {
-    final collection = await _isarService.collection<T>();
-    return collection.filter();
-  }
-
-  Future<void> start() async {
-    final Elapsed elapsed = Elapsed()..start();
-
-    final episodeCollections = await _isarService.collection<EpisodeEntity>();
-    final chaptersCollections = await _isarService.collection<ChapterEntity>();
-
-    _subscriptions.addAll([
-      episodeCollections.watchLazy().listen(_watchCollections),
-      chaptersCollections.watchLazy().listen(_watchCollections),
-    ]);
-
-    final episodes = await episodeCollections.where().findAll();
-    final chapters = await chaptersCollections.where().findAll();
-
-    repo.updateRepository([episodes, chapters]);
-
-    elapsed.printAndStop(runtimeType.toString());
-  }
-
-  void _watchCollections(data) async {
-    final episodeCollections = await _isarService.collection<EpisodeEntity>();
-    final chaptersCollections = await _isarService.collection<ChapterEntity>();
-    final episodes = await episodeCollections.where().findAll();
-    final chapters = await chaptersCollections.where().findAll();
-    repo.updateRepository([episodes, chapters]);
-
-    _debouncer.call(notifyListeners);
+    return _historicService.filter<T>();
   }
 
   Future<Result<(bool, List<int>?)>> add({required HistoricEntity historic}) async {
     bool isSucess = false;
     final List<int> ids = [];
 
-    final result = await _isarService.add(entity: historic);
+    final result = await _historicService.add(historic: historic);
 
     result.fold(
       onSuccess: (data) {
-        if (data.$2 != null) ids.add(data.$2!);
+        if (data.$2 != null) ids.addAll(data.$2!);
         if (data.$1) isSucess = data.$1;
       },
     );
@@ -94,7 +58,7 @@ class HistoricController extends ChangeNotifier {
 
     final entities = historyEntities.nonNulls.cast<HistoricEntity>().toList();
 
-    final result = await _isarService.addAll(entities: entities);
+    final result = await _historicService.addAll(historyEntities: entities);
 
     result.fold(
       onSuccess: (data) {
@@ -114,7 +78,7 @@ class HistoricController extends ChangeNotifier {
 
     final entities = historyEntities.nonNulls.cast<HistoricEntity>().toList();
 
-    final result = await _isarService.removeAll(entities: entities);
+    final result = await _historicService.removeAll(historyEntities: entities);
 
     result.fold(
       onSuccess: (data) {
@@ -130,11 +94,11 @@ class HistoricController extends ChangeNotifier {
     bool isSucess = false;
     final List<int> ids = [];
 
-    final result = await _isarService.remove(entity: historic);
+    final result = await _historicService.remove(historic: historic);
 
     result.fold(
       onSuccess: (data) {
-        if (data.$2 != null) ids.add(data.$2!);
+        if (data.$2 != null) ids.addAll(data.$2!);
         if (data.$1) isSucess = data.$1;
       },
     );

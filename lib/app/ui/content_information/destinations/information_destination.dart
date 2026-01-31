@@ -1,11 +1,45 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import '../widgets/scope.dart';
-import '../../shared/widgets/custom_network_image_cache.dart';
-import '../../shared/widgets/expandable_text.dart';
-import '../../../utils/copy_to_clipboard.dart';
 import 'package:content_library/content_library.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import '../../../utils/copy_to_clipboard.dart';
+import '../../shared/widgets/custom_network_image_cache.dart';
+import '../../shared/widgets/expandable_text.dart';
+import '../widgets/scope.dart';
+
+sealed class Sinopse {
+  final String text;
+  String get label;
+
+  Sinopse(this.text);
+}
+
+class PtSinopse extends Equatable implements Sinopse {
+  @override
+  final String text;
+
+  @override
+  List<Object?> get props => [text];
+
+  const PtSinopse(this.text);
+
+  @override
+  String get label => "PT";
+}
+
+class EngSinopse extends Equatable implements Sinopse {
+  @override
+  final String text;
+  @override
+  List<Object?> get props => [text];
+
+  @override
+  String get label => "ENG";
+
+  const EngSinopse(this.text);
+}
 
 class InformationDestination extends StatefulWidget {
   const InformationDestination({super.key});
@@ -18,6 +52,8 @@ class _InformationDestinationState extends State<InformationDestination>
     with AutomaticKeepAliveClientMixin {
   // bool _isLoading = true;
   Content? _content;
+  late Sinopse _selectSinopse;
+  final List<Sinopse> _list = [];
 
   @override
   bool get wantKeepAlive => true;
@@ -25,6 +61,19 @@ class _InformationDestinationState extends State<InformationDestination>
   @override
   void didChangeDependencies() {
     _content = ContentScope.contentOf(context);
+    _list
+      ..clear()
+      ..add(PtSinopse(_content?.sinopse ?? ""))
+      ..add(EngSinopse(_content?.anilistMedia?.description ?? ""));
+
+    for (final action in _list) {
+      if (action.text.isNotEmpty) {
+        _selectSinopse = action;
+        break;
+      }
+    }
+
+    // anilistMedia.description;
     // _isLoading = ContentScope.isLoadingOf(context);
 
     super.didChangeDependencies();
@@ -51,6 +100,14 @@ class _InformationDestinationState extends State<InformationDestination>
         _content?.anilistMedia?.characters == null &&
         _content?.anilistMedia?.staff == null;
 
+    final isSelected = List.generate(_list.length, (index) => false);
+
+    isSelected[_list.indexOf(_selectSinopse)] = true;
+
+    final children = _list
+        .map((text) => Text(text.label, style: const TextStyle(fontSize: 10)))
+        .toList();
+
     return noContent
         ? Padding(
             padding: const EdgeInsets.only(top: 22),
@@ -68,7 +125,24 @@ class _InformationDestinationState extends State<InformationDestination>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                   child: ExpandableText(
-                    sinopse: sinopse,
+                    trailing: ToggleButtons(
+                      isSelected: isSelected,
+                      borderRadius: BorderRadius.circular(8),
+                      constraints: const BoxConstraints(minWidth: 30.0, minHeight: 30.0),
+                      onPressed: _list.any((text) => text.text.isEmpty)
+                          ? null
+                          : (index) {
+                              final select = _list[index];
+                              if (select.text.isEmpty) return;
+                              isSelected.forEachIndexed(
+                                (index, _) => isSelected[index] = false,
+                              );
+                              isSelected[index] = true;
+                              setState(() => _selectSinopse = select);
+                            },
+                      children: children,
+                    ),
+                    sinopse: _selectSinopse.text,
                     style: Theme.of(
                       context,
                     ).textTheme.bodyMedium?.copyWith(fontSize: 14, height: 1.5),

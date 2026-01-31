@@ -2,15 +2,16 @@ import 'dart:async';
 
 import 'package:android_pip/actions/pip_action.dart';
 import 'package:android_pip/android_pip.dart';
-import '../arguments/player_args.dart';
-import 'player_controller.dart';
-import 'player_pip.dart';
-import '../view/player_view.dart';
-import '../../shared/mixins/subscriptions.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
+
+import '../../shared/mixins/subscriptions.dart';
+import '../arguments/player_args.dart';
+import '../view/player_view.dart';
+import 'player_controller.dart';
+import 'player_pip.dart';
 
 /// 🔊 Mixin responsável por integrar o [AudioService] com o player e PIP
 mixin PlayerAudioHandlerMixin
@@ -33,7 +34,7 @@ mixin PlayerAudioHandlerMixin
     if (_playerAudioHandler != null) return;
     _playerAudioHandler = await AudioService.init(
       builder: () => _AudioPlayerHandler(),
-      config: const AudioServiceConfig(),
+      config: const AudioServiceConfig(preloadArtwork: true),
     );
   }
 
@@ -51,11 +52,12 @@ mixin PlayerAudioHandlerMixin
 
   /// Define o [MediaItem] para o player atual.
   Future<void> setPlayerMedia(PlayerArgs playerArgs) async {
-    final mediaItem = await _playerAudioHandler?.getMediaItem(
-      playerArgs.episode.stringID,
-    );
+    final mediaItem = await playerAudioHandler.getMediaItem(playerArgs.episode.stringID);
 
-    if (mediaItem != null) return;
+    if (mediaItem != null) {
+      await playerAudioHandler.removeQueueItem(mediaItem);
+      // return;
+    }
 
     final newMediaItem = MediaItem(
       id: playerArgs.episode.stringID,
@@ -64,6 +66,8 @@ mixin PlayerAudioHandlerMixin
       duration: player.state.duration,
       artUri: playerArgs.episode.thumbnail != null
           ? Uri.parse(playerArgs.episode.thumbnail!)
+          : playerArgs.anime.originalImage.isNotEmpty
+          ? Uri.parse(playerArgs.anime.originalImage)
           : null,
     );
 
@@ -117,6 +121,15 @@ abstract class PlayerAudioHandler extends BaseAudioHandler with SeekHandler {
   void detach() => _state = null;
 
   void setPlaybackState(PlayerState state);
+
+  void limpar() {
+    playbackState.add(
+      playbackState.value.copyWith(
+        processingState: AudioProcessingState.completed,
+        controls: [],
+      ),
+    );
+  }
 }
 
 /// Implementação concreta do [PlayerAudioHandler].

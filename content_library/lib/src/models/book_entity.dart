@@ -47,6 +47,7 @@ class BookEntity extends ContentEntity with BookEntityMappable {
     super.anilistMedia,
     super.sinopse,
     super.updatedAt,
+    super.isMovie = false,
     this.alternativeTitle,
     super.newReleases,
     this.extraLarge,

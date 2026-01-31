@@ -100,7 +100,12 @@ class GoyabuSource extends RSource {
         if (!cacheRelease.contains(episode)) cacheRelease.add(episode);
       }
 
-      return Result.success(content.copyWith(releases: cacheRelease));
+      return Result.success(
+        content.copyWith(
+          releases: cacheRelease,
+          repoStatus: content.repoStatus.copyWith(getReleases: true),
+        ),
+      );
     } on DioException catch (error) {
       return Result.failure(error);
     }
@@ -187,6 +192,7 @@ class GoyabuSource extends RSource {
         originalImage: originalImage,
         genres: genres,
         sinopse: sinopse,
+        repoStatus: anime.repoStatus.copyWith(getData: true, getReleases: true),
       );
       return Result.success(newAnime);
     } on DioException catch (error) {
@@ -250,6 +256,7 @@ class GoyabuSource extends RSource {
           source: source,
           url: '',
           originalImage: thumbnail,
+          repoStatus: RepositoryStatus(loadData: true),
         );
         contentRepository.addIfNoContains(anime);
       }

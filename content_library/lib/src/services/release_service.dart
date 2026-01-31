@@ -60,14 +60,23 @@ class ReleaseUpdateService {
   static Future<void> newReleases() async {
     final notificationService = NotificationService.I;
     final isarServiceImpl = IsarServiceImpl();
-    final appConfigController = AppConfigController(isarServiceImpl, false);
+    final AppConfigService appConfigService = AppConfigService(isarServiceImpl, false);
+
+    // final appConfigController = AppConfigController(appConfigService);
     final dioClient = DioClient()..disableDioStatus();
-    final libraryController = LibraryController(isarServiceImpl, appConfigController);
+    final LibraryService libraryService = LibraryService(
+      isarServiceImpl,
+      appConfigService,
+    );
+    final libraryController = LibraryController(libraryService);
     final graphQLApiClient = GraphQLApiClient();
     final animeSkipRepository = AnimeSkipRepository(graphQLApiClient);
-    final historicController = HistoricController(isarServiceImpl);
+
+    final HistoricService historicService = HistoricService(isarServiceImpl);
+
+    final historicController = HistoricController(historicService);
     final contentRepository = ContentRepository(
-      appConfigController,
+      appConfigService,
       dioClient,
       animeSkipRepository,
     );
@@ -75,10 +84,10 @@ class ReleaseUpdateService {
     await isarServiceImpl.startDatabase(inspector: false);
 
     await Future.wait([
-      historicController.start(),
-      appConfigController.start(),
-      libraryController.start(),
-      notificationService.init(permission: false),
+      historicService.start(),
+      appConfigService.start(),
+      libraryService.start(),
+      notificationService.init(),
       contentRepository.session.init(),
       dotenv.load(fileName: "assets/.env"),
     ]);

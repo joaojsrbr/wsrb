@@ -3,25 +3,12 @@ import 'package:content_library/src/utils/in_repository.dart';
 
 class InLibraryRepository extends InRepository<ContentEntity> {
   // ignore: unused_field
-  final AppConfigController _appConfigController;
+  final AppConfigService _appConfigService;
 
-  InLibraryRepository(this._appConfigController);
+  InLibraryRepository(this._appConfigService);
 
   UnmodifiableListView<String> get allDownIds =>
       UnmodifiableListView(entities.map(_map2).nonNulls);
-
-  UnmodifiableListView<String> get favoritesIDS => UnmodifiableListView(
-    entities
-        .where(
-          (entity) => switch (entity) {
-            AnimeEntity data => data.isFavorite,
-            BookEntity data => data.isFavorite,
-            _ => false,
-          },
-        )
-        .map(_map)
-        .nonNulls,
-  );
 
   UnmodifiableListView<ContentEntity> get completed => UnmodifiableListView(
     entities
@@ -86,14 +73,18 @@ class InLibraryRepository extends InRepository<ContentEntity> {
   }
 
   UnmodifiableListView<ContentEntity> get noFavorites =>
-      UnmodifiableListView(entities.where((entity) => !entity.isFavorite).nonNulls);
+      UnmodifiableListView(entities.where((entity) => !entity.isFavorite));
 
   UnmodifiableListView<ContentEntity> get favorites =>
-      UnmodifiableListView(entities.where((entity) => entity.isFavorite).nonNulls);
+      UnmodifiableListView(entities.where((entity) => entity.isFavorite));
 
   UnmodifiableListView<String> get noFavoritesIDS => UnmodifiableListView(
-    entities.where((entity) => !entity.isFavorite).map(_map).nonNulls,
+    // entities.where((entity) => !entity.isFavorite).map(_map).nonNulls,
+    noFavorites.map(_map),
   );
+
+  UnmodifiableListView<String> get favoritesIDS =>
+      UnmodifiableListView(favorites.map(_map));
 
   CategoryEntity? getContentByStringId(
     CategoryController categoryController,
@@ -175,6 +166,10 @@ class InLibraryRepository extends InRepository<ContentEntity> {
 
   bool containsFav({ContentEntity? contentEntity, Content? content}) {
     return favoritesIDS.contains(contentEntity?.stringID ?? content?.stringID ?? "");
+  }
+
+  bool containsNoFav({ContentEntity? contentEntity, Content? content}) {
+    return noFavoritesIDS.contains(contentEntity?.stringID ?? content?.stringID ?? "");
   }
 
   String _map(ContentEntity contentEntity) {

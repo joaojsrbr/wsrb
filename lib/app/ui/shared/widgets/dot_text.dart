@@ -39,6 +39,7 @@ class DotText extends StatelessWidget {
         Text(
           text,
           overflow: TextOverflow.ellipsis,
+          maxLines: 1,
           style: textStyle ?? DefaultTextStyle.of(context).style,
         ),
       ],

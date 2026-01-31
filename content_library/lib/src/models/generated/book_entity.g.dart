@@ -43,54 +43,59 @@ const BookEntitySchema = CollectionSchema(
       name: r'isFavorite',
       type: IsarType.bool,
     ),
-    r'largeImage': PropertySchema(
+    r'isMovie': PropertySchema(
       id: 5,
+      name: r'isMovie',
+      type: IsarType.bool,
+    ),
+    r'largeImage': PropertySchema(
+      id: 6,
       name: r'largeImage',
       type: IsarType.string,
     ),
     r'mediumImage': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'mediumImage',
       type: IsarType.string,
     ),
     r'newReleases': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'newReleases',
       type: IsarType.stringList,
     ),
     r'originalImage': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'originalImage',
       type: IsarType.string,
     ),
     r'sinopse': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'sinopse',
       type: IsarType.string,
     ),
     r'source': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'source',
       type: IsarType.byte,
       enumMap: _BookEntitysourceEnumValueMap,
     ),
     r'stringID': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'stringID',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'url',
       type: IsarType.string,
     )
@@ -218,16 +223,17 @@ void _bookEntitySerialize(
   writer.writeDateTime(offsets[2], object.createdAt);
   writer.writeString(offsets[3], object.extraLarge);
   writer.writeBool(offsets[4], object.isFavorite);
-  writer.writeString(offsets[5], object.largeImage);
-  writer.writeString(offsets[6], object.mediumImage);
-  writer.writeStringList(offsets[7], object.newReleases);
-  writer.writeString(offsets[8], object.originalImage);
-  writer.writeString(offsets[9], object.sinopse);
-  writer.writeByte(offsets[10], object.source.index);
-  writer.writeString(offsets[11], object.stringID);
-  writer.writeString(offsets[12], object.title);
-  writer.writeDateTime(offsets[13], object.updatedAt);
-  writer.writeString(offsets[14], object.url);
+  writer.writeBool(offsets[5], object.isMovie);
+  writer.writeString(offsets[6], object.largeImage);
+  writer.writeString(offsets[7], object.mediumImage);
+  writer.writeStringList(offsets[8], object.newReleases);
+  writer.writeString(offsets[9], object.originalImage);
+  writer.writeString(offsets[10], object.sinopse);
+  writer.writeByte(offsets[11], object.source.index);
+  writer.writeString(offsets[12], object.stringID);
+  writer.writeString(offsets[13], object.title);
+  writer.writeDateTime(offsets[14], object.updatedAt);
+  writer.writeString(offsets[15], object.url);
 }
 
 BookEntity _bookEntityDeserialize(
@@ -247,17 +253,18 @@ BookEntity _bookEntityDeserialize(
     extraLarge: reader.readStringOrNull(offsets[3]),
     id: id,
     isFavorite: reader.readBoolOrNull(offsets[4]) ?? false,
-    largeImage: reader.readStringOrNull(offsets[5]),
-    mediumImage: reader.readStringOrNull(offsets[6]),
-    newReleases: reader.readStringList(offsets[7]) ?? const [],
-    originalImage: reader.readString(offsets[8]),
-    sinopse: reader.readStringOrNull(offsets[9]),
-    source: _BookEntitysourceValueEnumMap[reader.readByteOrNull(offsets[10])] ??
+    isMovie: reader.readBoolOrNull(offsets[5]) ?? false,
+    largeImage: reader.readStringOrNull(offsets[6]),
+    mediumImage: reader.readStringOrNull(offsets[7]),
+    newReleases: reader.readStringList(offsets[8]) ?? const [],
+    originalImage: reader.readString(offsets[9]),
+    sinopse: reader.readStringOrNull(offsets[10]),
+    source: _BookEntitysourceValueEnumMap[reader.readByteOrNull(offsets[11])] ??
         Source.ANROLL,
-    stringID: reader.readString(offsets[11]),
-    title: reader.readString(offsets[12]),
-    updatedAt: reader.readDateTimeOrNull(offsets[13]),
-    url: reader.readString(offsets[14]),
+    stringID: reader.readString(offsets[12]),
+    title: reader.readString(offsets[13]),
+    updatedAt: reader.readDateTimeOrNull(offsets[14]),
+    url: reader.readString(offsets[15]),
   );
   return object;
 }
@@ -284,25 +291,27 @@ P _bookEntityDeserializeProp<P>(
     case 4:
       return (reader.readBoolOrNull(offset) ?? false) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readStringList(offset) ?? const []) as P;
-    case 8:
-      return (reader.readString(offset)) as P;
-    case 9:
       return (reader.readStringOrNull(offset)) as P;
+    case 8:
+      return (reader.readStringList(offset) ?? const []) as P;
+    case 9:
+      return (reader.readString(offset)) as P;
     case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
       return (_BookEntitysourceValueEnumMap[reader.readByteOrNull(offset)] ??
           Source.ANROLL) as P;
-    case 11:
-      return (reader.readString(offset)) as P;
     case 12:
       return (reader.readString(offset)) as P;
     case 13:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 14:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 15:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -311,21 +320,15 @@ P _bookEntityDeserializeProp<P>(
 
 const _BookEntitysourceEnumValueMap = {
   'ANROLL': 0,
-  'NEOX_SCANS': 1,
-  'DEMON_SECT': 2,
-  'GOYABU': 3,
-  'BETTER_ANIME': 4,
-  'REMANGAS': 5,
-  'SLIMEREAD': 6,
+  'GOYABU': 1,
+  'TOP_ANIMES': 2,
+  'BETTER_ANIME': 3,
 };
 const _BookEntitysourceValueEnumMap = {
   0: Source.ANROLL,
-  1: Source.NEOX_SCANS,
-  2: Source.DEMON_SECT,
-  3: Source.GOYABU,
-  4: Source.BETTER_ANIME,
-  5: Source.REMANGAS,
-  6: Source.SLIMEREAD,
+  1: Source.GOYABU,
+  2: Source.TOP_ANIMES,
+  3: Source.BETTER_ANIME,
 };
 
 Id _bookEntityGetId(BookEntity object) {
@@ -976,6 +979,16 @@ extension BookEntityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isFavorite',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition> isMovieEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isMovie',
         value: value,
       ));
     });
@@ -2444,6 +2457,18 @@ extension BookEntityQuerySortBy
     });
   }
 
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> sortByIsMovie() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isMovie', Sort.asc);
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> sortByIsMovieDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isMovie', Sort.desc);
+    });
+  }
+
   QueryBuilder<BookEntity, BookEntity, QAfterSortBy> sortByLargeImage() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'largeImage', Sort.asc);
@@ -2616,6 +2641,18 @@ extension BookEntityQuerySortThenBy
     });
   }
 
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> thenByIsMovie() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isMovie', Sort.asc);
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> thenByIsMovieDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isMovie', Sort.desc);
+    });
+  }
+
   QueryBuilder<BookEntity, BookEntity, QAfterSortBy> thenByLargeImage() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'largeImage', Sort.asc);
@@ -2754,6 +2791,12 @@ extension BookEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<BookEntity, BookEntity, QDistinct> distinctByIsMovie() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isMovie');
+    });
+  }
+
   QueryBuilder<BookEntity, BookEntity, QDistinct> distinctByLargeImage(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2860,6 +2903,12 @@ extension BookEntityQueryProperty
   QueryBuilder<BookEntity, bool, QQueryOperations> isFavoriteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isFavorite');
+    });
+  }
+
+  QueryBuilder<BookEntity, bool, QQueryOperations> isMovieProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isMovie');
     });
   }
 

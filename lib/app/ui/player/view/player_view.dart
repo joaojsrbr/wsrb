@@ -5,6 +5,22 @@ import 'dart:collection';
 import 'package:android_pip/actions/pip_actions_layout.dart';
 import 'package:android_pip/android_pip.dart';
 import 'package:android_pip/pip_widget.dart';
+import 'package:audio_service/audio_service.dart';
+import 'package:content_library/content_library.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
+import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions/duration.dart';
+import 'package:provider/provider.dart';
+
+import '../../../utils/anchor.dart';
+import '../../../utils/auto_dispose_mixin.dart';
+import '../../../utils/release_utils.dart';
+import '../../shared/mixins/subscriptions.dart';
+import '../../shared/widgets/custom_popup.dart';
+import '../../shared/widgets/release_content.dart';
 import '../arguments/player_args.dart';
 import '../mixins/player_audio_handler.dart';
 import '../mixins/player_audio_session.dart';
@@ -15,21 +31,6 @@ import '../mixins/player_screenshot.dart';
 import '../mixins/player_status.dart';
 import '../widgets/material_video_controls.dart';
 import '../widgets/scope.dart';
-import '../../shared/mixins/subscriptions.dart';
-import '../../shared/widgets/custom_popup.dart';
-import '../../shared/widgets/release_content.dart';
-import '../../../utils/anchor.dart';
-import '../../../utils/auto_dispose_mixin.dart';
-import '../../../utils/release_utils.dart';
-import 'package:audio_service/audio_service.dart';
-import 'package:content_library/content_library.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
-import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions/duration.dart';
-import 'package:provider/provider.dart';
 
 class PlayerView extends StatefulWidget {
   const PlayerView({super.key});
@@ -95,7 +96,7 @@ class _PlayerViewState extends State<PlayerView>
   final Debouncer _saveData = Debouncer(duration: const Duration(milliseconds: 200));
   final Queue<BoxFit> _queueBoxFits = Queue<BoxFit>();
   final int _maxValueCircularAnimation = 2;
-
+  Data? _firstSelectData;
   late PlayerArgs _playerArgs;
 
   late final AnimationController _animationController;
@@ -192,40 +193,62 @@ class _PlayerViewState extends State<PlayerView>
   Future<void> _getInitMainVideoData() async {
     _topTitle.value = _playerArgs.episode.getEpisodeTitle();
 
-    final state = Navigator.of(context);
+    final navigator = Navigator.of(context);
 
+    Result<List<Data>> result;
+
+    // 1️⃣ Verifica se já existe arquivo local
     final file = AppStorage.getReleaseFile(_playerArgs.anime, _playerArgs.episode);
+    if (file != null) {
+      result = Result.success([FileVideoData(file: file)]);
+    }
+    // 3️⃣ Usa dados pré-carregados, se existirem
+    else if (_playerArgs.data.isNotEmpty) {
+      result = Result.success(_playerArgs.data);
+    }
+    // 4️⃣ Caso contrário, busca do repositório
+    else {
+      result = await _repository.getContent(_playerArgs.episode, _playerArgs.anime);
+    }
 
-    final result = file != null
-        ? Result.success([FileVideoData(file: file)])
-        : _playerArgs.data.isNotEmpty
-        ? Result.success(_playerArgs.data)
-        : await _repository.getContent(_playerArgs.episode, _playerArgs.anime);
-
+    // 5️⃣ Trata resultado
     result.fold(
       onSuccess: (data) {
-        // if (![VideoData, FileVideoData].contains(data.first.runtimeType)) {
-        //   state.pop();
-        //   return;
-        // }
+        if (data.isEmpty) {
+          navigator.pop();
+          return;
+        }
+
+        final mainVideo = data.first is FileVideoData
+            ? data.first
+            : _firstSelectData != null
+            ? _firstSelectData!
+            : _selectMainVideo(data.whereType<VideoData>().toList());
 
         setState(() {
-          this.data.clear();
-          data.forEach(this.data.cast().addIfNoContains);
-          _mainVideoData =
-              data.firstWhereOrNull(
-                (data) => data is VideoData && data.quality == Quality.Q480P,
-              ) ??
-              data.first;
+          this.data
+            ..clear()
+            ..addAll(data.where((e) => !this.data.contains(e)));
+
+          _mainVideoData = mainVideo;
           _playerArgs = _playerArgs.copyWith(data: data);
         });
       },
-      onError: state.pop,
+      onError: navigator.pop,
     );
   }
 
+  /// 🔧 Função auxiliar para escolher o vídeo principal
+  VideoData _selectMainVideo(List<VideoData> data) {
+    return data.firstWhere((d) => d.quality == Quality.Q480P, orElse: () => data.first);
+  }
+
   Future<void> _getAnimeData() async {
-    if (_playerArgs.anime.releases.isEmpty) return;
+    _firstSelectData = _playerArgs.firstSelectData;
+    if (_playerArgs.anime.repoStatus.getData &&
+        _playerArgs.anime.repoStatus.getReleases) {
+      return;
+    }
     final result = await _repository.getData(_playerArgs.anime);
     result.fold(
       onSuccess: (data) {
@@ -244,7 +267,6 @@ class _PlayerViewState extends State<PlayerView>
     await _getInitMainVideoData().whenComplete(_incrementCurrentCircularAnimation);
 
     await _startPlayerController(
-      onInit: false,
       initPossition: _playerArgs.startPossition,
     ).whenComplete(_incrementCurrentCircularAnimation);
 
@@ -271,34 +293,33 @@ class _PlayerViewState extends State<PlayerView>
     );
   }
 
-  Future<void> _startPlayerController({
-    bool onInit = false,
-    Duration? initPossition,
-    bool play = true,
-  }) async {
+  Future<void> _startPlayerController({Duration? initPossition, bool play = true}) async {
     await subscriptions.cancelAll();
 
-    if (onInit) _initControlls();
+    // if (onInit) _initControlls();
 
-    List<Future> futures = [
+    final stepTwo = [
       _registerListeners(),
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive),
     ];
 
+    final List<Future<dynamic>> stepOne = [];
+
     switch (_mainVideoData) {
       case VideoData data:
-        futures.add(
+        stepOne.add(
           player.open(
             Media(data.videoContent, start: initPossition, httpHeaders: data.httpHeaders),
             play: play,
           ),
         );
       case FileVideoData data:
-        futures.add(player.open(Media(data.file.path, start: initPossition), play: play));
+        stepOne.add(player.open(Media(data.file.path, start: initPossition), play: play));
       default:
     }
 
-    await Future.wait(futures);
+    await Future.wait(stepOne);
+    await Future.wait(stepTwo);
     // await player.platform?.waitForVideoControllerInitializationIfAttached;
     // await player.platform?.waitForPlayerInitialization;
     await _videoController?.waitUntilFirstFrameRendered;
@@ -320,14 +341,7 @@ class _PlayerViewState extends State<PlayerView>
     status.setValue(completed: completed);
     if (completed) {
       _saveVideoPosition();
-      final playbackState = playerAudioHandler.playbackState;
-
-      playbackState.add(
-        playbackState.value.copyWith.call(
-          processingState: AudioProcessingState.completed,
-          controls: [],
-        ),
-      );
+      playerAudioHandler.limpar();
     }
   }
 
@@ -490,10 +504,12 @@ class _PlayerViewState extends State<PlayerView>
 
   Future<void> _handleOnTapEpisode(Episode episode) async {
     if (episode.stringID.contains(_playerArgs.episode.stringID)) return;
+    playerAudioHandler.limpar();
     await setSessionActive(false);
     await _saveVideoPosition();
 
     setState(() {
+      _firstSelectData = null;
       _seekInVideoPosition.value = null;
       _playerArgs = _playerArgs.copyWith(data: [], episode: episode);
       _overlayNextEpisode.value = null;
@@ -738,12 +754,9 @@ class _VideoPlayerArea extends StatelessWidget {
           ? () async {}
           : () async {
               await SystemChrome.setPreferredOrientations([
-                DeviceOrientation.landscapeRight,
                 DeviceOrientation.landscapeLeft,
+                DeviceOrientation.landscapeRight,
               ]);
-              // SystemChrome.setEnabledSystemUIMode(
-              //   SystemUiMode.immersive,
-              // );
             },
       onExitFullscreen: scope.isPipActivated
           ? () async {}

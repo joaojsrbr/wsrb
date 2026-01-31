@@ -49,6 +49,9 @@ class BookEntityMapper extends SubClassMapperBase<BookEntity> {
   static DateTime? _$updatedAt(BookEntity v) => v.updatedAt;
   static const Field<BookEntity, DateTime> _f$updatedAt =
       Field('updatedAt', _$updatedAt, opt: true);
+  static bool _$isMovie(BookEntity v) => v.isMovie;
+  static const Field<BookEntity, bool> _f$isMovie =
+      Field('isMovie', _$isMovie, opt: true, def: false);
   static String? _$alternativeTitle(BookEntity v) => v.alternativeTitle;
   static const Field<BookEntity, String> _f$alternativeTitle =
       Field('alternativeTitle', _$alternativeTitle, opt: true);
@@ -83,6 +86,7 @@ class BookEntityMapper extends SubClassMapperBase<BookEntity> {
     #anilistMedia: _f$anilistMedia,
     #sinopse: _f$sinopse,
     #updatedAt: _f$updatedAt,
+    #isMovie: _f$isMovie,
     #alternativeTitle: _f$alternativeTitle,
     #newReleases: _f$newReleases,
     #extraLarge: _f$extraLarge,
@@ -112,6 +116,7 @@ class BookEntityMapper extends SubClassMapperBase<BookEntity> {
         anilistMedia: data.dec(_f$anilistMedia),
         sinopse: data.dec(_f$sinopse),
         updatedAt: data.dec(_f$updatedAt),
+        isMovie: data.dec(_f$isMovie),
         alternativeTitle: data.dec(_f$alternativeTitle),
         newReleases: data.dec(_f$newReleases),
         extraLarge: data.dec(_f$extraLarge),
@@ -185,6 +190,7 @@ abstract class BookEntityCopyWith<$R, $In extends BookEntity, $Out>
       AniListMedia? anilistMedia,
       String? sinopse,
       DateTime? updatedAt,
+      bool? isMovie,
       String? alternativeTitle,
       List<String>? newReleases,
       String? extraLarge,
@@ -220,6 +226,7 @@ class _BookEntityCopyWithImpl<$R, $Out>
           Object? anilistMedia = $none,
           Object? sinopse = $none,
           Object? updatedAt = $none,
+          bool? isMovie,
           Object? alternativeTitle = $none,
           List<String>? newReleases,
           Object? extraLarge = $none,
@@ -237,6 +244,7 @@ class _BookEntityCopyWithImpl<$R, $Out>
         if (anilistMedia != $none) #anilistMedia: anilistMedia,
         if (sinopse != $none) #sinopse: sinopse,
         if (updatedAt != $none) #updatedAt: updatedAt,
+        if (isMovie != null) #isMovie: isMovie,
         if (alternativeTitle != $none) #alternativeTitle: alternativeTitle,
         if (newReleases != null) #newReleases: newReleases,
         if (extraLarge != $none) #extraLarge: extraLarge,
@@ -256,6 +264,7 @@ class _BookEntityCopyWithImpl<$R, $Out>
       anilistMedia: data.get(#anilistMedia, or: $value.anilistMedia),
       sinopse: data.get(#sinopse, or: $value.sinopse),
       updatedAt: data.get(#updatedAt, or: $value.updatedAt),
+      isMovie: data.get(#isMovie, or: $value.isMovie),
       alternativeTitle:
           data.get(#alternativeTitle, or: $value.alternativeTitle),
       newReleases: data.get(#newReleases, or: $value.newReleases),

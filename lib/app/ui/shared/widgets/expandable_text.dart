@@ -8,6 +8,7 @@ class ExpandableText extends StatefulWidget {
   final int maxLines;
   final TextStyle? style;
   final String title;
+  final Widget? trailing;
 
   const ExpandableText({
     super.key,
@@ -15,6 +16,7 @@ class ExpandableText extends StatefulWidget {
     required this.sinopse,
     this.maxLines = 2,
     this.style,
+    this.trailing,
   });
 
   @override
@@ -61,13 +63,18 @@ class _ExpandableTextState extends State<ExpandableText> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    widget.title,
-                    style: themeData.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22,
-                      color: themeData.colorScheme.onSurface,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        widget.title,
+                        style: themeData.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          color: themeData.colorScheme.onSurface,
+                        ),
+                      ),
+                      if (widget.trailing != null) ...[const Spacer(), widget.trailing!],
+                    ],
                   ),
                   const SizedBox(height: 8),
                   AnimatedSize(

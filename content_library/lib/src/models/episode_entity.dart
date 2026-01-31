@@ -91,17 +91,19 @@ class EpisodeEntity extends HistoricEntity with EpisodeEntityMappable {
     Duration? duration,
     String? currentPositionBase64,
   ) {
-    final ePosition = duration != null && position != null;
+    final hasDurations = duration != null && position != null;
 
-    if (entity?.position != null) {
-      return entity?.position?.copyWith(
+    final existing = entity?.position;
+    if (existing != null) {
+      return existing.copyWith(
         currentPositionBase64: currentPositionBase64,
-        createdAt: ePosition ? DateTime.now() : null,
+        createdAt: existing.createdAt ?? DateTime.now(),
         episodeDuration: duration?.inMicroseconds,
         currentDuration: position?.inMicroseconds,
       );
     }
-    if (ePosition) {
+
+    if (hasDurations) {
       return CurrentPosition(
         createdAt: DateTime.now(),
         episodeDuration: duration.inMicroseconds,
@@ -109,6 +111,7 @@ class EpisodeEntity extends HistoricEntity with EpisodeEntityMappable {
         currentDuration: position.inMicroseconds,
       );
     }
+
     return null;
   }
 
@@ -208,6 +211,16 @@ class CurrentPosition with CurrentPositionMappable, EquatableMixin {
 
   @override
   List<Object?> get props => [currentPositionBase64, currentDuration];
+
+  String formatCurrentDuration() {
+    if (currentDuration == 0) return '';
+    final duration = Duration(microseconds: currentDuration);
+
+    final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+
+    return '$minutes:$seconds';
+  }
 
   // CurrentPosition copyWith({
   //   int? currentDuration,

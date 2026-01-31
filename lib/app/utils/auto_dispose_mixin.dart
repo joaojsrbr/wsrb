@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 
 mixin AutoDisposeMixin<T extends StatefulWidget> on State<T> {
@@ -13,7 +16,18 @@ mixin AutoDisposeMixin<T extends StatefulWidget> on State<T> {
 
   void _callDisposeIfPossible(Object obj) {
     try {
-      (obj as dynamic).dispose();
+      switch (obj) {
+        case Timer _:
+          obj.cancel();
+        case Subscriptions _:
+          obj.cancelAll();
+        case ChangeNotifier _:
+          obj.dispose();
+      }
+
+      if (obj is StreamSubscription) {
+        obj.cancel();
+      }
     } catch (_) {}
   }
 }

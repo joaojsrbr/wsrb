@@ -39,7 +39,7 @@ class AppConfigEntity extends OtherEntity with AppConfigEntityMappable {
     orderBy: OrderBy.LATEST,
     autoUpdateInterval: AutoUpdateInterval.every30Minutes,
     filterWatching: FilterWatching.dafult(),
-    source: Source.ANROLL,
+    source: Source.TOP_ANIMES,
     reverseContents: true,
   );
 

@@ -1,10 +1,5 @@
 import 'dart:async';
 
-import '../view/player_view.dart';
-import 'player_custom_overlay.dart';
-import 'scope.dart';
-import '../../shared/mixins/subscriptions.dart';
-import '../../shared/widgets/custom_popup.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animated_progress_bar/flutter_animated_progress_bar.dart';
@@ -15,6 +10,12 @@ import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions
 import 'package:media_kit_video/media_kit_video_controls/src/controls/methods/video_state.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:volume_controller/volume_controller.dart';
+
+import '../../shared/mixins/subscriptions.dart';
+import '../../shared/widgets/custom_popup.dart';
+import '../view/player_view.dart';
+import 'player_custom_overlay.dart';
+import 'scope.dart';
 
 MaterialVideoControlsThemeData _theme(BuildContext context) =>
     FullscreenInheritedWidget.maybeOf(context) == null
@@ -951,7 +952,7 @@ class _MaterialSeekBar extends StatefulWidget {
 
 class _MaterialSeekBarState extends State<_MaterialSeekBar>
     with TickerProviderStateMixin {
-  final List<StreamSubscription> subscriptions = [];
+  final List<StreamSubscription<dynamic>> subscriptions = [];
   bool tapped = false;
   late final controller = widget.state.controller;
   late bool playing = controller.player.state.playing;
@@ -965,6 +966,7 @@ class _MaterialSeekBarState extends State<_MaterialSeekBar>
   @override
   void initState() {
     super.initState();
+
     _progressBarController = ProgressBarController(vsync: this);
     widget.delta?.addListener(listener);
     if (widget.delta == null) {
@@ -1366,8 +1368,11 @@ class _BottomButtons extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (isFullscreen(context)) ...[const Expanded(child: SizedBox.shrink()), seekBar],
+
         Padding(
-          padding: isFullscreen(context) ? const EdgeInsets.only(bottom: 8) : EdgeInsets.zero,
+          padding: isFullscreen(context)
+              ? const EdgeInsets.only(bottom: 8)
+              : EdgeInsets.zero,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1540,6 +1545,8 @@ class _BottomButtons extends StatelessWidget {
                     visualDensity: const VisualDensity(vertical: -4, horizontal: -2),
                     onPressed: () {
                       toggleFullscreen(context);
+
+                      // scope.enterFullScreen(context);
                       if (scope.showAnimeSkip.value) {
                         scope.showAnimeSkip.value = !scope.showAnimeSkip.value;
                       }

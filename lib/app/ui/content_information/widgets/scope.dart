@@ -1,10 +1,12 @@
 // ignore_for_file: constant_identifier_names
 
-import '../arguments/content_information_args.dart';
 import 'package:content_library/content_library.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+
+import '../arguments/content_information_args.dart';
+
+bool Function(Object? e1, Object? e2) _deepEq = const DeepCollectionEquality().equals;
 
 class ContentScope extends InheritedModel<ContentScopeAspect> {
   ContentScope({
@@ -15,22 +17,30 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
     required this.index,
     required this.noContent,
     required this.setListIndex,
+    required this.firstLoading,
     required this.downloadRelease,
-    required this.releases,
     required this.content,
+    required this.handleWillPop,
     required this.informationArgs,
+    required this.forceUpdate,
     required this.releasesIsLoading,
     required this.onLongPressed,
-  }) : super(child: Builder(builder: builder ?? (context) => child ?? const SizedBox.shrink()));
+  }) : super(
+         child: Builder(
+           builder: builder ?? (context) => child ?? const SizedBox.shrink(),
+         ),
+       );
 
   final ContentInformationArgs? informationArgs;
   final bool releasesIsLoading;
+  final Key forceUpdate;
+  final Future<bool> Function() handleWillPop;
   final bool isLoading;
   final bool noContent;
+  final bool firstLoading;
   final Content? content;
   final ValueSetter<int> setListIndex;
   final int index;
-  final Map<int, Releases> releases;
   final ValueSetter<Release> downloadRelease;
   final void Function(Release release) onLongPressed;
 
@@ -63,14 +73,15 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
   static bool releasesIsLoadingOf(BuildContext context) =>
       _of(context, ContentScopeAspect.RELEASESISLOADING).releasesIsLoading;
 
-  static Map<int, Releases<Release>> releasesOf(BuildContext context) =>
-      _of(context, ContentScopeAspect.ALLRELEASES).releases;
+  // static Map<int, Releases<Release>> releasesOf(BuildContext context) =>
+  //     _of(context, ContentScopeAspect.ALLRELEASES).releases;
 
   @override
   bool updateShouldNotifyDependent(
     ContentScope oldWidget,
     Set<ContentScopeAspect> dependencies,
   ) {
+    if (oldWidget.forceUpdate != forceUpdate) return true;
     for (final Object dependency in dependencies) {
       if (dependency is ContentScopeAspect) {
         switch (dependency) {
@@ -86,7 +97,7 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
               when releasesIsLoading != oldWidget.releasesIsLoading:
             return true;
           case ContentScopeAspect.ALLRELEASES
-              when !mapEquals(releases, oldWidget.releases):
+              when !_deepEq(content?.releases, oldWidget.content?.releases):
             return true;
           default:
             return true;
@@ -102,6 +113,8 @@ class ContentScope extends InheritedModel<ContentScopeAspect> {
     return isLoading != oldWidget.isLoading ||
         content != oldWidget.content ||
         noContent != oldWidget.noContent ||
+        oldWidget.forceUpdate != forceUpdate ||
+        !_deepEq(content?.releases, oldWidget.content?.releases) ||
         releasesIsLoading != oldWidget.releasesIsLoading ||
         index != oldWidget.index;
   }

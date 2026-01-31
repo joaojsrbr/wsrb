@@ -1,17 +1,3 @@
-import '../../../routes/routes.dart';
-import '../destinations/content_destination.dart';
-import '../destinations/history_destination.dart';
-import '../destinations/library_destination.dart';
-import '../widgets/home_scope.dart';
-import '../widgets/home_sliver_app_bar.dart';
-import '../widgets/library_buttons.dart';
-import '../../shared/mixins/subscriptions.dart';
-import '../../shared/widgets/custom_search_anchor.dart';
-import '../../shared/widgets/global_overlay.dart';
-import '../../shared/widgets/highlight.dart';
-import '../../shared/widgets/menu_button.dart';
-import '../../../utils/category_helper.dart';
-import '../../../utils/subordinate_library_tab_controller.dart';
 import 'package:content_library/content_library.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/foundation.dart';
@@ -19,6 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
+
+import '../../../routes/routes.dart';
+import '../../../utils/category_helper.dart';
+import '../../../utils/dual.dart';
+import '../../../utils/subordinate_library_tab_controller.dart';
+import '../../shared/mixins/subscriptions.dart';
+import '../../shared/widgets/custom_search_anchor.dart';
+import '../../shared/widgets/global_overlay.dart';
+import '../../shared/widgets/highlight.dart';
+import '../../shared/widgets/menu_button.dart';
+import '../destinations/content_destination.dart';
+import '../destinations/history_destination.dart';
+import '../destinations/library_destination.dart';
+import '../widgets/home_scope.dart';
+import '../widgets/home_sliver_app_bar.dart';
+import '../widgets/library_buttons.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -82,11 +84,11 @@ class _HomeViewState extends State<HomeView>
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         position: NotificationPosition.top,
       );
-    } else if (context.mounted && context.hasNotification() && data.completed) {
+    } else if (context.hasNotification()) {
       Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted) {
           context.closeNotification();
-          // _progressNotifier.value = 0.0;
+          _progressNotifier.value = 0.0;
         }
       });
     }
@@ -115,6 +117,9 @@ class _HomeViewState extends State<HomeView>
     if (_valueNotifierList.isEmpty) {
       context.closeNotification();
     } else if (!context.hasNotification()) {
+      final size = MediaQuery.sizeOf(context);
+      final height = size.height * .08;
+
       context.showBottomNotification(
         LibraryButtons(
           context: context,
@@ -125,9 +130,12 @@ class _HomeViewState extends State<HomeView>
             );
           },
         ),
-        height: 52,
-        showCountdown: true,
-        duration: const Duration(seconds: 20),
+        height: height,
+        // duration: const Duration(seconds: 20),
+        persistent: true,
+        showCountdown: false,
+        // duration: const Duration(minutes: 10),
+        // height: 52 + 24,
       );
     } else {
       context.maintainOverlap(duration: const Duration(seconds: 20));
@@ -185,14 +193,10 @@ class _HomeViewState extends State<HomeView>
     });
   }
 
-  ScrollPhysics get _mainPhysics {
-    if (_tabController.index == 2) return const BouncingScrollPhysics();
-    return const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
-  }
-
-  ScrollPhysics get _tabPhysics {
-    return const FixedOverscrollBouncingScrollPhysics();
-  }
+  // ScrollPhysics get _mainPhysics {
+  //   if (_tabController.index == 2) return const BouncingScrollPhysics();
+  //   return const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics());
+  // }
 
   List<Widget> _headerSliverBuilder(BuildContext context, bool innerBoxIsScrolled) {
     // final tabController = HomeScope.of(context).tabController;
@@ -236,10 +240,23 @@ class _HomeViewState extends State<HomeView>
     }
   }
 
+  static const _mainPhysics = Dual(
+    BouncingScrollPhysics(),
+    AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+  );
+
+  static const _tabPhysics = Dual(PageScrollPhysics(), PageScrollPhysics());
+
+  bool _notificationPredicate(ScrollNotification notification) {
+    return {0, 1, 2}.contains(notification.depth) &&
+        {0, 2}.contains(_tabController.index);
+  }
+
   @override
   Widget build(BuildContext context) {
     final contentRepository = context.read<ContentRepository>();
-
+    // final test = const GlobalObjectKey("a");
+    // test.currentContext;
     return CustomHighlight(
       controller: _highlightController,
       child: Scaffold(
@@ -276,13 +293,17 @@ class _HomeViewState extends State<HomeView>
                   // context.showErrorNotification(
                   //   DioException(requestOptions: RequestOptions()).toString(),
                   // );
-                  context.showErrorNotification(
-                    DioException(requestOptions: RequestOptions()).toString(),
-                  );
+                  // context.showErrorNotification(
+                  //   DioException(requestOptions: RequestOptions()).toString(),
+                  // );
                   // context.showSuccessNotification(
                   //   DioException(requestOptions: RequestOptions()).toString(),
                   // );
                   // context.showSuccessNotification("test");
+
+                  context.showSuccessNotification(
+                    "${_valueNotifierList.isEmpty ? "Item" : "Itens"} adicionados com sucesso.",
+                  );
                 },
               )
             : null,
@@ -297,16 +318,14 @@ class _HomeViewState extends State<HomeView>
             // overscrollBehavior: OverscrollBehavior.outer,
             onlyOneScrollInBody: true,
             controller: _scrollController,
-            physics: _mainPhysics,
+            physics: _mainPhysics.pick(_tabController.index == 2),
             headerSliverBuilder: _headerSliverBuilder,
             body: RefreshIndicator(
-              notificationPredicate: (notification) {
-                return {0, 1, 2}.contains(notification.depth) &&
-                    {0, 2}.contains(_tabController.index);
-              },
+              triggerMode: RefreshIndicatorTriggerMode.anywhere,
+              notificationPredicate: _notificationPredicate,
               onRefresh: _onRefresh,
               child: TabBarView(
-                physics: _tabPhysics,
+                physics: _tabPhysics.first,
                 controller: _tabController,
                 children: const [
                   ContentDestination(),
@@ -354,8 +373,9 @@ class _HomeButtonMenuSliver extends StatelessWidget {
     final CategoryController categoryController = context.watch<CategoryController>();
     final AppConfigController appConfigController = context.watch<AppConfigController>();
     // final popupKey = GlobalKey<pop.CustomPopupState>();
+
     return SliverAnimatedPaintExtent(
-      duration: const Duration(milliseconds: 350),
+      duration: const Duration(milliseconds: 200),
       child: SliverToBoxAdapter(
         child: Visibility(
           maintainState: false,
@@ -430,7 +450,7 @@ class _HomeButtonMenuSliver extends StatelessWidget {
               ],
             ),
           ),
-          child: TabBar(
+          child: TabBar.secondary(
             tabAlignment: TabAlignment.start,
             controller: subordinateLibraryTabController,
             tabs: categoryController.categories.map<Widget>((CategoryEntity entity) {

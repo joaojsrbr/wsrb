@@ -27,10 +27,7 @@ class NotificationService {
 
   bool _initialized = false;
 
-  Future<void> init({
-    void Function(NotificationResponse resp)? onTap,
-    bool permission = true,
-  }) async {
+  Future<void> init({void Function(NotificationResponse resp)? onTap}) async {
     if (_initialized) return;
 
     tz.initializeTimeZones();
@@ -46,14 +43,16 @@ class NotificationService {
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 
-    if (Platform.isAndroid && permission) {
-      final androidImpl = _plugin
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >();
-      await androidImpl?.requestNotificationsPermission();
-      // await androidImpl?.requestFullScreenIntentPermission();
-      await androidImpl?.requestExactAlarmsPermission();
+    if (Platform.isAndroid) {
+      try {
+        final androidImpl = _plugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
+        await androidImpl?.requestNotificationsPermission();
+        // await androidImpl?.requestFullScreenIntentPermission();
+        await androidImpl?.requestExactAlarmsPermission();
+      } catch (_) {}
     }
 
     _initialized = ok ?? true;

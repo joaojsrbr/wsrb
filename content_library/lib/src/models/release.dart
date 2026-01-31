@@ -18,9 +18,13 @@ abstract class Release extends Equatable
 
   String get stringID => url.toUuID;
 
-  int get numberInt => int.parse(
-    numberEpisode?.toString() ?? title.replaceAll(RegExp(r'[^0-9]'), '').trim(),
-  );
+  int get numberInt {
+    return numberEpisode ??
+        int.tryParse(
+          numberEpisode?.toString() ?? title.replaceAll(RegExp(r'[^0-9]'), '').trim(),
+        ) ??
+        -1;
+  }
 
   String getEpisodeTitle() {
     return 'Episódio $numberInt';

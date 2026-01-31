@@ -12,17 +12,13 @@ class App {
 
   static const String ANIME_SKIP_API = 'https://api.anime-skip.com/graphql';
 
-  static const String DEMON_SECT_URL = 'https://demonsect.com.br';
-
   static const String GOYABU_URL = 'https://goyabu.to';
-
-  static const String SLIME_READ_URL = 'https://slimeread.com';
 
   static const String BETTER_ANIME_URL = 'https://betteranime.net';
 
-  static const String ANROLL_URL = 'https://www.anroll.net';
+  static const String TOP_ANIMES_URL = 'https://topanimes.net';
 
-  static const String REMANGAS_URL = 'https://remangas.net';
+  static const String ANROLL_URL = 'https://www.anroll.net';
 
   static const String ANROLL_USER_URL = 'https://api-user.anroll.net';
 
@@ -65,5 +61,6 @@ class App {
 
   static const String APP_DIRECTORY = "/storage/emulated/0/Wsrb";
   static const String APP_WORK_NEW_RELEASE = 'APP_WORK_NEW_RELEASE';
+  static const String APP_WORK_DELETE_CONTENT = 'APP_WORK_DELETE_CONTENT';
   // static const String APP_CACHE_TASK_DELETE_ALL = 'TASK_CLEAR_CACHE_ALL';
 }

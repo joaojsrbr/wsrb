@@ -1,18 +1,19 @@
 import 'dart:collection';
 
-import '../../../routes/routes.dart';
-import '../../content_information/arguments/content_information_args.dart';
-import '../../player/arguments/player_args.dart';
-import '../../shared/widgets/custom_network_image_cache.dart';
-import '../../shared/widgets/global_overlay.dart';
-import '../../../utils/history_utils.dart';
-import '../../../utils/multi_comparator.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
+
+import '../../../routes/routes.dart';
+import '../../../utils/history_utils.dart';
+import '../../../utils/multi_comparator.dart';
+import '../../content_information/arguments/content_information_args.dart';
+import '../../player/arguments/player_args.dart';
+import '../../shared/widgets/custom_network_image_cache.dart';
+import '../../shared/widgets/global_overlay.dart';
 
 class HistoryDestination extends StatefulWidget {
   const HistoryDestination({super.key});
@@ -229,20 +230,24 @@ class _HistoryDestinationState extends State<HistoryDestination>
         final entry = entries[index];
         final (contents, historics) = (entry.value.contents, entry.value.historics);
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
+        final List<Widget> children = [];
+
+        children.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: StreamBuilder(
+              stream: Stream.periodic(const Duration(minutes: 1)),
+              builder: (context, _) => Text(
                 _dateLabel(entry.key),
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               ),
             ),
-
-            ...historics.map((e) => _ItemBuilder(e, contents)),
-          ],
+          ),
         );
+
+        children.addAll(historics.map((e) => _ItemBuilder(e, contents)));
+
+        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
       },
     );
   }
@@ -296,6 +301,7 @@ class _ItemBuilder extends StatelessWidget {
                     extra: ContentInformationArgs(
                       content: anime.toContent(),
                       isLibrary: false,
+                      isHistoric: true,
                     ),
                   );
                   if (result != null && context.mounted) {

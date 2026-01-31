@@ -3,20 +3,21 @@ import 'dart:convert';
 
 import 'package:content_library/content_library.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 
 class ContentInformationArgs extends Equatable {
   final Content content;
   final bool getData;
   final bool isLibrary;
+  final bool isHistoric;
   const ContentInformationArgs({
     required this.content,
     this.getData = true,
     this.isLibrary = false,
+    this.isHistoric = false,
   });
 
   @override
-  List<Object?> get props => [content, isLibrary, getData];
+  List<Object?> get props => [content, isLibrary, getData, isHistoric];
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
@@ -24,6 +25,7 @@ class ContentInformationArgs extends Equatable {
       'content': content.toJson(),
       'getData': getData,
       'isLibrary': isLibrary,
+      'isHistoric': isHistoric,
     };
   }
 
@@ -34,6 +36,7 @@ class ContentInformationArgs extends Equatable {
           : BookMapper.fromMap(map['content'] as Map<String, dynamic>),
       getData: map['getData'] as bool,
       isLibrary: map['isLibrary'] as bool,
+      isHistoric: map['isHistoric'] as bool,
     );
   }
 
@@ -41,39 +44,4 @@ class ContentInformationArgs extends Equatable {
 
   factory ContentInformationArgs.fromJson(String source) =>
       ContentInformationArgs.fromMap(json.decode(source) as Map<String, dynamic>);
-}
-
-class RestorableContentInformationArgs extends RestorableValue<ContentInformationArgs> {
-  RestorableContentInformationArgs()
-    : _defaultValue = ContentInformationArgs(content: Anime.empty());
-
-  final ContentInformationArgs _defaultValue;
-
-  @override
-  ContentInformationArgs createDefaultValue() => _defaultValue;
-
-  @override
-  void didUpdateValue(ContentInformationArgs? oldValue) {
-    if (oldValue != null && oldValue != value) {
-      notifyListeners();
-    }
-  }
-
-  @override
-  Object? toPrimitives() {
-    return value.toJson();
-  }
-
-  @override
-  ContentInformationArgs fromPrimitives(Object? data) {
-    if (data == null) return _defaultValue;
-
-    try {
-      final Map<String, dynamic> decodedData =
-          jsonDecode(data as String) as Map<String, dynamic>;
-
-      return ContentInformationArgs.fromMap(decodedData);
-    } catch (_) {}
-    return _defaultValue;
-  }
 }

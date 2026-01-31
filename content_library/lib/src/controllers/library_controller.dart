@@ -6,105 +6,29 @@ import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
 class LibraryController extends ChangeNotifier {
-  final IsarServiceImpl _isarService;
-  final Subscriptions _subscriptions = Subscriptions();
+  final LibraryService _libraryService;
+
   // late final LibraryService _libraryService;
 
-  late final InLibraryRepository _inLibraryRepository;
+  InLibraryRepository get repo => _libraryService.repo;
 
-  InLibraryRepository get repo => _inLibraryRepository;
-
-  LibraryController(this._isarService, AppConfigController appConfig) {
-    _inLibraryRepository = InLibraryRepository(appConfig);
+  LibraryController(this._libraryService) {
+    _libraryService.addNotifyListeners(notifyListeners);
     // _libraryService = LibraryService(this, hiveController);
   }
 
-  final Debouncer _updateDebouncer = Debouncer(
-    duration: const Duration(milliseconds: 100),
-  );
-
   Future<QueryBuilder<T, T, QWhere>> where<T extends ContentEntity>() async {
-    final collection = await _isarService.collection<T>();
-    return collection.where();
+    return _libraryService.where<T>();
   }
 
   Future<QueryBuilder<T, T, QFilterCondition>> filter<T extends ContentEntity>() async {
-    final collection = await _isarService.collection<T>();
-    return collection.filter();
+    return _libraryService.filter<T>();
   }
 
   @override
   void dispose() {
-    _updateDebouncer.cancel();
-    _subscriptions.cancelAll();
+    _libraryService.dispose();
     super.dispose();
-  }
-
-  void _watchAll(data) async {
-    final animeColetions = await _isarService.collection<AnimeEntity>();
-
-    final bookColetions = await _isarService.collection<BookEntity>();
-
-    // final episodeColetions = await _isarService.collection<EpisodeEntity>();
-
-    final entities = [
-      ...(await animeColetions.where().findAll()),
-      ...(await bookColetions.where().findAll()),
-    ];
-
-    await Future.wait(
-      entities
-          .map(
-            (entity) => switch (entity) {
-              AnimeEntity data => [data.episodes.load()],
-              BookEntity data => [data.chapters.load()],
-              _ => null,
-            },
-          )
-          .nonNulls
-          .flattened,
-    );
-
-    repo.updateRepository([entities]);
-    _updateDebouncer.call(notifyListeners);
-  }
-
-  Future<void> start() async {
-    final Elapsed elapsed = Elapsed()..start();
-
-    final animeColetions = await _isarService.collection<AnimeEntity>();
-
-    final bookColetions = await _isarService.collection<BookEntity>();
-
-    final episodeColetions = await _isarService.collection<EpisodeEntity>();
-
-    final entities = [
-      ...(await animeColetions.where().findAll()),
-      ...(await bookColetions.where().findAll()),
-    ];
-
-    await Future.wait(
-      entities
-          .map(
-            (entity) => switch (entity) {
-              AnimeEntity data => [data.episodes.load()],
-              BookEntity data => [data.chapters.load()],
-              _ => null,
-            },
-          )
-          .nonNulls
-          .flattened,
-    );
-
-    repo.updateRepository([entities]);
-
-    _subscriptions.addAll([
-      animeColetions.watchLazy().listen(_watchAll),
-      bookColetions.watchLazy().listen(_watchAll),
-      episodeColetions.watchLazy().listen(_watchAll),
-    ]);
-
-    elapsed.printAndStop(runtimeType.toString());
   }
 
   Future<Result<(bool, List<int>?)>> add({required ContentEntity contentEntity}) async {
@@ -113,11 +37,11 @@ class LibraryController extends ChangeNotifier {
 
     // _setDateTime(contentEntity);
 
-    final result = await _isarService.add(entity: contentEntity);
+    final result = await _libraryService.add(contentEntity: contentEntity);
 
     result.fold(
       onSuccess: (data) {
-        if (data.$2 != null) ids.add(data.$2!);
+        if (data.$2 != null) ids.addAll(data.$2!);
         if (data.$1) isSucess = data.$1;
       },
     );
@@ -130,7 +54,7 @@ class LibraryController extends ChangeNotifier {
   }) async {
     final entities = contentEntities.nonNulls.cast<ContentEntity>().toList();
 
-    return await _isarService.addAll(entities: entities);
+    return await _libraryService.addAll(contentEntities: entities);
   }
 
   Future<Result<(bool, List<int>?)>> removeAll({
@@ -141,7 +65,7 @@ class LibraryController extends ChangeNotifier {
 
     final entities = contentEntities?.nonNulls.cast<ContentEntity>().toList();
 
-    final result = await _isarService.removeAll(entities: entities);
+    final result = await _libraryService.removeAll(contentEntities: entities);
 
     result.fold(
       onSuccess: (data) {
@@ -156,11 +80,11 @@ class LibraryController extends ChangeNotifier {
   Future<Result<(bool, List<int>?)>> remove({
     required ContentEntity contentEntity,
   }) async {
-    final result = await _isarService.remove(entity: contentEntity);
+    final result = await _libraryService.remove(contentEntity: contentEntity);
 
     final record = result.fold<(bool, List<int>?)>(
       onSuccess: (data) {
-        return (data.$1, [if (data.$2 != null) data.$2!]);
+        return (data.$1, [if (data.$2 != null) ...data.$2!]);
       },
     );
 

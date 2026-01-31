@@ -1,9 +1,10 @@
-import '../widgets/content_indicator_build.dart';
-import '../../shared/widgets/highlight.dart';
-import '../../shared/widgets/item_content.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../../shared/widgets/highlight.dart';
+import '../../shared/widgets/item_content.dart';
+import '../widgets/content_indicator_build.dart';
 
 class ContentDestination extends StatefulWidget {
   const ContentDestination({super.key});
@@ -38,7 +39,7 @@ class _ContentDestinationState extends State<ContentDestination>
     return LoadingMoreList(
       ListConfig<Content>(
         shrinkWrap: true,
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         padding: const EdgeInsets.symmetric(vertical: 6),
         indicatorBuilder: contentIndicatorBuilder,
         itemBuilder: _itemBuilder,

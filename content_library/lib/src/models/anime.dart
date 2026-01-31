@@ -25,6 +25,8 @@ class Anime extends Content with AnimeMappable {
     this.generateID,
     this.isDublado = false,
     super.sinopse,
+    super.repoStatus,
+    super.isMovie,
     super.genres,
   }) : super(releases);
 
@@ -40,6 +42,18 @@ class Anime extends Content with AnimeMappable {
 
   @override
   EpisodeReleases get releases => super.releases as EpisodeReleases;
+
+  @override
+  List<Object?> get props => [
+    imageUrl,
+    stringID,
+    url,
+    sinopse,
+    releases,
+    genres,
+    title,
+    source,
+  ];
 
   final String? generateID;
   final String? buildId;
@@ -60,11 +74,12 @@ class Anime extends Content with AnimeMappable {
     DateTime? updatedAt,
     bool isFavorite = false,
   }) {
-    final content = AnimeEntity(
+    final entity = AnimeEntity(
       totalOfPages: totalOfPages,
       anilistMedia: anilistMedia,
       totalOfEpisodes: totalOfEpisodes,
       source: source,
+      isMovie: isMovie,
       animeID: animeID,
       stringID: stringID,
       slugSerie: slugSerie,
@@ -75,6 +90,7 @@ class Anime extends Content with AnimeMappable {
       title: title,
       isFavorite: isFavorite,
       extraLarge: extraLarge,
+
       mediumImage: mediumImage,
       largeImage: largeImage,
       createdAt: createdAt,
@@ -84,11 +100,11 @@ class Anime extends Content with AnimeMappable {
           : originalImage,
     );
 
-    content.episodes.addAll(releases.map((episode) => episode.toEntity(anime: this)));
+    entity.episodes.addAll(releases.map((episode) => episode.toEntity(anime: this)));
 
-    // content.animeSkip.value = animeSkip?.toEntity;
+    // entity.animeSkip.value = animeSkip?.toEntity;
 
-    return content;
+    return entity;
   }
 
   @override

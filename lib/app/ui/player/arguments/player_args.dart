@@ -8,15 +8,16 @@ class PlayerArgs with EquatableMixin {
   final Anime anime;
   final Duration? startPossition;
   final List<Data> data;
+  final Data? firstSelectData;
   final bool forceEnterFullScreen;
 
   PlayerArgs({
     this.data = const [],
     this.forceEnterFullScreen = false,
-
     required this.episode,
     required this.anime,
     this.startPossition,
+    this.firstSelectData,
   }) {
     anime.releases.sort();
   }
@@ -31,7 +32,6 @@ class PlayerArgs with EquatableMixin {
   }) {
     return PlayerArgs(
       forceEnterFullScreen: forceEnterFullScreen ?? this.forceEnterFullScreen,
-
       data: data ?? this.data,
       episode: episode ?? this.episode,
       anime: anime ?? this.anime,

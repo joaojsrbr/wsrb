@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 /// Utiliza [PageRouteBuilder] para criar uma rota personalizada com animações
 /// de transição SharedAxis. É recomendado usar [screenBuilder] para construir
 /// o widget da tela de forma lazy, melhorando a performance.
-class SharedAxisTransitionPageWrapper extends Page {
+class SharedAxisTransitionPageWrapper<T> extends Page<T> {
   const SharedAxisTransitionPageWrapper({
     this.screen,
     this.screenBuilder,
     this.transitionDuration,
     this.reverseTransitionDuration,
-    required ValueKey transitionKey,
+    required ValueKey<dynamic> transitionKey,
     super.restorationId,
     super.arguments,
   }) : super(key: transitionKey);
@@ -36,7 +36,7 @@ class SharedAxisTransitionPageWrapper extends Page {
   final Duration? reverseTransitionDuration;
 
   @override
-  Route createRoute(BuildContext context) {
+  Route<T> createRoute(BuildContext context) {
     return PageRouteBuilder(
       settings: this,
       fullscreenDialog: true,
@@ -44,22 +44,22 @@ class SharedAxisTransitionPageWrapper extends Page {
       reverseTransitionDuration:
           reverseTransitionDuration ?? _defaultReverseTransitionDuration,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final curvedAnimation = CurvedAnimation(
-          parent: animation,
-          curve: Curves.fastOutSlowIn,
-          reverseCurve: Curves.easeOutQuad,
-        );
-        final curvedSecondary = CurvedAnimation(
-          parent: secondaryAnimation,
-          curve: Curves.fastOutSlowIn,
-          reverseCurve: Curves.easeInQuad,
-        );
+        // final curvedAnimation = CurvedAnimation(
+        //   parent: animation,
+        //   curve: Curves.fastOutSlowIn,
+        //   reverseCurve: Curves.easeOutQuad,
+        // );
+        // final curvedSecondary = CurvedAnimation(
+        //   parent: secondaryAnimation,
+        //   curve: Curves.fastOutSlowIn,
+        //   reverseCurve: Curves.easeInQuad,
+        // );
 
         return SharedAxisTransition(
-          animation: curvedAnimation,
-          secondaryAnimation: curvedSecondary,
+          fillColor: Theme.of(context).canvasColor,
+          animation: animation,
+          secondaryAnimation: secondaryAnimation,
           transitionType: SharedAxisTransitionType.scaled,
-          fillColor: Theme.of(context).scaffoldBackgroundColor,
           child: child,
         );
       },

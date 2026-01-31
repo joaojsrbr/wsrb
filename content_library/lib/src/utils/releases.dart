@@ -39,8 +39,13 @@ class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
   List<Releases<T>> partition(int size) {
     return quiver
         .partition(toList(), size)
-        .map((chunk) => Releases.fromList(chunk))
-        .toList();
+        .map(
+          (chunk) => chunk is List<Episode>
+              ? EpisodeReleases.from(chunk as List<Episode>)
+              : ChapterReleases.from(chunk as List<Chapter>),
+        )
+        .toList()
+        .cast();
   }
 
   @override
@@ -82,7 +87,14 @@ class Releases<T extends Release> extends ListBase<T> with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => toList();
+  List<Object?> get props => _array.toList();
+
+  @override
+  void addAll(Iterable<T> iterable) {
+    _array
+      ..clear()
+      ..addAll(iterable);
+  }
 }
 
 /// Releases específicos de episódios.

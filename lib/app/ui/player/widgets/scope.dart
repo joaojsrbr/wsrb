@@ -1,11 +1,12 @@
 // ignore_for_file: constant_identifier_names, library_private_types_in_public_api
 
 import 'package:android_pip/actions/pip_action.dart';
-import '../arguments/player_args.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+
+import '../arguments/player_args.dart';
 
 enum _PlayerScopeAspect {
   Player_PLAYERARGS,

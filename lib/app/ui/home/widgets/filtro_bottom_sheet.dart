@@ -1,7 +1,8 @@
-import '../../shared/widgets/filtro_dias_com_infinito.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../../shared/widgets/filtro_dias_com_infinito.dart';
 
 class FiltroBottomSheet extends StatefulWidget {
   const FiltroBottomSheet({super.key});
@@ -76,38 +77,44 @@ class FiltroBottomSheetState extends State<FiltroBottomSheet> {
     final titleStyle = Theme.of(context).textTheme.titleMedium;
     final shape = context.findAncestorWidgetOfExactType<Material>()?.shape;
 
-    return DefaultTabController(
-      length: 2,
-      child: Material(
-        shape: shape,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Flexible(
-                child: TabBar(
+    return DraggableScrollableSheet(
+      initialChildSize: 0.65,
+      minChildSize: 0.3,
+      maxChildSize: .95,
+      expand: false,
+      builder: (context, controller) {
+        return DefaultTabController(
+          length: 2,
+          child: Material(
+            shape: shape,
+            child: Column(
+              children: [
+                TabBar(
                   tabs: [
                     Tab(height: 52, child: Text("Geral", style: titleStyle)),
                     Tab(height: 52, child: Text("test", style: titleStyle)),
                   ],
                 ),
-              ),
-              const Expanded(
-                child: TabBarView(
-                  children: [
-                    _Page1(),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                    ),
-                  ],
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      // Passe o controller se quiser sincronizar com o sheet
+                      SingleChildScrollView(
+                        controller: controller,
+                        child: const _Page1(),
+                      ),
+                      SingleChildScrollView(
+                        controller: controller,
+                        child: const Column(),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -271,7 +278,10 @@ class _FiltereChipSelectorState<T> extends State<FilterChipSelector<T>> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(widget.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(
+            widget.title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,

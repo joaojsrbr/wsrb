@@ -1,11 +1,12 @@
-import '../../content_information/widgets/scope.dart';
-import 'custom_network_image_cache.dart';
 import 'package:border_progress_indicator/border_progress_indicator.dart';
 import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:media_kit_video/media_kit_video_controls/src/controls/extensions/duration.dart';
 import 'package:provider/provider.dart';
+
+import '../../content_information/widgets/scope.dart';
+import 'custom_network_image_cache.dart';
 
 class ReleaseContent<T extends Release> extends StatelessWidget {
   const ReleaseContent({
@@ -51,7 +52,7 @@ class ReleaseContent<T extends Release> extends StatelessWidget {
       hoverColor: splashColor,
       focusColor: splashColor,
       splashColor: splashColor,
-      subtitle: _ReleaseSubtitle(release: release),
+      subtitle: ReleaseSubtitle(release: release),
       horizontalTitleGap: 20,
       contentPadding: const EdgeInsets.only(left: 16.0, right: 8),
       trailing: trailing ?? ReleaseTrailing(content: content, release: release),
@@ -91,10 +92,11 @@ class ReleaseContent<T extends Release> extends StatelessWidget {
   }
 }
 
-class _ReleaseSubtitle extends StatelessWidget {
-  const _ReleaseSubtitle({required this.release});
+class ReleaseSubtitle extends StatelessWidget {
+  const ReleaseSubtitle({super.key, required this.release, this.enableIcon = true});
 
   final Release release;
+  final bool enableIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -104,8 +106,7 @@ class _ReleaseSubtitle extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(MdiIcons.clock, size: 16),
-            const SizedBox(width: 4),
+            if (enableIcon) ...[Icon(MdiIcons.clock, size: 16), const SizedBox(width: 4)],
             Flexible(
               child: Text(
                 data.formatRegistrationData(),
@@ -136,6 +137,9 @@ class ReleaseLeading extends StatelessWidget {
     this.blendMode = BlendMode.srcOver,
     this.memCacheWidth,
     this.memCacheHeight,
+    this.showDurationLabel = true,
+    this.watchProgressIndicatorEnable = true,
+    this.downloadProgressIndicatorEnable = true,
   });
   final Shader Function(Rect)? shaderCallback;
   final BlendMode blendMode;
@@ -146,6 +150,9 @@ class ReleaseLeading extends StatelessWidget {
   final double height;
   final int? memCacheWidth;
   final int? memCacheHeight;
+  final bool showDurationLabel;
+  final bool watchProgressIndicatorEnable;
+  final bool downloadProgressIndicatorEnable;
 
   @override
   Widget build(BuildContext context) {
@@ -171,7 +178,10 @@ class ReleaseLeading extends StatelessWidget {
     final selectedIDs = valueNotifierList;
     final isSelected = selectedIDs.contains(release.stringID);
     final progressColor = isWatched ? colorScheme.primary : colorScheme.secondary;
-    final showDurationLabel = episodeCurrentDuration != Duration.zero && watchPercent > 0;
+    final showDurationLabel =
+        episodeCurrentDuration != Duration.zero &&
+        watchPercent > 0 &&
+        this.showDurationLabel;
 
     // --- 2. Construção do Widget ---
     return AnimatedContainer(
@@ -210,17 +220,19 @@ class ReleaseLeading extends StatelessWidget {
             ),
 
             // Camada 2: Indicador de Progresso de Visualização
-            BuildWatchProgressIndicator(
-              watchPercent: watchPercent,
-              progressColor: progressColor,
-              isSelected: isSelected,
-            ),
+            if (watchProgressIndicatorEnable)
+              BuildWatchProgressIndicator(
+                watchPercent: watchPercent,
+                progressColor: progressColor,
+                isSelected: isSelected,
+              ),
 
             // Camada 3: Indicador de Progresso de Download (sobrepõe o de visualização se ativo)
-            BuildDownloadProgressIndicator(
-              downloadInfo: downloadInfo,
-              progressColor: progressColor,
-            ),
+            if (downloadProgressIndicatorEnable)
+              BuildDownloadProgressIndicator(
+                downloadInfo: downloadInfo,
+                progressColor: progressColor,
+              ),
 
             Material(
               color: Colors.transparent,

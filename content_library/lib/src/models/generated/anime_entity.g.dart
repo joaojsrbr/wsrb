@@ -53,69 +53,74 @@ const AnimeEntitySchema = CollectionSchema(
       name: r'isFavorite',
       type: IsarType.bool,
     ),
-    r'largeImage': PropertySchema(
+    r'isMovie': PropertySchema(
       id: 7,
+      name: r'isMovie',
+      type: IsarType.bool,
+    ),
+    r'largeImage': PropertySchema(
+      id: 8,
       name: r'largeImage',
       type: IsarType.string,
     ),
     r'mediumImage': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'mediumImage',
       type: IsarType.string,
     ),
     r'newReleases': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'newReleases',
       type: IsarType.stringList,
     ),
     r'originalImage': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'originalImage',
       type: IsarType.string,
     ),
     r'sinopse': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'sinopse',
       type: IsarType.string,
     ),
     r'slugSerie': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'slugSerie',
       type: IsarType.string,
     ),
     r'source': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'source',
       type: IsarType.byte,
       enumMap: _AnimeEntitysourceEnumValueMap,
     ),
     r'stringID': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'stringID',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'title',
       type: IsarType.string,
     ),
     r'totalOfEpisodes': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'totalOfEpisodes',
       type: IsarType.long,
     ),
     r'totalOfPages': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'totalOfPages',
       type: IsarType.long,
     ),
     r'updatedAt': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'url': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'url',
       type: IsarType.string,
     )
@@ -257,19 +262,20 @@ void _animeEntitySerialize(
   writer.writeString(offsets[4], object.generateID);
   writer.writeBool(offsets[5], object.isDublado);
   writer.writeBool(offsets[6], object.isFavorite);
-  writer.writeString(offsets[7], object.largeImage);
-  writer.writeString(offsets[8], object.mediumImage);
-  writer.writeStringList(offsets[9], object.newReleases);
-  writer.writeString(offsets[10], object.originalImage);
-  writer.writeString(offsets[11], object.sinopse);
-  writer.writeString(offsets[12], object.slugSerie);
-  writer.writeByte(offsets[13], object.source.index);
-  writer.writeString(offsets[14], object.stringID);
-  writer.writeString(offsets[15], object.title);
-  writer.writeLong(offsets[16], object.totalOfEpisodes);
-  writer.writeLong(offsets[17], object.totalOfPages);
-  writer.writeDateTime(offsets[18], object.updatedAt);
-  writer.writeString(offsets[19], object.url);
+  writer.writeBool(offsets[7], object.isMovie);
+  writer.writeString(offsets[8], object.largeImage);
+  writer.writeString(offsets[9], object.mediumImage);
+  writer.writeStringList(offsets[10], object.newReleases);
+  writer.writeString(offsets[11], object.originalImage);
+  writer.writeString(offsets[12], object.sinopse);
+  writer.writeString(offsets[13], object.slugSerie);
+  writer.writeByte(offsets[14], object.source.index);
+  writer.writeString(offsets[15], object.stringID);
+  writer.writeString(offsets[16], object.title);
+  writer.writeLong(offsets[17], object.totalOfEpisodes);
+  writer.writeLong(offsets[18], object.totalOfPages);
+  writer.writeDateTime(offsets[19], object.updatedAt);
+  writer.writeString(offsets[20], object.url);
 }
 
 AnimeEntity _animeEntityDeserialize(
@@ -291,21 +297,22 @@ AnimeEntity _animeEntityDeserialize(
     id: id,
     isDublado: reader.readBoolOrNull(offsets[5]) ?? false,
     isFavorite: reader.readBoolOrNull(offsets[6]) ?? false,
-    largeImage: reader.readStringOrNull(offsets[7]),
-    mediumImage: reader.readStringOrNull(offsets[8]),
-    newReleases: reader.readStringList(offsets[9]) ?? const [],
-    originalImage: reader.readString(offsets[10]),
-    sinopse: reader.readStringOrNull(offsets[11]),
-    slugSerie: reader.readStringOrNull(offsets[12]),
+    isMovie: reader.readBoolOrNull(offsets[7]) ?? false,
+    largeImage: reader.readStringOrNull(offsets[8]),
+    mediumImage: reader.readStringOrNull(offsets[9]),
+    newReleases: reader.readStringList(offsets[10]) ?? const [],
+    originalImage: reader.readString(offsets[11]),
+    sinopse: reader.readStringOrNull(offsets[12]),
+    slugSerie: reader.readStringOrNull(offsets[13]),
     source:
-        _AnimeEntitysourceValueEnumMap[reader.readByteOrNull(offsets[13])] ??
+        _AnimeEntitysourceValueEnumMap[reader.readByteOrNull(offsets[14])] ??
             Source.ANROLL,
-    stringID: reader.readString(offsets[14]),
-    title: reader.readString(offsets[15]),
-    totalOfEpisodes: reader.readLongOrNull(offsets[16]),
-    totalOfPages: reader.readLongOrNull(offsets[17]),
-    updatedAt: reader.readDateTimeOrNull(offsets[18]),
-    url: reader.readString(offsets[19]),
+    stringID: reader.readString(offsets[15]),
+    title: reader.readString(offsets[16]),
+    totalOfEpisodes: reader.readLongOrNull(offsets[17]),
+    totalOfPages: reader.readLongOrNull(offsets[18]),
+    updatedAt: reader.readDateTimeOrNull(offsets[19]),
+    url: reader.readString(offsets[20]),
   );
   return object;
 }
@@ -336,31 +343,33 @@ P _animeEntityDeserializeProp<P>(
     case 6:
       return (reader.readBoolOrNull(offset) ?? false) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 8:
       return (reader.readStringOrNull(offset)) as P;
     case 9:
-      return (reader.readStringList(offset) ?? const []) as P;
-    case 10:
-      return (reader.readString(offset)) as P;
-    case 11:
       return (reader.readStringOrNull(offset)) as P;
+    case 10:
+      return (reader.readStringList(offset) ?? const []) as P;
+    case 11:
+      return (reader.readString(offset)) as P;
     case 12:
       return (reader.readStringOrNull(offset)) as P;
     case 13:
+      return (reader.readStringOrNull(offset)) as P;
+    case 14:
       return (_AnimeEntitysourceValueEnumMap[reader.readByteOrNull(offset)] ??
           Source.ANROLL) as P;
-    case 14:
-      return (reader.readString(offset)) as P;
     case 15:
       return (reader.readString(offset)) as P;
     case 16:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 17:
       return (reader.readLongOrNull(offset)) as P;
     case 18:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 19:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 20:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -369,21 +378,15 @@ P _animeEntityDeserializeProp<P>(
 
 const _AnimeEntitysourceEnumValueMap = {
   'ANROLL': 0,
-  'NEOX_SCANS': 1,
-  'DEMON_SECT': 2,
-  'GOYABU': 3,
-  'BETTER_ANIME': 4,
-  'REMANGAS': 5,
-  'SLIMEREAD': 6,
+  'GOYABU': 1,
+  'TOP_ANIMES': 2,
+  'BETTER_ANIME': 3,
 };
 const _AnimeEntitysourceValueEnumMap = {
   0: Source.ANROLL,
-  1: Source.NEOX_SCANS,
-  2: Source.DEMON_SECT,
-  3: Source.GOYABU,
-  4: Source.BETTER_ANIME,
-  5: Source.REMANGAS,
-  6: Source.SLIMEREAD,
+  1: Source.GOYABU,
+  2: Source.TOP_ANIMES,
+  3: Source.BETTER_ANIME,
 };
 
 Id _animeEntityGetId(AnimeEntity object) {
@@ -1201,6 +1204,16 @@ extension AnimeEntityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isFavorite',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterFilterCondition> isMovieEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isMovie',
         value: value,
       ));
     });
@@ -3004,6 +3017,18 @@ extension AnimeEntityQuerySortBy
     });
   }
 
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> sortByIsMovie() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isMovie', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> sortByIsMovieDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isMovie', Sort.desc);
+    });
+  }
+
   QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> sortByLargeImage() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'largeImage', Sort.asc);
@@ -3238,6 +3263,18 @@ extension AnimeEntityQuerySortThenBy
     });
   }
 
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> thenByIsMovie() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isMovie', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> thenByIsMovieDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isMovie', Sort.desc);
+    });
+  }
+
   QueryBuilder<AnimeEntity, AnimeEntity, QAfterSortBy> thenByLargeImage() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'largeImage', Sort.asc);
@@ -3427,6 +3464,12 @@ extension AnimeEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<AnimeEntity, AnimeEntity, QDistinct> distinctByIsMovie() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isMovie');
+    });
+  }
+
   QueryBuilder<AnimeEntity, AnimeEntity, QDistinct> distinctByLargeImage(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -3564,6 +3607,12 @@ extension AnimeEntityQueryProperty
   QueryBuilder<AnimeEntity, bool, QQueryOperations> isFavoriteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isFavorite');
+    });
+  }
+
+  QueryBuilder<AnimeEntity, bool, QQueryOperations> isMovieProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isMovie');
     });
   }
 

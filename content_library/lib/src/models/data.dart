@@ -14,6 +14,15 @@ sealed class Data extends Equatable {
     required String videoContent,
     Map<String, String>? httpHeaders,
   }) = VideoData;
+
+  String getTitle() {
+    return switch (this) {
+      ImageData() => "",
+      VideoData data => data.quality.getTitle(),
+      FileVideoData() => "Local",
+      TextData() => "",
+    };
+  }
 }
 
 class ImageData extends Data {
@@ -46,6 +55,15 @@ enum Quality {
 
   final String label;
   const Quality(this.label);
+
+  String getTitle() {
+    return switch (this) {
+      Quality.Q480P => label,
+      Quality.Q720P => label,
+      Quality.Q1080P => label,
+      Quality.NONE => "Online",
+    };
+  }
 }
 
 class FileVideoData extends Data {

@@ -17,6 +17,8 @@ analyzer:
     strict-raw-types: true
 
   errors:
+    inference_failure_on_function_invocation: false
+    inference_failure_on_instance_creation: false
     unrelated_type_equality_checks: error
     avoid_print: error
     unnecessary_nullable_for_final_variable_declarations: warning
@@ -35,6 +37,6 @@ linter:
     prefer_const_literals_to_create_immutables: true
     unnecessary_late: true
     use_super_parameters: true
-    sort_pub_dependencies: true
+    sort_pub_dependencies: false
     cancel_subscriptions: true
     close_sinks: true

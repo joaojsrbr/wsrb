@@ -20,7 +20,11 @@ class BetterAnimeSource extends RSource {
       final episodes = _extractEpisodes(parser, content.isDublado);
       updatedAnime.releases.addOrUpdateMany(episodes, (a, b) => b.isEqualStringID(a));
 
-      return Result.success(updatedAnime);
+      return Result.success(
+        updatedAnime.copyWith(
+          repoStatus: content.repoStatus.copyWith(getData: true, getReleases: true),
+        ),
+      );
     } on DioException catch (error) {
       return Result.failure(error);
     } on GetDataException catch (error) {
@@ -38,7 +42,9 @@ class BetterAnimeSource extends RSource {
       final episodes = _extractEpisodes(parser, content.isDublado);
 
       content.releases.addOrUpdateMany(episodes, (a, b) => a.isEqualStringID(b));
-      return Result.success(content);
+      return Result.success(
+        content.copyWith(repoStatus: content.repoStatus.copyWith(getReleases: true)),
+      );
     } on DioException catch (error) {
       return Result.failure(error);
     } on GetDataException catch (error) {
@@ -71,7 +77,7 @@ class BetterAnimeSource extends RSource {
       }
 
       final videos = await _fetchAllQualities(qualities, token, release.url);
-      final result = videos.whereType<VideoData>().toList();
+      final result = videos.reversed.whereType<VideoData>().toList();
       await contentRepository.session.closePage();
       return result.isNotEmpty
           ? Result.success(result)
@@ -121,6 +127,7 @@ class BetterAnimeSource extends RSource {
           title: animeTitle,
           isDublado: isDublado,
           originalImage: "https:$originalImage",
+          repoStatus: RepositoryStatus(loadData: true),
           releases: EpisodeReleases()
             ..add(
               Episode(
@@ -197,6 +204,7 @@ class BetterAnimeSource extends RSource {
           isDublado: isDublado,
           originalImage: "https:$originalImage",
           releases: EpisodeReleases(),
+          repoStatus: RepositoryStatus(searchContents: true),
           source: Source.BETTER_ANIME,
         );
 
@@ -307,6 +315,7 @@ class BetterAnimeSource extends RSource {
     return Future.wait(
       qualityMap.entries.map((entry) async {
         try {
+          contentRepository._dio.addInterceptor(_BetterAnimeInterceptor());
           final response = await contentRepository._dio.post(
             'https://betteranime.net/changePlayer',
             data: {'_token': token, 'info': entry.value},
@@ -318,7 +327,7 @@ class BetterAnimeSource extends RSource {
               'user-agent': 'Mozilla/5.0',
             },
           );
-
+          contentRepository._dio.removeInterceptor(_BetterAnimeInterceptor);
           final videoUrl = await _extractVideoUrl(response.data["frameLink"]);
           if (videoUrl == null) return null;
 
@@ -340,11 +349,13 @@ class BetterAnimeSource extends RSource {
 
   Future<String?> _extractVideoUrl(String? url) async {
     if (url == null) return null;
+    contentRepository._dio.addInterceptor(_BetterAnimeInterceptor());
 
     final response = await contentRepository._dio.get(
       url,
       headers: {'referer': url, 'user-agent': 'Mozilla/5.0'},
     );
+    contentRepository._dio.removeInterceptor(_BetterAnimeInterceptor);
 
     final doc = parse(response.data);
     final scripts = doc.getElementsByTagName('script');
