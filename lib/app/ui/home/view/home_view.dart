@@ -393,7 +393,7 @@ class _HomeButtonMenuSliver extends StatelessWidget {
               children: [
                 DropdownMenuButton<Source>(
                   onSelected: appConfigController.setSource,
-                  items: Source.list,
+                  items: Source.values,
                   enableSecondChild: tabController.index != 0,
                   itemEnabled: (data) => !(appConfigController.config.source == data),
                   child: Text(

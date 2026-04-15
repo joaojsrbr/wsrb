@@ -62,23 +62,18 @@ class HomeRoute extends GoRouteData {
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      SharedAxisTransitionPageWrapper(
-        transitionKey: state.pageKey,
-        arguments: state.extra,
-        screen: const HomeView(),
-      );
+      SharedAxisTransitionPageWrapper(transitionKey: state.pageKey, arguments: state.extra, screen: const HomeView());
 }
 
 class ContentInfoRoute extends GoRouteData {
   const ContentInfoRoute();
 
   @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      SharedAxisTransitionPageWrapper(
-        transitionKey: state.pageKey,
-        arguments: state.extra,
-        screen: const RefContentInformationView(),
-      );
+  Page<void> buildPage(BuildContext context, GoRouterState state) => SharedAxisTransitionPageWrapper(
+    transitionKey: state.pageKey,
+    arguments: state.extra,
+    screen: const RefContentInformationView(),
+  );
 }
 
 class PlayerRoute extends GoRouteData {
@@ -86,47 +81,40 @@ class PlayerRoute extends GoRouteData {
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      SharedAxisTransitionPageWrapper(
-        transitionKey: state.pageKey,
-        arguments: state.extra,
-        screen: const PlayerView(),
-      );
+      SharedAxisTransitionPageWrapper(transitionKey: state.pageKey, arguments: state.extra, screen: const PlayerView());
 }
 
 class SettingsRoute extends GoRouteData {
   const SettingsRoute();
 
   @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      SharedAxisTransitionPageWrapper(
-        transitionKey: state.pageKey,
-        arguments: state.extra,
-        screen: const SettingsView(),
-      );
+  Page<void> buildPage(BuildContext context, GoRouterState state) => SharedAxisTransitionPageWrapper(
+    transitionKey: state.pageKey,
+    arguments: state.extra,
+    screen: const SettingsView(),
+  );
 }
 
 class DownloadRoute extends GoRouteData {
   const DownloadRoute();
 
   @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      SharedAxisTransitionPageWrapper(
-        transitionKey: state.pageKey,
-        arguments: state.extra,
-        screen: const DownloadView(),
-      );
+  Page<void> buildPage(BuildContext context, GoRouterState state) => SharedAxisTransitionPageWrapper(
+    transitionKey: state.pageKey,
+    arguments: state.extra,
+    screen: const DownloadView(),
+  );
 }
 
 class WebviewRoute extends GoRouteData {
   const WebviewRoute();
 
   @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      SharedAxisTransitionPageWrapper(
-        transitionKey: state.pageKey,
-        arguments: state.extra,
-        screen: const WebViewPage(),
-      );
+  Page<void> buildPage(BuildContext context, GoRouterState state) => SharedAxisTransitionPageWrapper(
+    transitionKey: state.pageKey,
+    arguments: state.extra,
+    screen: const WebViewPage(),
+  );
 }
 
 /// ============================
@@ -176,10 +164,7 @@ extension GoRouterEnumNavigation on BuildContext {
     Map<String, String> params = const {},
     Map<String, dynamic> queryParams = const {},
   }) {
-    final uri = Uri(
-      pathSegments: route._pathSegments,
-      queryParameters: queryParams.isEmpty ? null : queryParams,
-    );
+    final uri = Uri(pathSegments: route._pathSegments, queryParameters: queryParams.isEmpty ? null : queryParams);
     go(uri.toString(), extra: extra);
   }
 
@@ -189,10 +174,7 @@ extension GoRouterEnumNavigation on BuildContext {
     Map<String, String> params = const {},
     Map<String, dynamic> queryParams = const {},
   }) {
-    final uri = Uri(
-      pathSegments: route._pathSegments,
-      queryParameters: queryParams.isEmpty ? null : queryParams,
-    );
+    final uri = Uri(pathSegments: route._pathSegments, queryParameters: queryParams.isEmpty ? null : queryParams);
     // Navigator.of(this).pushNamed();
     // customLog(uri.toString());
 
@@ -205,10 +187,7 @@ extension GoRouterEnumNavigation on BuildContext {
     Map<String, String> params = const {},
     Map<String, dynamic> queryParams = const {},
   }) {
-    final uri = Uri(
-      pathSegments: route._pathSegments,
-      queryParameters: queryParams.isEmpty ? null : queryParams,
-    );
+    final uri = Uri(pathSegments: route._pathSegments, queryParameters: queryParams.isEmpty ? null : queryParams);
     replace(uri.toString(), extra: extra);
   }
 
@@ -218,10 +197,7 @@ extension GoRouterEnumNavigation on BuildContext {
     Map<String, String> params = const {},
     Map<String, dynamic> queryParams = const {},
   }) {
-    final uri = Uri(
-      pathSegments: route._pathSegments,
-      queryParameters: queryParams.isEmpty ? null : queryParams,
-    );
+    final uri = Uri(pathSegments: route._pathSegments, queryParameters: queryParams.isEmpty ? null : queryParams);
     final go = GoRouter.of(this);
     return go.pushReplacement(uri.toString(), extra: extra);
   }

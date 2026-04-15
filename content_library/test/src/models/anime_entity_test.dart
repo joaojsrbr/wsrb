@@ -8,7 +8,7 @@ void main() {
       url: "",
       title: "",
       releases: EpisodeReleases()..add(episode),
-      source: Source.ANROLL,
+      source: Source.TOP_ANIMES,
       originalImage: "",
     );
 

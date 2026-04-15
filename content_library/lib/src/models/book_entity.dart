@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 // ignore_for_file: must_be_immutable
 
-import 'package:content_library/src/constants/source.dart';
+import 'package:content_library/content_library.dart';
 import 'package:content_library/src/models/anilist_media.dart';
 import 'package:content_library/src/models/book.dart';
 import 'package:content_library/src/models/chapter_entity.dart';

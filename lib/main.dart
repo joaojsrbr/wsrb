@@ -67,9 +67,9 @@ void main(List<String> arguments) async {
   // elapsed.printAndStop('MAIN');
 
   final ContentRepository contentRepository = ContentRepository(
-    appConfigService,
-    dioClient,
-    animeSkipRepository,
+    appConfigService: appConfigService,
+    dio: dioClient,
+    animeSkipRepository: animeSkipRepository,
   );
 
   await contentRepository.session.init();

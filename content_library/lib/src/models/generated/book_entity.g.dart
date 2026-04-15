@@ -260,7 +260,7 @@ BookEntity _bookEntityDeserialize(
     originalImage: reader.readString(offsets[9]),
     sinopse: reader.readStringOrNull(offsets[10]),
     source: _BookEntitysourceValueEnumMap[reader.readByteOrNull(offsets[11])] ??
-        Source.ANROLL,
+        Source.GOYABU,
     stringID: reader.readString(offsets[12]),
     title: reader.readString(offsets[13]),
     updatedAt: reader.readDateTimeOrNull(offsets[14]),
@@ -304,7 +304,7 @@ P _bookEntityDeserializeProp<P>(
       return (reader.readStringOrNull(offset)) as P;
     case 11:
       return (_BookEntitysourceValueEnumMap[reader.readByteOrNull(offset)] ??
-          Source.ANROLL) as P;
+          Source.GOYABU) as P;
     case 12:
       return (reader.readString(offset)) as P;
     case 13:
@@ -319,16 +319,12 @@ P _bookEntityDeserializeProp<P>(
 }
 
 const _BookEntitysourceEnumValueMap = {
-  'ANROLL': 0,
-  'GOYABU': 1,
-  'TOP_ANIMES': 2,
-  'BETTER_ANIME': 3,
+  'GOYABU': 0,
+  'TOP_ANIMES': 1,
 };
 const _BookEntitysourceValueEnumMap = {
-  0: Source.ANROLL,
-  1: Source.GOYABU,
-  2: Source.TOP_ANIMES,
-  3: Source.BETTER_ANIME,
+  0: Source.GOYABU,
+  1: Source.TOP_ANIMES,
 };
 
 Id _bookEntityGetId(BookEntity object) {

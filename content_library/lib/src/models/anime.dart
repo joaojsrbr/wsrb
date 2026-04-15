@@ -35,7 +35,7 @@ class Anime extends Content with AnimeMappable {
       url: "",
       title: "",
       releases: EpisodeReleases(),
-      source: Source.ANROLL,
+      source: Source.TOP_ANIMES,
       originalImage: "",
     );
   }

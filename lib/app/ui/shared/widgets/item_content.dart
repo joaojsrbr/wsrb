@@ -79,7 +79,7 @@ class ContentTile extends StatelessWidget {
     final appConfig = context.watch<AppConfigController>();
 
     final isSelected = valueNotifierList.contains(content.stringID);
-    final headers = {...App.HEADERS, 'Referer': '${appConfig.config.source.baseURL}/'};
+    final headers = {...App.HEADERS, 'Referer': '${appConfig.config.source.baseUrl}/'};
     final release = content.releases.lastOrNull;
 
     if (isListTile) {

@@ -114,7 +114,7 @@ AppConfigEntity _appConfigEntityDeserialize(
     reverseContents: reader.readBool(offsets[3]),
     source:
         _AppConfigEntitysourceValueEnumMap[reader.readByteOrNull(offsets[4])] ??
-            Source.ANROLL,
+            Source.GOYABU,
   );
   return object;
 }
@@ -146,7 +146,7 @@ P _appConfigEntityDeserializeProp<P>(
     case 4:
       return (_AppConfigEntitysourceValueEnumMap[
               reader.readByteOrNull(offset)] ??
-          Source.ANROLL) as P;
+          Source.GOYABU) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -191,16 +191,12 @@ const _AppConfigEntityorderByValueEnumMap = {
   6: OrderBy.NEW_MANGA,
 };
 const _AppConfigEntitysourceEnumValueMap = {
-  'ANROLL': 0,
-  'GOYABU': 1,
-  'TOP_ANIMES': 2,
-  'BETTER_ANIME': 3,
+  'GOYABU': 0,
+  'TOP_ANIMES': 1,
 };
 const _AppConfigEntitysourceValueEnumMap = {
-  0: Source.ANROLL,
-  1: Source.GOYABU,
-  2: Source.TOP_ANIMES,
-  3: Source.BETTER_ANIME,
+  0: Source.GOYABU,
+  1: Source.TOP_ANIMES,
 };
 
 Id _appConfigEntityGetId(AppConfigEntity object) {
@@ -830,7 +826,7 @@ FilterWatching _filterWatchingDeserialize(
     filterSources: reader
             .readByteList(offsets[1])
             ?.map((e) =>
-                _FilterWatchingfilterSourcesValueEnumMap[e] ?? Source.ANROLL)
+                _FilterWatchingfilterSourcesValueEnumMap[e] ?? Source.GOYABU)
             .toList() ??
         const [],
     genresFilter: reader.readStringList(offsets[2]) ?? const [],
@@ -853,7 +849,7 @@ P _filterWatchingDeserializeProp<P>(
       return (reader
               .readByteList(offset)
               ?.map((e) =>
-                  _FilterWatchingfilterSourcesValueEnumMap[e] ?? Source.ANROLL)
+                  _FilterWatchingfilterSourcesValueEnumMap[e] ?? Source.GOYABU)
               .toList() ??
           const []) as P;
     case 2:
@@ -868,16 +864,12 @@ P _filterWatchingDeserializeProp<P>(
 }
 
 const _FilterWatchingfilterSourcesEnumValueMap = {
-  'ANROLL': 0,
-  'GOYABU': 1,
-  'TOP_ANIMES': 2,
-  'BETTER_ANIME': 3,
+  'GOYABU': 0,
+  'TOP_ANIMES': 1,
 };
 const _FilterWatchingfilterSourcesValueEnumMap = {
-  0: Source.ANROLL,
-  1: Source.GOYABU,
-  2: Source.TOP_ANIMES,
-  3: Source.BETTER_ANIME,
+  0: Source.GOYABU,
+  1: Source.TOP_ANIMES,
 };
 
 extension FilterWatchingQueryFilter

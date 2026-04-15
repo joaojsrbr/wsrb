@@ -86,7 +86,7 @@ class Episode extends Release with EpisodeMappable {
           ? DateTime.parse(map["data_registro"])
           : null,
       isDublado: anime.isDublado,
-      url: '${Source.ANROLL.baseURL}/e/$episodeGenerateID',
+      url: '${Source.TOP_ANIMES.baseUrl}/e/$episodeGenerateID',
       generateID: episodeGenerateID,
       pageNumber: pageNumber,
       title: titleEpisode.contains('Episódio') ? 'N/A' : titleEpisode,

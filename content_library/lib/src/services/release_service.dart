@@ -76,9 +76,9 @@ class ReleaseUpdateService {
 
     final historicController = HistoricController(historicService);
     final contentRepository = ContentRepository(
-      appConfigService,
-      dioClient,
-      animeSkipRepository,
+      appConfigService: appConfigService,
+      dio: dioClient,
+      animeSkipRepository: animeSkipRepository,
     );
 
     await isarServiceImpl.startDatabase(inspector: false);

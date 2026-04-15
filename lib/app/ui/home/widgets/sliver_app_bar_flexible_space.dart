@@ -53,20 +53,17 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
     _isLoading.setIsloading(sources, true);
 
     _filter.value = _filter.value.copyWith(query: query, page: page);
-    await _contentRepository.searchContents(
-      _filter.value,
-      searchSources: sources,
-      onSuccess: (value) {
-        final (source, result) = value;
-        final contents = result.contents;
-        setStateIfMounted(() {
-          if (contents.isNotEmpty) _contents[source] = result;
-          _isLoading.setIsloading([source], false);
+    final results = await _contentRepository.searchContents(_filter.value, sources);
 
-          _contents.removeWhere((key, values) => values.contents.isEmpty);
-        });
-      },
-    );
+    setStateIfMounted(() {
+      for (final entry in results.entries) {
+        if (entry.value.contents.isNotEmpty) {
+          _contents[entry.key] = entry.value;
+        }
+      }
+      _contents.removeWhere((key, values) => values.contents.isEmpty);
+      _isLoading.setIsloading(sources, false);
+    });
     _searchController.unFocusKeyBoard();
   }
 
@@ -90,7 +87,7 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
           }
           if (value.length >= 2) {
             _searchDebouncer.cancel();
-            _searchContents(value, sources: Source.list);
+            _searchContents(value, sources: Source.values);
           }
         },
         dividerWidget: StatefulBuilder(
@@ -226,7 +223,7 @@ class _SliverAppBarFlexibleSpaceState extends State<SliverAppBarFlexibleSpace> {
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           ),
-          value: value,
+          initialValue: value,
           items: items
               .map((e) => DropdownMenuItem<T>(value: e, child: Text(e.toString())))
               .toList(),

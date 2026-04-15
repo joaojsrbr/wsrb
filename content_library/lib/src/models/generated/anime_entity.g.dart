@@ -306,7 +306,7 @@ AnimeEntity _animeEntityDeserialize(
     slugSerie: reader.readStringOrNull(offsets[13]),
     source:
         _AnimeEntitysourceValueEnumMap[reader.readByteOrNull(offsets[14])] ??
-            Source.ANROLL,
+            Source.GOYABU,
     stringID: reader.readString(offsets[15]),
     title: reader.readString(offsets[16]),
     totalOfEpisodes: reader.readLongOrNull(offsets[17]),
@@ -358,7 +358,7 @@ P _animeEntityDeserializeProp<P>(
       return (reader.readStringOrNull(offset)) as P;
     case 14:
       return (_AnimeEntitysourceValueEnumMap[reader.readByteOrNull(offset)] ??
-          Source.ANROLL) as P;
+          Source.GOYABU) as P;
     case 15:
       return (reader.readString(offset)) as P;
     case 16:
@@ -377,16 +377,12 @@ P _animeEntityDeserializeProp<P>(
 }
 
 const _AnimeEntitysourceEnumValueMap = {
-  'ANROLL': 0,
-  'GOYABU': 1,
-  'TOP_ANIMES': 2,
-  'BETTER_ANIME': 3,
+  'GOYABU': 0,
+  'TOP_ANIMES': 1,
 };
 const _AnimeEntitysourceValueEnumMap = {
-  0: Source.ANROLL,
-  1: Source.GOYABU,
-  2: Source.TOP_ANIMES,
-  3: Source.BETTER_ANIME,
+  0: Source.GOYABU,
+  1: Source.TOP_ANIMES,
 };
 
 Id _animeEntityGetId(AnimeEntity object) {

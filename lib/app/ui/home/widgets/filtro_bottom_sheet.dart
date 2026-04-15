@@ -184,7 +184,7 @@ class _Page1 extends StatelessWidget {
                 ),
                 title: "Fonte",
                 initialSelected: newFilterWatching.filterSources,
-                filter: Source.list,
+                filter: Source.values,
                 filterToString: (data) => data.label,
                 onChanged: handleSourceFilterChipSelector,
               ),
