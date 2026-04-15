@@ -1,7 +1,18 @@
+// ignore_for_file: non_constant_identifier_names
+
 part of '../content_repository.dart';
 
+@SourceEntry(
+  label: "Top Animes",
+  id: 'top_animes',
+  baseUrl: App.TOP_ANIMES_URL,
+  contentType: ContentType.ANIME,
+)
 class TopAnimesSource extends RSource {
-  TopAnimesSource(super.contentRepository, {super.initialIndex = 0});
+  TopAnimesSource(super.context, {super.initialIndex = 0});
+
+  @override
+  Source get source => Source.TOP_ANIMES;
 
   @override
   Future<Result<List<Data>>> getContent(Release release) async {
@@ -86,7 +97,7 @@ class TopAnimesSource extends RSource {
     try {
       if (content is! Anime) throw AnimeGetDataException();
 
-      final Response response = await contentRepository._dio.get(
+      final Response response = await context.dio.get(
         content.url,
         responseType: ResponseType.plain,
       );
@@ -141,7 +152,7 @@ class TopAnimesSource extends RSource {
   Future<Result<Content>> getReleases(Content content, int page) async {
     try {
       if (content is! Anime) throw AnimeGetDataException();
-      final Response response = await contentRepository._dio.get(
+      final Response response = await context.dio.get(
         content.url,
         responseType: ResponseType.plain,
       );
@@ -179,17 +190,17 @@ class TopAnimesSource extends RSource {
   @override
   Future<bool> loadData() async {
     try {
-      if (contentRepository.addMore) {
-        contentRepository.totalPerPage.add(contentRepository.length);
-        contentRepository.index++;
+      if (context.getAddMore()) {
+        context.addTotalPerPage(context.getLength());
+        context.setIndex(context.getIndex() + 1);
       }
 
-      final index = contentRepository.index;
-      final baseURL = source.baseURL;
+      final index = context.getIndex();
+      final baseURL = source.baseUrl;
 
       final parts = [baseURL, "episodio/page", index];
 
-      final Response response = await contentRepository._dio.get(
+      final Response response = await context.dio.get(
         parts.join("/"),
         responseType: ResponseType.plain,
       );
@@ -204,7 +215,10 @@ class TopAnimesSource extends RSource {
         final episodeTitle = article.queryText(".data a h3");
         final animeTitle = article.queryText(".data a span");
         final episodeUrl = article.queryAttr("a", "href");
-        final originalImage = article.queryAttr(".poster picture img", "data-src") ?? "";
+        final originalImage =
+            article.queryAttr(".poster picture img", "data-src") ??
+            article.queryAttr(".poster picture img", "src") ??
+            "";
         final animeURL = episodeUrl!
             .replaceAll(RegExp(r"""-\bepisodio-\d+/?$"""), "")
             .replaceAll("episodio", "animes");
@@ -231,24 +245,24 @@ class TopAnimesSource extends RSource {
           source: source,
         );
 
-        contentRepository.addIfNoContains(anime);
+        context.addIfNoContains(anime);
       }
 
-      contentRepository
+      context.state
         ..isSuccess = true
-        .._hasMore = true
+        ..hasMore = true
         ..fullScreenError = null;
 
       return true;
     } on AnrollGetIdException catch (error) {
-      contentRepository.fullScreenError = error;
-      contentRepository.isSuccess = false;
-      contentRepository._hasMore = false;
+      context.state.fullScreenError = error;
+      context.state.isSuccess = false;
+      context.state.hasMore = false;
       return Future.value(false);
     } on DioException catch (error) {
-      contentRepository.fullScreenError = error;
-      contentRepository.isSuccess = false;
-      contentRepository._hasMore = false;
+      context.state.fullScreenError = error;
+      context.state.isSuccess = false;
+      context.state.hasMore = false;
       return Future.value(false);
     }
   }
@@ -260,5 +274,72 @@ class TopAnimesSource extends RSource {
   }
 
   @override
-  Source get source => Source.TOP_ANIMES;
+  Future<Result<List<Filter>>> getFilters() async {
+    const filters = [
+      Filter(
+        id: 'genre',
+        label: 'Gênero',
+        type: FilterType.genre,
+        options: [
+          FilterOption(id: 'action', label: 'Ação'),
+          FilterOption(id: 'adventure', label: 'Aventura'),
+          FilterOption(id: 'animation', label: 'Animação'),
+          FilterOption(id: 'comedy', label: 'Comédia'),
+          FilterOption(id: 'drama', label: 'Drama'),
+          FilterOption(id: 'fantasy', label: 'Fantasia'),
+          FilterOption(id: 'horror', label: 'Terror'),
+          FilterOption(id: 'kids', label: 'Kids'),
+          FilterOption(id: 'music', label: 'Música'),
+          FilterOption(id: 'mystery', label: 'Mistério'),
+          FilterOption(id: 'romance', label: 'Romance'),
+          FilterOption(id: 'sci-fi', label: 'Ficção Científica'),
+          FilterOption(id: 'thriller', label: 'Thriller'),
+        ],
+      ),
+      Filter(
+        id: 'year',
+        label: 'Ano',
+        type: FilterType.year,
+      ),
+      Filter(
+        id: 'status',
+        label: 'Status',
+        type: FilterType.status,
+        options: [
+          FilterOption(id: 'ongoing', label: 'Em andamento'),
+          FilterOption(id: 'completed', label: 'Concluído'),
+        ],
+      ),
+      Filter(
+        id: 'type',
+        label: 'Tipo',
+        type: FilterType.type,
+        options: [
+          FilterOption(id: 'anime', label: 'Anime'),
+          FilterOption(id: 'ova', label: 'OVA'),
+          FilterOption(id: 'movie', label: 'Filme'),
+          FilterOption(id: 'special', label: 'Especial'),
+          FilterOption(id: 'tv', label: 'TV'),
+        ],
+      ),
+      Filter(
+        id: 'order',
+        label: 'Ordenar por',
+        type: FilterType.order,
+        options: [
+          FilterOption(id: 'date', label: 'Data'),
+          FilterOption(id: 'title', label: 'Título'),
+          FilterOption(id: 'views', label: 'Visualizações'),
+          FilterOption(id: 'rating', label: 'Avaliação'),
+        ],
+      ),
+      Filter(
+        id: 'letter',
+        label: 'Letra',
+        type: FilterType.letter,
+      ),
+    ];
+
+    return Result.success(filters);
+  }
 }

@@ -7,10 +7,9 @@ import 'package:content_library/content_library.dart';
 
 abstract class RSource {
   final int initialIndex;
+  final SourceContext context;
 
-  final ContentRepository contentRepository;
-
-  const RSource(this.contentRepository, {required this.initialIndex});
+  const RSource(this.context, {required this.initialIndex});
 
   Source get source;
 
@@ -23,6 +22,27 @@ abstract class RSource {
   Future<Result<Content>> getReleases(Content content, int page);
 
   Future<Result<SearchResult>> search(SearchFilter filter);
+
+  Future<Result<List<Filter>>> getFilters() => Future.value(Result.success([]));
+}
+
+class Filter {
+  final String id;
+  final String label;
+  final FilterType type;
+  final List<FilterOption>? options;
+
+  const Filter({required this.id, required this.label, required this.type, this.options});
+}
+
+enum FilterType { genre, year, status, type, order, letter, search }
+
+class FilterOption {
+  final String id;
+  final String label;
+  final String? value;
+
+  const FilterOption({required this.id, required this.label, this.value});
 }
 
 class SearchResult {

@@ -2,8 +2,14 @@
 
 part of '../content_repository.dart';
 
+@SourceEntry(
+  label: 'Goyabu',
+  id: 'goyabu',
+  baseUrl: App.GOYABU_URL,
+  contentType: ContentType.ANIME,
+)
 class GoyabuSource extends RSource {
-  GoyabuSource(super.contentRepository, {super.initialIndex = 0});
+  GoyabuSource(super.context, {super.initialIndex = 0});
 
   @override
   Source get source => Source.GOYABU;
@@ -19,11 +25,9 @@ class GoyabuSource extends RSource {
     try {
       final List<Data> data = [];
 
-      final parser = await contentRepository.session.fetchDocument(
+      final parser = await context.session.fetchDocument(
         Uri.parse(release.url),
-        captchaHandler: HumanCaptchaHandler(
-          context: contentRepository.anchor.currentContext,
-        ),
+        captchaHandler: HumanCaptchaHandler(context: context.anchor.currentContext),
       );
 
       final fremeSrc = parser.queryAttr(".metaframe.rptss", "src");
@@ -34,7 +38,7 @@ class GoyabuSource extends RSource {
           WaitAction(const Duration(seconds: 2)),
           ExecuteScriptAction("VIDEO_CONFIG;", resultKey: "VIDEO_CONFIG"),
         ];
-        final result = await contentRepository.session.executeActionsAndScrape(
+        final result = await context.session.executeActionsAndScrape(
           url: Uri.parse(fremeSrc),
           actions: acoes,
         );
@@ -46,7 +50,7 @@ class GoyabuSource extends RSource {
         data.add(videoData);
       }
 
-      await contentRepository.session.closePage();
+      await context.session.closePage();
 
       return Result.success(data);
     } on DioException catch (error) {
@@ -61,7 +65,7 @@ class GoyabuSource extends RSource {
     final EpisodeReleases cacheRelease = EpisodeReleases();
 
     try {
-      final Response response = await contentRepository._dio.get(
+      final Response response = await context.dio.get(
         content.url,
         responseType: ResponseType.plain,
       );
@@ -116,7 +120,7 @@ class GoyabuSource extends RSource {
     try {
       if (content is! Anime) throw AnimeGetDataException();
 
-      final Response<dynamic> responseAnimeURL = await contentRepository._dio.get(
+      final Response<dynamic> responseAnimeURL = await context.dio.get(
         content.releases.first.url,
         responseType: ResponseType.plain,
       );
@@ -130,7 +134,7 @@ class GoyabuSource extends RSource {
 
       final Anime anime = content.copyWith(releases: EpisodeReleases(), url: animeURL);
 
-      final Response response = await contentRepository._dio.get(
+      final Response response = await context.dio.get(
         anime.url,
         responseType: ResponseType.plain,
       );
@@ -142,8 +146,6 @@ class GoyabuSource extends RSource {
       if (pageElement == null) {
         throw AnimeGetDataException(message: 'Element[rwl] == null');
       }
-
-      // final ScrapingUtil scrapingUtil = ScrapingUtil(pageElement);
 
       final parser = HtmlParser.fromElement(pageElement);
 
@@ -160,9 +162,6 @@ class GoyabuSource extends RSource {
       final List<HtmlParser> episodesElements = parser.queryAll('.listaEps li');
 
       for (final HtmlParser parser in episodesElements) {
-        // final ScrapingUtil episodeScrapingUtil = ScrapingUtil(episodeElement);
-        // final parser = HtmlParser.fromElement(parser);
-
         final int? numberEpisode = int.tryParse(
           parser
                   .queryText('a')
@@ -205,14 +204,16 @@ class GoyabuSource extends RSource {
 
   @override
   Future<bool> loadData() async {
-    if (contentRepository.addMore) contentRepository.index++;
+    if (context.getAddMore()) {
+      context.setIndex(context.getIndex() + 1);
+    }
 
     try {
-      final String subKey = "lancamentos/page/${contentRepository.index}";
+      final String subKey = "lancamentos/page/${context.getIndex()}";
 
-      final String mainURL = '${source.baseURL}/$subKey';
+      final String mainURL = '${source.baseUrl}/$subKey';
 
-      final Response response = await contentRepository._dio.get(
+      final Response response = await context.dio.get(
         mainURL,
         responseType: ResponseType.plain,
       );
@@ -227,12 +228,6 @@ class GoyabuSource extends RSource {
 
       for (final Element element in elements) {
         final parser = HtmlParser.fromElement(element);
-        // final ScrapingUtil scrapingUtil = ScrapingUtil(element);
-
-        // final String episodeURL = scrapingUtil.getURL(selector: '.boxEP a');
-        // final String thumbnail = scrapingUtil.getImage(selector: 'img');
-        // final String episodeTitle = scrapingUtil.getByText(selector: '.titleEP');
-        // final String animeTitle = scrapingUtil.getByText(selector: '.title');
 
         final episodeURL = parser.queryAttr(".boxEP a", "href");
         final thumbnail = parser.getImage('img');
@@ -258,28 +253,96 @@ class GoyabuSource extends RSource {
           originalImage: thumbnail,
           repoStatus: RepositoryStatus(loadData: true),
         );
-        contentRepository.addIfNoContains(anime);
+        context.addIfNoContains(anime);
       }
 
-      contentRepository.isSuccess = true;
-      contentRepository._hasMore = true;
-      contentRepository.fullScreenError = null;
-      return Future.value(true);
+      context.state.onSuccess();
+      return true;
     } on DioException catch (error) {
-      contentRepository.fullScreenError = error;
-      contentRepository.isSuccess = false;
-      contentRepository._hasMore = false;
-      return Future.value(false);
+      context.state.onError(error);
+      return false;
     } on GoyabuLoadDataException catch (error) {
-      contentRepository.fullScreenError = error;
-      contentRepository.isSuccess = false;
-      contentRepository._hasMore = false;
-      return Future.value(false);
+      context.state.onError(error);
+      return false;
     }
   }
 
   @override
   Future<Result<SearchResult>> search(SearchFilter filter) async {
     return Result.failure(Exception('UnimplementedError'));
+  }
+
+  @override
+  Future<Result<List<Filter>>> getFilters() async {
+    const filters = [
+      Filter(
+        id: 'genre',
+        label: 'Gênero',
+        type: FilterType.genre,
+        options: [
+          FilterOption(id: 'action', label: 'Ação'),
+          FilterOption(id: 'adventure', label: 'Aventura'),
+          FilterOption(id: 'comedy', label: 'Comédia'),
+          FilterOption(id: 'drama', label: 'Drama'),
+          FilterOption(id: 'ecchi', label: 'Ecchi'),
+          FilterOption(id: 'fantasy', label: 'Fantasia'),
+          FilterOption(id: 'horror', label: 'Terror'),
+          FilterOption(id: 'magic', label: 'Magia'),
+          FilterOption(id: 'mecha', label: 'Mecha'),
+          FilterOption(id: 'music', label: 'Música'),
+          FilterOption(id: 'mystery', label: 'Mistério'),
+          FilterOption(id: 'psychological', label: 'Psicológico'),
+          FilterOption(id: 'romance', label: 'Romance'),
+          FilterOption(id: 'sci-fi', label: 'Ficção Científica'),
+          FilterOption(id: 'slice-of-life', label: 'Slice of Life'),
+          FilterOption(id: 'sports', label: 'Esportes'),
+          FilterOption(id: 'supernatural', label: 'Sobrenatural'),
+          FilterOption(id: 'thriller', label: 'Thriller'),
+        ],
+      ),
+      Filter(
+        id: 'year',
+        label: 'Ano',
+        type: FilterType.year,
+      ),
+      Filter(
+        id: 'status',
+        label: 'Status',
+        type: FilterType.status,
+        options: [
+          FilterOption(id: 'ongoing', label: 'Em andamento'),
+          FilterOption(id: 'completed', label: 'Concluído'),
+          FilterOption(id: 'upcoming', label: 'Em breve'),
+        ],
+      ),
+      Filter(
+        id: 'type',
+        label: 'Tipo',
+        type: FilterType.type,
+        options: [
+          FilterOption(id: 'anime', label: 'Anime'),
+          FilterOption(id: 'ova', label: 'OVA'),
+          FilterOption(id: 'movie', label: 'Filme'),
+          FilterOption(id: 'special', label: 'Especial'),
+        ],
+      ),
+      Filter(
+        id: 'order',
+        label: 'Ordenar por',
+        type: FilterType.order,
+        options: [
+          FilterOption(id: 'date', label: 'Data'),
+          FilterOption(id: 'name', label: 'Nome'),
+          FilterOption(id: 'views', label: 'Visualizações'),
+        ],
+      ),
+      Filter(
+        id: 'letter',
+        label: 'Letra',
+        type: FilterType.letter,
+      ),
+    ];
+
+    return Result.success(filters);
   }
 }
