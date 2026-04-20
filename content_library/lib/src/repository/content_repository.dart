@@ -20,24 +20,22 @@ part 'source/top_animes_source.dart';
 class SourceRegistry {
   final Map<Source, RSource Function(SourceContext)> _factories = {};
   final SourceContext context;
-  late final Map<Source, RSource> _instances;
+  Map<Source, RSource>? _instances;
 
-  SourceRegistry(this.context) {
-    _instances = {
-      for (final entry in _factories.entries) entry.key: entry.value(context),
-    };
-  }
+  SourceRegistry(this.context);
 
   void register(Source type, RSource Function(SourceContext) factory) {
     _factories[type] = factory;
-    _instances[type] = factory(context);
   }
 
-  RSource get(Source type) => _instances[type]!;
+  RSource get(Source type) {
+    final instances = _instances ??= {};
+    return instances.putIfAbsent(type, () => _factories[type]!(context));
+  }
 
-  bool contains(Source type) => _instances.containsKey(type);
+  bool contains(Source type) => _factories.containsKey(type);
 
-  Iterable<Source> get availableSources => _instances.keys;
+  Iterable<Source> get availableSources => _factories.keys;
 }
 
 sealed class ContentRepository extends LoadingMoreBase<Content> {
@@ -46,23 +44,14 @@ sealed class ContentRepository extends LoadingMoreBase<Content> {
   late final SourceContext _sourceContext;
   late final ScrapingSession session;
 
-  final Set<int> totalPerPage = {};
   final List<StreamSubscription> _subscriptions = [];
   final ui.GlobalKey anchor = ui.GlobalKey();
 
-  int index = 0;
-  bool isSuccess = false;
-  bool _hasMore = true;
-  bool forceRefresh = false;
   Exception? fullScreenError;
 
   final AppConfigService? _appConfigService;
   final Source? initialSource;
   final AnimeSkipRepository _animeSkipRepository;
-
-  AppConfigEntity get config => _appConfigService?.repo.config ?? AppConfigEntity.init();
-
-  SourceState get _sourceState => _sourceContext.state;
 
   ContentRepository._internal({
     required AppConfigService? appConfigService,
@@ -73,37 +62,30 @@ sealed class ContentRepository extends LoadingMoreBase<Content> {
        _dio = dio,
        _animeSkipRepository = animeSkipRepository {
     _sourceContext = SourceContext(
-      session: session = ScrapingSession(
-        userAgent:
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        debugLogging: false,
-      ),
+      session: session = ScrapingSession(userAgent: App.USER_AGENT),
       dio: dio,
       state: SourceState(),
+      getLength: () => length,
       config: config,
       animeSkipRepository: animeSkipRepository,
       getAnilistMedia: getAnilistMedia,
-      addTotalPerPage: (page) => totalPerPage.add(page),
-      getTotalPerPage: () => totalPerPage,
       anchor: anchor,
-      getLength: () => length,
-      getIndex: () => index,
-      setIndex: (i) => index = i,
-      getAddMore: () => addMore,
-      addIfNoContains: (content, [test]) => addIfNoContains(content, test),
-      where: (test) => where(test),
+      addIfNoContains: addIfNoContains,
+      where: where,
     );
 
     _sourceRegistry = SourceRegistry(_sourceContext);
 
     for (var source in Source.values) {
-      _sourceRegistry.register(source, (ctx) => source.create(ctx));
+      _sourceRegistry.register(source, source.create);
     }
 
     _maybeAddBetterAnimeInterceptor(appConfigService);
 
     if (appConfigService != null) {
-      _subscriptions.add(appConfigService.updateRepository.listen(_onConfigUpdate));
+      _subscriptions.add(
+        appConfigService.updateRepository.listen(_onConfigUpdate),
+      );
     }
   }
 
@@ -111,6 +93,15 @@ sealed class ContentRepository extends LoadingMoreBase<Content> {
     ui.WidgetsBinding.instance.addPostFrameCallback((_) => refresh(true));
     _maybeAddBetterAnimeInterceptor(controller);
   }
+
+  int? get totalPerPage => _sourceState.totalPerPage[currentSource.source];
+
+  AppConfigEntity get config =>
+      _appConfigService?.repo.config ?? AppConfigEntity.init();
+
+  SourceState get _sourceState => _sourceContext.state;
+
+  int get index => _sourceState.index;
 
   void _maybeAddBetterAnimeInterceptor(AppConfigService? controller) {
     return;
@@ -120,8 +111,6 @@ sealed class ContentRepository extends LoadingMoreBase<Content> {
     //   _dio.removeBetterAnimeInterceptor();
     // }
   }
-
-  bool get addMore => isSuccess && _hasMore;
 
   factory ContentRepository({
     required AppConfigService? appConfigService,
@@ -137,14 +126,15 @@ sealed class ContentRepository extends LoadingMoreBase<Content> {
 
   RSource source(Source type) => _sourceRegistry.get(type);
 
-  RSource get currentSource =>
-      source(_appConfigService?.repo.config.source ?? initialSource ?? Source.TOP_ANIMES);
+  RSource get currentSource => source(
+    _appConfigService?.repo.config.source ?? initialSource ?? Source.TOP_ANIMES,
+  );
 
-  Future<Result<Content>> getData(Content content);
+  Future<Result<Content>> getDetails(Content content);
 
-  Future<Result<List<Data>>> getContent(Release release, Content content);
+  Future<Result<List<Data>>> getReleaseData(Release release, Content content);
 
-  Future<Result<Content>> getReleases(Content content, int page);
+  Future<Result<Content>> getContentReleases(Content content, int page);
 
   Future<Map<Source, SearchResult>> searchContents(
     SearchFilter filter,
@@ -195,7 +185,9 @@ sealed class ContentRepository extends LoadingMoreBase<Content> {
       ..withTagsName()
       ..withCharcters(AnilistSubquery(page: 1, perPage: 5, charSelect))
       ..withStaff(AnilistSubquery(page: 1, perPage: 5, staffSelect))
-      ..queryType(content is Anime ? AnilistMediaType.ANIME : AnilistMediaType.MANGA)
+      ..queryType(
+        content is Anime ? AnilistMediaType.ANIME : AnilistMediaType.MANGA,
+      )
       ..querySearch(title);
 
     try {
@@ -209,19 +201,14 @@ sealed class ContentRepository extends LoadingMoreBase<Content> {
 
   @override
   Future<bool> refresh([bool notifyStateChanged = false]) async {
-    index = currentSource.initialIndex;
-    isSuccess = false;
-    _hasMore = false;
-    forceRefresh = notifyStateChanged;
     _sourceState.reset();
+    _sourceState.index = currentSource.initialIndex;
+    _sourceState.forceRefresh = notifyStateChanged;
     final result = await super.refresh(notifyStateChanged);
-    forceRefresh = false;
-    totalPerPage.clear();
+    _sourceState.forceRefresh = false;
+
     return result;
   }
-
-  @override
-  bool get hasMore => _hasMore || forceRefresh;
 
   @override
   void dispose() {
@@ -254,11 +241,11 @@ class _ContentRepositoryImp extends ContentRepository {
 
   @override
   Future<bool> loadData([bool isLoadMoreAction = false]) async =>
-      await currentSource.loadData();
+      await currentSource.loadPage();
 
   @override
-  Future<Result<Content>> getData(Content content) async {
-    final result = await source(content.source).getData(content);
+  Future<Result<Content>> getDetails(Content content) async {
+    final result = await source(content.source).getDetails(content);
 
     if (result case Success<Content> data when data.data is Anime) {
       Anime anime = data.data as Anime;
@@ -267,7 +254,9 @@ class _ContentRepositoryImp extends ContentRepository {
 
       if (anilistMedia != null) {
         anime = anime.copyWith(
-          anilistMedia: AniListMedia.fromJson(AnilistMedia.toJson(anilistMedia)),
+          anilistMedia: AniListMedia.fromJson(
+            AnilistMedia.toJson(anilistMedia),
+          ),
           largeImage: anilistMedia.coverImage?.large,
           mediumImage: anilistMedia.coverImage?.medium,
         );
@@ -280,12 +269,14 @@ class _ContentRepositoryImp extends ContentRepository {
   }
 
   @override
-  Future<Result<List<Data>>> getContent(Release release, Content content) async =>
-      await source(content.source).getContent(release);
+  Future<Result<List<Data>>> getReleaseData(
+    Release release,
+    Content content,
+  ) async => await source(content.source).getReleaseData(release);
 
   @override
-  Future<Result<Content>> getReleases(Content content, int page) async =>
-      await source(content.source).getReleases(content, page);
+  Future<Result<Content>> getContentReleases(Content content, int page) async =>
+      await source(content.source).getContentReleases(content, page);
 
   @override
   Future<Map<Source, SearchResult>> searchContents(
@@ -322,7 +313,10 @@ class _BetterAnimeInterceptor extends Interceptor {
   _BetterAnimeInterceptor();
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     final cookies = await CookieUtil.getCookies(WebUri(options.uri.toString()));
     options.headers["Cookie"] = CookieUtil.stringifyCookies(cookies);
     return super.onRequest(options, handler);
@@ -331,5 +325,6 @@ class _BetterAnimeInterceptor extends Interceptor {
 
 extension DioClientBetterAnimeExtension on DioClient {
   void addBetterAnimeInterceptor() => addInterceptor(_BetterAnimeInterceptor());
-  void removeBetterAnimeInterceptor() => removeInterceptor(_BetterAnimeInterceptor);
+  void removeBetterAnimeInterceptor() =>
+      removeInterceptor(_BetterAnimeInterceptor);
 }

@@ -6,11 +6,18 @@ class SourceState {
   bool isSuccess = false;
   bool hasMore = true;
   Exception? fullScreenError;
+  int index = 0;
+  Map<Source, int> totalPerPage = {};
+  bool forceRefresh = false;
+
+  bool get addMore => isSuccess && hasMore;
 
   void reset() {
     isSuccess = false;
     hasMore = false;
     fullScreenError = null;
+    index = 0;
+    totalPerPage.clear();
   }
 
   void onSuccess() {
@@ -34,13 +41,9 @@ class SourceContext {
   final AppConfigEntity config;
   final AnimeSkipRepository animeSkipRepository;
   final Future<AnilistMedia?> Function(Content content) getAnilistMedia;
-  final void Function(int page) addTotalPerPage;
-  final Set<int> Function() getTotalPerPage;
   final ui.GlobalKey anchor;
-  final int Function() getIndex;
-  final void Function(int) setIndex;
-  final bool Function() getAddMore;
   final int Function() getLength;
+
   final void Function(Content, [bool Function(Content)?]) addIfNoContains;
   final Iterable<Content> Function(bool Function(Content)) where;
 
@@ -51,14 +54,9 @@ class SourceContext {
     required this.config,
     required this.animeSkipRepository,
     required this.getAnilistMedia,
-    required this.addTotalPerPage,
-    required this.getTotalPerPage,
     required this.anchor,
-    required this.getIndex,
-    required this.setIndex,
-    required this.getLength,
-    required this.getAddMore,
     required this.addIfNoContains,
     required this.where,
+    required this.getLength,
   });
 }

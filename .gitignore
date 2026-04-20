@@ -31,9 +31,16 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/output/
 /video_downloader
 scripts/view.bat
 scripts/emulator.bat
+
+
+*.g.dart
+*.mapper.dart
+*.freezed.dart
+*.config.dart
 
 # Symbolication related
 app.*.symbols
@@ -52,3 +59,6 @@ app.*.map.json
 lib/app/ui/shared/widgets/inherited_model_notifier.dart
 
 .vscode/settings.json
+content_library/lib/src/models/generated/anime_entity.g.dart
+content_library/lib/src/repository/content_repository.g.dart
+content_library/lib/src/repository/content_repository.g.dart

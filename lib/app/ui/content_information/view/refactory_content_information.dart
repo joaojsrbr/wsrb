@@ -98,7 +98,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
       _updateReleasesByEntity?.call(() async {
         if (!mounted) return;
         // await _getReleases(_content);
-        final result = await _repository.getReleases(data, -1);
+        final result = await _repository.getContentReleases(data, -1);
         if (!mounted) return;
         _forceUpdate = UniqueKey();
         result.fold(onSuccess: _onSuccess);
@@ -198,7 +198,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
       setState(() {
         _releasesIsLoading = true;
       });
-      final result = await _repository.getReleases(content, _index + 1);
+      final result = await _repository.getContentReleases(content, _index + 1);
 
       result.fold(onSuccess: _onSuccess);
     } else {
@@ -297,7 +297,7 @@ class _RefContentkInformationViewState extends State<RefContentInformationView> 
     });
 
     await _repository
-        .getData(_informationArgs.content)
+        .getDetails(_informationArgs.content)
         .timeout(const Duration(seconds: 30), onTimeout: _handleTimeout)
         .then(_handleResult);
 

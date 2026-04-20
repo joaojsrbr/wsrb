@@ -106,7 +106,7 @@ class ContentUtils {
     ContentRepository repository,
     Content content,
   ) async {
-    final result = await repository.getContent(episode, content);
+    final result = await repository.getReleaseData(episode, content);
 
     result.fold(
       onSuccess: (data) async {

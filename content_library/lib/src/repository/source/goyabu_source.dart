@@ -15,10 +15,12 @@ class GoyabuSource extends RSource {
   Source get source => Source.GOYABU;
 
   @override
-  Future<Result<List<Data>>> getContent(Release release) async {
+  Future<Result<List<Data>>> getReleaseData(Release release) async {
     if (release is! Episode) {
       return Result.failure(
-        AnimeGetDataException(message: "A instancia content precisa ser do tipo Episode"),
+        AnimeGetDataException(
+          message: "A instancia content precisa ser do tipo Episode",
+        ),
       );
     }
 
@@ -27,14 +29,18 @@ class GoyabuSource extends RSource {
 
       final parser = await context.session.fetchDocument(
         Uri.parse(release.url),
-        captchaHandler: HumanCaptchaHandler(context: context.anchor.currentContext),
+        captchaHandler: HumanCaptchaHandler(
+          context: context.anchor.currentContext,
+        ),
       );
 
       final fremeSrc = parser.queryAttr(".metaframe.rptss", "src");
 
       if (fremeSrc != null) {
         final acoes = <DomAction>[
-          ExecuteScriptAction("document.querySelector('.play-button').click();"),
+          ExecuteScriptAction(
+            "document.querySelector('.play-button').click();",
+          ),
           WaitAction(const Duration(seconds: 2)),
           ExecuteScriptAction("VIDEO_CONFIG;", resultKey: "VIDEO_CONFIG"),
         ];
@@ -44,9 +50,13 @@ class GoyabuSource extends RSource {
         );
 
         final playURL =
-            (result['VIDEO_CONFIG']['streams'] as List).first['play_url'] as String;
+            (result['VIDEO_CONFIG']['streams'] as List).first['play_url']
+                as String;
 
-        final videoData = Data.videoData(videoContent: playURL, httpHeaders: App.HEADERS);
+        final videoData = Data.videoData(
+          videoContent: playURL,
+          httpHeaders: App.HEADERS,
+        );
         data.add(videoData);
       }
 
@@ -59,7 +69,7 @@ class GoyabuSource extends RSource {
   }
 
   @override
-  Future<Result<Content>> getReleases(Content content, int page) async {
+  Future<Result<Content>> getContentReleases(Content content, int page) async {
     if (content is! Anime) throw AnimeGetDataException();
 
     final EpisodeReleases cacheRelease = EpisodeReleases();
@@ -78,7 +88,9 @@ class GoyabuSource extends RSource {
 
       final ScrapingUtil scrapingUtil = ScrapingUtil(pageElement);
 
-      final episodesElements = scrapingUtil.element.querySelectorAll('.listaEps li');
+      final episodesElements = scrapingUtil.element.querySelectorAll(
+        '.listaEps li',
+      );
 
       for (final episodeElement in episodesElements) {
         final ScrapingUtil episodeScrapingUtil = ScrapingUtil(episodeElement);
@@ -116,7 +128,7 @@ class GoyabuSource extends RSource {
   }
 
   @override
-  Future<Result<Content>> getData(Content content) async {
+  Future<Result<Content>> getDetails(Content content) async {
     try {
       if (content is! Anime) throw AnimeGetDataException();
 
@@ -127,12 +139,16 @@ class GoyabuSource extends RSource {
 
       final Document episodeDocument = parse(responseAnimeURL.data);
 
-      final String animeURL = episodeDocument
-          .querySelectorAll('.paginationEP a')
-          .elementAt(1)
-          .attributes['href']!;
+      final elements = episodeDocument.querySelectorAll('.paginationEP a');
+      if (elements.length < 2) {
+        throw GoyabuLoadDataException(message: 'paginationEP a: expected at least 2 elements, got ${elements.length}');
+      }
+      final String animeURL = elements[1].attributes['href']!;
 
-      final Anime anime = content.copyWith(releases: EpisodeReleases(), url: animeURL);
+      final Anime anime = content.copyWith(
+        releases: EpisodeReleases(),
+        url: animeURL,
+      );
 
       final Response response = await context.dio.get(
         anime.url,
@@ -197,19 +213,23 @@ class GoyabuSource extends RSource {
     } on DioException catch (error) {
       return Result.failure(error);
     } on AnimeGetDataException catch (error, stack) {
-      customLog('ERROR[${error.runtimeType}]: ${error.message}', stackTrace: stack);
+      customLog(
+        'ERROR[${error.runtimeType}]: ${error.message}',
+        stackTrace: stack,
+      );
       return Result.failure(error);
     }
   }
 
   @override
-  Future<bool> loadData() async {
-    if (context.getAddMore()) {
-      context.setIndex(context.getIndex() + 1);
+  Future<bool> loadPage([int page = 0]) async {
+    final state = context.state;
+    if (state.addMore) {
+      state.index++;
     }
 
     try {
-      final String subKey = "lancamentos/page/${context.getIndex()}";
+      final String subKey = "lancamentos/page/${state.index}";
 
       final String mainURL = '${source.baseUrl}/$subKey';
 
@@ -233,10 +253,13 @@ class GoyabuSource extends RSource {
         final thumbnail = parser.getImage('img');
         final episodeTitle = parser.queryText('.titleEP');
         final isDublado =
-            (element.attributes['data-tar']?.toLowerCase().contains('dub')) ?? false;
+            (element.attributes['data-tar']?.toLowerCase().contains('dub')) ??
+            false;
         final animeTitle = parser.queryText('.title');
 
-        if (episodeURL == null || episodeTitle == null || animeTitle == null) continue;
+        if (episodeURL == null || episodeTitle == null || animeTitle == null) {
+          continue;
+        }
 
         final Episode episode = Episode(
           isDublado: isDublado,
@@ -300,11 +323,7 @@ class GoyabuSource extends RSource {
           FilterOption(id: 'thriller', label: 'Thriller'),
         ],
       ),
-      Filter(
-        id: 'year',
-        label: 'Ano',
-        type: FilterType.year,
-      ),
+      Filter(id: 'year', label: 'Ano', type: FilterType.year),
       Filter(
         id: 'status',
         label: 'Status',
@@ -336,11 +355,7 @@ class GoyabuSource extends RSource {
           FilterOption(id: 'views', label: 'Visualizações'),
         ],
       ),
-      Filter(
-        id: 'letter',
-        label: 'Letra',
-        type: FilterType.letter,
-      ),
+      Filter(id: 'letter', label: 'Letra', type: FilterType.letter),
     ];
 
     return Result.success(filters);

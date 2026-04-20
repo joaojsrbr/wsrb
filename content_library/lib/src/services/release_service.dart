@@ -119,7 +119,7 @@ class ReleaseUpdateService {
           );
 
           final source = contentRepository.source(repoContent.source);
-          final result = await source.getData(repoContent.toContent());
+          final result = await source.getDetails(repoContent.toContent());
 
           if (result is Success<Content>) {
             final anime = result.data as Anime;

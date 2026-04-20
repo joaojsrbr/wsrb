@@ -147,7 +147,7 @@ final class ReleaseUtils {
     // final colorScheme = Theme.of(context).colorScheme;
 
     final List<Data?> data = [];
-    final result = await repository.getContent(release, content);
+    final result = await repository.getReleaseData(release, content);
 
     result.fold(onSuccess: (success) => data.addAll(success.nonNulls.cast<Data?>()));
 

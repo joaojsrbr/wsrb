@@ -208,7 +208,7 @@ class _PlayerViewState extends State<PlayerView>
     }
     // 4️⃣ Caso contrário, busca do repositório
     else {
-      result = await _repository.getContent(_playerArgs.episode, _playerArgs.anime);
+      result = await _repository.getReleaseData(_playerArgs.episode, _playerArgs.anime);
     }
 
     // 5️⃣ Trata resultado
@@ -249,7 +249,7 @@ class _PlayerViewState extends State<PlayerView>
         _playerArgs.anime.repoStatus.getReleases) {
       return;
     }
-    final result = await _repository.getData(_playerArgs.anime);
+    final result = await _repository.getDetails(_playerArgs.anime);
     result.fold(
       onSuccess: (data) {
         setStateIfMounted(() {
@@ -425,6 +425,7 @@ class _PlayerViewState extends State<PlayerView>
         _hasNextEpisode &&
         maxPosition.inSeconds > 0) {
       final indexOf = _playerArgs.anime.releases.indexOf(_playerArgs.episode) + 1;
+      if (indexOf >= _playerArgs.anime.releases.length) return;
       final nextEpisode = _playerArgs.anime.releases[indexOf];
 
       _overlayNextEpisode.value = 'Episódio ${nextEpisode.numberInt} - ${diff.inSeconds}';

@@ -73,19 +73,20 @@ class _CustomHighlightScope extends InheritedNotifier<HighlightController> {
   const _CustomHighlightScope({required super.child, required super.notifier});
 
   static HighlightController of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_CustomHighlightScope>()!.notifier!;
+    return context
+        .dependOnInheritedWidgetOfExactType<_CustomHighlightScope>()!
+        .notifier!;
   }
 
   static HighlightController? maybeOf(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_CustomHighlightScope>()?.notifier;
+    return context
+        .dependOnInheritedWidgetOfExactType<_CustomHighlightScope>()
+        ?.notifier;
   }
 
   @override
   bool updateShouldNotify(_CustomHighlightScope oldWidget) {
-    return {
-      notifier != oldWidget.notifier,
-      // notifier?._value != oldWidget.notifier?._value,
-    }.contains(true);
+    return notifier != oldWidget.notifier;
   }
 }
 

@@ -2,11 +2,8 @@ import 'package:build/build.dart';
 import 'package:content_library/src/annotations/source_annotation.dart';
 import 'package:source_gen/source_gen.dart';
 
-Builder sourceGenerator(BuilderOptions options) => LibraryBuilder(
-  SourceGenerator(),
-  generatedExtension: '.g.dart',
-  options: BuilderOptions({'target': 'lib/src/repository/source/source_enum.dart'}),
-);
+Builder sourceGenerator(BuilderOptions options) =>
+    LibraryBuilder(SourceGenerator(), generatedExtension: '.g.dart');
 
 class SourceGenerator extends Generator {
   @override
@@ -99,6 +96,30 @@ class SourceGenerator extends Generator {
     }
   }
 ''');
+
+    buffer.writeln('''
+      static Source fromId(String id) {
+        return switch (id.toLowerCase()) {
+    ''');
+
+    for (final s in sources) {
+      final enumName = _toEnumName(s.className);
+
+      buffer.writeln('''
+          '${s.id.toLowerCase()}' => Source.$enumName,
+    ''');
+    }
+
+    buffer.writeln('''
+          _ => throw Exception('Source not found: \$id'),
+        };
+      }
+    ''');
+
+    buffer.write("""
+    @override
+    String toString() => label;
+  """);
 
     buffer.writeln('}');
 

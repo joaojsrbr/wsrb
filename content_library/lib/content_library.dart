@@ -47,8 +47,10 @@ export 'src/models/episode_entity.dart';
 export 'src/models/genre.dart';
 export 'src/models/release.dart';
 export 'src/models/search_filter.dart';
-export 'src/repository/content_repository.dart' show ContentRepository, Source;
-export 'src/repository/source/source.dart' show SearchResult, RSource, Filter, FilterType, FilterOption;
+export 'src/repository/content_repository.dart'
+    show ContentRepository, Source, SourceMapper;
+export 'src/repository/source/source.dart'
+    show SearchResult, RSource, Filter, FilterType, FilterOption;
 export 'src/repository/source_context.dart' show SourceContext, SourceState;
 export 'src/services/anroll_login_service.dart';
 export 'src/services/app_config_service.dart';

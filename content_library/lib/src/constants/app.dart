@@ -24,10 +24,10 @@ class App {
 
   static final String? ANIME_SKIP_API_KEY = dotenv.env['ANIME_SKIP_API_KEY'];
 
-  static Map<String, String> HEADERS = {
-    "user-agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0",
-  };
+  static const String USER_AGENT =
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0";
+
+  static Map<String, String> HEADERS = {"user-agent": USER_AGENT};
 
   static const CONTENT_APP_CACHE_CONFIG = CacheConfiguration(
     sizeOptions: CacheSizeOptions(maxMb: 20),
