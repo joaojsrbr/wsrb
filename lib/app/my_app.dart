@@ -2,6 +2,7 @@ import 'package:content_library/content_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 
 import 'routes/routes.dart';
 import 'ui/shared/widgets/global_overlay.dart';
@@ -18,6 +19,8 @@ class MyApp extends StatelessWidget {
     );
 
     customLog('$this[build]');
+
+    final appConfigController = context.watch<AppConfigController>();
 
     final light = ColorScheme.fromSeed(
       seedColor: const Color(0xFF191724),
@@ -41,7 +44,7 @@ class MyApp extends StatelessWidget {
         cardTheme: const CardThemeData(margin: EdgeInsets.zero),
         useSystemColors: true,
       ),
-      themeMode: ThemeMode.system,
+      themeMode: appConfigController.config.themeMode,
       supportedLocales: const [Locale('pt')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

@@ -2,6 +2,7 @@
 import 'package:content_library/content_library.dart';
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
 part 'generated/app_config_entity.g.dart';
@@ -21,6 +22,9 @@ class AppConfigEntity extends OtherEntity with AppConfigEntityMappable {
   final AutoUpdateInterval autoUpdateInterval;
 
   @enumerated
+  final ThemeMode themeMode;
+
+  @enumerated
   final Source source;
 
   @override
@@ -30,6 +34,7 @@ class AppConfigEntity extends OtherEntity with AppConfigEntityMappable {
     super.id,
     required this.orderBy,
     required this.filterWatching,
+    required this.themeMode,
     required this.reverseContents,
     required this.source,
     required this.autoUpdateInterval,
@@ -37,6 +42,7 @@ class AppConfigEntity extends OtherEntity with AppConfigEntityMappable {
 
   factory AppConfigEntity.init() => AppConfigEntity(
     orderBy: OrderBy.LATEST,
+    themeMode: ThemeMode.dark,
     autoUpdateInterval: AutoUpdateInterval.every30Minutes,
     filterWatching: FilterWatching.dafult(),
     source: Source.TOP_ANIMES,
@@ -56,10 +62,17 @@ class FilterWatching with EquatableMixin {
   @enumerated
   final List<Source> filterSources;
 
-  factory FilterWatching.dafult() => FilterWatching(filterSources: Source.values);
+  factory FilterWatching.dafult() =>
+      FilterWatching(filterSources: Source.values);
 
   @override
-  List<Object?> get props => [start, end, infiniteDate, genresFilter, filterSources];
+  List<Object?> get props => [
+    start,
+    end,
+    infiniteDate,
+    genresFilter,
+    filterSources,
+  ];
 
   FilterWatching({
     this.start,

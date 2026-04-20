@@ -16,8 +16,8 @@ echo ===== Build concluído com sucesso =====
 :: Define caminho original do APK gerado (mais comum: arm64-v8a)
 set ORIGINAL_APK=build\app\outputs\flutter-apk\app-arm64-v8a-production-release.apk
 
-:: Pergunta onde salvar o APK
-set /p DEST_FOLDER=Digite o caminho absoluto da pasta onde deseja salvar o APK (sem aspas): 
+:: Pasta onde o APK será salvo
+set DEST_FOLDER=output
 
 :: Cria pasta se não existir
 if not exist "%DEST_FOLDER%" (

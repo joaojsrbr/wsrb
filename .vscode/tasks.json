@@ -1,63 +1,69 @@
 {
-	"version": "2.0.0",
-	"tasks": [
+    "version": "2.0.0",
+    "tasks": [
         {
-        "label": "build_content_library",
-        "type": "shell",
-        "command": "dart",
-        "args": [
-            "run",
-            "build_runner",
-            "build",
-            "--delete-conflicting-outputs"
-        ],
-        "options": {
-            "cwd": "${workspaceFolder}/content_library"
-        },
-        "problemMatcher": ["$dart-build_runner"]
-        },
-        {
-        "label": "build_principal",
-        "type": "shell",
-        "command": "dart",
-        "args": [
-            "run",
-            "build_runner",
-            "build",
-            "--delete-conflicting-outputs"
-        ],
-        "options": {
-            "cwd": "${workspaceFolder}"
-        },
-        "problemMatcher": ["$dart-build_runner"]
+            "label": "build_content_library",
+            "type": "shell",
+            "command": "flutter",
+            "args": [
+                "pub",
+                "run",
+                "build_runner",
+                "build",
+                "--delete-conflicting-outputs"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/content_library"
+            },
+            "problemMatcher": [
+                "$dart-build_runner"
+            ]
         },
         {
-        "label": "build_runner: BUILD ALL",
-        "dependsOn": [
-            "build_content_library",
-            "build_principal"
-        ],
-        "dependsOrder": "sequence",
-        "group": {
-            "kind": "build",
-            "isDefault": true
+            "label": "build_principal",
+            "type": "shell",
+            "command": "flutter",
+            "args": [
+                "pub",
+                "run",
+                "build_runner",
+                "build",
+                "--delete-conflicting-outputs"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$dart-build_runner"
+            ]
+        },
+        {
+            "label": "build_runner: BUILD ALL",
+            "dependsOn": [
+                "build_content_library",
+                "build_principal"
+            ],
+            "dependsOrder": "sequence",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build & Install APK (Production)",
+            "type": "shell",
+            "command": "flutter build apk --flavor Production --release --split-per-abi && adb install -r build/app/outputs/flutter-apk/app-arm64-v8a-production-release.apk",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$dart-build_runner"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Compila o APK de produção e o instala via ADB."
         }
-        },
-		{
-			"label": "Build & Install APK (Production)",
-			"type": "shell",
-			"command": "flutter build apk --flavor Production --release --split-per-abi && adb install -r build/app/outputs/flutter-apk/app-arm64-v8a-production-release.apk",
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": [
-				"$dart-build_runner"
-			],
-			"group": {
-				"kind": "build",
-				"isDefault": true 
-			},
-			"detail": "Compila o APK de produção e o instala via ADB."
-		}
-	]
+    ]
 }

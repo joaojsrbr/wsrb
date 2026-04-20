@@ -44,4 +44,15 @@ enum Source {
         return TopAnimesSource(ctx, initialIndex: initialIndex);
     }
   }
+
+  static Source fromId(String id) {
+    return switch (id.toLowerCase()) {
+      'goyabu' => Source.GOYABU,
+      'top_animes' => Source.TOP_ANIMES,
+      _ => throw Exception('Source not found: $id'),
+    };
+  }
+
+  @override
+  String toString() => label;
 }

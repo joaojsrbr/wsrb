@@ -1,14 +1,18 @@
 // Updated settings_appearance.dart
-import '../view/settings_view.dart';
+import 'package:content_library/content_library.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
+
+import '../view/settings_view.dart';
 
 class SettingsAppearanceView extends StatelessWidget {
   const SettingsAppearanceView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final appConfigController = context.watch<AppConfigController>();
     return Scaffold(
       body: ExtendedNestedScrollView(
         // overscrollBehavior: OverscrollBehavior.outer,
@@ -34,7 +38,9 @@ class SettingsAppearanceView extends StatelessWidget {
                   ),
                   initialValue: Theme.of(context).brightness == Brightness.dark,
                   onToggle: (val) {
-                    // TODO: implementar troca de tema no seu app
+                    appConfigController.setThemeMode(
+                      val ? ThemeMode.dark : ThemeMode.light,
+                    );
                   },
                 ),
               ],

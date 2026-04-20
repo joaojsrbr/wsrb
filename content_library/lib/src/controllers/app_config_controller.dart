@@ -25,6 +25,10 @@ class AppConfigController extends ChangeNotifier {
     await _appConfigService.setOrderBy(value);
   }
 
+  Future<void> setThemeMode(ThemeMode value) async {
+    await _appConfigService.setThemeMode(value);
+  }
+
   Future<void> setAutoUpdateInterval(AutoUpdateInterval value) async {
     await _appConfigService.setAutoUpdateInterval(value);
   }

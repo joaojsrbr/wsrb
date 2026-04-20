@@ -14,7 +14,8 @@ class AppConfigService {
   final StreamController<AppConfigService> _updateRepositoryController =
       StreamController.broadcast();
 
-  Stream<AppConfigService> get updateRepository => _updateRepositoryController.stream;
+  Stream<AppConfigService> get updateRepository =>
+      _updateRepositoryController.stream;
 
   AppConfigService(this._isarService, [bool setWorkManage = true]) {
     _repository = AppConfigRepository();
@@ -80,6 +81,12 @@ class AppConfigService {
 
   Future<void> setFilterWatching(FilterWatching value) async {
     repo.updateConfig((config) => config.copyWith(filterWatching: value));
+    await _addConfig();
+  }
+
+  Future<void> setThemeMode(ThemeMode value) async {
+    if (value == repo.config.themeMode) return;
+    repo.updateConfig((config) => config.copyWith(themeMode: value));
     await _addConfig();
   }
 

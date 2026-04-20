@@ -49,10 +49,13 @@ class _HomeViewState extends State<HomeView>
     super.initState();
     _progressNotifier = ValueNotifier<double>(0.0);
     _highlightController = HighlightController();
-    _bottomSheetAnimationController = BottomSheet.createAnimationController(this);
+    _bottomSheetAnimationController = BottomSheet.createAnimationController(
+      this,
+    );
     _tabController = TabController(vsync: this, length: 3)
       ..addListener(_tabControllerListener);
-    _scrollController = ScrollController()..addListener(_scrollControllerListener);
+    _scrollController = ScrollController()
+      ..addListener(_scrollControllerListener);
     _keepWatchingScrollController = ScrollController();
     _searchController = CustomSearchController();
     _categoryController = context.read<CategoryController>()
@@ -101,7 +104,8 @@ class _HomeViewState extends State<HomeView>
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:
       case AppLifecycleState.resumed:
-        if (_isCompleted && context.hasNotification()) context.closeNotification();
+        if (_isCompleted && context.hasNotification())
+          context.closeNotification();
       case AppLifecycleState.detached:
     }
 
@@ -198,7 +202,10 @@ class _HomeViewState extends State<HomeView>
   //   return const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics());
   // }
 
-  List<Widget> _headerSliverBuilder(BuildContext context, bool innerBoxIsScrolled) {
+  List<Widget> _headerSliverBuilder(
+    BuildContext context,
+    bool innerBoxIsScrolled,
+  ) {
     // final tabController = HomeScope.of(context).tabController;
     final List<Widget> slivers = [];
 
@@ -264,6 +271,12 @@ class _HomeViewState extends State<HomeView>
         floatingActionButton: kDebugMode
             ? FloatingActionButton(
                 onPressed: () async {
+                  // _highlightController.isActive(
+                  //   "64e0b8f3-71cd-504e-bd16-8a653cc523f4",
+                  // );
+                  _highlightController.toggle(
+                    "64e0b8f3-71cd-504e-bd16-8a653cc523f4",
+                  );
                   // await Workmanager().cancelByTag(App.APP_WORK_NEW_RELEASE);
                   // await Workmanager().registerOneOffTask(
                   //   UniqueKey().toString(),
@@ -301,9 +314,9 @@ class _HomeViewState extends State<HomeView>
                   // );
                   // context.showSuccessNotification("test");
 
-                  context.showSuccessNotification(
-                    "${_valueNotifierList.isEmpty ? "Item" : "Itens"} adicionados com sucesso.",
-                  );
+                  // context.showSuccessNotification(
+                  //   "${_valueNotifierList.isEmpty ? "Item" : "Itens"} adicionados com sucesso.",
+                  // );
                 },
               )
             : null,
@@ -370,8 +383,10 @@ class _HomeButtonMenuSliver extends StatelessWidget {
     final TabController tabController = scope.tabController;
     final SubordinateLibraryTabController subordinateLibraryTabController =
         scope.subordinateLibraryTabController;
-    final CategoryController categoryController = context.watch<CategoryController>();
-    final AppConfigController appConfigController = context.watch<AppConfigController>();
+    final CategoryController categoryController = context
+        .watch<CategoryController>();
+    final AppConfigController appConfigController = context
+        .watch<AppConfigController>();
     // final popupKey = GlobalKey<pop.CustomPopupState>();
 
     return SliverAnimatedPaintExtent(
@@ -395,7 +410,8 @@ class _HomeButtonMenuSliver extends StatelessWidget {
                   onSelected: appConfigController.setSource,
                   items: Source.values,
                   enableSecondChild: tabController.index != 0,
-                  itemEnabled: (data) => !(appConfigController.config.source == data),
+                  itemEnabled: (data) =>
+                      !(appConfigController.config.source == data),
                   child: Text(
                     appConfigController.config.source.toString(),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -453,9 +469,12 @@ class _HomeButtonMenuSliver extends StatelessWidget {
           child: TabBar.secondary(
             tabAlignment: TabAlignment.start,
             controller: subordinateLibraryTabController,
-            tabs: categoryController.categories.map<Widget>((CategoryEntity entity) {
+            tabs: categoryController.categories.map<Widget>((
+              CategoryEntity entity,
+            ) {
               return GestureDetector(
-                onLongPress: () => CategoryHelper.openCategoryCreator(context, entity),
+                onLongPress: () =>
+                    CategoryHelper.openCategoryCreator(context, entity),
                 child: Tab(text: entity.title),
               );
             }).toList()..insert(0, const Tab(text: 'Padrão')),

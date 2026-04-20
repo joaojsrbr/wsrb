@@ -25,16 +25,27 @@ void main(List<String> arguments) async {
   final IsarServiceImpl isarServiceImpl = IsarServiceImpl();
   final AppConfigService appConfigService = AppConfigService(isarServiceImpl);
   final DownloadService downloadService = DownloadService();
-  final LibraryService libraryService = LibraryService(isarServiceImpl, appConfigService);
+  final LibraryService libraryService = LibraryService(
+    isarServiceImpl,
+    appConfigService,
+  );
   final HistoricService historicService = HistoricService(isarServiceImpl);
 
-  final AppConfigController appConfigController = AppConfigController(appConfigService);
+  final AppConfigController appConfigController = AppConfigController(
+    appConfigService,
+  );
   final LibraryController libraryController = LibraryController(libraryService);
-  final HistoricController historicController = HistoricController(historicService);
-  final CategoryController categoryController = CategoryController(isarServiceImpl);
+  final HistoricController historicController = HistoricController(
+    historicService,
+  );
+  final CategoryController categoryController = CategoryController(
+    isarServiceImpl,
+  );
 
   final GraphQLApiClient graphQLApiClient = GraphQLApiClient();
-  final AnimeSkipRepository animeSkipRepository = AnimeSkipRepository(graphQLApiClient);
+  final AnimeSkipRepository animeSkipRepository = AnimeSkipRepository(
+    graphQLApiClient,
+  );
 
   timeago.setLocaleMessages('pt_br', timeago.PtBrMessages());
   timeago.setDefaultLocale('pt_br');
@@ -43,28 +54,28 @@ void main(List<String> arguments) async {
   await isarServiceImpl.startDatabase();
   await appConfigService.start();
 
+  await Future.wait([Workmanager().initialize(_callbackDispatcher)]);
+
   await Future.wait([
     historicService.start(),
     categoryController.start(),
     libraryService.start(),
     NotificationService.I.init(onTap: ContentUtils.notificationResponse),
-    Workmanager().initialize(_callbackDispatcher),
-  ]);
-
-  await Future.wait([
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
     PlayerAudioHandlerMixin.startPlayerAudio(),
-    dotenv.load(fileName: "assets/.env"),
-    Workmanager().registerPeriodicTask(
-      UniqueKey().toString(),
-      App.APP_WORK_DELETE_CONTENT,
-      tag: App.APP_WORK_DELETE_CONTENT,
-      frequency: const Duration(days: 3),
-      existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
-    ),
+    dotenv.load(fileName: ".env"),
   ]);
 
+  await Workmanager().registerPeriodicTask(
+    UniqueKey().toString(),
+    App.APP_WORK_DELETE_CONTENT,
+    tag: App.APP_WORK_DELETE_CONTENT,
+    frequency: const Duration(days: 3),
+    existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
+  );
   // elapsed.printAndStop('MAIN');
+
+  customLog(dotenv.env['ANIME_SKIP_API_KEY']);
 
   final ContentRepository contentRepository = ContentRepository(
     appConfigService: appConfigService,
