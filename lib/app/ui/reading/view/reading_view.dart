@@ -43,7 +43,7 @@ class _ReadingViewState extends State<ReadingView> with _ReadingVars, _ReadingSc
       _releases.addAll(args.book.releases);
       _chapter = args.chapter;
       _book = args.book;
-      final data = await _repository.getContent(_chapter!, _book!);
+      final data = await _repository.getReleaseData(_chapter!, _book!);
       data.fold(onError: _onError, onSuccess: _onSucess);
     }
   }

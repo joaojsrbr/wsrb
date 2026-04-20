@@ -65,7 +65,7 @@ class _LibraryButtonsState extends State<LibraryButtons> {
                 valueNotifierList.clear();
 
                 final contents = await Future.wait(
-                  allSelected.map((content) => repository.getData(content)),
+                  allSelected.map((content) => repository.getDetails(content)),
                 );
 
                 final contentEntities = contents

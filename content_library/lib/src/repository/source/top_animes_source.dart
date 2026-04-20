@@ -15,85 +15,91 @@ class TopAnimesSource extends RSource {
   Source get source => Source.TOP_ANIMES;
 
   @override
-  Future<Result<List<Data>>> getContent(Release release) async {
+  Future<Result<List<Data>>> getReleaseData(Release release) async {
     if (release is! Episode) {
       return Result.failure(
-        AnimeGetDataException(message: "A instancia content precisa ser do tipo Episode"),
+        AnimeGetDataException(
+          message: "A instancia content precisa ser do tipo Episode",
+        ),
       );
     }
 
     final List<Data> data = [];
     try {
-      // https://cdn-s01.mywallpaper-4k-image.net/stream/y/yasei-no-last-boss-ga-arawareta/11.mp4/index.m3u8
-
       final releaseURL = release.url;
-      final rex = RegExp(r"""-\bepisodio-\d+/?$""");
-      final parts = releaseURL.split("/");
-      final lastSplit = parts[parts.length - 2].replaceAll(rex, "");
-      final numberEp = rex
-          .stringMatch(parts[parts.length - 2])
-          ?.replaceAll(RegExp("[^0-9]"), "");
-      final letra = lastSplit[0];
+      final urlParts = releaseURL.split("/");
 
-      final partsURL = [
-        "https://cdn-s01.mywallpaper-4k-image.net/stream",
-        letra,
-        lastSplit,
-        "$numberEp.mp4",
-        "index.m3u8",
-      ];
-      final playURL = partsURL.join("/");
+      if (urlParts.length < 2) {
+        return Result.failure(
+          AnimeGetDataException(message: "URL inválida: $releaseURL"),
+        );
+      }
 
-      final videoData = Data.videoData(videoContent: playURL, httpHeaders: App.HEADERS);
+      final lastPart = urlParts[urlParts.length - 2];
+      final episodeMatch = RegExp(r"episodio-(\d+)").firstMatch(lastPart);
+
+      if (episodeMatch == null) {
+        return Result.failure(
+          AnimeGetDataException(
+            message: "Número do episódio não encontrado na URL",
+          ),
+        );
+      }
+
+      final episodeNum = int.tryParse(episodeMatch.group(1) ?? '');
+      if (episodeNum == null) {
+        return Result.failure(
+          AnimeGetDataException(message: "Número do episódio inválido"),
+        );
+      }
+
+      final animeSlug = lastPart.replaceAll(RegExp(r"-\bepisodio-\d+/?$"), "");
+
+      if (animeSlug.isEmpty) {
+        return Result.failure(
+          AnimeGetDataException(message: "Slug do anime não encontrado"),
+        );
+      }
+
+      final letra = animeSlug[0];
+      final formattedNum = episodeNum < 10 ? "0$episodeNum" : "$episodeNum";
+
+      final playURL = Uri.parse("https://cdn-s01.mywallpaper-4k-image.net")
+          .replace(
+            pathSegments: [
+              "stream",
+              letra,
+              animeSlug,
+              "$formattedNum.mp4",
+              "index.m3u8",
+            ],
+          )
+          .toString();
+
+      final videoData = Data.videoData(
+        videoContent: playURL,
+        httpHeaders: App.HEADERS,
+      );
       data.add(videoData);
+      // customLog(playURL);
       return Result.success(data);
-    } catch (_) {
-      return Result.failure(Exception());
+    } on AnimeGetDataException catch (error, stack) {
+      customLog(
+        'ERROR[${error.runtimeType}]: ${error.toString()}',
+        stackTrace: stack,
+      );
+      return Result.failure(error);
+    } on Exception catch (error, stack) {
+      customLog(
+        'ERROR[${error.runtimeType}]: ${error.toString()}',
+        stackTrace: stack,
+      );
+      return Result.failure(error);
     }
-
-    // try {
-    //   final List<Data> data = [];
-
-    //   final parser = await contentRepository.session.fetchDocument(
-    //     Uri.parse(release.url),
-    //     captchaHandler: HumanCaptchaHandler(
-    //       context: contentRepository.anchor.currentContext,
-    //     ),
-    //   );
-
-    //   final url = parser.queryAttr("#dooplay_player_content a", "href");
-
-    //   if (url != null) {
-    //     final code = """
-    //       var iframe = document.querySelector('#player iframe');
-    //       iframe.src;
-    //     """;
-
-    //     final acoes = <DomAction>[
-    //       // WaitAction(const Duration(seconds: 10)),
-    //       ExecuteScriptAction(code, resultKey: "VIDEO_URL"),
-    //     ];
-    //     final result = await contentRepository.session.executeActionsAndScrape(
-    //       url: Uri.parse(url),
-    //       actions: acoes,
-    //     );
-
-    //     final playURL = result['VIDEO_CONFIG'];
-    //     customLog(playURL);
-    //     final videoData = Data.videoData(videoContent: playURL, httpHeaders: App.HEADERS);
-    //     data.add(videoData);
-    //   }
-
-    //   await contentRepository.session.closePage();
-
-    //   return Result.success(data);
-    // } on DioException catch (error) {
-    //   return Result.failure(error);
-    // }
   }
 
   @override
-  Future<Result<Content>> getData(Content content) async {
+  Future<Result<Content>> getDetails(Content content) async {
     try {
       if (content is! Anime) throw AnimeGetDataException();
 
@@ -131,7 +137,9 @@ class TopAnimesSource extends RSource {
           isDublado: content.isDublado,
           registrationData: registrationData,
           thumbnail: originalImage,
-          numberEpisode: int.tryParse(episodeTitle.replaceAll(RegExp("[^0-9]"), "")),
+          numberEpisode: int.tryParse(
+            episodeTitle.replaceAll(RegExp("[^0-9]"), ""),
+          ),
         );
         content.releases.addOrUpdateWhere(episode, episode.isEqualStringID);
       }
@@ -140,16 +148,22 @@ class TopAnimesSource extends RSource {
     } on DioException catch (error) {
       return Result.failure(error);
     } on AnrollGetIdException catch (error, stack) {
-      customLog('ERROR[${error.runtimeType}]: ${error.message}', stackTrace: stack);
+      customLog(
+        'ERROR[${error.runtimeType}]: ${error.message}',
+        stackTrace: stack,
+      );
       return Result.failure(error);
     } on AnimeGetDataException catch (error, stack) {
-      customLog('ERROR[${error.runtimeType}]: ${error.message}', stackTrace: stack);
+      customLog(
+        'ERROR[${error.runtimeType}]: ${error.message}',
+        stackTrace: stack,
+      );
       return Result.failure(error);
     }
   }
 
   @override
-  Future<Result<Content>> getReleases(Content content, int page) async {
+  Future<Result<Content>> getContentReleases(Content content, int page) async {
     try {
       if (content is! Anime) throw AnimeGetDataException();
       final Response response = await context.dio.get(
@@ -177,7 +191,9 @@ class TopAnimesSource extends RSource {
           isDublado: content.isDublado,
           registrationData: registrationData,
           thumbnail: originalImage,
-          numberEpisode: int.tryParse(episodeTitle.replaceAll(RegExp("[^0-9]"), "")),
+          numberEpisode: int.tryParse(
+            episodeTitle.replaceAll(RegExp("[^0-9]"), ""),
+          ),
         );
         content.releases.addOrUpdateWhere(episode, episode.isEqualStringID);
       }
@@ -188,14 +204,15 @@ class TopAnimesSource extends RSource {
   }
 
   @override
-  Future<bool> loadData() async {
+  Future<bool> loadPage([int page = 0]) async {
+    final state = context.state;
     try {
-      if (context.getAddMore()) {
-        context.addTotalPerPage(context.getLength());
-        context.setIndex(context.getIndex() + 1);
+      if (state.addMore) {
+        state.totalPerPage[source] = context.getLength();
+        state.index++;
       }
 
-      final index = context.getIndex();
+      final index = state.index;
       final baseURL = source.baseUrl;
 
       final parts = [baseURL, "episodio/page", index];
@@ -223,7 +240,9 @@ class TopAnimesSource extends RSource {
             .replaceAll(RegExp(r"""-\bepisodio-\d+/?$"""), "")
             .replaceAll("episodio", "animes");
 
-        if ({episodeUrl, episodeTitle, animeTitle, animeURL}.contains(null)) continue;
+        if ({episodeUrl, episodeTitle, animeTitle, animeURL}.contains(null)) {
+          continue;
+        }
 
         final isDublado = animeTitle!.toLowerCase().contains("dublado");
 
@@ -268,9 +287,10 @@ class TopAnimesSource extends RSource {
   }
 
   @override
-  Future<Result<SearchResult>> search(SearchFilter filter) {
-    // TODO: implement search
-    throw UnimplementedError();
+  Future<Result<SearchResult>> search(SearchFilter filter) async {
+    return Result.failure(
+      Exception('search() not implemented for TOP_ANIMES source'),
+    );
   }
 
   @override
@@ -296,11 +316,7 @@ class TopAnimesSource extends RSource {
           FilterOption(id: 'thriller', label: 'Thriller'),
         ],
       ),
-      Filter(
-        id: 'year',
-        label: 'Ano',
-        type: FilterType.year,
-      ),
+      Filter(id: 'year', label: 'Ano', type: FilterType.year),
       Filter(
         id: 'status',
         label: 'Status',
@@ -333,11 +349,7 @@ class TopAnimesSource extends RSource {
           FilterOption(id: 'rating', label: 'Avaliação'),
         ],
       ),
-      Filter(
-        id: 'letter',
-        label: 'Letra',
-        type: FilterType.letter,
-      ),
+      Filter(id: 'letter', label: 'Letra', type: FilterType.letter),
     ];
 
     return Result.success(filters);

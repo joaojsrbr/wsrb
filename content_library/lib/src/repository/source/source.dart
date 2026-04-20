@@ -13,17 +13,35 @@ abstract class RSource {
 
   Source get source;
 
-  Future<bool> loadData();
+  /// Loads a page of content. Returns true if more pages exist.
+  Future<bool> loadPage([int page]);
 
-  Future<Result<Content>> getData(Content content);
+  /// Fetches full details for a content item (anime/manga).
+  Future<Result<Content>> getDetails(Content content);
 
-  Future<Result<List<Data>>> getContent(Release release);
+  /// Fetches the video/data URL for a specific release (episode/chapter).
+  Future<Result<List<Data>>> getReleaseData(Release release);
 
-  Future<Result<Content>> getReleases(Content content, int page);
+  /// Fetches the list of releases for a content item.
+  Future<Result<Content>> getContentReleases(Content content, int page);
 
+  /// Searches content by filter criteria.
   Future<Result<SearchResult>> search(SearchFilter filter);
 
+  /// Returns available filters for this source.
   Future<Result<List<Filter>>> getFilters() => Future.value(Result.success([]));
+
+  /// Whether this source supports search.
+  bool get supportsSearch => true;
+
+  /// Whether this source supports filters.
+  bool get supportsFilters => false;
+
+  /// Convenience: check if source has more content to load.
+  bool get hasMore => context.state.hasMore;
+
+  /// Current page index.
+  int get currentPage => context.state.index;
 }
 
 class Filter {
@@ -32,7 +50,12 @@ class Filter {
   final FilterType type;
   final List<FilterOption>? options;
 
-  const Filter({required this.id, required this.label, required this.type, this.options});
+  const Filter({
+    required this.id,
+    required this.label,
+    required this.type,
+    this.options,
+  });
 }
 
 enum FilterType { genre, year, status, type, order, letter, search }
@@ -49,5 +72,9 @@ class SearchResult {
   final SplayTreeSet<Content> contents;
   final int page;
   final int? totalOfPages;
-  const SearchResult({required this.contents, required this.page, this.totalOfPages});
+  const SearchResult({
+    required this.contents,
+    required this.page,
+    this.totalOfPages,
+  });
 }

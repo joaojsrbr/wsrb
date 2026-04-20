@@ -110,6 +110,7 @@ class ScrapingSession {
   }
 
   Future<void> dispose() async {
+    _timer?.cancel();
     await _headless.dispose();
   }
 

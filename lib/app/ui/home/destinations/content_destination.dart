@@ -18,14 +18,18 @@ class _ContentDestinationState extends State<ContentDestination>
   late final ContentRepository _contentRepository;
 
   late final TextEditingController _editingController;
-  final Debouncer cookieDebouncer = Debouncer(duration: const Duration(seconds: 1));
+  final Debouncer cookieDebouncer = Debouncer(
+    duration: const Duration(seconds: 1),
+  );
 
   @override
   void initState() {
     super.initState();
     _editingController = TextEditingController();
     _contentRepository = context.read<ContentRepository>();
-    _contentRepository.refresh(true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _contentRepository.refresh(true);
+    });
   }
 
   @override
@@ -39,7 +43,9 @@ class _ContentDestinationState extends State<ContentDestination>
     return LoadingMoreList(
       ListConfig<Content>(
         shrinkWrap: true,
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
         padding: const EdgeInsets.symmetric(vertical: 6),
         indicatorBuilder: contentIndicatorBuilder,
         itemBuilder: _itemBuilder,
@@ -49,15 +55,17 @@ class _ContentDestinationState extends State<ContentDestination>
   }
 
   Widget _itemBuilder(BuildContext context, Content content, int index) {
-    final lastOrNull = _contentRepository.totalPerPage.lastOrNull;
+    final totalPerPage = _contentRepository.totalPerPage;
 
-    final isNewPageHeader = lastOrNull != null && lastOrNull == index;
+    final isNewPageHeader = totalPerPage != null && totalPerPage == index;
 
     final contentWidget = CustomValueChangeHighlight(
       value: content.stringID,
       child: ContentTile.list(
         content: content,
-        padding: isNewPageHeader ? EdgeInsets.zero : const EdgeInsets.only(bottom: 4),
+        padding: isNewPageHeader
+            ? EdgeInsets.zero
+            : const EdgeInsets.only(bottom: 4),
       ),
     );
 

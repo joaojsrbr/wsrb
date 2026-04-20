@@ -16,10 +16,10 @@ class LibraryDestination extends StatefulWidget {
   const LibraryDestination({super.key});
 
   @override
-  State<LibraryDestination> createState() => LibraryeDestinationState();
+  State<LibraryDestination> createState() => LibraryDestinationState();
 }
 
-class LibraryeDestinationState extends State<LibraryDestination>
+class LibraryDestinationState extends State<LibraryDestination>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -76,13 +76,6 @@ class LibraryeDestinationState extends State<LibraryDestination>
 
       _contents.values.first.removeAll(splay);
     }
-
-    // final List<Widget> newChildrens = [
-    //   buildGridView(noCategories),
-    //   ...yesCategories.mapIndexed((index, e) => buildGridView(e))
-    // ];
-
-    // customLog(noCategories.length);
 
     setStateIfMounted(() {});
   }
@@ -152,7 +145,6 @@ class LibraryeDestinationState extends State<LibraryDestination>
   Widget build(BuildContext context) {
     super.build(context);
 
-    _setChildren();
     customLog('$widget[build]');
     final SubordinateLibraryTabController subordinateLibraryTabController = HomeScope.of(
       context,

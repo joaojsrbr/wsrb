@@ -167,7 +167,7 @@ class DownloadService extends ChangeNotifier {
     void Function(Result result)? onResult,
   }) async {
     if (await PermissionUtils.manageExternalStorage() && content is Anime) {
-      final videoData = await repository.source(content.source).getContent(release);
+      final videoData = await repository.source(content.source).getReleaseData(release);
 
       // if (videoData case Success<List<Data>> success) {
       //   final selected = success.data.first as VideoData;

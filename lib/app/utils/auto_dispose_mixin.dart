@@ -28,6 +28,8 @@ mixin AutoDisposeMixin<T extends StatefulWidget> on State<T> {
       if (obj is StreamSubscription) {
         obj.cancel();
       }
-    } catch (_) {}
+    } catch (e) {
+      customLog('[AutoDisposeMixin] Failed to dispose ${obj.runtimeType}: $e');
+    }
   }
 }
